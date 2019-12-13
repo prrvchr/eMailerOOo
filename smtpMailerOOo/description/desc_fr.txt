@@ -1,0 +1,1 @@
+smtpMailerOOo est une extension offrant des services de messagerie smtp pour LibreOffice / OpenOffice.

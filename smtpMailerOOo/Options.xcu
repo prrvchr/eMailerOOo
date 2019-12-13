@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<oor:component-data
+  oor:name="smtpMailerOOo"
+  oor:package="com.gmail.prrvchr.extensions"
+  xml:lang="en-US" xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <node oor:name="Options" oor:op="fuse" oor:mandatory="true">
+        <prop oor:name="SendAsHtml" oor:op="fuse">
+            <value>false</value>
+        </prop>
+        <prop oor:name="SendAsPdf" oor:op="fuse">
+            <value>true</value>
+        </prop>
+        <prop oor:name="MaxSizeMo" oor:op="fuse">
+            <value>5</value>
+        </prop>
+        <prop oor:name="OffLineUse" oor:op="fuse">
+            <value>false</value>
+        </prop>
+    </node>
+</oor:component-data>

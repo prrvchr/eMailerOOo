@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="OptionsDialog" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="225" dlg:help-text="&amp;0.OptionsDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;1.OptionsDialog.Title" dlg:withtitlebar="false">
+ <dlg:styles>
+  <dlg:style dlg:style-id="0" dlg:font-height="10" dlg:font-weight="150"/>
+ </dlg:styles>
+ <dlg:bulletinboard>
+  <dlg:titledbox dlg:style-id="0" dlg:id="FrameOptions" dlg:tab-index="0" dlg:left="4" dlg:top="4" dlg:width="272" dlg:height="65" dlg:help-text="&amp;2.OptionsDialog.FrameOptions.HelpText">
+   <dlg:title dlg:value="&amp;3.OptionsDialog.FrameOptions.Label"/>
+  </dlg:titledbox>
+  <dlg:checkbox dlg:id="SendAsHtml" dlg:tab-index="1" dlg:left="10" dlg:top="22" dlg:width="261" dlg:height="14" dlg:help-text="&amp;4.OptionsDialog.SendAsHtml.HelpText" dlg:value="&amp;5.OptionsDialog.SendAsHtml.Label" dlg:checked="false"/>
+  <dlg:checkbox dlg:id="SendAsPdf" dlg:tab-index="2" dlg:left="10" dlg:top="47" dlg:width="261" dlg:height="14" dlg:help-text="&amp;6.OptionsDialog.SendAsPdf.HelpText" dlg:value="&amp;7.OptionsDialog.SendAsPdf.Label" dlg:checked="false"/>
+  <dlg:titledbox dlg:style-id="0" dlg:id="FrameAvenced" dlg:tab-index="3" dlg:left="4" dlg:top="75" dlg:width="272" dlg:height="65" dlg:help-text="&amp;8.OptionsDialog.FrameAvenced.HelpText">
+   <dlg:title dlg:value="&amp;9.OptionsDialog.FrameAvenced.Label"/>
+  </dlg:titledbox>
+  <dlg:text dlg:id="LabelMaxSize" dlg:tab-index="4" dlg:left="10" dlg:top="93" dlg:width="200" dlg:height="16" dlg:help-text="&amp;10.OptionsDialog.LabelMaxSize.HelpText" dlg:value="&amp;11.OptionsDialog.LabelMaxSize.Label" dlg:valign="center" dlg:tabstop="false"/>
+  <dlg:numericfield dlg:id="MaxSizeMo" dlg:tab-index="5" dlg:left="220" dlg:top="93" dlg:width="50" dlg:height="16" dlg:help-text="&amp;12.OptionsDialog.MaxSizeMo.HelpText" dlg:decimal-accuracy="0" dlg:value-min="0" dlg:value-max="100" dlg:spin="true" dlg:repeat="50"/>
+  <dlg:checkbox dlg:id="OffLineUse" dlg:tab-index="6" dlg:left="10" dlg:top="118" dlg:width="261" dlg:height="14" dlg:help-text="&amp;13.OptionsDialog.OffLineUse.HelpText" dlg:value="&amp;14.OptionsDialog.OffLineUse.Label" dlg:checked="false"/>
+  </dlg:bulletinboard>
+</dlg:window>

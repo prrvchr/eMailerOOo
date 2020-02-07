@@ -13,7 +13,7 @@
         <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo.update.xml" />
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo" lang="en">Google Drive for LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo" lang="en">Send Email in LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true" >
@@ -28,8 +28,8 @@
         <name lang="en">smtpMailerOOo</name>
     </display-name>
     <icon>
-        <default xlink:href="smtpMailerOOo/gDrive.png" />
-        <high-contrast xlink:href="smtpMailerOOo/gDrive.png" />
+        <default xlink:href="smtpMailerOOo/smtpMailer.png" />
+        <high-contrast xlink:href="smtpMailerOOo/smtpMailer.png" />
     </icon>
     <extension-description>
         <src xlink:href="description/desc_en.txt" lang="en" />

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# cd ./rdb/
-# ./make_rdb.sh
+./make_rdb.sh
 
 cd ./smtpMailerOOo/
 zip -0 smtpMailerOOo.zip mimetype

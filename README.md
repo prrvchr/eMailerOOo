@@ -1,5 +1,12 @@
 **This extension is under development and is not yet available ... Thank you for your patience.**
 
+What remains to be done:
+
+- Rewriting of mailmerge.py (to be compatible with: SSL and StartTLS, OAuth2 authentication... ie: with Mozilla IspBD technology)
+- Write an Wizard using Mozilla IspDB technology able to find the correct configuration working with mailmerge.py.
+- Rewriting of Mailer Dialog.py in a Mailer Wizard dialog.
+
+
 **The use of this software subjects you to our** [Terms Of Use](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [Data Protection Policy](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
 
 

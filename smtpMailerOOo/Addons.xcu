@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <oor:component-data
-  oor:name="Addons"
-  oor:package="org.openoffice.Office"
   xmlns:oor="http://openoffice.org/2001/registry"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office"
+  oor:name="Addons">
   <node oor:name="AddonUI">
     <node oor:name="AddonMenu">
-      <node oor:name="smtpMailerOOo.1" oor:op="fuse">
+      <node oor:name="com.gmail.prrvchr.extensions.smtpMailerOOo" oor:op="replace">
         <prop oor:name="Title" oor:type="xs:string">
+          <value>smtpMailerOOo</value>
           <value xml:lang="en-US">smtpMailerOOo</value>
           <value xml:lang="fr-FR">smtpMailerOOo</value>
         </prop>
         <prop oor:name="URL" oor:type="xs:string">
-          <value>service:com.gmail.prrvchr.extensions.smtpMailerOOo.Dialog?insert</value>
+          <value>service:com.gmail.prrvchr.extensions.smtpMailerOOo.WizardMailer</value>
         </prop>
         <prop oor:name="Target" oor:type="xs:string">
           <value>_self</value>
         </prop>
         <prop oor:name="Context" oor:type="xs:string">
-          <value></value>
-        </prop>
-        <prop oor:name="ImageIdentifier" oor:type="xs:string">
-          <value>%origin%/icons/current</value>
+          <value>com.sun.star.text.TextDocument,com.sun.star.sheet.SpreadsheetDocument</value>
         </prop>
       </node>
     </node>

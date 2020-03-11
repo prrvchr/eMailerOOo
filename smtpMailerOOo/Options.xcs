@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <oor:component-schema
-  oor:name="smtpMailerOOo"
-  oor:package="com.gmail.prrvchr.extensions"
-  xml:lang="en-US" xmlns:oor="http://openoffice.org/2001/registry"
+  xml:lang="en-US"
+  xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  oor:package="com.gmail.prrvchr.extensions"
+  oor:name="smtpMailerOOo">
     <component>
-        <group oor:name="Options">
-            <prop oor:name="SendAsHtml" oor:type="xs:boolean" />
-            <prop oor:name="SendAsPdf" oor:type="xs:boolean" />
-            <prop oor:name="MaxSizeMo" oor:type="xs:short" />
-            <prop oor:name="OffLineUse" oor:type="xs:boolean" />
-        </group>
+        <prop oor:name="IspDbUrl" oor:type="xs:string" />
+        <prop oor:name="SendAsHtml" oor:type="xs:boolean" />
+        <prop oor:name="SendAsPdf" oor:type="xs:boolean" />
+        <prop oor:name="MaxSizeMo" oor:type="xs:short" />
+        <prop oor:name="OffLineUse" oor:type="xs:boolean" />
     </component>
 </oor:component-schema>

@@ -4,6 +4,9 @@
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_logger
+from .configuration import g_wizard_paths
+
+from .wizardcontroller import WizardController
 
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

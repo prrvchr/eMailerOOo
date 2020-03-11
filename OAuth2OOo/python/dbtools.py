@@ -234,7 +234,17 @@ def getSequenceFromResult(result, sequence=None, index=1, provider=None):
         sequence.append(value)
     return sequence
 
-def _getValueFromResult(result, dbtype, index):
+def getRowResult(result, index=0):
+    sequence = []
+    column = index + 1
+    dbtype = result.MetaData.getColumnTypeName(column)
+    result.beforeFirst()
+    while result.next():
+        value = _getValueFromResult(result, dbtype, column, '')
+        sequence.append(value)
+    return tuple(sequence)
+
+def _getValueFromResult(result, dbtype, index, default=None):
     if dbtype == 'VARCHAR':
         value = result.getString(index)
     elif dbtype == 'TIMESTAMP':
@@ -244,7 +254,7 @@ def _getValueFromResult(result, dbtype, index):
     elif dbtype == 'BIGINT' or dbtype == 'SMALLINT' or dbtype == 'INTEGER':
         value = result.getLong(index)
     else:
-        value = None
+        value = default
     return value
 
 def getTablesAndStatements(statement, version=g_version):

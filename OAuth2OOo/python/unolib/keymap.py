@@ -18,6 +18,13 @@ class KeyMap(unohelper.Base,
     def __init__(self, **kwargs):
         self._value = OrderedDict(kwargs)
 
+    def __iter__(self):
+        for value in self._value.values():
+            yield self._getValue(value)
+
+    def __getitem__(self, index):
+        return self.getValueByIndex(index)
+
     def _getValue(self, value):
         if isinstance(value, dict):
             value = KeyMap(**value)
@@ -46,13 +53,13 @@ class KeyMap(unohelper.Base,
     def setValue(self, key, value):
         self._value[key] = value
 
-    def getKeyByIndex(self, i):
-        if 0 <= i < self.Count:
-            return list(self._value.keys())[i]
+    def getKeyByIndex(self, index):
+        if 0 <= index < self.Count:
+            return self._value.keys()[index]
         raise IndexOutOfBoundsException()
 
-    def getValueByIndex(self, i):
-        key = self.getKeyByIndex(i)
+    def getValueByIndex(self, index):
+        key = self.getKeyByIndex(index)
         value = self._value[key]
         return self._getValue(value)
 

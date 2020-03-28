@@ -71,6 +71,8 @@ class WizardPage(unohelper.Base,
                 #mri.inspect(event)
                 control = self.Window.getControl('ListBox1')
                 control.Model.StringItemList = self._handler.TableNames
+                control = self.Window.getControl('ListBox2')
+                control.Model.StringItemList = self._handler.ColumnNames
             elif self.PageId == 3:
                 pass
             print("WizardPage.refreshed(%s) 2" % self.PageId)
@@ -115,7 +117,7 @@ class WizardPage(unohelper.Base,
             control = self.Window.getControl('ListBox1')
             advance = control.SelectedItem != ''
         elif self.PageId == 2:
-            control = self.Window.getControl('ListBox3')
+            control = self.Window.getControl('ListBox4')
             advance = control.ItemCount != 0
         elif self.PageId == 3:
             pass
@@ -142,12 +144,13 @@ class WizardPage(unohelper.Base,
             if self.PageId == 2:
                 if event.Source == self._handler._address:
                     address = self._handler._address
-                    self.Window.getControl("ListBox2").Model.StringItemList = getRowResult(address, 0)
+                    #column = self._handler
+                    self.Window.getControl("ListBox3").Model.StringItemList = getRowResult(address, 0)
                     self.Window.getControl("CommandButton2").Model.Enabled = (address.RowCount != 0)
                     self.Window.getControl("CommandButton3").Model.Enabled = False
                 elif event.Source == self._handler._recipient:
                     recipient = self._handler._recipient
-                    self.Window.getControl("ListBox3").Model.StringItemList = getRowResult(recipient, 0)
+                    self.Window.getControl("ListBox4").Model.StringItemList = getRowResult(recipient, 0)
                     self.Window.getControl("CommandButton4").Model.Enabled = False
                     self.Window.getControl("CommandButton5").Model.Enabled = (recipient.RowCount != 0)
             print("wizardpage.rowSetChanged() 2")

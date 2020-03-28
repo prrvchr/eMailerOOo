@@ -37,6 +37,7 @@ class WizardHandler(unohelper.Base,
         self._wizard = wizard
         self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
         self._table = None
+        self._column = None
         self._statement = None
         self._listeners = []
         self._address = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.RowSet')
@@ -56,6 +57,12 @@ class WizardHandler(unohelper.Base,
     def TableNames(self):
         if self._statement is not None:
             return self._statement.getConnection().getTables().ElementNames
+        return ()
+    @property
+    def ColumnNames(self):
+        if self._statement is not None:
+            if self._table is not None:
+                return self._table.Columns.ElementNames
         return ()
 
     # XRefreshable
@@ -100,7 +107,7 @@ class WizardHandler(unohelper.Base,
                         #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
                         #mri.inspect(connection)
                         self._statement = connection.createStatement()
-                        self._table = connection.getTables().getByIndex(g_table_index)
+                        #self._table = connection.getTables().getByIndex(g_table_index)
                         self._address.ActiveConnection = connection
                         self._recipient.ActiveConnection = connection
                     else:
@@ -108,7 +115,12 @@ class WizardHandler(unohelper.Base,
                         self._table = None
                 self._refresh(event)
             elif tag == 'AddressBook':
+                mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+                mri.inspect(self.Connection)
+                self._table = self.Connection.getTables().getByName(control.SelectedItem)
                 self._address.Command = control.SelectedItem
+                control = window.getControl('ListBox2')
+                control.Model.StringItemList = self.ColumnNames
                 #self._address.Filter = self._getQueryFilter()
                 #self._address.ApplyFilter = True
                 #self._address.Order = self._getQueryOrder()
@@ -118,6 +130,9 @@ class WizardHandler(unohelper.Base,
                 #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
                 #mri.inspect(connection)
                 #self._controller.Connection = connection
+            elif tag == 'Columns':
+                self._column = self._table.Columns.getByName(control.SelectedItem)
+                self._address.execute()
             self._wizard.updateTravelUI()
             return True
         except Exception as e:
@@ -152,4 +167,6 @@ class WizardHandler(unohelper.Base,
         transient = uno.getConstantByName('com.sun.star.beans.PropertyAttribute.TRANSIENT')
         properties['Connection'] = getProperty('Connection', 'com.sun.star.sdbc.XConnection', transient)
         properties['DataSources'] = getProperty('DataSources', '[] string', transient)
+        properties['TableNames'] = getProperty('TableNames', '[] string', transient)
+        properties['ColumnNames'] = getProperty('ColumnNames', '[] string', transient)
         return properties

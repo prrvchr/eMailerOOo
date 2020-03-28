@@ -33,6 +33,7 @@ from .unotools import getDateTime
 from .unotools import parseDateTime
 from .unotools import unparseDateTime
 from .unotools import unparseTimeStamp
+from .unotools import getConnectionMode
 
 from .unocore import PropertyContainer
 

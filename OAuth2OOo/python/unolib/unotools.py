@@ -4,12 +4,27 @@
 import uno
 
 from com.sun.star.lang import WrappedTargetRuntimeException
+from com.sun.star.connection import NoConnectException
+from com.sun.star.ucb.ConnectionMode import ONLINE
+from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from .unolib import InteractionHandler
 
 import datetime
 import binascii
 import traceback
+
+
+def getConnectionMode(ctx, host, port=80):
+    connector = ctx.ServiceManager.createInstance('com.sun.star.connection.Connector')
+    try:
+        connection = connector.connect('socket,host=%s,port=%s' % (host, port))
+    except NoConnectException:
+        mode = OFFLINE
+    else:
+        connection.close()
+        mode = ONLINE
+    return mode
 
 def getSimpleFile(ctx):
     return ctx.ServiceManager.createInstance('com.sun.star.ucb.SimpleFileAccess')

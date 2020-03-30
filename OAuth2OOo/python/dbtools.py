@@ -329,9 +329,9 @@ def getTablesAndStatements(statement, version=g_version):
                     break
             format = {'Table': table}
             if typed:
-                merge = getSqlQuery('createTypedMerge', format)
+                merge = getSqlQuery('createTypedDataMerge', format)
             else:
-                merge = getSqlQuery('createUnTypedMerge', format)
+                merge = getSqlQuery('createUnTypedDataMerge', format)
             statements.append(merge)
     call.close()
     return tables, statements

@@ -37,7 +37,7 @@ class WizardHandler(unohelper.Base,
         self._wizard = wizard
         self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
         self._table = None
-        self._column = None
+        self._columns = []
         self._statement = None
         self._listeners = []
         self._address = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.RowSet')
@@ -115,8 +115,8 @@ class WizardHandler(unohelper.Base,
                         self._table = None
                 self._refresh(event)
             elif tag == 'AddressBook':
-                mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-                mri.inspect(self.Connection)
+                #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+                #mri.inspect(self.Connection)
                 self._table = self.Connection.getTables().getByName(control.SelectedItem)
                 self._address.Command = control.SelectedItem
                 control = window.getControl('ListBox2')
@@ -131,7 +131,9 @@ class WizardHandler(unohelper.Base,
                 #mri.inspect(connection)
                 #self._controller.Connection = connection
             elif tag == 'Columns':
-                self._column = self._table.Columns.getByName(control.SelectedItem)
+                #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+                #mri.inspect(control)
+                self._columns = control.SelectedItemsPos
                 self._address.execute()
             self._wizard.updateTravelUI()
             return True

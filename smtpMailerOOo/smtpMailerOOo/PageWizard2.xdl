@@ -13,7 +13,7 @@
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:left="115" dlg:top="25" dlg:width="30" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label2.HelpText" dlg:value="&amp;PageWizard2.Label2.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="4" dlg:left="150" dlg:top="25" dlg:width="50" dlg:height="15" dlg:tag="Columns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="4" dlg:left="150" dlg:top="25" dlg:width="50" dlg:height="15" dlg:tag="Columns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:multiselection="true" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="5" dlg:left="215" dlg:top="25" dlg:width="50" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton1.HelpText" dlg:value="&amp;PageWizard2.CommandButton1.Label">

@@ -144,13 +144,13 @@ class WizardPage(unohelper.Base,
             if self.PageId == 2:
                 if event.Source == self._handler._address:
                     address = self._handler._address
-                    #column = self._handler
-                    self.Window.getControl("ListBox3").Model.StringItemList = getRowResult(address, 0)
+                    columns = self._handler._columns
+                    self.Window.getControl("ListBox3").Model.StringItemList = getRowResult(address, columns)
                     self.Window.getControl("CommandButton2").Model.Enabled = (address.RowCount != 0)
                     self.Window.getControl("CommandButton3").Model.Enabled = False
                 elif event.Source == self._handler._recipient:
                     recipient = self._handler._recipient
-                    self.Window.getControl("ListBox4").Model.StringItemList = getRowResult(recipient, 0)
+                    self.Window.getControl("ListBox4").Model.StringItemList = getRowResult(recipient)
                     self.Window.getControl("CommandButton4").Model.Enabled = False
                     self.Window.getControl("CommandButton5").Model.Enabled = (recipient.RowCount != 0)
             print("wizardpage.rowSetChanged() 2")

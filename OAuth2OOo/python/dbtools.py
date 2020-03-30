@@ -261,16 +261,6 @@ def getRowResult(result, index=(0,), separator=' '):
         sequence.append(separator.join(values))
     return tuple(sequence)
 
-def getRowResult1(result, index=0):
-    sequence = []
-    column = index + 1
-    dbtype = result.MetaData.getColumnTypeName(column)
-    result.beforeFirst()
-    while result.next():
-        value = _getValueFromResult(result, dbtype, column, '')
-        sequence.append(value)
-    return tuple(sequence)
-
 def _getValueFromResult(result, dbtype, index, default=None):
     if dbtype == 'VARCHAR':
         value = result.getString(index)

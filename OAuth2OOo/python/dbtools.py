@@ -168,8 +168,7 @@ def registerDataSource(dbcontext, dbname, url):
 def getKeyMapFromResult(result, keymap=KeyMap(), provider=None):
     for i in range(1, result.MetaData.ColumnCount +1):
         name = result.MetaData.getColumnName(i)
-        dbtype = result.MetaData.getColumnTypeName(i)
-        value = _getValueFromResult(result, dbtype, i)
+        value = getValueFromResult(result, i)
         if value is None:
             continue
         if result.wasNull():
@@ -183,8 +182,7 @@ def getDataFromResult(result, provider=None):
     data = {}
     for i in range(1, result.MetaData.ColumnCount +1):
         name = result.MetaData.getColumnName(i)
-        dbtype = result.MetaData.getColumnTypeName(i)
-        value = _getValueFromResult(result, dbtype, i)
+        value = getValueFromResult(result, i)
         if value is None:
             continue
         if result.wasNull():
@@ -201,8 +199,7 @@ def getKeyMapSequenceFromResult(result, provider=None):
         keymap = KeyMap()
         for i in range(1, count):
             name = result.MetaData.getColumnName(i)
-            dbtype = result.MetaData.getColumnTypeName(i)
-            value = _getValueFromResult(result, dbtype, i)
+            value = getValueFromResult(result, i)
             if value is None:
                 continue
             if result.wasNull():
@@ -218,11 +215,9 @@ def getKeyMapKeyMapFromResult(result):
     count = result.MetaData.ColumnCount +1
     while result.next():
         keymap = KeyMap()
-        dbtype = result.MetaData.getColumnTypeName(1)
-        name = _getValueFromResult(result, dbtype, 1)
+        name = getValueFromResult(result, 1)
         for i in range(2, count):
-            t = result.MetaData.getColumnTypeName(i)
-            v = _getValueFromResult(result, t, i)
+            v = getValueFromResult(result, i)
             n = result.MetaData.getColumnName(i)
             keymap.insertValue(n, v)
         sequence.insertValue(name, keymap)
@@ -237,9 +232,8 @@ def getSequenceFromResult(result, sequence=None, index=1, provider=None):
     if not i:
         return sequence
     name = result.MetaData.getColumnName(i)
-    dbtype = result.MetaData.getColumnTypeName(i)
     while result.next():
-        value = _getValueFromResult(result, dbtype, i)
+        value = getValueFromResult(result, i)
         if value is None:
             continue
         if result.wasNull():
@@ -251,17 +245,18 @@ def getSequenceFromResult(result, sequence=None, index=1, provider=None):
 
 def getRowResult(result, index=(0,), separator=' '):
     sequence = []
-    result.beforeFirst()
-    while result.next():
-        values = []
-        for i in index:
-            column = i + 1
-            dbtype = result.MetaData.getColumnTypeName(column)
-            values.append(_getValueFromResult(result, dbtype, column, ''))
-        sequence.append(separator.join(values))
+    if len(index) > 0:
+        result.beforeFirst()
+        while result.next():
+            values = []
+            for i in index:
+                column = i + 1
+                values.append('%s' % getValueFromResult(result, column, ''))
+            sequence.append(separator.join(values))
     return tuple(sequence)
 
-def _getValueFromResult(result, dbtype, index, default=None):
+def getValueFromResult(result, index, default=None):
+    dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
         value = result.getString(index)
     elif dbtype == 'TIMESTAMP':

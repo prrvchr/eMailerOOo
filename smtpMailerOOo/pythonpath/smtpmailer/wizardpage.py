@@ -6,7 +6,7 @@ import unohelper
 
 from com.sun.star.ui.dialogs import XWizardPage
 from com.sun.star.util import XRefreshListener
-from com.sun.star.sdbc import XRowSetListener
+from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -15,6 +15,7 @@ from unolib import createService
 from unolib import getProperty
 from unolib import getStringResource
 
+from .griddatamodel import GridDataModel
 from .dbtools import getRowResult
 from .logger import logMessage
 
@@ -29,7 +30,7 @@ class WizardPage(unohelper.Base,
                  PropertySet,
                  XWizardPage,
                  XRefreshListener,
-                 XRowSetListener):
+                 XGridSelectionListener):
     def __init__(self, ctx, id, window, handler):
         try:
             msg = "PageId: %s ..." % id
@@ -41,16 +42,22 @@ class WizardPage(unohelper.Base,
                 control = self.Window.getControl('ListBox1')
                 datasources = self._handler.DataSources
                 control.Model.StringItemList = datasources
-                datasource = self._getDocumentDataSource()
+                datasource = self._handler.getDocumentDataSource()
                 if datasource in datasources:
                     control.selectItem(datasource, True)
             elif id == 2:
-                control = self.Window.getControl('ListBox1')
-                control.Model.StringItemList = self._handler.TableNames
+                print("wizardpage.__init__() 1")
                 self._handler.addRefreshListener(self)
-                self._handler._address.addRowSetListener(self)
-                self._handler._recipient.addRowSetListener(self)
-                #rowset.addRowSetListener(self)
+                grid1 = self.Window.getControl('GridControl1')
+                grid2 = self.Window.getControl('GridControl2')
+                self._setGridDataModel(grid1, self._handler._address)
+                self._setGridDataModel(grid2, self._handler._recipient)
+                grid1.addSelectionListener(self)
+                grid2.addSelectionListener(self)
+                self._refreshPage2()
+                #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+                #mri.inspect(grid1)
+                print("wizardpage.__init__() 2")
             elif id == 3:
                 pass
             msg += " Done"
@@ -69,15 +76,30 @@ class WizardPage(unohelper.Base,
             elif self.PageId == 2 and tag == 'DataSource':
                 #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
                 #mri.inspect(event)
-                control = self.Window.getControl('ListBox1')
-                control.Model.StringItemList = self._handler.TableNames
-                control = self.Window.getControl('ListBox2')
-                control.Model.StringItemList = self._handler.ColumnNames
+                self._refreshPage2()
             elif self.PageId == 3:
                 pass
             print("WizardPage.refreshed(%s) 2" % self.PageId)
         except Exception as e:
             print("WizardPage.refreshed() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    # XGridSelectionListener
+    def selectionChanged(self, event):
+        try:
+            tag = event.Source.Model.Tag
+            enabled = event.Source.hasSelectedRows()
+            if tag == 'Addresses':
+                self.Window.getControl("CommandButton2").Model.Enabled = enabled
+            elif tag == 'Recipients':
+                self.Window.getControl("CommandButton3").Model.Enabled = enabled
+                if enabled:
+                    index = event.Source.getSelectedRows()[0]
+                    if index != self._handler.index:
+                        self._handler.setDocumentRecord(index)
+        except Exception as e:
+            print("WizardPage.selectionChanged() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    # XRefreshListener, XGridSelectionListener
     def disposing(self, event):
         pass
 
@@ -104,7 +126,9 @@ class WizardPage(unohelper.Base,
         if self.PageId == 1 and reason == forward:
             pass
         elif self.PageId == 2:
-            pass
+            print("wizardpage.commitPage() 1")
+            self._handler._database.DatabaseDocument.store()
+            print("wizardpage.commitPage() 2")
         elif self.PageId == 3:
             pass
         msg += " Done"
@@ -117,45 +141,28 @@ class WizardPage(unohelper.Base,
             control = self.Window.getControl('ListBox1')
             advance = control.SelectedItem != ''
         elif self.PageId == 2:
-            control = self.Window.getControl('ListBox4')
-            advance = control.ItemCount != 0
+            control = self.Window.getControl('GridControl2')
+            advance = control.Model.GridDataModel.RowCount != 0
         elif self.PageId == 3:
             pass
         return advance
 
-    def _getDocumentDataSource(self):
-        desktop = 'com.sun.star.frame.Desktop'
-        setting = 'com.sun.star.document.Settings'
-        document = createService(self.ctx, desktop).CurrentComponent
-        if document.supportsService('com.sun.star.text.TextDocument'):
-            return document.createInstance(setting).CurrentDatabaseDataSource
-        return None
+    def _setGridDataModel(self, grid, rowset):
+        # TODO: Because we need a GridDataListener who listen change on the GridDataModel
+        # TODO: We need to re assign the Model, and not only just set the GridDataModel
+        model = grid.getModel()
+        model.GridDataModel = GridDataModel(rowset)
+        grid.setModel(model)
 
-    # XRowSetListener
-    def disposing(self, event):
-        pass
-    def cursorMoved(self, event):
-        pass
-    def rowChanged(self, event):
-        pass
-    def rowSetChanged(self, event):
-        try:
-            print("wizardpage.rowSetChanged() 1")
-            if self.PageId == 2:
-                if event.Source == self._handler._address:
-                    address = self._handler._address
-                    columns = self._handler._columns
-                    self.Window.getControl("ListBox3").Model.StringItemList = getRowResult(address, columns)
-                    self.Window.getControl("CommandButton2").Model.Enabled = (address.RowCount != 0)
-                    self.Window.getControl("CommandButton3").Model.Enabled = False
-                elif event.Source == self._handler._recipient:
-                    recipient = self._handler._recipient
-                    self.Window.getControl("ListBox4").Model.StringItemList = getRowResult(recipient)
-                    self.Window.getControl("CommandButton4").Model.Enabled = False
-                    self.Window.getControl("CommandButton5").Model.Enabled = (recipient.RowCount != 0)
-            print("wizardpage.rowSetChanged() 2")
-        except Exception as e:
-            print("wizardpage.rowSetChanged() ERROR: %s - %s" % (e, traceback.print_exc()))
+    def _refreshPage2(self):
+        control = self.Window.getControl('ListBox1')
+        tables = self._handler.TableNames
+        control.Model.StringItemList = tables
+        table = self._handler._query.UpdateTableName
+        table = tables[0] if len(tables) != 0 and table == '' else table
+        control.selectItem(table, True)
+        columns = self._handler.getOrderIndex()
+        self.Window.getControl('ListBox2').selectItemsPos(columns, True)
 
     def _getPropertySetInfo(self):
         properties = {}

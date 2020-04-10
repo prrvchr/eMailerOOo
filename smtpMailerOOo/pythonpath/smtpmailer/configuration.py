@@ -8,6 +8,7 @@ g_logger = '%s.Logger' % g_identifier
 g_wizard_paths = ((1, 2, 3),)
 
 # Mailer Wizard configuration
+g_default_columns = ['Resource']
 g_column_index = 0
 #g_column_filters = (0, 1, 4)
 g_column_filters = ('HomeEmail', 'WorkEmail', 'OtherEmail')

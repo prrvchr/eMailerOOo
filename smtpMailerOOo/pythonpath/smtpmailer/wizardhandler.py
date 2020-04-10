@@ -39,11 +39,12 @@ class WizardHandler(unohelper.Base,
     def __init__(self, ctx, wizard):
         self.ctx = ctx
         self._wizard = wizard
-        self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+        #self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
         self._table = None
         self._columns = []
         self._statement = None
         self._listeners = []
+        self._disabled = False
         self._address = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._address.CommandType = TABLE
         self._address.Filter = self._getFilter(True)
@@ -52,12 +53,13 @@ class WizardHandler(unohelper.Base,
         self._recipient.CommandType = QUERY
         self._query = None
         self._database = None
-        self._document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        #self._document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
         self.index = -1
 
     @property
     def DataSources(self):
-        return self._dbcontext.ElementNames
+        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+        return dbcontext.ElementNames
     @property
     def Connection(self):
         if self._statement is not None:
@@ -94,6 +96,10 @@ class WizardHandler(unohelper.Base,
             handled = False
             if method == 'StateChange':
                 handled = self._updateUI(window, event)
+            elif method == 'Dispatch':
+                control = event.Source
+                handled = self._executeDispatch(control)
+                #self._updateControl(window, control)
             elif method == 'Add':
                 grid = window.getControl('GridControl2')
                 recipients = self._getRecipientFilters()
@@ -124,22 +130,24 @@ class WizardHandler(unohelper.Base,
         except Exception as e:
             print("WizardHandler.callHandlerMethod() ERROR: %s - %s" % (e, traceback.print_exc()))
     def getSupportedMethodNames(self):
-        return ('StateChange', 'Add', 'AddAll', 'Remove', 'RemoveAll')
+        return ('StateChange', 'Dispatch', 'Add', 'AddAll', 'Remove', 'RemoveAll')
 
     def getDocumentDataSource(self):
         setting = 'com.sun.star.document.Settings'
-        if self._document.supportsService('com.sun.star.text.TextDocument'):
-            return self._document.createInstance(setting).CurrentDatabaseDataSource
+        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        if document.supportsService('com.sun.star.text.TextDocument'):
+            return document.createInstance(setting).CurrentDatabaseDataSource
         return ''
 
     def setDocumentRecord(self, index):
         dispatch = None
-        frame = self._document.CurrentController.Frame
+        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        frame = document.CurrentController.Frame
         flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
-        if self._document.supportsService('com.sun.star.text.TextDocument'):
+        if document.supportsService('com.sun.star.text.TextDocument'):
             url = self._getUrl('.uno:DataSourceBrowser/InsertContent')
             dispatch = frame.queryDispatch(url, '_self', flag)
-        elif self._document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+        elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
             url = self._getUrl('.uno:DataSourceBrowser/InsertColumns')
             dispatch = frame.queryDispatch(url, '_self', flag)
         if dispatch is not None:
@@ -170,7 +178,7 @@ class WizardHandler(unohelper.Base,
         if rows is None:
             rows = range(2)
         service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
-        model = self.ctx.ServiceManager.createInstance(service)
+        model = createService(self.ctx, service)
         i = 0
         for name in self.ColumnNames:
             if i in rows:
@@ -189,7 +197,8 @@ class WizardHandler(unohelper.Base,
             if tag == 'DataSource':
                 datasource = control.SelectedItem
                 try:
-                    database = self._dbcontext.getByName(datasource)
+                    dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+                    database = dbcontext.getByName(datasource)
                 except WrappedTargetException as e:
                     self._statement = None
                     self._table = None
@@ -206,37 +215,65 @@ class WizardHandler(unohelper.Base,
                         self._recipient.Filter = self._query.Filter
                         self._recipient.ApplyFilter = True
                         self._recipient.Order = self._query.Order
+                        self._recipient.execute()
+                        self._refresh(event)
                     else:
                         self._query = None
                         self._statement = None
                         self._table = None
                         self._database = None
-                self._refresh(event)
             elif tag == 'AddressBook':
+                print("WizardHandler._updateUI() AddressBook 1")
                 self._table = self.Connection.getTables().getByName(control.SelectedItem)
                 self._query.UpdateTableName = self._table.Name
                 self._address.Command = control.SelectedItem
-                window.getControl('ListBox2').Model.StringItemList = self.ColumnNames
+                #window.getControl('ListBox2').Model.StringItemList = self.ColumnNames
                 self._address.execute()
                 self._updateControl(window, window.getControl('GridControl1'))
+                print("WizardHandler._updateUI() AddressBook 2")
             elif tag == 'Columns':
-                index = control.getSelectedItemsPos()
-                self._columns = index
-                self._setQueryOrder(control.getSelectedItems())
-                grid1 = window.getControl('GridControl1')
-                grid2 = window.getControl('GridControl2')
-                grid1.Model.ColumnModel = self._getColumnModel(index)
-                grid2.Model.ColumnModel = self._getColumnModel(index)
-                self._address.execute()
+                print("WizardHandler._updateUI() Columns 1")
+                # TODO: During ListBox initializing the listener must be disabled...
+                if self._disabled:
+                    return True
+                # TODO: XRowset.Order should be treated as a column stack
+                # TODO: Where adding is done at the end...
+                orders = self._recipient.Order.strip('"').split('","')
+                columns = control.getSelectedItems()
+                if len(orders) > len(columns):
+                    for order in orders:
+                        if order not in columns:
+                            orders.remove(order)
+                elif len(orders) < len(columns):
+                    for column in columns:
+                        if column not in orders:
+                            orders.append(column)
+                order = '"%s"' % '","'.join(orders) if len(orders) else ''
+                self._recipient.Order = order
+                self._address.Order = order
                 self._recipient.execute()
-                self._updateControl(window, grid1)
-                self._updateControl(window, grid2)
+                self._address.execute()
+                print("WizardHandler._updateUI() ************************************************")
+                self._updateControl(window, window.getControl('GridControl1'))
+                self._updateControl(window, window.getControl('GridControl2'))
+                print("WizardHandler._updateUI() Columns 2")
             else:
                 pass
                 #self._updateControl(window, control)
             return True
         except Exception as e:
             print("WizardHandler._updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    def _executeDispatch(self, control):
+        tag = control.Model.Tag
+        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        frame = document.CurrentController.Frame
+        dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+        if tag == 'DataSource':
+            dispatcher.executeDispatch(frame, '.uno:AutoPilotAddressDataSource', '', 0, ())
+        elif tag == 'AddressBook':
+            dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
+        return True
 
     def _setQueryOrder(self, columns):
         order = ''
@@ -245,6 +282,7 @@ class WizardHandler(unohelper.Base,
         self._query.Order = order
         self._address.Order = order
         self._recipient.Order = order
+        print("WizardHandler._setQueryOrder() %s" % order)
 
     def _rowRecipientExecute(self, filters=None):
         self._query.ApplyFilter = False
@@ -257,32 +295,43 @@ class WizardHandler(unohelper.Base,
         self._recipient.execute()
         return True
 
-    def _getQuery(self, connection, queryname="smtpMailerOOo"):
-        queries = self._database.QueryDefinitions
-        if queries.hasByName(queryname):
-            query = queries.getByName(queryname)
-        else:
-            query = self.ctx.ServiceManager.createInstance("com.sun.star.sdb.QueryDefinition")
-            table = connection.getTables().getByIndex(0)
-            column = table.getColumns().getByIndex(0)
-            query.Command = 'SELECT * FROM "%s"' % table.Name
-            query.UpdateTableName = table.Name
-            query.Filter = '0=1'
-            query.ApplyFilter = True
-            query.Order = '"%s"' % column.Name
-            queries.insertByName(queryname, query)
-            self._database.DatabaseDocument.store()
-        return query
+    def _getQuery(self, connection, queryname='smtpMailerOOo'):
+        try:
+            print("WizardHandler._getQuery() 1")
+            queries = self._database.QueryDefinitions
+            if queries.hasByName(queryname):
+                print("WizardHandler._getQuery() 2")
+                query = queries.getByName(queryname)
+            else:
+                query = createService(self.ctx, 'com.sun.star.sdb.QueryDefinition')
+                table = connection.getTables().getByIndex(0)
+                column = table.getColumns().getByIndex(0)
+                query.Command = 'SELECT * FROM "%s"' % table.Name
+                query.UpdateTableName = table.Name
+                query.Filter = '0=1'
+                query.ApplyFilter = True
+                query.Order = '"%s"' % column.Name
+                queries.insertByName(queryname, query)
+                print("WizardHandler._getQuery() 3")
+                self._database.DatabaseDocument.store()
+                print("WizardHandler._getQuery() 4")
+            return query
+        except Exception as e:
+            print("WizardHandler._getQuery() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def _updateControl(self, window, control):
         try:
             tag = control.Model.Tag
-            selected = control.hasSelectedRows()
-            enabled = control.Model.GridDataModel.RowCount != 0
-            if tag == 'Addresses':
+            if tag == 'DataSource':
+                window.getControl('ListBox1').Model.StringItemList = self.DataSources
+            elif tag == 'Addresses':
+                selected = control.hasSelectedRows()
+                enabled = control.Model.GridDataModel.RowCount != 0
                 window.getControl('CommandButton1').Model.Enabled = enabled
                 window.getControl('CommandButton2').Model.Enabled = selected
             elif tag == 'Recipients':
+                selected = control.hasSelectedRows()
+                enabled = control.Model.GridDataModel.RowCount != 0
                 window.getControl('CommandButton3').Model.Enabled = selected
                 window.getControl('CommandButton4').Model.Enabled = enabled
         except Exception as e:

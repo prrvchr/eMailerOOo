@@ -42,8 +42,7 @@ class WizardController(unohelper.Base,
     def __init__(self, ctx, wizard):
         self.ctx = ctx
         self._wizard = wizard
-        self._pages = []
-        self._maxpage = 2
+        self._pages = [1]
         self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
@@ -104,44 +103,7 @@ class WizardController(unohelper.Base,
         return True
 
     def _isFirstLoad(self, id):
-        if id < self._maxpage and id not in self._pages:
-            self._pages.append(id)
+        if id in self._pages:
+            self._pages.remove(id)
             return True
         return False
-
-    def _getRowSet(self):
-        addressbook = self.ctx.ServiceManager.createInstance("com.sun.star.sdb.RowSet")
-        #addressbook.CommandType = COMMAND
-        #addressbook.EscapeProcessing = False
-        #addressbook.Command = getSqlQuery('getTablesName')
-        address = self.ctx.ServiceManager.createInstance("com.sun.star.sdb.RowSet")
-        address.CommandType = TABLE
-        #address.Filter = self._getQueryFilter()
-        #address.ApplyFilter = True
-        #address.Order = self._getQueryOrder()
-        recipient = self.ctx.ServiceManager.createInstance("com.sun.star.sdb.RowSet")
-        recipient.CommandType = QUERY
-        return {'AddressBook': addressbook, 'Address': address, 'Recipient': recipient}
-
-    def _getQueryFilter(self, filters=None):
-        if filters is None:
-            result = "(%s)" % (self._getFilter())
-        elif len(filters):
-            result = "(%s)" % (" OR ".join(filters))
-        else:
-            result = "(%s AND \"%s\" = '')" % (self._getFilter(), self._getColumn().Name)
-        return result
-
-    def _getFilter(self):
-        filter = []
-        for column in g_column_filters:
-            filter.append("\"%s\" IS NOT NULL" % (self._getColumn(column).Name))
-        return " AND ".join(filter)
-
-    def _getColumn(self, index=None):
-        index = g_column_index if index is None else index
-        return self._table.Columns.getByIndex(index)
-
-    def _getQueryOrder(self):
-        order = "\"%s\"" % (self._getColumn().Name)
-        return order

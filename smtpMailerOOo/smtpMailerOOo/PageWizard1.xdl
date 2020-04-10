@@ -5,12 +5,15 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="265" dlg:height="65" dlg:help-text="&amp;PageWizard1.FrameControl1.HelpText">
+    <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="265" dlg:height="45" dlg:help-text="&amp;PageWizard1.FrameControl1.HelpText">
       <dlg:title dlg:value="&amp;PageWizard1.FrameControl1.Label"/>
     </dlg:titledbox>
-    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="20" dlg:top="25" dlg:width="80" dlg:height="15" dlg:help-text="&amp;PageWizard1.Label1.HelpText" dlg:value="&amp;PageWizard1.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="100" dlg:top="25" dlg:width="160" dlg:height="15" dlg:tag="DataSource" dlg:help-text="&amp;PageWizard1.ListBox1.HelpText" dlg:spin="true">
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="20" dlg:top="25" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard1.Label1.HelpText" dlg:value="&amp;PageWizard1.Label1.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="85" dlg:top="25" dlg:width="85" dlg:height="15" dlg:tag="DataSource" dlg:help-text="&amp;PageWizard1.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="180" dlg:top="25" dlg:width="85" dlg:height="15" dlg:tag="DataSource" dlg:help-text="&amp;PageWizard1.CommandButton1.HelpText" dlg:value="&amp;PageWizard1.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Dispatch" script:language="UNO"/>
+    </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>

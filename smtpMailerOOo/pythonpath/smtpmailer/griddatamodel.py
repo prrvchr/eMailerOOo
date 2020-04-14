@@ -29,8 +29,7 @@ class GridDataModel(unohelper.Base,
         self._order = ''
         self.RowCount = self.ColumnCount = 0
         self.ColumnModel = createService(ctx, 'com.sun.star.awt.grid.DefaultGridColumnModel')
-        self._resultset = rowset.createResultSet()
-        self._setRowSetData(rowset)
+        self._resultset = None
         rowset.addRowSetListener(self)
 
     # XWeak
@@ -119,53 +118,53 @@ class GridDataModel(unohelper.Base,
             self._removeRowSetData(rowset)
         self._insertRowSetData(rowset)
 
+    def _setColumnModel(self, rowset):
+        orders = rowset.Order.strip('"').split('","')
+        for i in range(self.ColumnModel.getColumnCount(), 0 ,-1):
+            name = self.ColumnModel.getColumn(i - 1).Title
+            if name in orders:
+                orders.remove(name)
+            else:
+                self.ColumnModel.removeColumn(i - 1)
+        truncated = False
+        columns = rowset.getColumns()
+        metadata = rowset.getMetaData()
+        for name in orders:
+            if not columns.hasByName(name):
+                truncated = True
+                continue
+            index = rowset.findColumn(name)
+            column = self.ColumnModel.createColumn()
+            column.Title = name
+            size = metadata.getColumnDisplaySize(index)
+            column.MinWidth = size // 2
+            column.DataColumnIndex = index - 1
+            self.ColumnModel.addColumn(column)
+        if truncated:
+            orders = [column.Title for column in self.ColumnModel.getColumns()]
+            order = '"%s"' % '","'.join(orders) if len(orders) else ''
+            self._order = rowset.Order = order
+        else:
+            self._order = rowset.Order
+
     def _removeRowSetData(self, rowset):
         self.RowCount = self.ColumnCount = 0
-        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
-        event.Source = self
-        event = self._setDataEvent(event)
+        event = self._getGridDataEvent()
         for listener in self._datalisteners:
             listener.rowsRemoved(event)
 
     def _insertRowSetData(self, rowset):
-        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
-        event.Source = self
         self.RowCount = rowset.RowCount
         self.ColumnCount = rowset.getMetaData().getColumnCount()
         if self.RowCount > 0:
-            event = self._setDataEvent(event, 0)
+            event = self._getGridDataEvent(0)
             for listener in self._datalisteners:
                 listener.rowsInserted(event)
 
-    def _setDataEvent(self, event, first=-1):
+    def _getGridDataEvent(self, first=-1):
+        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
+        event.Source = self
         event.FirstColumn = event.FirstRow = first
         event.LastColumn = self.ColumnCount - 1
         event.LastRow = self.RowCount - 1
         return event
-
-    def _setColumnModel(self, rowset):
-        try:
-            columns = rowset.Order.strip('"').split('","')
-            print("GridDataModel._setColumnModel()1 %s - %s" % (columns, self.ColumnModel.getColumnCount()))
-            for i in range(self.ColumnModel.getColumnCount(), 0 ,-1):
-                name = self.ColumnModel.getColumn(i - 1).Title
-                print("GridDataModel._setColumnModel()2 %s - %s" % (name, i))
-                if name in columns:
-                    columns.remove(name)
-                else:
-                    self.ColumnModel.removeColumn(i - 1)
-            for name in columns:
-                column = self.ColumnModel.createColumn()
-                column.Title = name
-                index = rowset.findColumn(name)
-                print("GridDataModel._setColumnModel()3 %s - %s" % (name, index))
-                size = rowset.getMetaData().getColumnDisplaySize(index)
-                column.MinWidth = size // 2
-                column.DataColumnIndex = index - 1
-                self.ColumnModel.addColumn(column)
-            order = [column.Title for column in self.ColumnModel.getColumns()]
-            print("GridDataModel._setColumnModel()4 %s - %s" % (order, rowset.Order))
-            self._order = '"%s"' % '","'.join(order) if len(order) else ''
-            print("GridDataModel._setColumnModel()5 %s - %s" % (rowset.Order, self._order))
-        except Exception as e:
-            print("GridDtaModel._setColumnModel() ERROR: %s - %s" % (e, traceback.print_exc()))

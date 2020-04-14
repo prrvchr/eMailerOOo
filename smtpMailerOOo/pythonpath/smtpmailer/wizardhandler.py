@@ -40,9 +40,6 @@ class WizardHandler(unohelper.Base,
         self.ctx = ctx
         self._wizard = wizard
         #self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        self._table = None
-        self._columns = []
-        self._statement = None
         self._listeners = []
         self._disabled = False
         self._address = createService(self.ctx, 'com.sun.star.sdb.RowSet')
@@ -51,6 +48,8 @@ class WizardHandler(unohelper.Base,
         self._address.ApplyFilter = True
         self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._recipient.CommandType = QUERY
+        self._statement = None
+        self._table = None
         self._query = None
         self._database = None
         #self._document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
@@ -59,7 +58,7 @@ class WizardHandler(unohelper.Base,
     @property
     def DataSources(self):
         dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        return dbcontext.ElementNames
+        return dbcontext.getElementNames()
     @property
     def Connection(self):
         if self._statement is not None:
@@ -67,14 +66,13 @@ class WizardHandler(unohelper.Base,
         return None
     @property
     def TableNames(self):
-        if self._statement is not None:
-            return self._statement.getConnection().getTables().ElementNames
+        if self.Connection is not None:
+            return self.Connection.getTables().getElementNames()
         return ()
     @property
     def ColumnNames(self):
-        if self._statement is not None:
-            if self._table is not None:
-                return self._table.Columns.ElementNames
+        if self._table is not None:
+            return self._table.getColumns().getElementNames()
         return ()
 
     # XRefreshable
@@ -104,7 +102,6 @@ class WizardHandler(unohelper.Base,
                 grid = window.getControl('GridControl2')
                 recipients = self._getRecipientFilters()
                 rows = window.getControl('GridControl1').getSelectedRows()
-                print("wizardhandler.callHandlerMethod() Add %s - %s)" % (recipients, rows))
                 filters = self._getAddressFilters(rows, recipients)
                 handled = self._rowRecipientExecute(recipients + filters)
                 self._updateControl(window, grid)
@@ -119,12 +116,12 @@ class WizardHandler(unohelper.Base,
                 grid = window.getControl('GridControl2')
                 rows = grid.getSelectedRows()
                 recipients = self._getRecipientFilters(rows)
-                print("wizardhandler.callHandlerMethod() Remove %s - %s)" % (recipients, rows))
                 handled = self._rowRecipientExecute(recipients)
                 self._updateControl(window, grid)
             elif method == 'RemoveAll':
+                grid = window.getControl('GridControl2')
                 handled = self._rowRecipientExecute([])
-                self._updateControl(window, window.getControl('GridControl2'))
+                self._updateControl(window, grid)
             self._wizard.updateTravelUI()
             return handled
         except Exception as e:
@@ -142,7 +139,7 @@ class WizardHandler(unohelper.Base,
     def setDocumentRecord(self, index):
         dispatch = None
         document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
-        frame = document.CurrentController.Frame
+        frame = document.getCurrentController().Frame
         flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
         if document.supportsService('com.sun.star.text.TextDocument'):
             url = self._getUrl('.uno:DataSourceBrowser/InsertContent')
@@ -162,33 +159,17 @@ class WizardHandler(unohelper.Base,
 
     def _getDataDescriptor(self, row):
         descriptor = []
-        value = uno.Enum('com.sun.star.beans.PropertyState', 'DIRECT_VALUE')
+        direct = uno.Enum('com.sun.star.beans.PropertyState', 'DIRECT_VALUE')
         connection = self._recipient.ActiveConnection
         table = connection.getTables().getByIndex(0).Name
-        descriptor.append(PropertyValue('DataSourceName', -1, self._recipient.DataSourceName, value))
-        descriptor.append(PropertyValue('ActiveConnection', -1, connection, value))
-        descriptor.append(PropertyValue('Command', -1, table, value))
-        descriptor.append(PropertyValue('CommandType', -1, TABLE, value))
-        descriptor.append(PropertyValue('Cursor', -1, self._recipient, value))
-        descriptor.append(PropertyValue('Selection', -1, [row], value))
-        descriptor.append(PropertyValue('BookmarkSelection', -1, False, value))
-        return descriptor
-
-    def _getColumnModel(self, rows=()):
-        if rows is None:
-            rows = range(2)
-        service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
-        model = createService(self.ctx, service)
-        i = 0
-        for name in self.ColumnNames:
-            if i in rows:
-                column = model.createColumn()
-                column.Title = name
-                column.MinWidth = 4 * len(name)
-                column.DataColumnIndex = i
-                model.addColumn(column)
-            i += 1
-        return model
+        descriptor.append(PropertyValue('DataSourceName', -1, self._recipient.DataSourceName, direct))
+        descriptor.append(PropertyValue('ActiveConnection', -1, connection, direct))
+        descriptor.append(PropertyValue('Command', -1, table, direct))
+        descriptor.append(PropertyValue('CommandType', -1, TABLE, direct))
+        descriptor.append(PropertyValue('Cursor', -1, self._recipient, direct))
+        descriptor.append(PropertyValue('Selection', -1, (row, ), direct))
+        descriptor.append(PropertyValue('BookmarkSelection', -1, False, direct))
+        return tuple(descriptor)
 
     def _updateUI(self, window, event):
         try:
@@ -199,37 +180,37 @@ class WizardHandler(unohelper.Base,
                 try:
                     dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
                     database = dbcontext.getByName(datasource)
+                    connection = database.getConnection('', '')
                 except WrappedTargetException as e:
-                    self._statement = None
                     self._table = None
+                    self._database = None
+                    self._statement = None
                 else:
                     if not database.IsPasswordRequired:
-                        connection = database.getConnection('', '')
                         self._database = database
-                        self._query = self._getQuery(connection)
                         self._statement = connection.createStatement()
-                        self._address.DataSourceName = datasource
-                        self._address.Order = self._query.Order
                         self._recipient.DataSourceName = datasource
+                        self._address.DataSourceName = datasource
+                        self._query = self._getQuery()
                         self._recipient.Command = self._query.Name
                         self._recipient.Filter = self._query.Filter
                         self._recipient.ApplyFilter = True
                         self._recipient.Order = self._query.Order
-                        self._recipient.execute()
+                        self._address.Order = self._query.Order
                         self._refresh(event)
                     else:
-                        self._query = None
-                        self._statement = None
                         self._table = None
                         self._database = None
+                        self._statement = None
             elif tag == 'AddressBook':
                 print("WizardHandler._updateUI() AddressBook 1")
-                self._table = self.Connection.getTables().getByName(control.SelectedItem)
-                self._query.UpdateTableName = self._table.Name
-                self._address.Command = control.SelectedItem
-                #window.getControl('ListBox2').Model.StringItemList = self.ColumnNames
-                self._address.execute()
-                self._updateControl(window, window.getControl('GridControl1'))
+                table = control.SelectedItem
+                self._table = self.Connection.getTables().getByName(table)
+                self._query.UpdateTableName = table
+                self._address.Command = table
+                self._executeRowSet(self._query.Order)
+                self._refreshColumns(window.getControl('ListBox2'))
+                self._refreshButton(window)
                 print("WizardHandler._updateUI() AddressBook 2")
             elif tag == 'Columns':
                 print("WizardHandler._updateUI() Columns 1")
@@ -237,7 +218,7 @@ class WizardHandler(unohelper.Base,
                 if self._disabled:
                     return True
                 # TODO: XRowset.Order should be treated as a column stack
-                # TODO: Where adding is done at the end...
+                # TODO: where adding is done at the end and removing will keep order
                 orders = self._recipient.Order.strip('"').split('","')
                 columns = control.getSelectedItems()
                 if len(orders) > len(columns):
@@ -249,13 +230,9 @@ class WizardHandler(unohelper.Base,
                         if column not in orders:
                             orders.append(column)
                 order = '"%s"' % '","'.join(orders) if len(orders) else ''
-                self._recipient.Order = order
-                self._address.Order = order
-                self._recipient.execute()
-                self._address.execute()
+                self._executeRowSet(order)
                 print("WizardHandler._updateUI() ************************************************")
-                self._updateControl(window, window.getControl('GridControl1'))
-                self._updateControl(window, window.getControl('GridControl2'))
+                self._refreshButton(window)
                 print("WizardHandler._updateUI() Columns 2")
             else:
                 pass
@@ -263,6 +240,33 @@ class WizardHandler(unohelper.Base,
             return True
         except Exception as e:
             print("WizardHandler._updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    def _refreshButton(self, window):
+        self._updateControl(window, window.getControl('GridControl1'))
+        self._updateControl(window, window.getControl('GridControl2'))
+
+    def _executeRowSet(self, order):
+        self._address.Order = order
+        self._address.execute()
+        self._recipient.Order = self._address.Order
+        self._recipient.execute()
+        self._query.Order = self._recipient.Order
+
+    def refreshTables(self, control):
+        tables = self.TableNames
+        control.Model.StringItemList = ()
+        control.Model.StringItemList = tables
+        table = self._query.UpdateTableName
+        table = tables[0] if len(tables) != 0 and table == '' else table
+        control.selectItem(table, True)
+
+    def _refreshColumns(self, control):
+        self._disabled = True
+        control.Model.StringItemList = ()
+        control.Model.StringItemList = self.ColumnNames
+        columns = self._getOrderIndex()
+        control.selectItemsPos(columns, True)
+        self._disabled = False
 
     def _executeDispatch(self, control):
         tag = control.Model.Tag
@@ -275,15 +279,6 @@ class WizardHandler(unohelper.Base,
             dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
         return True
 
-    def _setQueryOrder(self, columns):
-        order = ''
-        if len(columns):
-            order = '"%s"' % '","'.join(columns)
-        self._query.Order = order
-        self._address.Order = order
-        self._recipient.Order = order
-        print("WizardHandler._setQueryOrder() %s" % order)
-
     def _rowRecipientExecute(self, filters=None):
         self._query.ApplyFilter = False
         self._recipient.ApplyFilter = False
@@ -295,7 +290,7 @@ class WizardHandler(unohelper.Base,
         self._recipient.execute()
         return True
 
-    def _getQuery(self, connection, queryname='smtpMailerOOo'):
+    def _getQuery(self, queryname='smtpMailerOOo'):
         try:
             print("WizardHandler._getQuery() 1")
             queries = self._database.QueryDefinitions
@@ -304,7 +299,7 @@ class WizardHandler(unohelper.Base,
                 query = queries.getByName(queryname)
             else:
                 query = createService(self.ctx, 'com.sun.star.sdb.QueryDefinition')
-                table = connection.getTables().getByIndex(0)
+                table = self.Connection.getTables().getByIndex(0)
                 column = table.getColumns().getByIndex(0)
                 query.Command = 'SELECT * FROM "%s"' % table.Name
                 query.UpdateTableName = table.Name
@@ -351,34 +346,14 @@ class WizardHandler(unohelper.Base,
         separator = " OR " if any else " AND "
         return separator.join(filters)
 
-    def _getColumn(self, index=None):
-        index = g_column_index if index is None else index
-        return self._table.Columns.getByIndex(index)
-
-    def _getColumnIndex(self, name):
-        if self._table is not None and self._table.Columns.hasByName(name):
-            column = self._table.Columns.getByName(name)
-            mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-            mri.inspect(column)
-            return column
-        return -1
-
-    def getOrderIndex(self):
+    def _getOrderIndex(self):
         index = []
         orders = self._query.Order.strip('"').split('","')
         columns = self.ColumnNames
-        print("wizardhandler.getOrderIndex() %s - %s" % (orders, columns))
         for order in orders:
             if order in columns:
                 index.append(columns.index(order))
-        return index
-
-    def _getRecipientRowNum(self, index):
-        rownum = -1
-        column = self._recipient.getColumns().getCount()
-        if self._recipient.absolute(index +1):
-            rownum = self._recipient.getLong(column)
-        return rownum
+        return tuple(index)
 
     def _getRecipientFilters(self, rows=(), index=0):
         result = []

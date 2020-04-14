@@ -3,23 +3,20 @@
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="PageWizard2" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="180" dlg:help-text="&amp;PageWizard2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;PageWizard2.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
-    <dlg:style dlg:style-id="1" dlg:background-color="0xffffff"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="265" dlg:height="170" dlg:help-text="&amp;PageWizard2.FrameControl1.HelpText">
-      <dlg:title dlg:value="&amp;PageWizard2.FrameControl1.Label"/>
-    </dlg:titledbox>
-    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="20" dlg:top="25" dlg:width="30" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label1.HelpText" dlg:value="&amp;PageWizard2.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="55" dlg:top="25" dlg:width="75" dlg:height="15" dlg:tag="AddressBook" dlg:help-text="&amp;PageWizard2.ListBox1.HelpText" dlg:spin="true">
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="3" dlg:width="285" dlg:height="5" dlg:help-text="&amp;PageWizard2.FixedLine1.HelpText" dlg:value="&amp;PageWizard2.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="5" dlg:width="50" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label1.HelpText" dlg:value="&amp;PageWizard2.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="20" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label2.HelpText" dlg:value="&amp;PageWizard2.Label2.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:left="50" dlg:top="20" dlg:width="80" dlg:height="15" dlg:tag="AddressBook" dlg:help-text="&amp;PageWizard2.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:left="155" dlg:top="25" dlg:width="30" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label2.HelpText" dlg:value="&amp;PageWizard2.Label2.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="4" dlg:left="190" dlg:top="25" dlg:width="75" dlg:height="15" dlg:tag="Columns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:multiselection="true" dlg:spin="true">
+    <dlg:text dlg:id="Label3" dlg:tab-index="4" dlg:left="155" dlg:top="20" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label3.HelpText" dlg:value="&amp;PageWizard2.Label3.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="5" dlg:left="195" dlg:top="20" dlg:width="80" dlg:height="15" dlg:tag="Columns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:multiselection="true" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="5" dlg:left="20" dlg:top="45" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label3.HelpText" dlg:value="&amp;PageWizard2.Label3.Label" dlg:valign="center"/>
-    <dlg:table dlg:style-id="1" dlg:id="GridControl1" dlg:tab-index="6" dlg:left="20" dlg:top="60" dlg:width="110" dlg:height="110" dlg:tag="Addresses" dlg:help-text="&amp;PageWizard2.GridControl1.HelpText" dlg:tabstop="true" dlg:selectiontype="multi" dlg:showcolumnheader="true" dlg:showrowheader="false"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:disabled="true" dlg:left="135" dlg:top="60" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton1.HelpText" dlg:value="&amp;PageWizard2.CommandButton1.Label">
+    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="40" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label4.HelpText" dlg:value="&amp;PageWizard2.Label4.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:disabled="true" dlg:left="135" dlg:top="55" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton1.HelpText" dlg:value="&amp;PageWizard2.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddAll" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:disabled="true" dlg:left="135" dlg:top="90" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton2.HelpText" dlg:value="&amp;PageWizard2.CommandButton2.Label">
@@ -28,10 +25,9 @@
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:disabled="true" dlg:left="135" dlg:top="125" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton3.HelpText" dlg:value="&amp;PageWizard2.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton4" dlg:tab-index="10" dlg:disabled="true" dlg:left="135" dlg:top="155" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton4.HelpText" dlg:value="&amp;PageWizard2.CommandButton4.Label">
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="10" dlg:disabled="true" dlg:left="135" dlg:top="160" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton4.HelpText" dlg:value="&amp;PageWizard2.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveAll" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="11" dlg:left="155" dlg:top="45" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label4.HelpText" dlg:value="&amp;PageWizard2.Label4.Label" dlg:valign="center"/>
-    <dlg:table dlg:style-id="1" dlg:id="GridControl2" dlg:tab-index="12" dlg:left="155" dlg:top="60" dlg:width="110" dlg:height="110" dlg:tag="Recipients" dlg:help-text="&amp;PageWizard2.GridControl2.HelpText" dlg:tabstop="true" dlg:selectiontype="multi" dlg:showcolumnheader="true" dlg:showrowheader="false"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="11" dlg:left="155" dlg:top="40" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label5.HelpText" dlg:value="&amp;PageWizard2.Label5.Label" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

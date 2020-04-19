@@ -43,6 +43,7 @@ class WizardPage(unohelper.Base,
             self.Window = window
             self._handler = handler
             if id == 1:
+                print("wizardpage.__init__() 1 1")
                 #dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
                 #dbcontext.addContainerListener(self)
                 control = self.Window.getControl('ListBox1')
@@ -50,9 +51,10 @@ class WizardPage(unohelper.Base,
                 control.Model.StringItemList = datasources
                 datasource = self._handler.getDocumentDataSource()
                 if datasource in datasources:
+                    print("wizardpage.__init__() 1 2")
                     control.selectItem(datasource, True)
             elif id == 2:
-                print("wizardpage.__init__() 1")
+                print("wizardpage.__init__() 2 1")
                 point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 55)
                 size = uno.createUnoStruct('com.sun.star.awt.Size', 120, 120)
                 grid1 = self._getGridControl(self._handler._address, 'Addresses', point, size)
@@ -64,7 +66,9 @@ class WizardPage(unohelper.Base,
                 grid2.addSelectionListener(self)
                 self._handler.addRefreshListener(self)
                 self._refreshPage2()
-                print("wizardpage.__init__() 2")
+                #mri = createService(self.ctx, 'mytools.Mri')
+                #mri.inspect(grid1)
+                print("wizardpage.__init__() 2 2")
             elif id == 3:
                 pass
             msg += " Done"
@@ -154,14 +158,14 @@ class WizardPage(unohelper.Base,
 
     def canAdvance(self):
         advance = False
+        #print("wizardpage.canAdvance() 1 %s" % advance)
         if self.PageId == 1:
-            control = self.Window.getControl('ListBox1')
-            advance = control.SelectedItem != ''
+            advance = self._handler.Connection is not None
         elif self.PageId == 2:
-            control = self.Window.getControl('GridControl2')
-            advance = control.Model.GridDataModel.RowCount != 0
+            advance = self._handler._recipient.RowCount != 0
         elif self.PageId == 3:
             pass
+        #print("wizardpage.canAdvance() 2 %s" % advance)
         return advance
 
     def _getGridControl(self, rowset, tag, point, size, flags=POSSIZE):
@@ -178,6 +182,8 @@ class WizardPage(unohelper.Base,
     def _getGridModel(self, tag):
         model = self.Window.Model.createInstance('com.sun.star.awt.grid.UnoControlGridModel')
         model.SelectionModel = MULTI
+        #model.ShowRowHeader = True
+        model.BackgroundColor = 16777215
         model.Tag = tag
         return model
 

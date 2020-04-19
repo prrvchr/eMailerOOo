@@ -53,6 +53,7 @@ class WizardController(unohelper.Base,
     def createPage(self, parent, id):
         try:
             msg = "PageId: %s ..." % id
+            print("wizardcontroller.createPage() %s" % msg)
             url = getDialogUrl(g_extension, 'PageWizard%s' % id)
             window = self._provider.createContainerWindow(url, '', parent, self._handler)
             page = WizardPage(self.ctx, id, window, self._handler)
@@ -68,7 +69,9 @@ class WizardController(unohelper.Base,
         return title
 
     def canAdvance(self):
-        return self._wizard.CurrentPage.canAdvance()
+        advance = self._wizard.CurrentPage.canAdvance()
+        print("wizardcontroler.canAdvance() %s" % advance)
+        return advance
 
     def onActivatePage(self, id):
         try:

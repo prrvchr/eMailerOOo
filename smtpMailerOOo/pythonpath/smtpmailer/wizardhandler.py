@@ -26,6 +26,7 @@ from .configuration import g_extension
 from .configuration import g_column_index
 from .configuration import g_column_filters
 from .configuration import g_table_index
+from .configuration import g_fetchsize
 
 from .logger import logMessage
 
@@ -44,10 +45,10 @@ class WizardHandler(unohelper.Base,
         self._disabled = False
         self._address = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._address.CommandType = TABLE
-        self._address.Filter = self._getFilter(True)
-        self._address.ApplyFilter = True
+        self._address.FetchSize = g_fetchsize
         self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._recipient.CommandType = QUERY
+        self._recipient.FetchSize = g_fetchsize
         self._statement = None
         self._table = None
         self._query = None
@@ -137,19 +138,22 @@ class WizardHandler(unohelper.Base,
         return ''
 
     def setDocumentRecord(self, index):
-        dispatch = None
-        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
-        frame = document.getCurrentController().Frame
-        flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
-        if document.supportsService('com.sun.star.text.TextDocument'):
-            url = self._getUrl('.uno:DataSourceBrowser/InsertContent')
-            dispatch = frame.queryDispatch(url, '_self', flag)
-        elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
-            url = self._getUrl('.uno:DataSourceBrowser/InsertColumns')
-            dispatch = frame.queryDispatch(url, '_self', flag)
-        if dispatch is not None:
-            dispatch.dispatch(url, self._getDataDescriptor(index + 1))
-        self.index = index
+        try:
+            dispatch = None
+            document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+            frame = document.getCurrentController().Frame
+            flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
+            if document.supportsService('com.sun.star.text.TextDocument'):
+                url = self._getUrl('.uno:DataSourceBrowser/InsertContent')
+                dispatch = frame.queryDispatch(url, '_self', flag)
+            elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+                url = self._getUrl('.uno:DataSourceBrowser/InsertColumns')
+                dispatch = frame.queryDispatch(url, '_self', flag)
+            if dispatch is not None:
+                dispatch.dispatch(url, self._getDataDescriptor(index + 1))
+            self.index = index
+        except Exception as e:
+            print("WizardHandler.setDocumentRecord() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def _getUrl(self, complete):
         url = URL()
@@ -176,6 +180,7 @@ class WizardHandler(unohelper.Base,
             control = event.Source
             tag = control.Model.Tag
             if tag == 'DataSource':
+                print("WizardHandler._updateUI() DataSource 1")
                 datasource = control.SelectedItem
                 try:
                     dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
@@ -189,15 +194,17 @@ class WizardHandler(unohelper.Base,
                     if not database.IsPasswordRequired:
                         self._database = database
                         self._statement = connection.createStatement()
-                        self._recipient.DataSourceName = datasource
+                        self._query = self._getQuery(database)
                         self._address.DataSourceName = datasource
-                        self._query = self._getQuery()
+                        self._address.Order = self._query.Order
+                        self._recipient.DataSourceName = datasource
                         self._recipient.Command = self._query.Name
                         self._recipient.Filter = self._query.Filter
                         self._recipient.ApplyFilter = True
                         self._recipient.Order = self._query.Order
-                        self._address.Order = self._query.Order
+                        print("WizardHandler._updateUI() DataSource 2")
                         self._refresh(event)
+                        self._wizard.updateTravelUI()
                     else:
                         self._table = None
                         self._database = None
@@ -208,6 +215,8 @@ class WizardHandler(unohelper.Base,
                 self._table = self.Connection.getTables().getByName(table)
                 self._query.UpdateTableName = table
                 self._address.Command = table
+                self._address.Filter = self._getFilter(True)
+                self._address.ApplyFilter = True
                 self._executeRowSet(self._query.Order)
                 self._refreshColumns(window.getControl('ListBox2'))
                 self._refreshButton(window)
@@ -221,19 +230,18 @@ class WizardHandler(unohelper.Base,
                 # TODO: where adding is done at the end and removing will keep order
                 orders = self._recipient.Order.strip('"').split('","')
                 columns = control.getSelectedItems()
-                if len(orders) > len(columns):
-                    for order in orders:
-                        if order not in columns:
-                            orders.remove(order)
-                elif len(orders) < len(columns):
-                    for column in columns:
-                        if column not in orders:
-                            orders.append(column)
+                print("WizardHandler._updateUI() Columns 2: %s - %s" % (orders, columns))
+                for order in reversed(orders):
+                    if order not in columns:
+                        orders.remove(order)
+                for column in columns:
+                    if column not in orders:
+                        orders.append(column)
                 order = '"%s"' % '","'.join(orders) if len(orders) else ''
                 self._executeRowSet(order)
                 print("WizardHandler._updateUI() ************************************************")
                 self._refreshButton(window)
-                print("WizardHandler._updateUI() Columns 2")
+                print("WizardHandler._updateUI() Columns 3")
             else:
                 pass
                 #self._updateControl(window, control)
@@ -290,29 +298,46 @@ class WizardHandler(unohelper.Base,
         self._recipient.execute()
         return True
 
-    def _getQuery(self, queryname='smtpMailerOOo'):
-        try:
-            print("WizardHandler._getQuery() 1")
-            queries = self._database.QueryDefinitions
-            if queries.hasByName(queryname):
-                print("WizardHandler._getQuery() 2")
-                query = queries.getByName(queryname)
-            else:
-                query = createService(self.ctx, 'com.sun.star.sdb.QueryDefinition')
-                table = self.Connection.getTables().getByIndex(0)
-                column = table.getColumns().getByIndex(0)
-                query.Command = 'SELECT * FROM "%s"' % table.Name
-                query.UpdateTableName = table.Name
-                query.Filter = '0=1'
-                query.ApplyFilter = True
-                query.Order = '"%s"' % column.Name
-                queries.insertByName(queryname, query)
-                print("WizardHandler._getQuery() 3")
-                self._database.DatabaseDocument.store()
-                print("WizardHandler._getQuery() 4")
-            return query
-        except Exception as e:
-            print("WizardHandler._getQuery() ERROR: %s - %s" % (e, traceback.print_exc()))
+    def _getQuery(self, database, queryname='smtpMailerOOo'):
+        queries = database.getQueryDefinitions()
+        if queries.hasByName(queryname):
+            query = queries.getByName(queryname)
+        else:
+            query = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.QueryDefinition')
+            table = self.Connection.getTables().getByIndex(0)
+            column = table.getColumns().getByIndex(0)
+            query.Command = 'SELECT * FROM "%s"' % table.Name
+            query.Filter = '0=1'
+            query.Order = '"%s"' % column.Name
+            query.UpdateTableName = table.Name
+            query.ApplyFilter = True
+            queries.insertByName(queryname, query)
+            database.DatabaseDocument.store()
+        return query
+
+    def _getQuery1(self, queryname='smtpMailerOOo'):
+        print("WizardHandler._getQuery() 1")
+        queries = self.Connection.getQueries()
+        if queries.hasByName(queryname):
+            print("WizardHandler._getQuery() 2")
+            mri = createService(self.ctx, 'mytools.Mri')
+            mri.inspect(queries)
+            query = queries.getByName(queryname)
+        else:
+            query = queries.createDataDescriptor()
+            table = self.Connection.getTables().getByIndex(0)
+            column = table.getColumns().getByIndex(0)
+            query.Name = queryname
+            query.Command = 'SELECT * FROM "%s"' % table.Name
+            query.UpdateTableName = table.Name
+            query.Filter = '0=1'
+            query.ApplyFilter = True
+            query.Order = '"%s"' % column.Name
+            queries.appendByDescriptor(query)
+            print("WizardHandler._getQuery() 3")
+            self._database.DatabaseDocument.store()
+            print("WizardHandler._getQuery() 4")
+        return query
 
     def _updateControl(self, window, control):
         try:
@@ -341,10 +366,15 @@ class WizardHandler(unohelper.Base,
 
     def _getFilter(self, any=False):
         filters = []
+        separator = ' OR ' if any else ' AND '
+        print("WizardHandler._getFilter()1 %s" % (self.ColumnNames, ))
         for column in g_column_filters:
-            filters.append('"%s" IS NOT NULL' % column)
-        separator = " OR " if any else " AND "
-        return separator.join(filters)
+            if column in self.ColumnNames:
+                print("WizardHandler._getFilter()2 %s" % (column, ))
+                filters.append('"%s" IS NOT NULL' % column)
+        filter = separator.join(filters)
+        print("WizardHandler._getFilter()3 %s" % filter)
+        return filter
 
     def _getOrderIndex(self):
         index = []
@@ -380,7 +410,7 @@ class WizardHandler(unohelper.Base,
         readonly = uno.getConstantByName('com.sun.star.beans.PropertyAttribute.READONLY')
         transient = uno.getConstantByName('com.sun.star.beans.PropertyAttribute.TRANSIENT')
         properties['Connection'] = getProperty('Connection', 'com.sun.star.sdbc.XConnection', transient)
-        properties['DataSources'] = getProperty('DataSources', '[] string', transient)
-        properties['TableNames'] = getProperty('TableNames', '[] string', transient)
-        properties['ColumnNames'] = getProperty('ColumnNames', '[] string', transient)
+        properties['DataSources'] = getProperty('DataSources', '[]string', transient)
+        properties['TableNames'] = getProperty('TableNames', '[]string', transient)
+        properties['ColumnNames'] = getProperty('ColumnNames', '[]string', transient)
         return properties

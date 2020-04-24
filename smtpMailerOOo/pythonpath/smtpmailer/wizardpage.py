@@ -46,21 +46,27 @@ class WizardPage(unohelper.Base,
                 print("wizardpage.__init__() 1 1")
                 #dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
                 #dbcontext.addContainerListener(self)
+                #listbox = self.Window.getControl('ListBox4')
+                #listbox.Model.StringItemList = self._handler.EmailColumns
                 control = self.Window.getControl('ListBox1')
                 datasources = self._handler.DataSources
                 control.Model.StringItemList = datasources
                 datasource = self._handler.getDocumentDataSource()
                 if datasource in datasources:
                     print("wizardpage.__init__() 1 2")
+                    self._handler.disabled = True
                     control.selectItem(datasource, True)
+                    self._handler._changeDataSource(self.Window, datasource)
+                    self._handler.disabled = False
+                print("wizardpage.__init__() 1 3")
             elif id == 2:
                 print("wizardpage.__init__() 2 1")
-                point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 55)
-                size = uno.createUnoStruct('com.sun.star.awt.Size', 120, 120)
+                point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 60)
+                size = uno.createUnoStruct('com.sun.star.awt.Size', 115, 120)
                 grid1 = self._getGridControl(self._handler._address, 'Addresses', point, size)
                 self.Window.addControl('GridControl1', grid1)
                 grid1.addSelectionListener(self)
-                point.X = 155
+                point.X = 160
                 grid2 = self._getGridControl(self._handler._recipient, 'Recipients', point, size)
                 self.Window.addControl('GridControl2', grid2)
                 grid2.addSelectionListener(self)
@@ -139,8 +145,13 @@ class WizardPage(unohelper.Base,
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
             self.Window.setVisible(False)
-            if self.PageId == 1 and reason == forward:
-                pass
+            if self.PageId == 1:
+                if self._handler._modified:
+                    self._handler.saveSetting(self.Window.getControl("ListBox4"), 'EmailAddress')
+                    self._handler.saveSetting(self.Window.getControl("ListBox5"), 'PrimaryKey')
+                    #self._handler._form.store()
+                    self._handler._database.DatabaseDocument.store()
+                    self._handler._modified = False
             elif self.PageId == 2:
                 print("wizardpage.commitPage() 1")
                 #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
@@ -161,6 +172,7 @@ class WizardPage(unohelper.Base,
         #print("wizardpage.canAdvance() 1 %s" % advance)
         if self.PageId == 1:
             advance = self._handler.Connection is not None
+            advance &= self.Window.getControl("ListBox5").ItemCount != 0
         elif self.PageId == 2:
             advance = self._handler._recipient.RowCount != 0
         elif self.PageId == 3:

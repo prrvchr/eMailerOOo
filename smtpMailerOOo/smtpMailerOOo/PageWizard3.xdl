@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="PageWizard3" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="180" dlg:help-text="&amp;PageWizard3.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;PageWizard3.Title" dlg:withtitlebar="false">
- <dlg:styles>
-  <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
-  <dlg:style dlg:style-id="1" dlg:background-color="0xeeeeee" dlg:border="none"/>
- </dlg:styles>
- <dlg:bulletinboard>
-  <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="265" dlg:height="120" dlg:help-text="&amp;PageWizard3.FrameControl1.HelpText">
-   <dlg:title dlg:value="&amp;PageWizard3.FrameControl1.Label"/>
-  </dlg:titledbox>
-  <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="1" dlg:left="20" dlg:top="25" dlg:width="245" dlg:height="15" dlg:help-text="&amp;PageWizard3.ProgressBar1.HelpText" dlg:value="0"/>
- </dlg:bulletinboard>
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="3" dlg:width="285" dlg:height="5" dlg:help-text="&amp;PageWizard3.FixedLine1.HelpText" dlg:value="&amp;PageWizard3.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="5" dlg:width="100" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label1.HelpText" dlg:value="&amp;PageWizard3.Label1.Label" dlg:valign="center"/>
+    <dlg:radiogroup>
+      <dlg:radio dlg:id="OptionButton1" dlg:tab-index="2" dlg:left="10" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="Email" dlg:help-text="&amp;PageWizard3.OptionButton1.HelpText" dlg:value="&amp;PageWizard3.OptionButton1.Label" dlg:valign="center">
+        <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:OutputChanged" script:language="UNO"/>
+      </dlg:radio>
+      <dlg:radio dlg:id="OptionButton2" dlg:tab-index="3" dlg:left="120" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="Pdf" dlg:help-text="&amp;PageWizard3.OptionButton2.HelpText" dlg:value="&amp;PageWizard3.OptionButton2.Label" dlg:valign="center">
+        <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:OutputChanged" script:language="UNO"/>
+      </dlg:radio>
+      <dlg:radio dlg:id="OptionButton3" dlg:tab-index="4" dlg:left="215" dlg:top="25" dlg:width="60" dlg:height="15" dlg:tag="Printer" dlg:help-text="&amp;PageWizard3.OptionButton3.HelpText" dlg:value="&amp;PageWizard3.OptionButton3.Label" dlg:valign="center">
+        <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:OutputChanged" script:language="UNO"/>
+      </dlg:radio>
+    </dlg:radiogroup>
+  </dlg:bulletinboard>
 </dlg:window>

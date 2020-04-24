@@ -7,21 +7,11 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
-
-from com.sun.star.ui.dialogs import XWizardController
-from com.sun.star.awt import XCallback
-from com.sun.star.lang import IllegalArgumentException
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
 
-from unolib import PropertySet
 from unolib import createService
-from unolib import generateUuid
-from unolib import getCurrentLocale
-from unolib import getProperty
 from unolib import getStringResource
-from unolib import getContainerWindow
-from unolib import getDialogUrl
 
 from smtpmailer import logMessage
 from smtpmailer import getMessage
@@ -42,6 +32,11 @@ class WizardMailer(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         msg = "Loading ... Done"
+        #component = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        #document = component.CurrentController.Frame
+        #dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+        #dispatcher.executeDispatch(document, '.uno:NewWindow', '', 0, ())
+        #package = createService(self.ctx, 'com.sun.star.deployment.ui.PackageManagerDialog')
         wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
         controller = WizardController(self.ctx, wizard)
         arguments = ((uno.Any('[][]short', g_wizard_paths), controller), )
@@ -49,6 +44,8 @@ class WizardMailer(unohelper.Base,
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         logMessage(self.ctx, INFO, msg, 'WizardMailer', '__init__()')
         print(msg)
+        #mri = createService(self.ctx, 'mytools.Mri')
+        #mri.inspect(package)
         wizard.execute()
 
     # XServiceInfo

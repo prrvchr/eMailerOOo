@@ -65,7 +65,7 @@ class WizardController(unohelper.Base,
             logMessage(self.ctx, SEVERE, msg, 'WizardController', 'createPage()')
 
     def getPageTitle(self, id):
-        title = self._stringResource.resolveString('PageWizard%s.Step' % (id, ))
+        title = self._stringResource.resolveString('PageWizard%s.Step' % id)
         return title
 
     def canAdvance(self):
@@ -76,7 +76,7 @@ class WizardController(unohelper.Base,
     def onActivatePage(self, id):
         try:
             msg = "PageId: %s..." % id
-            self._wizard.setTitle(self.getPageTitle(id))
+            self._wizard.setTitle(self._getWizardTitle(id))
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
             forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
@@ -104,6 +104,10 @@ class WizardController(unohelper.Base,
 
     def confirmFinish(self):
         return True
+
+    def _getWizardTitle(self, id):
+        title = self._stringResource.resolveString('PageWizard%s.Title' % id)
+        return title
 
     def _isFirstLoad(self, id):
         if id in self._pages:

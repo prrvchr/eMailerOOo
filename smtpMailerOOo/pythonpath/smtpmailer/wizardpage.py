@@ -54,15 +54,20 @@ class WizardPage(unohelper.Base,
                 datasource = self._handler.getDocumentDataSource()
                 if datasource in datasources:
                     print("wizardpage.__init__() 1 2")
-                    self._handler.disabled = True
-                    control.selectItem(datasource, True)
                     self._handler._changeDataSource(self.Window, datasource)
-                    self._handler.disabled = False
-                print("wizardpage.__init__() 1 3")
+                    print("wizardpage.__init__() 1 3")
+                    #self._handler._initColumnsSetting(self.Window)
+                    print("wizardpage.__init__() 1 4")
+                    self._handler._disabled = True
+                    print("wizardpage.__init__() 1 5")
+                    control.selectItem(datasource, True)
+                    print("wizardpage.__init__() 1 6")
+                    self._handler._disabled = False
+                print("wizardpage.__init__() 1 7")
             elif id == 2:
                 print("wizardpage.__init__() 2 1")
                 point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 60)
-                size = uno.createUnoStruct('com.sun.star.awt.Size', 115, 120)
+                size = uno.createUnoStruct('com.sun.star.awt.Size', 115, 115)
                 grid1 = self._getGridControl(self._handler._address, 'Addresses', point, size)
                 self.Window.addControl('GridControl1', grid1)
                 grid1.addSelectionListener(self)
@@ -147,16 +152,14 @@ class WizardPage(unohelper.Base,
             self.Window.setVisible(False)
             if self.PageId == 1:
                 if self._handler._modified:
-                    self._handler.saveSetting(self.Window.getControl("ListBox4"), 'EmailAddress')
-                    self._handler.saveSetting(self.Window.getControl("ListBox5"), 'PrimaryKey')
-                    #self._handler._form.store()
+                    self._handler.saveSetting(self.Window)
                     self._handler._database.DatabaseDocument.store()
-                    self._handler._modified = False
             elif self.PageId == 2:
                 print("wizardpage.commitPage() 1")
                 #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
                 #mri.inspect(self._handler._database)
-                if self._handler._database is not None:
+                if self._handler._modified:
+                    self._handler.saveSelection()
                     self._handler._database.DatabaseDocument.store()
                 print("wizardpage.commitPage() 2")
             elif self.PageId == 3:

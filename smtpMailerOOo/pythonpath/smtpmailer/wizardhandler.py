@@ -50,13 +50,12 @@ class WizardHandler(unohelper.Base,
         self._address.CommandType = TABLE
         self._address.FetchSize = g_fetchsize
         self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
-        self._recipient.CommandType = QUERY
+        self._recipient.CommandType = COMMAND
         self._recipient.FetchSize = g_fetchsize
         self._statement = None
         self._table = None
-        self._query = None
         self._database = None
-        self._form = None
+        self._form = self._doc = None
         self._identifier = None
         #self._document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
         self.index = -1
@@ -124,6 +123,7 @@ class WizardHandler(unohelper.Base,
                 control = event.Source
                 handled = self._addItem(window, control)
             elif method == 'AddAll':
+                self._modified = True
                 grid = window.getControl('GridControl2')
                 recipients = self._getRecipientFilters()
                 rows = range(self._address.RowCount)
@@ -134,6 +134,7 @@ class WizardHandler(unohelper.Base,
                 control = event.Source
                 handled = self._removeItem(window, control)
             elif method == 'RemoveAll':
+                self._modified = True
                 grid = window.getControl('GridControl2')
                 handled = self._rowRecipientExecute([])
                 self._updateControl(window, grid)
@@ -184,7 +185,6 @@ class WizardHandler(unohelper.Base,
         self._modified = True
         tag = control.Model.Tag
         if tag == 'EmailAddress':
-            self._modified = True
             window.getControl('CommandButton2').Model.Enabled = False
             window.getControl('CommandButton3').Model.Enabled = False
             window.getControl('CommandButton4').Model.Enabled = False
@@ -192,7 +192,6 @@ class WizardHandler(unohelper.Base,
             listbox = window.getControl('ListBox4')
             handled = self._addItemColumn(window, listbox)
         elif tag == 'PrimaryKey':
-            self._modified = True
             window.getControl('CommandButton6').Model.Enabled = False
             window.getControl('CommandButton7').Model.Enabled = False
             listbox = window.getControl('ListBox5')
@@ -207,9 +206,9 @@ class WizardHandler(unohelper.Base,
         return handled
 
     def _removeItem(self, window, control):
+        self._modified = True
         tag = control.Model.Tag
         if tag == 'EmailAddress':
-            self._modified = True
             window.getControl('CommandButton3').Model.Enabled = False
             window.getControl('CommandButton4').Model.Enabled = False
             window.getControl('CommandButton5').Model.Enabled = False
@@ -219,7 +218,6 @@ class WizardHandler(unohelper.Base,
             button.Model.Enabled = self._canAdd(window.getControl('ListBox2'), listbox)
             handled = True
         elif tag == 'PrimaryKey':
-            self._modified = True
             window.getControl('CommandButton7').Model.Enabled = False
             listbox = window.getControl('ListBox5')
             listbox.Model.StringItemList = self._removeColumn(listbox, listbox.getSelectedItem())
@@ -280,16 +278,23 @@ class WizardHandler(unohelper.Base,
     def _changeSetting(self, window, control):
         tag = control.Model.Tag
         if tag == 'Tables':
-            table = self.Connection.getTables().getByName(control.SelectedItem)
-            columns = table.getColumns().getElementNames()
-            listbox = window.getControl('ListBox2')
-            listbox.Model.StringItemList = columns
-            listbox.selectItemPos(0, True)
+            self._initColumnsSetting(window, control.getSelectedItem())
         elif tag == 'Columns':
             self._updateControl(window, control)
         elif tag == 'Custom':
             window.getControl('ListBox3').Model.Enabled = bool(control.Model.State)
         return True
+
+    def _initColumnsSetting(self, window, name=None):
+        if name is None:
+            table = self.Connection.getTables().getByIndex(0)
+        else:
+            table = self.Connection.getTables().getByName(name)
+        self._recipient.Command = 'SELECT * FROM "%s"' % table.Name
+        columns = table.getColumns().getElementNames()
+        listbox = window.getControl('ListBox2')
+        listbox.Model.StringItemList = columns
+        listbox.selectItemPos(0, True)
 
     def _getUrl(self, complete):
         url = URL()
@@ -335,31 +340,28 @@ class WizardHandler(unohelper.Base,
             print("WizardHandler._updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def _changeDataSource(self, window, datasource):
+        print("WizardHandler._updateUI() DataSource 1")
         database = self._getDatabase(datasource)
         if database is not None and not database.IsPasswordRequired:
             connection = database.getConnection('', '')
             self._database = database
             self._statement = connection.createStatement()
-            self._query = self._getQuery(database)
-            self._form = self._getForm(database)
+            query = self._getQuery(False)
             self._address.DataSourceName = datasource
-            self._address.Order = self._query.Order
+            self._address.Order = query.Order
+            self._address.UpdateTableName = query.UpdateTableName
             self._recipient.DataSourceName = datasource
-            self._recipient.Command = self._query.Name
-            self._recipient.Filter = self._query.Filter
+            #self._recipient.Command = query.Command
+            self._recipient.Filter = query.Filter
             self._recipient.ApplyFilter = True
-            self._recipient.Order = self._query.Order
+            self._recipient.Order = query.Order
             print("WizardHandler._updateUI() DataSource 2")
-            self._refreshSetting(window.getControl('ListBox4'), 'EmailAddress')
+            self._initSetting(window)
             print("WizardHandler._updateUI() DataSource 3")
-            self._refreshSetting(window.getControl('ListBox5'), 'PrimaryKey')
-            print("WizardHandler._updateUI() DataSource 4")
-            self._refreshTables(window.getControl('ListBox3'))
-            print("WizardHandler._updateUI() DataSource 5")
             self._refresh(window.getControl('ListBox1'))
-            print("WizardHandler._updateUI() DataSource 6")
+            print("WizardHandler._updateUI() DataSource 4")
             self._wizard.updateTravelUI()
-            print("WizardHandler._updateUI() DataSource 7")
+            print("WizardHandler._updateUI() DataSource 5")
         else:
             self._table = None
             self._database = None
@@ -369,11 +371,11 @@ class WizardHandler(unohelper.Base,
     def _changeAddressBook(self, window, table):
         print("WizardHandler._updateUI() AddressBook 1")
         self._table = self.Connection.getTables().getByName(table)
-        self._query.UpdateTableName = table
+        self._address.UpdateTableName = table
         self._address.Command = table
         self._address.Filter = self._getFilter(True)
         self._address.ApplyFilter = True
-        self._executeRowSet(self._query.Order)
+        self._executeRowSet()
         self._refreshColumns(window.getControl('ListBox2'))
         self._refreshButton(window)
         print("WizardHandler._updateUI() AddressBook 2")
@@ -404,31 +406,43 @@ class WizardHandler(unohelper.Base,
         self._updateControl(window, window.getControl('GridControl1'))
         self._updateControl(window, window.getControl('GridControl2'))
 
-    def _executeRowSet(self, order):
-        self._address.Order = order
+    def _executeRowSet(self, order=None):
+        if order is not None:
+            self._recipient.Order = self._address.Order = order
         self._address.execute()
-        self._recipient.Order = self._address.Order
         self._recipient.execute()
-        self._query.Order = self._recipient.Order
 
-    def _refreshSetting(self, control, property):
-        columns = self._getDocumentUserProperty(self._form, property)
-        columns = () if columns is None else tuple(columns.split(','))
-        control.Model.StringItemList = columns
+    def _initSetting(self, window):
+        doc, form = self._getForm(False)
+        self._initTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
+        self._initColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
+        self._initColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
+        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+        #mri.inspect(doc)
+        if form is not None:
+            form.close()
+
+    def _initTableSetting(self, document, window, id, property):
+        control = window.getControl(id)
+        control.Model.StringItemList = self.TableNames
+        table = None if document is None else self._getDocumentUserProperty(document, property)
+        if table is None:
+            control.selectItemPos(0, True)
+        else:
+            control.selectItem(table, True)
+
+    def _initColumnSetting(self, document, window, id, property):
+        value = None if document is None else self._getDocumentUserProperty(document, property)
+        items = () if value is None else tuple(value.split(','))
+        window.getControl(id).Model.StringItemList = items
 
     def refreshTables(self, control):
         tables = self.TableNames
         control.Model.StringItemList = ()
         control.Model.StringItemList = tables
-        table = self._query.UpdateTableName
+        table = self._address.UpdateTableName
         table = tables[0] if len(tables) != 0 and table == '' else table
         control.selectItem(table, True)
-
-    def _refreshTables(self, control):
-        tables = self.TableNames
-        control.Model.StringItemList = tables
-        if len(tables) != 0:
-            control.selectItem(tables[0], True)
 
     def _refreshColumns(self, control):
         self._disabled = True
@@ -450,31 +464,32 @@ class WizardHandler(unohelper.Base,
         return True
 
     def _rowRecipientExecute(self, filters=None):
-        self._query.ApplyFilter = False
         self._recipient.ApplyFilter = False
         if filters is not None:
-            self._query.Filter = self._getQueryFilter(filters)
-        self._recipient.Filter = self._query.Filter
-        self._recipient.ApplyFilter = True
-        self._query.ApplyFilter = True
+            self._recipient.Filter = self._getQueryFilter(filters)
+            self._recipient.ApplyFilter = True
         self._recipient.execute()
         return True
 
-    def _getQuery(self, database, queryname='smtpMailerOOo'):
-        queries = database.getQueryDefinitions()
-        if queries.hasByName(queryname):
-            query = queries.getByName(queryname)
-        else:
+    def _getQuery(self, create, name='smtpMailerOOo'):
+        queries = self._database.getQueryDefinitions()
+        if queries.hasByName(name):
+            query = queries.getByName(name)
+        elif create:
             query = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.QueryDefinition')
-            table = self.Connection.getTables().getByIndex(0)
-            column = table.getColumns().getByIndex(0)
-            query.Command = 'SELECT * FROM "%s"' % table.Name
-            query.Filter = '0=1'
-            query.Order = '"%s"' % column.Name
-            query.UpdateTableName = table.Name
-            query.ApplyFilter = True
-            queries.insertByName(queryname, query)
-            database.DatabaseDocument.store()
+            queries.insertByName(name, query)
+        else:
+            query = self._createQuery()
+        return query
+
+    def _createQuery(self):
+        query = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.QueryDefinition')
+        table = self.Connection.getTables().getByIndex(0)
+        column = table.getColumns().getByIndex(0)
+        #query.Command = 'SELECT * FROM "%s"' % table.Name
+        query.Filter = '0=1'
+        query.Order = '"%s"' % column.Name
+        query.UpdateTableName = table.Name
         return query
 
     def _getDatabase(self, datasource):
@@ -483,61 +498,57 @@ class WizardHandler(unohelper.Base,
             return databases.getByName(datasource)
         return None
 
-    def saveSetting(self, control, property):
+    def saveSetting(self, window):
         if self._modified:
-            settings = control.Model.StringItemList if control.ItemCount != 0 else ()
-            self._setDocumentUserProperty(self._form, property, ','.join(settings))
-            print("wizardpage.saveSetting() ************** %s" % ','.join(settings))
+            doc, form = self._getForm(True)
+            self._saveTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
+            self._saveColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
+            self._saveColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
+            form.store()
+            form.close()
+            self._modified = False
+
+    def saveSelection(self):
+        if self._modified:
+            query = self._getQuery(True)
+            query.Command = self._recipient.Command
+            query.Filter = self._recipient.Filter
+            query.Order = self._recipient.Order
+            query.UpdateTableName = self._address.UpdateTableName
+            self._modified = False
+
+    def _saveTableSetting(self, doc, window, id, property):
+        table = window.getControl(id).getSelectedItem()
+        self._setDocumentUserProperty(doc, property, table)
+        print("wizardpage._saveTableSetting() ************** %s" % table)
+
+    def _saveColumnSetting(self, doc, window, id, property):
+        control = window.getControl(id)
+        items = control.Model.StringItemList if control.ItemCount != 0 else ()
+        self._setDocumentUserProperty(doc, property, ','.join(items))
+        print("wizardpage._saveControlSetting() ************** %s" % ','.join(items))
+
+    def _getForm(self, create, name='smtpMailerOOo'):
+        forms = self._database.DatabaseDocument.getFormDocuments()
+        if forms.hasByName(name):
+            form = forms.getByName(name)
+        elif create:
+            form = self._createForm(forms, name)
         else:
-            print("wizardpage.saveSetting() **********************************************")
+            return None, None
+        args = getPropertyValueSet({'ActiveConnection': self.Connection,
+                                    'OpenMode': 'openDesign',
+                                    'Hidden': True})
+        doc = forms.loadComponentFromURL(name, '', 0, args)
+        return doc, form
 
-    def _getForm(self, database, formname='smtpMailerOOo'):
-        try:
-            forms = database.DatabaseDocument.getFormDocuments()
-            if forms.hasByName(formname):
-                form = forms.getByName(formname)
-            else:
-                args = getPropertyValueSet({'Name': formname, 'ActiveConnection': self.Connection})
-                form = forms.createInstanceWithArguments('com.sun.star.sdb.DocumentDefinition', args)
-                #args = getPropertyValueSet({'Name': formname, 'EmbeddedObject': docdef})
-                #form = forms.createInstanceWithArguments('com.sun.star.sdb.Forms', args)
-                forms.insertByName(formname, form)
-            args = getPropertyValueSet({'OpenMode': 'openDesign', 'ActiveConnection': self.Connection, 'Hidden': True})
-            doc = forms.loadComponentFromURL(formname, '_blank', 0, args)
-            #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-            #mri.inspect(doc)
-            return doc
-        except Exception as e:
-            print("WizardHandler._getForm() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def _getIdentifier(self, form):
-        if self._identifier is None:
-            self._identifier = form.createCommandIdentifier()
-        return self._identifier
-
-    def _getQuery1(self, queryname='smtpMailerOOo'):
-        print("WizardHandler._getQuery() 1")
-        queries = self.Connection.getQueries()
-        if queries.hasByName(queryname):
-            print("WizardHandler._getQuery() 2")
-            mri = createService(self.ctx, 'mytools.Mri')
-            mri.inspect(queries)
-            query = queries.getByName(queryname)
-        else:
-            query = queries.createDataDescriptor()
-            table = self.Connection.getTables().getByIndex(0)
-            column = table.getColumns().getByIndex(0)
-            query.Name = queryname
-            query.Command = 'SELECT * FROM "%s"' % table.Name
-            query.UpdateTableName = table.Name
-            query.Filter = '0=1'
-            query.ApplyFilter = True
-            query.Order = '"%s"' % column.Name
-            queries.appendByDescriptor(query)
-            print("WizardHandler._getQuery() 3")
-            self._database.DatabaseDocument.store()
-            print("WizardHandler._getQuery() 4")
-        return query
+    def _createForm(self, forms, name):
+        service = 'com.sun.star.sdb.DocumentDefinition'
+        args = getPropertyValueSet({'Name': name, 'ActiveConnection': self.Connection})
+        form = forms.createInstanceWithArguments(service, args)
+        forms.insertByName(name, form)
+        form = forms.getByName(name)
+        return form
 
     def _updateControl(self, window, control):
         try:
@@ -591,7 +602,7 @@ class WizardHandler(unohelper.Base,
 
     def _getOrderIndex(self):
         index = []
-        orders = self._query.Order.strip('"').split('","')
+        orders = self._recipient.Order.strip('"').split('","')
         columns = self.ColumnNames
         for order in orders:
             if order in columns:
@@ -619,20 +630,25 @@ class WizardHandler(unohelper.Base,
         return result
 
     def _setDocumentUserProperty(self, document, property, value):
+        print("wizardhandler._setDocumentUserProperty() %s - %s" % (property, value))
         properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(property):
+            print("wizardhandler._setDocumentUserProperty() setProperty")
             properties.setPropertyValue(property, value)
         else:
+            print("wizardhandler._setDocumentUserProperty() addProperty")
             properties.addProperty(property,
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEVOID") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.BOUND") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.REMOVABLE") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
+            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.MAYBEVOID') +
+            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.BOUND') +
+            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.REMOVABLE') +
+            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT'),
             value)
 
     def _getDocumentUserProperty(self, document, property, default=None):
+        print("wizardhandler._getDocumentUserProperty() %s" % (property, ))
         properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(property):
+            print("wizardhandler._getDocumentUserProperty() getProperty")
             return properties.getPropertyValue(property)
         elif default is not None:
             self._setDocumentUserProperty(property, default)

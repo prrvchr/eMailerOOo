@@ -155,15 +155,7 @@ class WizardHandler(unohelper.Base,
                 'Move')
 
     def _changeColumn(self, window, control):
-        tag = control.Model.Tag
-        position = control.getSelectedItemPos()
-        indexmax = control.ItemCount -1
-        if tag == 'EmailAddress':
-            window.getControl('CommandButton3').Model.Enabled = position != -1
-            window.getControl('CommandButton4').Model.Enabled = position > 0
-            window.getControl('CommandButton5').Model.Enabled = -1 < position < indexmax
-        elif tag == 'PrimaryKey':
-            window.getControl('CommandButton7').Model.Enabled = position != -1
+        self._updateControl(window, control)
         return True
 
     def _moveItem(self, window, control):
@@ -332,9 +324,6 @@ class WizardHandler(unohelper.Base,
                 handled = self._changeAddressBook(window, control.getSelectedItem())
             elif tag == 'Columns':
                 handled = self._changeColumns(window, control.getSelectedItems())
-            else:
-                pass
-                #self._updateControl(window, control)
             return handled
         except Exception as e:
             print("WizardHandler._updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
@@ -357,6 +346,9 @@ class WizardHandler(unohelper.Base,
             self._recipient.Order = query.Order
             print("WizardHandler._updateUI() DataSource 2")
             self._initSetting(window)
+            self._updateControl(window, window.getControl('ListBox2'))
+            self._updateControl(window, window.getControl('ListBox4'))
+            self._updateControl(window, window.getControl('ListBox5'))
             print("WizardHandler._updateUI() DataSource 3")
             self._refresh(window.getControl('ListBox1'))
             print("WizardHandler._updateUI() DataSource 4")
@@ -560,6 +552,15 @@ class WizardHandler(unohelper.Base,
                 button.Model.Enabled = self._canAdd(control, window.getControl('ListBox4'))
                 button = window.getControl('CommandButton6')
                 button.Model.Enabled = self._canAdd(control, window.getControl('ListBox5'))
+            elif tag == 'EmailAddress':
+                indexmax = control.ItemCount -1
+                position = control.getSelectedItemPos()
+                window.getControl('CommandButton3').Model.Enabled = position != -1
+                window.getControl('CommandButton4').Model.Enabled = position > 0
+                window.getControl('CommandButton5').Model.Enabled = -1 < position < indexmax
+            elif tag == 'PrimaryKey':
+                position = control.getSelectedItemPos()
+                window.getControl('CommandButton7').Model.Enabled = position != -1
             elif tag == 'Addresses':
                 selected = control.hasSelectedRows()
                 enabled = control.Model.GridDataModel.RowCount != 0

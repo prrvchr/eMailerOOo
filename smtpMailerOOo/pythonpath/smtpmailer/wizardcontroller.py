@@ -21,7 +21,6 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
 from unolib import getContainerWindow
-from unolib import getDialogUrl
 
 from .configuration import g_identifier
 from .configuration import g_extension
@@ -53,10 +52,9 @@ class WizardController(unohelper.Base,
     def createPage(self, parent, id):
         try:
             msg = "PageId: %s ..." % id
-            print("wizardcontroller.createPage() %s" % msg)
-            url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-            window = self._provider.createContainerWindow(url, '', parent, self._handler)
-            page = WizardPage(self.ctx, id, window, self._handler)
+            print("wizardcontroller.createPage()1 %s" % id)
+            page = WizardPage(self.ctx, parent, id, self._handler)
+            print("wizardcontroller.createPage()2 %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
             return page

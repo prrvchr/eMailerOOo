@@ -18,6 +18,7 @@ from unolib import PropertySet
 from unolib import createService
 from unolib import getProperty
 from unolib import getStringResource
+from unolib import getDialogUrl
 
 from .griddatamodel import GridDataModel
 from .dbtools import getRowResult
@@ -35,19 +36,20 @@ class WizardPage(unohelper.Base,
                  XWizardPage,
                  XRefreshListener,
                  XGridSelectionListener):
-    def __init__(self, ctx, id, window, handler):
+    def __init__(self, ctx, parent, id, handler):
         try:
             msg = "PageId: %s ..." % id
+            print("wizardpage.__init__() 1")
             self.ctx = ctx
             self.PageId = id
-            self.Window = window
+            provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
+            url = getDialogUrl(g_extension, 'PageWizard%s' % id)
+            print("wizardpage.__init__() 2")
+            self.Window = provider.createContainerWindow(url, '', parent, handler)
             self._handler = handler
+            print("wizardpage.__init__() 3")
             if id == 1:
                 print("wizardpage.__init__() 1 1")
-                #dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-                #dbcontext.addContainerListener(self)
-                #listbox = self.Window.getControl('ListBox4')
-                #listbox.Model.StringItemList = self._handler.EmailColumns
                 control = self.Window.getControl('ListBox1')
                 datasources = self._handler.DataSources
                 control.Model.StringItemList = datasources

@@ -8,7 +8,7 @@ def getSqlQuery(name, format=None):
         query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
 
 # Get DataBase Version Query
-    elif name == 'getVerion':
+    elif name == 'getVersion':
         query = 'Select DISTINCT DATABASE_VERSION() as "HSQL Version" From INFORMATION_SCHEMA.SYSTEM_TABLES'
 
 # ShutDown Queries

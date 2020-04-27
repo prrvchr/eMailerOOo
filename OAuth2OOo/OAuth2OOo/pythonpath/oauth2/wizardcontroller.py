@@ -145,11 +145,11 @@ class WizardController(unohelper.Base,
             if id == 1:
                 path = getActivePath(self.Configuration)
                 self.Wizard.activatePath(path, True)
-                page = self.Wizard.CurrentPage
-                if page.FirstLoad:
-                    page.FirstLoad = False
-                    if page.canAdvance():
-                        self.Wizard.travelNext()
+                #page = self.Wizard.CurrentPage
+                #if page.FirstLoad:
+                #    page.FirstLoad = False
+                #    if page.canAdvance():
+                #        self.Wizard.travelNext()
             elif id == 2:
                 pass
                 #if self.Shortened:

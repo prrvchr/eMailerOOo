@@ -37,37 +37,43 @@ class WizardPage(unohelper.Base,
                  XRefreshListener,
                  XGridSelectionListener):
     def __init__(self, ctx, parent, id, handler):
+        msg = "PageId: %s ..." % id
+        print("wizardpage.__init__() 1")
+        self.ctx = ctx
+        self.PageId = id
+        provider = createService(ctx, 'com.sun.star.awt.ContainerWindowProvider')
+        url = getDialogUrl(g_extension, 'PageWizard%s' % id)
+        print("wizardpage.__init__() 2")
+        self.Window = provider.createContainerWindow(url, '', parent, handler)
+        self._handler = handler
+        self._initPage()
+        print("wizardpage.__init__() 3")
+        msg += " Done"
+        logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
+
+    def _initPage(self):
         try:
-            msg = "PageId: %s ..." % id
-            print("wizardpage.__init__() 1")
-            self.ctx = ctx
-            self.PageId = id
-            provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
-            url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-            print("wizardpage.__init__() 2")
-            self.Window = provider.createContainerWindow(url, '', parent, handler)
-            self._handler = handler
-            print("wizardpage.__init__() 3")
-            if id == 1:
-                print("wizardpage.__init__() 1 1")
+            if self.PageId == 1:
+                print("wizardpage.initPage() 1 1")
                 control = self.Window.getControl('ListBox1')
                 datasources = self._handler.DataSources
                 control.Model.StringItemList = datasources
                 datasource = self._handler.getDocumentDataSource()
+                print("wizardpage.initPage() 1 2 %s-%s" % (datasources, datasource))
                 if datasource in datasources:
-                    print("wizardpage.__init__() 1 2")
+                    print("wizardpage.initPage() 1 3")
                     self._handler._changeDataSource(self.Window, datasource)
-                    print("wizardpage.__init__() 1 3")
+                    print("wizardpage.initPage() 1 4")
                     #self._handler._initColumnsSetting(self.Window)
-                    print("wizardpage.__init__() 1 4")
+                    print("wizardpage.initPage() 1 5")
                     self._handler._disabled = True
-                    print("wizardpage.__init__() 1 5")
+                    print("wizardpage.initPage() 1 6")
                     control.selectItem(datasource, True)
-                    print("wizardpage.__init__() 1 6")
+                    print("wizardpage.initPage() 1 7")
                     self._handler._disabled = False
-                print("wizardpage.__init__() 1 7")
-            elif id == 2:
-                print("wizardpage.__init__() 2 1")
+                print("wizardpage.initPage() 1 8")
+            elif self.PageId == 2:
+                print("wizardpage.initPage() 2 1")
                 point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 60)
                 size = uno.createUnoStruct('com.sun.star.awt.Size', 115, 115)
                 grid1 = self._getGridControl(self._handler._address, 'Addresses', point, size)
@@ -81,14 +87,12 @@ class WizardPage(unohelper.Base,
                 self._refreshPage2()
                 #mri = createService(self.ctx, 'mytools.Mri')
                 #mri.inspect(grid1)
-                print("wizardpage.__init__() 2 2")
-            elif id == 3:
+                print("wizardpage.initPage() 2 2")
+            elif self.PageId == 3:
                 pass
-            msg += " Done"
-            logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, 'WizardPage', '__init__()')
+            msg = u"Error: %s" % traceback.print_exc()
+            logMessage(self.ctx, SEVERE, msg, 'WizardPage', 'initPage()')
 
     # XRefreshListener
     def refreshed(self, event):
@@ -133,7 +137,10 @@ class WizardPage(unohelper.Base,
 
     # XWizardPage
     def activatePage(self):
-        self.Window.setVisible(False)
+        # TODO: LibreOffice displays only the first page of the path if you do not manually manage
+        # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
+        # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
+        self.Window.setVisible(True)
         msg = "PageId: %s ..." % self.PageId
         if self.PageId == 1:
             pass
@@ -141,7 +148,6 @@ class WizardPage(unohelper.Base,
             pass
         elif self.PageId == 3:
             pass
-        self.Window.setVisible(True)
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
 
@@ -151,6 +157,9 @@ class WizardPage(unohelper.Base,
             forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FORWARD')
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
+            # TODO: LibreOffice displays only the first page of the path if you do not manually manage
+            # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
+            # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
             self.Window.setVisible(False)
             if self.PageId == 1:
                 if self._handler._modified:

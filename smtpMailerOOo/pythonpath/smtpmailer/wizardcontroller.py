@@ -54,6 +54,7 @@ class WizardController(unohelper.Base,
             msg = "PageId: %s ..." % id
             print("wizardcontroller.createPage()1 %s" % id)
             page = WizardPage(self.ctx, parent, id, self._handler)
+            #self._wizard.enablePage(id, True)
             print("wizardcontroller.createPage()2 %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
@@ -82,6 +83,7 @@ class WizardController(unohelper.Base,
             if self._isFirstLoad(id) and self.canAdvance():
                 self._wizard.travelNext()
             self._wizard.updateTravelUI()
+            print("wizardcontroler.onActivatePage() %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
         except Exception as e:

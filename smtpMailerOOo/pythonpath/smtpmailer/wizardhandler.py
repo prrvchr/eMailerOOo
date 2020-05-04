@@ -21,6 +21,7 @@ from unolib import getStringResource
 from unolib import getPropertyValueSet
 
 from .griddatamodel import GridDataModel
+from .dbtools import getValueFromResult
 from .dbqueries import getSqlQuery
 
 from .configuration import g_identifier
@@ -55,9 +56,7 @@ class WizardHandler(unohelper.Base,
         self._statement = None
         self._table = None
         self._database = None
-        self._form = self._doc = None
-        self._identifier = None
-        #self._document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        self._emailcolumns = self._indexcolumns = ()
         self.index = -1
 
     @property
@@ -407,8 +406,8 @@ class WizardHandler(unohelper.Base,
     def _initSetting(self, window):
         doc, form = self._getForm(False)
         self._initTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
-        self._initColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
-        self._initColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
+        self._emailcolumns = self._initColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
+        self._indexcolumns = self._initColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
         #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
         #mri.inspect(doc)
         if form is not None:
@@ -427,6 +426,7 @@ class WizardHandler(unohelper.Base,
         value = None if document is None else self._getDocumentUserProperty(document, property)
         items = () if value is None else tuple(value.split(','))
         window.getControl(id).Model.StringItemList = items
+        return items
 
     def refreshTables(self, control):
         tables = self.TableNames
@@ -455,12 +455,15 @@ class WizardHandler(unohelper.Base,
             dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
         return True
 
-    def _rowRecipientExecute(self, filters=None):
+    def _rowRecipientExecute(self, filters=None, filter=''):
         self._recipient.ApplyFilter = False
         if filters is not None:
-            self._recipient.Filter = self._getQueryFilter(filters)
+            filter = self._getQueryFilter(filters)
+            self._recipient.Filter = filter
             self._recipient.ApplyFilter = True
+        print("wizardpage._rowRecipientExecute()1 ************** %s" % filter)
         self._recipient.execute()
+        print("wizardpage._rowRecipientExecute()2 ************** %s" % filter)
         return True
 
     def _getQuery(self, create, name='smtpMailerOOo'):
@@ -494,8 +497,8 @@ class WizardHandler(unohelper.Base,
         if self._modified:
             doc, form = self._getForm(True)
             self._saveTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
-            self._saveColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
-            self._saveColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
+            self._emailcolumns = self._saveColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
+            self._indexcolumns = self._saveColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
             form.store()
             form.close()
             self._modified = False
@@ -519,6 +522,7 @@ class WizardHandler(unohelper.Base,
         items = control.Model.StringItemList if control.ItemCount != 0 else ()
         self._setDocumentUserProperty(doc, property, ','.join(items))
         print("wizardpage._saveControlSetting() ************** %s" % ','.join(items))
+        return items
 
     def _getForm(self, create, name='smtpMailerOOo'):
         forms = self._database.DatabaseDocument.getFormDocuments()
@@ -586,14 +590,25 @@ class WizardHandler(unohelper.Base,
         if filters is None:
             result = ''
         else:
-            result = "%s IN ('%s')" % ('"Resource"', "','".join(filters))
+            queries = []
+            for f in filters:
+                filter = []
+                for i in range(len(self._indexcolumns)):
+                    value = "'%s'" % f[i]
+                    filter.append('"%s"=%s' % (self._indexcolumns[i], value))
+                query = ' AND '.join(filter)
+                if i > 0:
+                    query = '(%s)' % query
+                queries.append (query)
+            result = '(%s)' % ' OR '.join(queries)
+        print("WizardHandler._getQueryFilter() %s" % result)
         return result
 
     def _getFilter(self, any=False):
         filters = []
         separator = ' OR ' if any else ' AND '
         print("WizardHandler._getFilter()1 %s" % (self.ColumnNames, ))
-        for column in g_column_filters:
+        for column in self._emailcolumns:
             if column in self.ColumnNames:
                 print("WizardHandler._getFilter()2 %s" % (column, ))
                 filters.append('"%s" IS NOT NULL' % column)
@@ -610,25 +625,33 @@ class WizardHandler(unohelper.Base,
                 index.append(columns.index(order))
         return tuple(index)
 
-    def _getRecipientFilters(self, rows=(), index=0):
-        result = []
+    def _getRecipientFilters(self, rows=()):
+        filters = []
         self._recipient.beforeFirst()
         while self._recipient.next():
             row = self._recipient.Row -1
             if row not in rows:
-                result.append(self._recipient.getString(index +1))
-        print("wizardhandler._getRecipientFilters() %s - %s)" % (self._recipient.RowCount, result))
-        return result
+                filter = self._getFilters(self._recipient)
+                filters.append(filter)
+        print("wizardhandler._getRecipientFilters() %s - %s)" % (self._recipient.RowCount, filters))
+        return filters
 
-    def _getAddressFilters(self, rows, filters=(), index=0):
-        result = []
+    def _getAddressFilters(self, rows, recipients=()):
+        filters = []
         for row in rows:
             self._address.absolute(row +1)
-            filter = self._address.getString(index +1)
-            if filter not in filters:
-                result.append(filter)
-        print("wizardhandler._getAddressFilters() %s - %s)" % (self._address.RowCount, result))
-        return result
+            filter = self._getFilters(self._address)
+            if filter not in recipients:
+                filters.append(filter)
+        print("wizardhandler._getAddressFilters() %s - %s)" % (self._address.RowCount, filters))
+        return filters
+
+    def _getFilters(self, rowset):
+        filters = []
+        for column in self._indexcolumns:
+            i = rowset.findColumn(column)
+            filters.append(getValueFromResult(rowset, i))
+        return filters
 
     def _setDocumentUserProperty(self, document, property, value):
         print("wizardhandler._setDocumentUserProperty() %s - %s" % (property, value))

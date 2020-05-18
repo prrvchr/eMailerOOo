@@ -11,9 +11,8 @@ from com.sun.star.awt.grid import XMutableGridDataModel
 
 from unolib import createService
 
-from .configuration import g_default_columns
-
 from .dbtools import getValueFromResult
+from .wizardtools import getRowSetOrders
 
 import traceback
 
@@ -43,6 +42,10 @@ class GridDataModel(unohelper.Base,
     def removeReference(self, reference):
         pass
 
+    # XCloneable
+    def createClone(self):
+        return self
+
     # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row + 1)
@@ -54,8 +57,8 @@ class GridDataModel(unohelper.Base,
     def getRowData(self, row):
         data = []
         self._resultset.absolute(row + 1)
-        for column in range(self.ColumnCount):
-            data.append(getValueFromResult(self._resultset, column + 1))
+        for index in range(self.ColumnCount):
+            data.append(getValueFromResult(self._resultset, index + 1))
         return tuple(data)
 
     # XMutableGridDataModel
@@ -112,14 +115,23 @@ class GridDataModel(unohelper.Base,
         self._setRowSetData(rowset)
 
     def _setRowSetData(self, rowset):
+        print("GridDataModel._setRowSetData()1")
+        rowcount = self.RowCount
+        self.RowCount = rowset.RowCount
+        metadata = rowset.getMetaData()
+        self.ColumnCount = metadata.getColumnCount()
         if rowset.Order != self._order:
-            self._setColumnModel(rowset)
-        if self.RowCount > 0:
-            self._removeRowSetData(rowset)
-        self._insertRowSetData(rowset)
+            self._setColumnModel(rowset, metadata)
+        print("GridDataModel._setRowSetData()2")
+        if rowcount != self.RowCount:
+            self._updateRowSetData(rowcount)
+        if rowcount != 0 and self.RowCount != 0:
+            self._changeRowSetData(0, self.RowCount)
+        print("GridDataModel._setRowSetData()3")
 
-    def _setColumnModel(self, rowset):
-        orders = rowset.Order.strip('"').split('","')
+    def _setColumnModel(self, rowset, metadata):
+        orders = getRowSetOrders(rowset)
+        print("GridDataModel._setColumnModel()1")
         for i in range(self.ColumnModel.getColumnCount(), 0 ,-1):
             name = self.ColumnModel.getColumn(i - 1).Title
             if name in orders:
@@ -128,7 +140,7 @@ class GridDataModel(unohelper.Base,
                 self.ColumnModel.removeColumn(i - 1)
         truncated = False
         columns = rowset.getColumns()
-        metadata = rowset.getMetaData()
+        print("GridDataModel._setColumnModel()2")
         for name in orders:
             if not columns.hasByName(name):
                 truncated = True
@@ -140,31 +152,49 @@ class GridDataModel(unohelper.Base,
             column.MinWidth = size // 2
             column.DataColumnIndex = index - 1
             self.ColumnModel.addColumn(column)
+        print("GridDataModel._setColumnModel()3")
         if truncated:
             orders = [column.Title for column in self.ColumnModel.getColumns()]
-            order = '"%s"' % '","'.join(orders) if len(orders) else ''
+            order = '"%s"' % '", "'.join(orders) if len(orders) else ''
             self._order = rowset.Order = order
         else:
             self._order = rowset.Order
+        print("GridDataModel._setColumnModel()4")
 
-    def _removeRowSetData(self, rowset):
-        self.RowCount = self.ColumnCount = 0
-        event = self._getGridDataEvent()
-        for listener in self._datalisteners:
-            listener.rowsRemoved(event)
+    def _updateRowSetData(self, rowcount):
+        if self.RowCount < rowcount:
+            self._removeRowSetData(self.RowCount, rowcount -1)
+        else:
+            self._insertRowSetData(rowcount, self.RowCount -1)
 
-    def _insertRowSetData(self, rowset):
-        self.RowCount = rowset.RowCount
-        self.ColumnCount = rowset.getMetaData().getColumnCount()
-        if self.RowCount > 0:
-            event = self._getGridDataEvent(0)
+    def _removeRowSetData(self, first, last):
+        try:
+            print("GridDataModel._removeRowSetData()1")
+            event = self._getGridDataEvent(first, last)
+            print("GridDataModel._removeRowSetData()2")
             for listener in self._datalisteners:
-                listener.rowsInserted(event)
+                print("GridDataModel._removeRowSetData()3")
+                listener.rowsRemoved(event)
+            print("GridDataModel._removeRowSetData()4")
+        except Exception as e:
+            print("GridDataModel._removeRowSetData() ERROR: %s - %s" % (e, traceback.print_exc()))
 
-    def _getGridDataEvent(self, first=-1):
+    def _insertRowSetData(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._datalisteners:
+            listener.rowsInserted(event)
+
+    def _changeRowSetData(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._datalisteners:
+            listener.dataChanged(event)
+
+    def _getGridDataEvent(self, first, last):
         event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
         event.Source = self
-        event.FirstColumn = event.FirstRow = first
+        event.FirstColumn = 0
         event.LastColumn = self.ColumnCount - 1
-        event.LastRow = self.RowCount - 1
+        event.FirstRow = first
+        if first != -1:
+           event.LastRow = last
         return event

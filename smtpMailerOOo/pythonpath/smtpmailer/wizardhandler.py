@@ -23,6 +23,9 @@ from unolib import getPropertyValueSet
 from .griddatamodel import GridDataModel
 from .dbtools import getValueFromResult
 from .dbqueries import getSqlQuery
+from .wizardtools import getRowSetOrders
+from .wizardtools import getSelectedItems
+from .wizardtools import getStringItemList
 
 from .configuration import g_identifier
 from .configuration import g_extension
@@ -51,11 +54,12 @@ class WizardHandler(unohelper.Base,
         self._address.CommandType = TABLE
         self._address.FetchSize = g_fetchsize
         self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
-        self._recipient.CommandType = COMMAND
+        self._recipient.CommandType = TABLE
         self._recipient.FetchSize = g_fetchsize
         self._statement = None
         self._table = None
         self._database = None
+        self._quey = None
         self._emailcolumns = self._indexcolumns = ()
         self.index = -1
 
@@ -135,7 +139,8 @@ class WizardHandler(unohelper.Base,
             elif method == 'RemoveAll':
                 self._modified = True
                 grid = window.getControl('GridControl2')
-                handled = self._rowRecipientExecute([])
+                grid.deselectAllRows()
+                handled = self._rowRecipientExecute()
                 self._updateControl(window, grid)
             self._wizard.updateTravelUI()
             return handled
@@ -217,15 +222,17 @@ class WizardHandler(unohelper.Base,
             handled = True
         elif tag == 'Recipient':
             grid = window.getControl('GridControl2')
-            rows = grid.getSelectedRows()
-            recipients = self._getRecipientFilters(rows)
-            handled = self._rowRecipientExecute(recipients)
+            filters = self._getRecipientFilters(grid.getSelectedRows())
+            grid.deselectAllRows()
+            handled = self._rowRecipientExecute(filters)
+            #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+            #mri.inspect(grid)
             self._updateControl(window, grid)
         return handled
 
     def _addItemColumn(self, window, control):
         column = window.getControl('ListBox2').getSelectedItem()
-        columns = list(control.Model.StringItemList) if control.ItemCount != 0 else []
+        columns = list(getStringItemList(control))
         control.Model.StringItemList = self._addColumn(columns, column)
         return True
 
@@ -237,7 +244,7 @@ class WizardHandler(unohelper.Base,
         return tuple(columns)
 
     def _removeColumn(self, control, column, mutable=False):
-        columns = list(control.Model.StringItemList)
+        columns = list(getStringItemList(control))
         columns.remove(column)
         return columns if mutable else tuple(columns)
 
@@ -281,7 +288,7 @@ class WizardHandler(unohelper.Base,
             table = self.Connection.getTables().getByIndex(0)
         else:
             table = self.Connection.getTables().getByName(name)
-        self._recipient.Command = 'SELECT * FROM "%s"' % table.Name
+        self._recipient.Command = table.Name
         columns = table.getColumns().getElementNames()
         listbox = window.getControl('ListBox2')
         listbox.Model.StringItemList = columns
@@ -297,11 +304,10 @@ class WizardHandler(unohelper.Base,
         descriptor = []
         direct = uno.Enum('com.sun.star.beans.PropertyState', 'DIRECT_VALUE')
         connection = self._recipient.ActiveConnection
-        table = connection.getTables().getByIndex(0).Name
         descriptor.append(PropertyValue('DataSourceName', -1, self._recipient.DataSourceName, direct))
         descriptor.append(PropertyValue('ActiveConnection', -1, connection, direct))
-        descriptor.append(PropertyValue('Command', -1, table, direct))
-        descriptor.append(PropertyValue('CommandType', -1, TABLE, direct))
+        descriptor.append(PropertyValue('Command', -1, self._recipient.Command, direct))
+        descriptor.append(PropertyValue('CommandType', -1, self._recipient.CommandType, direct))
         descriptor.append(PropertyValue('Cursor', -1, self._recipient, direct))
         descriptor.append(PropertyValue('Selection', -1, (row, ), direct))
         descriptor.append(PropertyValue('BookmarkSelection', -1, False, direct))
@@ -322,7 +328,7 @@ class WizardHandler(unohelper.Base,
             elif tag == 'AddressBook':
                 handled = self._changeAddressBook(window, control.getSelectedItem())
             elif tag == 'Columns':
-                handled = self._changeColumns(window, control.getSelectedItems())
+                handled = self._changeColumns(window, getSelectedItems(control))
             return handled
         except Exception as e:
             print("WizardHandler._updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
@@ -334,15 +340,8 @@ class WizardHandler(unohelper.Base,
             connection = database.getConnection('', '')
             self._database = database
             self._statement = connection.createStatement()
-            query = self._getQuery(False)
-            self._address.DataSourceName = datasource
-            self._address.Order = query.Order
-            self._address.UpdateTableName = query.UpdateTableName
-            self._recipient.DataSourceName = datasource
-            #self._recipient.Command = query.Command
-            self._recipient.Filter = query.Filter
-            self._recipient.ApplyFilter = True
-            self._recipient.Order = query.Order
+            self._query = self._getQueryComposer()
+            self._setRowSet(datasource)
             print("WizardHandler._updateUI() DataSource 2")
             self._initSetting(window)
             self._updateControl(window, window.getControl('ListBox2'))
@@ -359,14 +358,33 @@ class WizardHandler(unohelper.Base,
             self._statement = None
         return True
 
+    def _getQueryComposer(self):
+        composer = self.Connection.createInstance('com.sun.star.sdb.SingleSelectQueryComposer')
+        query = self._getQuery(False)
+        composer.setQuery(query.Command)
+        self._address.Command = query.UpdateTableName
+        print("WizardHandler._getQueryComposer() %s - %s" % (query.UpdateTableName, query.Command))
+        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+        #mri.inspect(composer)
+        return composer
+
+    def _setRowSet(self, datasource):
+        self._address.DataSourceName = self._recipient.DataSourceName = datasource
+        self._address.Order = self._recipient.Order = self._query.getOrder()
+        self._recipient.Command = self._query.getTables().getByIndex(0).Name
+        self._recipient.Filter = self._query.getFilter()
+        print("WizardHandler._setRowSet() %s - %s" % (self._query.ElementaryQuery, self._query.getFilter()))
+        self._recipient.ApplyFilter = True
+        self._recipient.execute()
+
     def _changeAddressBook(self, window, table):
         print("WizardHandler._updateUI() AddressBook 1")
         self._table = self.Connection.getTables().getByName(table)
-        self._address.UpdateTableName = table
+        #self._address.UpdateTableName = table
         self._address.Command = table
         self._address.Filter = self._getFilter(True)
         self._address.ApplyFilter = True
-        self._executeRowSet()
+        self._address.execute()
         self._refreshColumns(window.getControl('ListBox2'))
         self._refreshButton(window)
         print("WizardHandler._updateUI() AddressBook 2")
@@ -377,9 +395,10 @@ class WizardHandler(unohelper.Base,
         # TODO: During ListBox initializing the listener must be disabled...
         if self._disabled:
             return True
+        self._modified = True
         # TODO: XRowset.Order should be treated as a column stack
         # TODO: where adding is done at the end and removing will keep order
-        orders = self._recipient.Order.strip('"').split('","')
+        orders = getRowSetOrders(self._recipient)
         print("WizardHandler._updateUI() Columns 2: %s - %s" % (orders, columns))
         for order in reversed(orders):
             if order not in columns:
@@ -387,20 +406,24 @@ class WizardHandler(unohelper.Base,
         for column in columns:
             if column not in orders:
                 orders.append(column)
-        order = '"%s"' % '","'.join(orders) if len(orders) else ''
-        self._executeRowSet(order)
+        order = '"%s"' % '", "'.join(orders) if len(orders) else ''
+        print("WizardHandler._updateUI() Columns 3: %s" % order)
+        self._query.setOrder(order)
+        self._setRowSetOrder()
         self._refreshButton(window)
-        print("WizardHandler._updateUI() Columns 3")
+        print("WizardHandler._updateUI() Columns 4")
         return True
 
     def _refreshButton(self, window):
         self._updateControl(window, window.getControl('GridControl1'))
         self._updateControl(window, window.getControl('GridControl2'))
 
-    def _executeRowSet(self, order=None):
-        if order is not None:
-            self._recipient.Order = self._address.Order = order
+    def _setRowSetOrder(self):
+        print("WizardHandler._setRowSetOrder() 1")
+        self._recipient.Order = self._address.Order = self._query.getOrder()
+        print("WizardHandler._setRowSetOrder() 2")
         self._address.execute()
+        print("WizardHandler._setRowSetOrder() 3")
         self._recipient.execute()
 
     def _initSetting(self, window):
@@ -432,7 +455,7 @@ class WizardHandler(unohelper.Base,
         tables = self.TableNames
         control.Model.StringItemList = ()
         control.Model.StringItemList = tables
-        table = self._address.UpdateTableName
+        table = self._address.Command
         table = tables[0] if len(tables) != 0 and table == '' else table
         control.selectItem(table, True)
 
@@ -455,13 +478,16 @@ class WizardHandler(unohelper.Base,
             dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
         return True
 
-    def _rowRecipientExecute(self, filters=None, filter=''):
+    def _rowRecipientExecute(self, filters=(), filter=''):
+        if len(filters) != 0:
+            filter = ' OR '.join(filters)
+        else:
+            filter = self._getNullFilter()
+        self._query.setFilter(filter)
         self._recipient.ApplyFilter = False
-        if filters is not None:
-            filter = self._getQueryFilter(filters)
-            self._recipient.Filter = filter
-            self._recipient.ApplyFilter = True
-        print("wizardpage._rowRecipientExecute()1 ************** %s" % filter)
+        self._recipient.Filter = self._query.getFilter()
+        self._recipient.ApplyFilter = True
+        print("wizardpage._rowRecipientExecute()1 ************** %s" % self._recipient.ActiveCommand)
         self._recipient.execute()
         print("wizardpage._rowRecipientExecute()2 ************** %s" % filter)
         return True
@@ -481,9 +507,7 @@ class WizardHandler(unohelper.Base,
         query = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.QueryDefinition')
         table = self.Connection.getTables().getByIndex(0)
         column = table.getColumns().getByIndex(0)
-        #query.Command = 'SELECT * FROM "%s"' % table.Name
-        query.Filter = '0=1'
-        query.Order = '"%s"' % column.Name
+        query.Command = 'SELECT * FROM "%s" WHERE 0=1 ORDER BY "%s"' % (table.Name, column.Name)
         query.UpdateTableName = table.Name
         return query
 
@@ -506,10 +530,10 @@ class WizardHandler(unohelper.Base,
     def saveSelection(self):
         if self._modified:
             query = self._getQuery(True)
-            query.Command = self._recipient.Command
-            query.Filter = self._recipient.Filter
-            query.Order = self._recipient.Order
-            query.UpdateTableName = self._address.UpdateTableName
+            command = self._query.getQueryWithSubstitution()
+            query.Command = command
+            print("wizardpage.saveSelection() %s" % command)
+            query.UpdateTableName = self._address.Command
             self._modified = False
 
     def _saveTableSetting(self, doc, window, id, property):
@@ -518,8 +542,7 @@ class WizardHandler(unohelper.Base,
         print("wizardpage._saveTableSetting() ************** %s" % table)
 
     def _saveColumnSetting(self, doc, window, id, property):
-        control = window.getControl(id)
-        items = control.Model.StringItemList if control.ItemCount != 0 else ()
+        items = getStringItemList(window.getControl(id))
         self._setDocumentUserProperty(doc, property, ','.join(items))
         print("wizardpage._saveControlSetting() ************** %s" % ','.join(items))
         return items
@@ -573,6 +596,7 @@ class WizardHandler(unohelper.Base,
             elif tag == 'Recipients':
                 selected = control.hasSelectedRows()
                 enabled = control.Model.GridDataModel.RowCount != 0
+                print("WizardHandler._updateControl() %s - %s" % (selected, enabled))
                 window.getControl('CommandButton3').Model.Enabled = selected
                 window.getControl('CommandButton4').Model.Enabled = enabled
         except Exception as e:
@@ -582,43 +606,24 @@ class WizardHandler(unohelper.Base,
         enabled = control.getSelectedItemPos() != -1
         if enabled and listbox.ItemCount != 0:
             column = control.getSelectedItem()
-            columns = listbox.Model.StringItemList
+            columns = getStringItemList(listbox)
             return column not in columns
         return enabled
 
-    def _getQueryFilter(self, filters=None):
-        if filters is None:
-            result = ''
-        else:
-            queries = []
-            for f in filters:
-                filter = []
-                for i in range(len(self._indexcolumns)):
-                    value = "'%s'" % f[i]
-                    filter.append('"%s"=%s' % (self._indexcolumns[i], value))
-                query = ' AND '.join(filter)
-                if i > 0:
-                    query = '(%s)' % query
-                queries.append (query)
-            result = '(%s)' % ' OR '.join(queries)
-        print("WizardHandler._getQueryFilter() %s" % result)
-        return result
-
     def _getFilter(self, any=False):
         filters = []
-        separator = ' OR ' if any else ' AND '
         print("WizardHandler._getFilter()1 %s" % (self.ColumnNames, ))
         for column in self._emailcolumns:
             if column in self.ColumnNames:
                 print("WizardHandler._getFilter()2 %s" % (column, ))
                 filters.append('"%s" IS NOT NULL' % column)
-        filter = separator.join(filters)
+        filter = self._addFilter(filters, any)
         print("WizardHandler._getFilter()3 %s" % filter)
         return filter
 
     def _getOrderIndex(self):
         index = []
-        orders = self._recipient.Order.strip('"').split('","')
+        orders = getRowSetOrders(self._recipient)
         columns = self.ColumnNames
         for order in orders:
             if order in columns:
@@ -627,31 +632,49 @@ class WizardHandler(unohelper.Base,
 
     def _getRecipientFilters(self, rows=()):
         filters = []
-        self._recipient.beforeFirst()
-        while self._recipient.next():
-            row = self._recipient.Row -1
-            if row not in rows:
-                filter = self._getFilters(self._recipient)
-                filters.append(filter)
+        if self._recipient.RowCount > 0:
+            self._recipient.beforeFirst()
+            while self._recipient.next():
+                row = self._recipient.Row -1
+                if row not in rows:
+                    filters.append(self._getFilters(self._recipient))
         print("wizardhandler._getRecipientFilters() %s - %s)" % (self._recipient.RowCount, filters))
-        return filters
+        return tuple(filters)
 
-    def _getAddressFilters(self, rows, recipients=()):
+    def _getAddressFilters(self, rows, recipients):
         filters = []
         for row in rows:
-            self._address.absolute(row +1)
+            self._address.absolute(row + 1)
             filter = self._getFilters(self._address)
             if filter not in recipients:
                 filters.append(filter)
         print("wizardhandler._getAddressFilters() %s - %s)" % (self._address.RowCount, filters))
-        return filters
+        return tuple(filters)
 
     def _getFilters(self, rowset):
         filters = []
         for column in self._indexcolumns:
-            i = rowset.findColumn(column)
-            filters.append(getValueFromResult(rowset, i))
-        return filters
+            if column in self.ColumnNames:
+                filter = '"%s"' % column
+                i = rowset.findColumn(column)
+                filter = "%s = '%s'" % (filter, getValueFromResult(rowset, i))
+                filters.append(filter)
+        return self._addFilter(filters)
+
+    def _getNullFilter(self):
+        filters = []
+        for column in self._indexcolumns:
+            if column in self.ColumnNames:
+                filter = '"%s" IS NULL' % column
+                filters.append(filter)
+        return self._addFilter(filters)
+
+    def _addFilter(self, filters, any=False):
+        separator = ' OR ' if any else ' AND '
+        filter = separator.join(filters)
+        if len(filters) > 1:
+            filter = '(%s)' % filter
+        return filter
 
     def _setDocumentUserProperty(self, document, property, value):
         print("wizardhandler._setDocumentUserProperty() %s - %s" % (property, value))

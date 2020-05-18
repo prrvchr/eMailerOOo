@@ -9,7 +9,7 @@ def getSqlQuery(name, format=None):
 
 # Get DataBase Version Query
     elif name == 'getVersion':
-        query = 'Select DISTINCT DATABASE_VERSION() as "HSQL Version" From INFORMATION_SCHEMA.SYSTEM_TABLES'
+        query = 'SELECT DISTINCT DATABASE_VERSION() AS "HSQL Version" FROM INFORMATION_SCHEMA.SYSTEM_TABLES'
 
 # ShutDown Queries
     elif name == 'shutdown':

@@ -84,6 +84,7 @@ class WizardPage(unohelper.Base,
                 self.Window.addControl('GridControl2', grid2)
                 grid2.addSelectionListener(self)
                 self._handler.addRefreshListener(self)
+                self._handler._recipient.execute()
                 self._refreshPage2()
                 #mri = createService(self.ctx, 'mytools.Mri')
                 #mri.inspect(grid1)

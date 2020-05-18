@@ -6,6 +6,7 @@ g_extension = 'smtpMailerOOo'
 g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
 g_logger = '%s.Logger' % g_identifier
 g_wizard_paths = ((1, 2, 3),)
+g_auto_travel = False
 
 # Mailer Wizard configuration
 g_default_columns = ['Resource']

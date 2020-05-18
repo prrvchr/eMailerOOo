@@ -26,6 +26,7 @@ from .configuration import g_identifier
 from .configuration import g_extension
 from .configuration import g_column_index
 from .configuration import g_column_filters
+from .configuration import g_auto_travel
 
 from .wizardhandler import WizardHandler
 from .wizardpage import WizardPage
@@ -80,7 +81,7 @@ class WizardController(unohelper.Base,
             forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
             self._wizard.enableButton(finish, False)
-            if self._isFirstLoad(id) and self.canAdvance():
+            if g_auto_travel and self._canTravel(id):
                 self._wizard.travelNext()
             self._wizard.updateTravelUI()
             print("wizardcontroler.onActivatePage() %s" % id)
@@ -109,8 +110,8 @@ class WizardController(unohelper.Base,
         title = self._stringResource.resolveString('PageWizard%s.Title' % id)
         return title
 
-    def _isFirstLoad(self, id):
+    def _canTravel(self, id):
         if id in self._pages:
             self._pages.remove(id)
-            return True
+            return self.canAdvance()
         return False

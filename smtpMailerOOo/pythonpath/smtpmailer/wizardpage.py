@@ -142,6 +142,7 @@ class WizardPage(unohelper.Base,
         # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
         # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
         self.Window.setVisible(True)
+        self._handler._wizard.enablePage(self.PageId +1, True)
         msg = "PageId: %s ..." % self.PageId
         if self.PageId == 1:
             pass
@@ -162,6 +163,8 @@ class WizardPage(unohelper.Base,
             # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
             # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
             self.Window.setVisible(False)
+            if reason == backward and not self.canAdvance():
+                self._handler._wizard.enablePage(self.PageId +1, False)
             if self.PageId == 1:
                 if self._handler._modified:
                     self._handler.saveSetting(self.Window)

@@ -27,6 +27,7 @@ from .configuration import g_extension
 from .configuration import g_column_index
 from .configuration import g_column_filters
 from .configuration import g_auto_travel
+from .configuration import g_wizard_paths
 
 from .wizardhandler import WizardHandler
 from .wizardpage import WizardPage
@@ -48,6 +49,7 @@ class WizardController(unohelper.Base,
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
         self._handler = WizardHandler(self.ctx, self._wizard)
         self._maxsize = self._configuration.getByName("MaxSizeMo") * MOTOBIT
+        self._initRoadMap()
 
     # XWizardController
     def createPage(self, parent, id):
@@ -69,7 +71,7 @@ class WizardController(unohelper.Base,
         return title
 
     def canAdvance(self):
-        advance = self._wizard.CurrentPage.canAdvance()
+        advance = self._wizard.getCurrentPage().canAdvance()
         print("wizardcontroler.canAdvance() %s" % advance)
         return advance
 
@@ -115,3 +117,11 @@ class WizardController(unohelper.Base,
             self._pages.remove(id)
             return self.canAdvance()
         return False
+
+    def _initRoadMap(self):
+        first = True
+        for page in g_wizard_paths:
+            if first:
+                first = False
+                continue
+            self._wizard.enablePage(page, False)

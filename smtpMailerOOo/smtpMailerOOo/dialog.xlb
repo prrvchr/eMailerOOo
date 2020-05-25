@@ -4,6 +4,7 @@
   <library:element library:name="Dialog"/>
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
+  <library:element library:name="Wizard"/>
   <library:element library:name="PageWizard1"/>
   <library:element library:name="PageWizard2"/>
   <library:element library:name="PageWizard3"/>

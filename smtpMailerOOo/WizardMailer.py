@@ -18,6 +18,7 @@ from smtpmailer import getMessage
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
 from smtpmailer import g_wizard_paths
+from smtpmailer import Wizard
 from smtpmailer import WizardController
 
 import traceback
@@ -37,10 +38,14 @@ class WizardMailer(unohelper.Base,
         #dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
         #dispatcher.executeDispatch(document, '.uno:NewWindow', '', 0, ())
         #package = createService(self.ctx, 'com.sun.star.deployment.ui.PackageManagerDialog')
-        wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
+
+        #wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
+        wizard = Wizard(self.ctx)
         controller = WizardController(self.ctx, wizard)
-        arguments = ((uno.Any('[][]short', g_wizard_paths), controller), )
-        uno.invoke(wizard, 'initialize', arguments)
+        #arguments = ((uno.Any('[]short', g_wizard_paths), controller), )
+        arguments = ('[]short', g_wizard_paths, controller)
+        #uno.invoke(wizard, 'initialize', arguments)
+        wizard.initialize(arguments)
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         logMessage(self.ctx, INFO, msg, 'WizardMailer', '__init__()')
         print(msg)

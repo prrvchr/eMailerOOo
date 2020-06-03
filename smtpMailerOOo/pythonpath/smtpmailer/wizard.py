@@ -30,7 +30,6 @@ from unolib import getStringResource
 
 from .configuration import g_identifier
 from .configuration import g_extension
-from .roadmapitem import RoadmapItem
 
 from .logger import getMessage
 

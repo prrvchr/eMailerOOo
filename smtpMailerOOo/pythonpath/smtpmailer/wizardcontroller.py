@@ -19,6 +19,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from unolib import PropertySet
 from unolib import createService
 from unolib import getConfiguration
+from unolib import getDialogUrl
 from unolib import getStringResource
 from unolib import getContainerWindow
 
@@ -49,16 +50,20 @@ class WizardController(unohelper.Base,
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
         self._handler = WizardHandler(self.ctx, self._wizard)
         self._maxsize = self._configuration.getByName("MaxSizeMo") * MOTOBIT
-        self._initRoadMap()
+        #self._initRoadMap()
 
     # XWizardController
     def createPage(self, parent, id):
         try:
             msg = "PageId: %s ..." % id
             print("wizardcontroller.createPage()1 %s" % id)
-            page = WizardPage(self.ctx, parent, id, self._handler)
-            #self._wizard.enablePage(id, True)
+            url = getDialogUrl(g_extension, 'PageWizard%s' % id)
             print("wizardcontroller.createPage()2 %s" % id)
+            window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
+            print("wizardcontroller.createPage()3 %s" % id)
+            page = WizardPage(self.ctx, id, window, self._handler)
+            #self._wizard.enablePage(id, True)
+            print("wizardcontroller.createPage()4 %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
             return page

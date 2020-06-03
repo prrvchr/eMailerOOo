@@ -9,16 +9,13 @@ from com.sun.star.util import XRefreshListener
 from com.sun.star.container import XContainerListener
 from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.view.SelectionType import MULTI
-from com.sun.star.awt.PosSize import POSSIZE
-from com.sun.star.util.MeasureUnit import APPFONT
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import PropertySet
-from unolib import createService
 from unolib import getProperty
 from unolib import getStringResource
-from unolib import getDialogUrl
 
 from .griddatamodel import GridDataModel
 from .dbtools import getRowResult
@@ -36,64 +33,59 @@ class WizardPage(unohelper.Base,
                  XWizardPage,
                  XRefreshListener,
                  XGridSelectionListener):
-    def __init__(self, ctx, parent, id, handler):
-        msg = "PageId: %s ..." % id
+    def __init__(self, ctx, id, window, handler):
+        msg = "PageId: %s loading ..." % id
         print("wizardpage.__init__() 1")
         self.ctx = ctx
         self.PageId = id
-        provider = createService(ctx, 'com.sun.star.awt.ContainerWindowProvider')
-        url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-        print("wizardpage.__init__() 2")
-        self.Window = provider.createContainerWindow(url, '', parent, handler)
+        self.Window = window
         self._handler = handler
-        self._initPage()
+        print("wizardpage.__init__() 2")
+        try:
+            if id == 1:
+                self._initPage1()
+            elif id == 2:
+                self._initPage2()
+        except Exception as e:
+            msg += "Error: %s" % traceback.print_exc()
+            logMessage(self.ctx, SEVERE, msg, 'WizardPage', '_initPage%s()' % id)
         print("wizardpage.__init__() 3")
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
 
-    def _initPage(self):
-        try:
-            if self.PageId == 1:
-                print("wizardpage.initPage() 1 1")
-                control = self.Window.getControl('ListBox1')
-                datasources = self._handler.DataSources
-                control.Model.StringItemList = datasources
-                datasource = self._handler.getDocumentDataSource()
-                print("wizardpage.initPage() 1 2 %s-%s" % (datasources, datasource))
-                if datasource in datasources:
-                    print("wizardpage.initPage() 1 3")
-                    self._handler._changeDataSource(self.Window, datasource)
-                    print("wizardpage.initPage() 1 4")
-                    #self._handler._initColumnsSetting(self.Window)
-                    print("wizardpage.initPage() 1 5")
-                    self._handler._disabled = True
-                    print("wizardpage.initPage() 1 6")
-                    control.selectItem(datasource, True)
-                    print("wizardpage.initPage() 1 7")
-                    self._handler._disabled = False
-                print("wizardpage.initPage() 1 8")
-            elif self.PageId == 2:
-                print("wizardpage.initPage() 2 1")
-                point = uno.createUnoStruct('com.sun.star.awt.Point', 10, 60)
-                size = uno.createUnoStruct('com.sun.star.awt.Size', 115, 115)
-                grid1 = self._getGridControl(self._handler._address, 'Addresses', point, size)
-                self.Window.addControl('GridControl1', grid1)
-                grid1.addSelectionListener(self)
-                point.X = 160
-                grid2 = self._getGridControl(self._handler._recipient, 'Recipients', point, size)
-                self.Window.addControl('GridControl2', grid2)
-                grid2.addSelectionListener(self)
-                self._handler.addRefreshListener(self)
-                self._handler._recipient.execute()
-                self._refreshPage2()
-                #mri = createService(self.ctx, 'mytools.Mri')
-                #mri.inspect(grid1)
-                print("wizardpage.initPage() 2 2")
-            elif self.PageId == 3:
-                pass
-        except Exception as e:
-            msg = u"Error: %s" % traceback.print_exc()
-            logMessage(self.ctx, SEVERE, msg, 'WizardPage', 'initPage()')
+    def _initPage1(self):
+        print("wizardpage._initPage1() 1")
+        control = self.Window.getControl('ListBox1')
+        datasources = self._handler.DataSources
+        control.Model.StringItemList = datasources
+        datasource = self._handler.getDocumentDataSource()
+        print("wizardpage._initPage1() 2 %s-%s" % (datasources, datasource))
+        if datasource in datasources:
+            print("wizardpage._initPage1() 3")
+            self._handler._changeDataSource(self.Window, datasource)
+            print("wizardpage._initPage1() 4")
+            #self._handler._initColumnsSetting(self.Window)
+            print("wizardpage._initPage1() 5")
+            self._handler._disabled = True
+            print("wizardpage._initPage1() 6")
+            control.selectItem(datasource, True)
+            print("wizardpage._initPage1() 7")
+            self._handler._disabled = False
+        print("wizardpage._initPage1() 8")
+
+    def _initPage2(self):
+        print("wizardpage._initPage2() 1")
+        p = uno.createUnoStruct('com.sun.star.awt.Point', 10, 60)
+        s = uno.createUnoStruct('com.sun.star.awt.Size', 115, 115)
+        grid1 = self._getGridControl(self._handler._address, 'GridControl1', p, s, 'Addresses')
+        grid1.addSelectionListener(self)
+        p.X = 160
+        grid2 = self._getGridControl(self._handler._recipient, 'GridControl2', p, s, 'Recipients')
+        grid2.addSelectionListener(self)
+        self._handler.addRefreshListener(self)
+        self._handler._recipient.execute()
+        self._refreshPage2()
+        print("wizardpage._initPage2() 2")
 
     # XRefreshListener
     def refreshed(self, event):
@@ -141,8 +133,8 @@ class WizardPage(unohelper.Base,
         # TODO: LibreOffice displays only the first page of the path if you do not manually manage
         # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
         # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
-        self.Window.setVisible(True)
-        self._handler._wizard.enablePage(self.PageId +1, True)
+        #self.Window.setVisible(True)
+        #self._handler._wizard.enablePage(self.PageId +1, True)
         msg = "PageId: %s ..." % self.PageId
         if self.PageId == 1:
             pass
@@ -162,9 +154,9 @@ class WizardPage(unohelper.Base,
             # TODO: LibreOffice displays only the first page of the path if you do not manually manage
             # TODO: the visibility of pages on XWizardPage.activatePage() and XWizardPage.commitPage()
             # TODO: reported: Bug 132661 https://bugs.documentfoundation.org/show_bug.cgi?id=132661
-            self.Window.setVisible(False)
-            if reason == backward and not self.canAdvance():
-                self._handler._wizard.enablePage(self.PageId +1, False)
+            #self.Window.setVisible(False)
+            #if reason == backward and not self.canAdvance():
+            #    self._handler._wizard.enablePage(self.PageId +1, False)
             if self.PageId == 1:
                 if self._handler._modified:
                     self._handler.saveSetting(self.Window)
@@ -198,29 +190,26 @@ class WizardPage(unohelper.Base,
         #print("wizardpage.canAdvance() 2 %s" % advance)
         return advance
 
-    def _getGridControl(self, rowset, tag, point, size, flags=POSSIZE):
-        # TODO: Because we need a GridDataListener who listen change on the GridDataModel
-        # TODO: We need to re assign the Model, and not only just set the GridDataModel
-        model = self._getGridModel(tag)
-        control = createService(self.ctx, model.DefaultControl)
-        control.setModel(self._getGridDataModel(model, rowset))
-        s = self.Window.convertSizeToPixel(size, APPFONT)
-        p = self.Window.convertPointToPixel(point, APPFONT)
-        control.setPosSize(p.X, p.Y, s.Width, s.Height, flags)
-        return control
+    def _getGridControl(self, rowset, name, point, size, tag):
+        dialog = self.Window.getModel()
+        model = self._getGridModel(rowset, dialog, name, point, size, tag)
+        dialog.insertByName(name, model)
+        return self.Window.getControl(name)
 
-    def _getGridModel(self, tag):
-        model = self.Window.Model.createInstance('com.sun.star.awt.grid.UnoControlGridModel')
+    def _getGridModel(self, rowset, dialog, name, point, size, tag):
+        data = GridDataModel(self.ctx, rowset)
+        model = dialog.createInstance('com.sun.star.awt.grid.UnoControlGridModel')
+        model.Name = name
+        model.PositionX = point.X
+        model.PositionY = point.Y
+        model.Height = size.Height
+        model.Width = size.Width
+        model.Tag = tag
+        model.GridDataModel = data
+        model.ColumnModel = data.ColumnModel
         model.SelectionModel = MULTI
         #model.ShowRowHeader = True
         model.BackgroundColor = 16777215
-        model.Tag = tag
-        return model
-
-    def _getGridDataModel(self, model, rowset):
-        data = GridDataModel(self.ctx, rowset)
-        model.GridDataModel = data
-        model.ColumnModel = data.ColumnModel
         return model
 
     def _refreshPage2(self):

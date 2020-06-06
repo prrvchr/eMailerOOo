@@ -58,9 +58,6 @@ class Wizard(unohelper.Base,
         size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
         roadmap = self._getRoadmapControl('RoadmapControl1', point, size)
         roadmap.addItemListener(self)
-        button = self._dialog.getControl('CommandButton3')
-        mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-        mri.inspect(button)
 
     @property
     def _roadMap(self):
@@ -211,7 +208,7 @@ class Wizard(unohelper.Base,
             old = self._paths[self._currentPath]
             new = self._paths[index]
             commun = self._getCommunPaths((old, new))
-            if self.currentPage not in commun:
+            if self._currentPage not in commun:
                 raise self._getInvalidStateException(105)
         print("Wizard.activatePath()")
 

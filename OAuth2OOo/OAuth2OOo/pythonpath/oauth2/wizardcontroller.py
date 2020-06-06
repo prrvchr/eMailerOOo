@@ -21,6 +21,7 @@ from unolib import getStringResource
 from unolib import getContainerWindow
 from unolib import getDialogUrl
 
+from .wizard import Wizard
 from .wizardhandler import WizardHandler
 from .wizardserver import WizardServer
 from .wizardpage import WizardPage
@@ -55,9 +56,9 @@ class WizardController(unohelper.Base,
         self.AuthorizationCode = uno.createUnoStruct('com.sun.star.beans.Optional<string>')
         self.Server = WizardServer(self.ctx)
         self.Uuid = generateUuid()
-        self.Wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
-        arguments = ((uno.Any('[][]short', g_wizard_paths), self), )
-        uno.invoke(self.Wizard, 'initialize', arguments)
+        self.Wizard = Wizard(self.ctx)
+        arguments = (g_wizard_paths, self)
+        self.Wizard.initialize(arguments)
         self.Error = ''
         self.stringResource = getStringResource(self.ctx, g_identifier, 'OAuth2OOo')
         #service = 'com.sun.star.awt.ContainerWindowProvider'

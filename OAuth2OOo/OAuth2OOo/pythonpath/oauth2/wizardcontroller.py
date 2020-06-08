@@ -89,7 +89,7 @@ class WizardController(unohelper.Base,
     def notify(self, percent):
         msg = "WizardController.notify() %s" % percent
         logMessage(self.ctx, INFO, msg, 'WizardController', 'notify()')
-        page = self.Wizard.CurrentPage
+        page = self.Wizard.getCurrentPage()
         if page.PageId == 3:
             if page.Window:
                 page.Window.getControl('ProgressBar1').Value = percent
@@ -134,7 +134,7 @@ class WizardController(unohelper.Base,
         title = self.stringResource.resolveString('PageWizard%s.Step' % (id, ))
         return title
     def canAdvance(self):
-        return self.Wizard.CurrentPage.canAdvance()
+        return self.Wizard.getCurrentPage().canAdvance()
     def onActivatePage(self, id):
         try:
             msg = "PageId: %s..." % id

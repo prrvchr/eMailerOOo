@@ -253,7 +253,6 @@ class Wizard(unohelper.Base,
         self._lastPage = max(path)
         self._initRoadmap(path, final)
         self._updateButton()
-        #self.updateTravelUI()
 
     def _initSinglePathWizard(self):
         return True, self._paths
@@ -315,7 +314,7 @@ class Wizard(unohelper.Base,
             item.ID = page
             item.Label = self._controller.getPageTitle(page)
             if i != 0:
-                item.Enabled = initialized and self._canPageAdvance(id)
+                item.Enabled = initialized and self._canAdvancePage(id)
             roadmap.insertByIndex(i, item)
             id = page
             i += 1
@@ -330,7 +329,7 @@ class Wizard(unohelper.Base,
             if i == 0:
                 item.Enabled = True
             elif id in self._pages:
-                item.Enabled = self._canPageAdvance(id)
+                item.Enabled = self._canAdvancePage(id)
             else:
                 item.Enabled = False
             id = item.ID
@@ -340,14 +339,14 @@ class Wizard(unohelper.Base,
         enabled = self._getNextPage() is not None and self._canAdvance()
         self._dialog.getControl('CommandButton3').Model.Enabled = enabled
         enabled = self._isLastPage()
-        self._dialog.getControl('CommandButton4').Model.Enabled = enabled
         button = 'CommandButton4' if enabled else 'CommandButton3'
+        self._dialog.getControl('CommandButton4').Model.Enabled = enabled
         self._dialog.getControl(button).Model.DefaultButton = True
 
     def _canAdvance(self):
-        return self._controller.canAdvance() and self._canPageAdvance(self._currentPage)
+        return self._controller.canAdvance() and self._canAdvancePage(self._currentPage)
 
-    def _canPageAdvance(self, page):
+    def _canAdvancePage(self, page):
         if page in self._pages:
             return self._pages[page].canAdvance()
         return False
@@ -368,10 +367,10 @@ class Wizard(unohelper.Base,
             model = page.Window.getModel()
             self._setModelStep(model, step)
             self._dialog.addControl(model.Name, page.Window)
-            #self._dialog.getModel().insertByName(model.Name, model)
             self._pages[id] = page
         self._currentPage = self._getRoadmap().CurrentItemID = id
         self._setDialogStep(step)
+        self._updateRoadmap()
         self._activatePage(id)
 
     def _setModelStep(self, model, step):
@@ -423,7 +422,6 @@ class Wizard(unohelper.Base,
         model.Height = size.Height
         model.Width = size.Width
         model.Text = self._stringResource.resolveString('Wizard.Roadmap.Text')
-        #model.Border = 0
         return model
 
     def _getInvalidArgumentCode(self, args):

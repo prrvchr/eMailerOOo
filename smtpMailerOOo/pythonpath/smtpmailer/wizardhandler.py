@@ -225,8 +225,6 @@ class WizardHandler(unohelper.Base,
             filters = self._getRecipientFilters(grid.getSelectedRows())
             grid.deselectAllRows()
             handled = self._rowRecipientExecute(filters)
-            #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-            #mri.inspect(grid)
             self._updateControl(window, grid)
         return handled
 
@@ -431,8 +429,6 @@ class WizardHandler(unohelper.Base,
         self._initTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
         self._emailcolumns = self._initColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
         self._indexcolumns = self._initColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
-        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-        #mri.inspect(doc)
         if form is not None:
             form.close()
 

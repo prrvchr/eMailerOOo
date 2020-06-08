@@ -50,20 +50,14 @@ class WizardController(unohelper.Base,
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
         self._handler = WizardHandler(self.ctx, self._wizard)
         self._maxsize = self._configuration.getByName("MaxSizeMo") * MOTOBIT
-        #self._initRoadMap()
 
     # XWizardController
     def createPage(self, parent, id):
         try:
             msg = "PageId: %s ..." % id
-            print("wizardcontroller.createPage()1 %s" % id)
             url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-            print("wizardcontroller.createPage()2 %s" % id)
             window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
-            print("wizardcontroller.createPage()3 %s" % id)
             page = WizardPage(self.ctx, id, window, self._handler)
-            #self._wizard.enablePage(id, True)
-            print("wizardcontroller.createPage()4 %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
             return page
@@ -87,11 +81,9 @@ class WizardController(unohelper.Base,
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
             forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-            self._wizard.enableButton(finish, False)
             if g_auto_travel and self._canTravel(id):
                 self._wizard.travelNext()
             self._wizard.updateTravelUI()
-            print("wizardcontroler.onActivatePage() %s" % id)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
         except Exception as e:
@@ -122,11 +114,3 @@ class WizardController(unohelper.Base,
             self._pages.remove(id)
             return self.canAdvance()
         return False
-
-    def _initRoadMap(self):
-        first = True
-        for page in g_wizard_paths:
-            if first:
-                first = False
-                continue
-            self._wizard.enablePage(page, False)

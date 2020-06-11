@@ -27,7 +27,6 @@ from .configuration import g_identifier
 from .configuration import g_extension
 from .configuration import g_column_index
 from .configuration import g_column_filters
-from .configuration import g_auto_travel
 from .configuration import g_wizard_paths
 
 from .wizardhandler import WizardHandler
@@ -44,7 +43,6 @@ class WizardController(unohelper.Base,
     def __init__(self, ctx, wizard):
         self.ctx = ctx
         self._wizard = wizard
-        self._pages = [1]
         self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
@@ -53,64 +51,38 @@ class WizardController(unohelper.Base,
 
     # XWizardController
     def createPage(self, parent, id):
-        try:
-            msg = "PageId: %s ..." % id
-            url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-            window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
-            page = WizardPage(self.ctx, id, window, self._handler)
-            msg += " Done"
-            logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
-            return page
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, 'WizardController', 'createPage()')
+        msg = "PageId: %s ..." % id
+        url = getDialogUrl(g_extension, 'PageWizard%s' % id)
+        window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
+        page = WizardPage(self.ctx, id, window, self._handler)
+        msg += " Done"
+        logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
+        return page
 
     def getPageTitle(self, id):
-        title = self._stringResource.resolveString('PageWizard%s.Step' % id)
-        return title
+        return self._stringResource.resolveString('PageWizard%s.Step' % id)
 
     def canAdvance(self):
-        advance = self._wizard.getCurrentPage().canAdvance()
-        print("wizardcontroler.canAdvance() %s" % advance)
-        return advance
+        return self._wizard.getCurrentPage().canAdvance()
 
     def onActivatePage(self, id):
-        try:
-            msg = "PageId: %s..." % id
-            self._wizard.setTitle(self._getWizardTitle(id))
-            backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-            forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-            finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-            if g_auto_travel and self._canTravel(id):
-                self._wizard.travelNext()
-            self._wizard.updateTravelUI()
-            msg += " Done"
-            logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, 'WizardController', 'onActivatePage()')
+        msg = "PageId: %s..." % id
+        title = self._stringResource.resolveString('PageWizard%s.Title' % id)
+        self._wizard.setTitle(title)
+        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
+        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
+        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
+        self._wizard.updateTravelUI()
+        msg += " Done"
+        logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 
     def onDeactivatePage(self, id):
-        try:
-            if id == 1:
-                pass
-            elif id == 2:
-                pass
-            elif id == 3:
-                pass
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, 'WizardController', 'onDeactivatePage()')
+        if id == 1:
+            pass
+        elif id == 2:
+            pass
+        elif id == 3:
+            pass
 
     def confirmFinish(self):
         return True
-
-    def _getWizardTitle(self, id):
-        title = self._stringResource.resolveString('PageWizard%s.Title' % id)
-        return title
-
-    def _canTravel(self, id):
-        if id in self._pages:
-            self._pages.remove(id)
-            return self.canAdvance()
-        return False

@@ -426,14 +426,15 @@ class WizardHandler(unohelper.Base,
 
     def _initSetting(self, window):
         doc, form = self._getForm(False)
-        self._initTableSetting(doc, window, 'ListBox3', 'PrimaryTable')
-        self._emailcolumns = self._initColumnSetting(doc, window, 'ListBox4', 'EmailColumns')
-        self._indexcolumns = self._initColumnSetting(doc, window, 'ListBox5', 'IndexColumns')
+        self._initTableSetting(doc, window.getControl('ListBox3'), 'PrimaryTable')
+        control = window.getControl('ListBox4')
+        self._emailcolumns = self._initColumnSetting(doc, control, 'EmailColumns')
+        control = window.getControl('ListBox5')
+        self._indexcolumns = self._initColumnSetting(doc, control, 'IndexColumns')
         if form is not None:
             form.close()
 
-    def _initTableSetting(self, document, window, id, property):
-        control = window.getControl(id)
+    def _initTableSetting(self, document, control, property):
         control.Model.StringItemList = self.TableNames
         table = None if document is None else self._getDocumentUserProperty(document, property)
         if table is None:
@@ -441,10 +442,10 @@ class WizardHandler(unohelper.Base,
         else:
             control.selectItem(table, True)
 
-    def _initColumnSetting(self, document, window, id, property):
+    def _initColumnSetting(self, document, control, property):
         value = None if document is None else self._getDocumentUserProperty(document, property)
         items = () if value is None else tuple(value.split(','))
-        window.getControl(id).Model.StringItemList = items
+        control.Model.StringItemList = items
         return items
 
     def refreshTables(self, control):

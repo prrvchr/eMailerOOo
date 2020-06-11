@@ -17,7 +17,6 @@ from unolib import getProperty
 from unolib import getStringResource
 
 from .griddatamodel import GridDataModel
-from .dbtools import getRowResult
 from .logger import logMessage
 
 from .configuration import g_identifier

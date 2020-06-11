@@ -13,6 +13,7 @@ from unolib import createService
 
 from .dbtools import getValueFromResult
 from .wizardtools import getRowSetOrders
+from .wizardtools import setRowSetOrders
 
 import traceback
 
@@ -34,6 +35,7 @@ class GridDataModel(unohelper.Base,
     # XWeak
     def queryAdapter(self):
         return self
+
     # XAdapter
     def queryAdapted(self):
         return self
@@ -114,33 +116,29 @@ class GridDataModel(unohelper.Base,
         self._resultset = rowset.createResultSet()
         self._setRowSetData(rowset)
 
+    # Private methods
     def _setRowSetData(self, rowset):
-        print("GridDataModel._setRowSetData()1")
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
         metadata = rowset.getMetaData()
         self.ColumnCount = metadata.getColumnCount()
         if rowset.Order != self._order:
             self._setColumnModel(rowset, metadata)
-        print("GridDataModel._setRowSetData()2")
         if rowcount != self.RowCount:
             self._updateRowSetData(rowcount)
         if rowcount != 0 and self.RowCount != 0:
             self._changeRowSetData(0, self.RowCount)
-        print("GridDataModel._setRowSetData()3")
 
     def _setColumnModel(self, rowset, metadata):
         orders = getRowSetOrders(rowset)
-        print("GridDataModel._setColumnModel()1")
-        for i in range(self.ColumnModel.getColumnCount(), 0 ,-1):
-            name = self.ColumnModel.getColumn(i - 1).Title
+        for i in range(self.ColumnModel.getColumnCount(), 0, -1):
+            name = self.ColumnModel.getColumn(i -1).Title
             if name in orders:
                 orders.remove(name)
             else:
-                self.ColumnModel.removeColumn(i - 1)
+                self.ColumnModel.removeColumn(i -1)
         truncated = False
         columns = rowset.getColumns()
-        print("GridDataModel._setColumnModel()2")
         for name in orders:
             if not columns.hasByName(name):
                 truncated = True
@@ -150,16 +148,13 @@ class GridDataModel(unohelper.Base,
             column.Title = name
             size = metadata.getColumnDisplaySize(index)
             column.MinWidth = size // 2
-            column.DataColumnIndex = index - 1
+            column.DataColumnIndex = index -1
             self.ColumnModel.addColumn(column)
-        print("GridDataModel._setColumnModel()3")
         if truncated:
             orders = [column.Title for column in self.ColumnModel.getColumns()]
-            order = '"%s"' % '", "'.join(orders) if len(orders) else ''
-            self._order = rowset.Order = order
+            self._order = rowset.Order = setRowSetOrders(orders)
         else:
             self._order = rowset.Order
-        print("GridDataModel._setColumnModel()4")
 
     def _updateRowSetData(self, rowcount):
         if self.RowCount < rowcount:
@@ -168,16 +163,9 @@ class GridDataModel(unohelper.Base,
             self._insertRowSetData(rowcount, self.RowCount -1)
 
     def _removeRowSetData(self, first, last):
-        try:
-            print("GridDataModel._removeRowSetData()1")
-            event = self._getGridDataEvent(first, last)
-            print("GridDataModel._removeRowSetData()2")
-            for listener in self._datalisteners:
-                print("GridDataModel._removeRowSetData()3")
-                listener.rowsRemoved(event)
-            print("GridDataModel._removeRowSetData()4")
-        except Exception as e:
-            print("GridDataModel._removeRowSetData() ERROR: %s - %s" % (e, traceback.print_exc()))
+        event = self._getGridDataEvent(first, last)
+        for listener in self._datalisteners:
+            listener.rowsRemoved(event)
 
     def _insertRowSetData(self, first, last):
         event = self._getGridDataEvent(first, last)
@@ -193,7 +181,7 @@ class GridDataModel(unohelper.Base,
         event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
         event.Source = self
         event.FirstColumn = 0
-        event.LastColumn = self.ColumnCount - 1
+        event.LastColumn = self.ColumnCount -1
         event.FirstRow = first
         if first != -1:
            event.LastRow = last

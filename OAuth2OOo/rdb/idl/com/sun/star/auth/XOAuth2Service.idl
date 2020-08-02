@@ -48,11 +48,16 @@ interface XOAuth2Service: com::sun::star::uno::XInterface
     ::com::sun::star::auth::XRestEnumeration getEnumeration([in] RestRequestParameter Parameter,
                                                             [in] ::com::sun::star::uno::XInterface Parser);
 
+    ::com::sun::star::auth::XRestEnumeration getIterator([in] RestRequestParameter Parameter,
+                                                         [in] ::com::sun::star::uno::XInterface Parser);
+
     ::com::sun::star::io::XInputStream getInputStream([in] RestRequestParameter Parameter,
                                                       [in] long Chunk,
                                                       [in] long Buffer);
 
-    ::com::sun::star::uno::XInterface getUploader([in] ::com::sun::star::uno::XInterface DataSource);
+    ::com::sun::star::uno::XInterface getUploader([in] long Chunk,
+                                                  [in] string Url,
+                                                  [in] ::com::sun::star::uno::XInterface CallBack);
 
     [attribute, readonly] ::com::sun::star::uno::XInterface Setting;
     [attribute, readonly] ::com::sun::star::uno::XInterface Session;

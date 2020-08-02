@@ -29,18 +29,21 @@ from unolib import getDialog
 from oauth2 import Request
 from oauth2 import Enumeration
 from oauth2 import Enumerator
+from oauth2 import Iterator
 from oauth2 import InputStream
 from oauth2 import Uploader
 from oauth2 import DialogHandler
 from oauth2 import getSessionMode
 from oauth2 import execute
 from oauth2 import OAuth2Setting
+from oauth2 import Wizard
 from oauth2 import WizardController
 from oauth2 import getRefreshToken
 from oauth2 import logMessage
 from oauth2 import g_identifier
 from oauth2 import g_oauth2
 from oauth2 import g_wizard_paths
+from oauth2 import g_wizard_page
 from oauth2 import g_refresh_overlap
 from oauth2 import requests
 
@@ -167,9 +170,12 @@ class OAuth2Service(unohelper.Base,
     def getAuthorization(self, url, username, close=True):
         authorized = False
         msg = "Wizard Loading ..."
-        controller = WizardController(self.ctx, self.Session, url, username, close)
+        wizard = Wizard(self.ctx, g_wizard_page, True)
+        controller = WizardController(self.ctx, wizard, self.Session, url, username, close)
+        arguments = (g_wizard_paths, controller)
+        wizard.initialize(arguments)
         msg += " Done ..."
-        if controller.Wizard.execute() == OK:
+        if wizard.execute() == OK:
             msg +=  " Retrieving Authorization Code ..."
             if controller.Error:
                 msg += " ERROR: cant retrieve Authorization Code: %s" % controller.Error
@@ -179,7 +185,7 @@ class OAuth2Service(unohelper.Base,
         else:
             msg +=  " ERROR: Wizard as been aborted"
             controller.Server.cancel()
-        controller.Wizard.DialogWindow.dispose()
+        wizard.DialogWindow.dispose()
         logMessage(self.ctx, INFO, msg, 'OAuth2Service', 'getAuthorization()')
         return authorized
 
@@ -223,6 +229,9 @@ class OAuth2Service(unohelper.Base,
     def getRequest(self, parameter, parser):
         return Request(self.Session, parameter, self.Timeout, parser)
 
+    def getIterator(self, parameter, parser):
+        return Iterator(self.Session, self.Timeout, parameter, parser)
+
     def getEnumeration(self, parameter, parser):
         return Enumeration(self.Session, parameter, self.Timeout, parser)
 
@@ -232,8 +241,8 @@ class OAuth2Service(unohelper.Base,
     def getInputStream(self, parameter, chunk, buffer):
         return InputStream(self.ctx, self.Session, parameter, chunk, buffer, self.Timeout)
 
-    def getUploader(self, datasource):
-        return Uploader(self.ctx, self.Session, datasource, self.Timeout)
+    def getUploader(self, chunk, url, user):
+        return Uploader(self.ctx, self.Session, chunk, url, user.callBack, self.Timeout)
 
     def _getSession(self):
         if sys.version_info[0] < 3:

@@ -1,7 +1,14 @@
 #!
 # -*- coding: utf_8 -*-
 
-def getSqlQuery(name, format=None):
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
+from .logger import logMessage
+from .logger import getMessage
+
+
+def getSqlQuery(ctx, name, format=None):
 
 # Select Queries
     if name == 'getTablesName':
@@ -19,6 +26,7 @@ def getSqlQuery(name, format=None):
 
 # Queries don't exist!!!
     else:
-        query = ''
-        print("dbqueries.getSqlQuery(): ERROR: Query '%s' not found!!!" % name)
+        query = None
+        msg = getMessage(ctx, 130, name)
+        logMessage(ctx, SEVERE, msg, 'dbqueries', 'getSqlQuery()')
     return query

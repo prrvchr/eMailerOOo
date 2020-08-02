@@ -31,7 +31,6 @@ from .configuration import g_wizard_paths
 
 from .wizardhandler import WizardHandler
 from .wizardpage import WizardPage
-from .dbqueries import getSqlQuery
 from .logger import logMessage
 
 import traceback

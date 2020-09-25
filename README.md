@@ -1,6 +1,6 @@
 **This extension is under development and is not yet available ... Thank you for your patience.**
 
-# version [v0.0.1](https://prrvchr.github.io/smtpMailerOOo#historical)
+# version [0.0.1](https://prrvchr.github.io/smtpMailerOOo#historical)
 
 [**Ce document en français**](https://prrvchr.github.io/smtpMailerOOo/README_fr)
 

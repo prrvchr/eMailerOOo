@@ -7,11 +7,11 @@ the privacy of our smtpMailerOOo software users is very important to us, and we 
 This policy explains what we do with your personal information.
 
 For simplicity, in the rest of this document, will be named:
-- `smtpMailerOOo`:  the smtpMailerOOo software in its integrity.
+- `smtpMailerOOo`:  the smtpMailerOOo software in its entirety.
 - `User`: the user of the smtpMailerOOo software.
 - `Supplier`: the internet service provider delivering internet services to `smtpMailerOOo`.
 
-Use of this software subjects you to our **Terms Of Use** as described in [this document:](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en)
+Use of this software also subjects you to our [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en)
 
 ### Contact:
 

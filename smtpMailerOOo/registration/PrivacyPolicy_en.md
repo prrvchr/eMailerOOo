@@ -1,6 +1,10 @@
-## Data Protection Policy for [smtpMailerOOo](https://github.com/prrvchr/smtpMailerOOo)
+**Use of this software also subjects you to our [Terms Of Use](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en).**
 
-### Introduction:
+Regarding installation, configuration and use, please consult the [documentation](https://prrvchr.github.io/smtpMailerOOo).
+
+# Data Protection Policy
+
+## Introduction:
 
 the privacy of our smtpMailerOOo software users is very important to us, and we are commited to safeguarding it.
 
@@ -11,16 +15,13 @@ For simplicity, in the rest of this document, will be named:
 - `User`: the user of the smtpMailerOOo software.
 - `Supplier`: the internet service provider delivering internet services to `smtpMailerOOo`.
 
-Use of this software also subjects you to our [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en)
-
-### Contact:
+## Contact:
 
 In any case, it is possible to contact the person responsible for data processing at:
 
 prrvchr@gmail.com
 
-
-### Use of your personal data:
+## Use of your personal data:
 
 To work `smtpMailerOOo` need to keep data locally.
 
@@ -34,8 +35,7 @@ Use of the `Supplier` services through `smtpMailerOOo`, may submit you to the Da
 
 `Supplier` is solely responsible for the use of the data it collects as described in its Policy.
 
-
-### Security of your personal information:
+## Security of your personal information:
 
 Since the data collected by `smtpMailerOOo` is located on the user's computer, only the `User` is responsible for the security of the data collected.
 
@@ -43,8 +43,7 @@ Use of the `Supplier` services via `smtpMailerOOo` may subject you to the data p
 
 `Supplier` is solely responsible for the security of the data it collects as described in its Policy.
 
-
-### Expiration of collected data:
+## Expiration of collected data:
 
 Updating the data collected locally is done each time `smtpMailerOOo` is used.
 

@@ -1,19 +1,20 @@
-**Cette extension est en cours de développement et n'est pas encore disponible ... Merci de votre patience.**
-
-# version [0.0.1](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
-
 [**This document in English**](https://prrvchr.github.io/smtpMailerOOo)
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_fr)
 
+**Cette extension est en cours de développement et n'est pas encore disponible ... Merci de votre patience.**
+
+# version [0.0.1](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
+
 ## Introduction:
 
-**smtpMailerOOo** est une extension [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
+**smtpMailerOOo** fait partie d'une [Suite](https://prrvchr.github.io/README_fr) d'extensions [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
 Cette extension vous permet d'envoyer du courrier électronique dans LibreOffice / OpenOffice, éventuellement par publipostage, à vos contacts téléphoniques.
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/smtpMailerOOo).
 - A apporter des modifications, des corrections, des ameliorations.
+- D'ouvrir une [issue](https://github.com/prrvchr/smtpMailerOOo/issues/new) si nécessaire.
 
 Bref, à participer au developpement de cette extension.
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.

@@ -1,4 +1,4 @@
-[**This document in English**](https://prrvchr.github.io/smtpServerOOo)
+**This [document](https://prrvchr.github.io/smtpServerOOo) in English.**
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpServerOOo/smtpServerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpServerOOo/smtpServerOOo/registration/PrivacyPolicy_fr)
 

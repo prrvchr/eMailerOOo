@@ -28,7 +28,7 @@ If necessary, rename it before installing it.
 
 You must first install this extension, if it is not already installed.
 
-- Install [smtpServerOOo.oxt](https://github.com/prrvchr/smtpServerOOo/raw/master/smtpServerOOo.oxt) extension version 0.0.1.
+- Install [smtpServerOOo.oxt](https://github.com/prrvchr/smtpServerOOo/raw/main/smtpServerOOo.oxt) extension version 0.0.1.
 
 Restart LibreOffice / OpenOffice after installation.
 

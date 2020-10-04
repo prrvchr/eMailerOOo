@@ -1,0 +1,1 @@
+smtpServerOOo is an extension offering smtp Client services at LibreOffice / OpenOffice.

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/prrvchr/OAuth2OOo.git
+	branch = master
+	commit = ac345559eec938561c13bfec3daf22234f900ac7
+	parent = 293c7d62356f76b4839379eea5c0164211c5b5b7
+	method = merge
+	cmdver = 0.4.0

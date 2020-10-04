@@ -2,8 +2,9 @@
 
 OOoProgram=/usr/lib/libreoffice/program
 Path=$(dirname "${0}")
+File=${Path}/rdb/types.rdb
 
-rm ${Path}/rdb/types.rdb
+rm -f ${File}
 
 # ./rdb/make_rdb.sh com/sun/star/auth/XRestKeyMap
 # ./rdb/make_rdb.sh com/sun/star/auth/OAuth2Request
@@ -12,4 +13,6 @@ rm ${Path}/rdb/types.rdb
 
 read -p "Press enter to continue"
 
-${OOoProgram}/regview ${Path}/rdb/types.rdb
+if test -f "${File}"; then
+    ${OOoProgram}/regview ${File}
+fi

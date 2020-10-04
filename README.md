@@ -1,4 +1,4 @@
-[**Ce document en français**](https://prrvchr.github.io/smtpMailerOOo/README_fr)
+**Ce [document](https://prrvchr.github.io/smtpMailerOOo/README_fr) en français.**
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
 

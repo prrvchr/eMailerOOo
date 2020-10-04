@@ -2,7 +2,7 @@
 
 Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation](https://prrvchr.github.io/smtpMailerOOo/README_fr).
 
-# Politique de protection des données pour [smtpMailerOOo](https://github.com/prrvchr/smtpMailerOOo)
+# Politique de protection des données
 
 ## Introduction:
 

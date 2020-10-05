@@ -96,12 +96,16 @@ class OptionsDialog(unohelper.Base,
         dialog.getControl('CommandButton1').Model.Enabled = enabled
 
     def _viewLog(self, window):
-        dialog = getDialog(self.ctx, window.Peer, self, g_extension, 'LogDialog')
-        url = getLoggerUrl(self.ctx)
-        dialog.Title = url
-        self._setDialogText(dialog, url)
-        dialog.execute()
-        dialog.dispose()
+        try:
+            dialog = getDialog(self.ctx, g_extension, 'LogDialog', self, window.Peer)
+            url = getLoggerUrl(self.ctx)
+            dialog.Title = url
+            self._setDialogText(dialog, url)
+            dialog.execute()
+            dialog.dispose()
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def _clearLog(self, dialog):
         try:

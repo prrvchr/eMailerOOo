@@ -20,7 +20,6 @@ from unolib import getProperty
 from unolib import getStringResource
 from unolib import getPropertyValueSet
 
-from .griddatamodel import GridDataModel
 from .dbtools import getValueFromResult
 from .dbqueries import getSqlQuery
 from .wizardtools import getRowSetOrders
@@ -29,10 +28,6 @@ from .wizardtools import getStringItemList
 
 from .configuration import g_identifier
 from .configuration import g_extension
-from .configuration import g_column_index
-from .configuration import g_column_filters
-from .configuration import g_table_index
-from .configuration import g_fetchsize
 
 from .logger import logMessage
 
@@ -52,10 +47,10 @@ class WizardHandler(unohelper.Base,
         self._modified = False
         self._address = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._address.CommandType = TABLE
-        self._address.FetchSize = g_fetchsize
+        #self._address.FetchSize = g_fetchsize
         self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         self._recipient.CommandType = TABLE
-        self._recipient.FetchSize = g_fetchsize
+        #self._recipient.FetchSize = g_fetchsize
         self._statement = None
         self._table = None
         self._database = None

@@ -16,12 +16,10 @@ from unolib import PropertySet
 from unolib import getProperty
 from unolib import getStringResource
 
-from .griddatamodel import GridDataModel
 from .logger import logMessage
 
 from .configuration import g_identifier
 from .configuration import g_extension
-from .configuration import g_column_index
 
 import traceback
 
@@ -153,7 +151,7 @@ class WizardPage(unohelper.Base,
         return self.Window.getControl(name)
 
     def _getGridModel(self, rowset, dialog, name, point, size, tag):
-        data = GridDataModel(self.ctx, rowset)
+        #data = GridDataModel(self.ctx, rowset)
         model = dialog.createInstance('com.sun.star.awt.grid.UnoControlGridModel')
         model.Name = name
         model.PositionX = point.X
@@ -161,7 +159,7 @@ class WizardPage(unohelper.Base,
         model.Height = size.Height
         model.Width = size.Width
         model.Tag = tag
-        model.GridDataModel = data
+        #model.GridDataModel = data
         model.ColumnModel = data.ColumnModel
         model.SelectionModel = MULTI
         #model.ShowRowHeader = True

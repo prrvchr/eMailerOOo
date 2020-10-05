@@ -25,8 +25,6 @@ from unolib import getContainerWindow
 
 from .configuration import g_identifier
 from .configuration import g_extension
-from .configuration import g_column_index
-from .configuration import g_column_filters
 from .configuration import g_wizard_paths
 
 from .wizardhandler import WizardHandler

@@ -1,0 +1,18 @@
+#ifndef __com_sun_star_mail_XSmtpService2_idl__
+#define __com_sun_star_mail_XSmtpService2_idl__
+
+#include <com/sun/star/mail/XMailService2.idl>
+#include <com/sun/star/mail/XMailMessage.idl>
+
+module com { module sun { module star { module mail {
+
+interface XSmtpService2: com::sun::star::mail::XMailService2
+{
+
+    void sendMailMessage([in] ::com::sun::star::mail::XMailMessage MailMessage);
+
+};
+
+}; }; }; };
+
+#endif

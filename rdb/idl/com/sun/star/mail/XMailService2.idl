@@ -1,0 +1,31 @@
+#ifndef __com_sun_star_mail_XMailService2_idl__
+#define __com_sun_star_mail_XMailService2_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/uno/XCurrentContext.idl>
+#include <com/sun/star/mail/XConnectionListener.idl>
+#include <com/sun/star/mail/XAuthenticator.idl>
+
+module com { module sun { module star { module mail {
+
+interface XMailService2: com::sun::star::uno::XInterface
+{
+
+    sequence<string> getSupportedConnectionTypes();
+    sequence<string> getSupportedAuthenticationTypes();
+
+    void addConnectionListener([in] ::com::sun::star::mail::XConnectionListener Listener);
+    void removeConnectionListener([in] ::com::sun::star::mail::XConnectionListener Listener);
+
+    ::com::sun::star::uno::XCurrentContext getCurrentConnectionContext();
+
+    void connect([in] ::com::sun::star::uno::XCurrentContext ConnectionContext,
+                 [in] ::com::sun::star::mail::XAuthenticator Authenticator);
+    void disconnect();
+    boolean isConnected();
+
+};
+
+}; }; }; };
+
+#endif

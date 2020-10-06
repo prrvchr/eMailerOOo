@@ -1,16 +1,18 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]
-    then
-        echo "***************************************************************"
-        echo "    Usage: make_rdb.sh chemin/du/module/nom_du_fichier(idl)    "
-        echo "***************************************************************"
-    else
-        OOoSDK=/usr/lib/libreoffice/sdk
-        OOoProgram=/usr/lib/libreoffice/program
-        Path=$(dirname "${0}")
-        Component=$(basename "${1}")
-        Module=$(dirname "${1}")
-        ${OOoSDK}/bin/idlc -verbose -O${Path}/urd/${Module} -I${OOoSDK}/idl -I${Path}/idl ${Path}/idl/${Module}/${Component}.idl
-        ${OOoProgram}/regmerge ${Path}/types.rdb /UCR ${Path}/urd/${Module}/${Component}.urd
+OOoPath=/usr/lib/libreoffice
+Path=$(dirname "${0}")
+
+rm -f ${Path}/types.rdb
+
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XRestKeyMap
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/OAuth2Request
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XInteractionUserName
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/RestRequestTokenType
+
+read -p "Press enter to continue"
+
+if test -f "${Path}/types.rdb"; then
+    ${OOoPath}/program/regview ${Path}/types.rdb
+    read -p "Press enter to continue"
 fi

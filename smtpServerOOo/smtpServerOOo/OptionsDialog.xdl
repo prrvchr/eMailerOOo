@@ -25,15 +25,21 @@
    </dlg:menupopup>
   </dlg:combobox>
   <dlg:radiogroup>
-   <dlg:radio dlg:id="OptionButton1" dlg:tab-index="4" dlg:left="125" dlg:top="12" dlg:width="35" dlg:height="15" dlg:help-text="&amp;OptionsDialog.OptionButton1.HelpText" dlg:value="&amp;OptionsDialog.OptionButton1.Label" dlg:valign="center">
+   <dlg:radio dlg:id="OptionButton1" dlg:tab-index="4" dlg:left="125" dlg:top="15" dlg:width="35" dlg:height="8" dlg:help-text="&amp;OptionsDialog.OptionButton1.HelpText" dlg:value="&amp;OptionsDialog.OptionButton1.Label" dlg:valign="center">
     <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:DisableViewer" script:language="UNO"/>
    </dlg:radio>
-   <dlg:radio dlg:id="OptionButton2" dlg:tab-index="5" dlg:left="165" dlg:top="12" dlg:width="35" dlg:height="15" dlg:help-text="&amp;OptionsDialog.OptionButton2.HelpText" dlg:value="&amp;OptionsDialog.OptionButton2.Label" dlg:valign="center">
+   <dlg:radio dlg:id="OptionButton2" dlg:tab-index="5" dlg:left="165" dlg:top="15" dlg:width="35" dlg:height="8" dlg:help-text="&amp;OptionsDialog.OptionButton2.HelpText" dlg:value="&amp;OptionsDialog.OptionButton2.Label" dlg:valign="center">
     <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EnableViewer" script:language="UNO"/>
    </dlg:radio>
   </dlg:radiogroup>
   <dlg:button dlg:id="CommandButton1" dlg:tab-index="6" dlg:disabled="true" dlg:left="205" dlg:top="12" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton1.HelpText" dlg:value="&amp;OptionsDialog.CommandButton1.Label">
    <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewLog" script:language="UNO"/>
+  </dlg:button>
+  <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl2" dlg:tab-index="7" dlg:left="5" dlg:top="40" dlg:width="250" dlg:height="35" dlg:help-text="&amp;OptionsDialog.FrameControl2.HelpText">
+   <dlg:title dlg:value="&amp;OptionsDialog.FrameControl2.Label"/>
+  </dlg:titledbox>
+  <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="80" dlg:top="52" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
+   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:LoadWizard" script:language="UNO"/>
   </dlg:button>
  </dlg:bulletinboard>
 </dlg:window>

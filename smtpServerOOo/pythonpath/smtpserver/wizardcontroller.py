@@ -21,11 +21,9 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getDialogUrl
 from unolib import getStringResource
-from unolib import getContainerWindow
 
 from .configuration import g_identifier
 from .configuration import g_extension
-from .configuration import g_wizard_paths
 
 from .wizardhandler import WizardHandler
 from .wizardpage import WizardPage
@@ -33,7 +31,6 @@ from .logger import logMessage
 
 import traceback
 
-MOTOBIT = 1024 * 1024
 
 class WizardController(unohelper.Base,
                        XWizardController):
@@ -44,7 +41,6 @@ class WizardController(unohelper.Base,
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
         self._handler = WizardHandler(self.ctx, self._wizard)
-        self._maxsize = self._configuration.getByName("MaxSizeMo") * MOTOBIT
 
     # XWizardController
     def createPage(self, parent, id):

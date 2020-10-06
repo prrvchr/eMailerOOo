@@ -7,6 +7,7 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -15,6 +16,11 @@ from unolib import getStringResource
 from unolib import getResourceLocation
 from unolib import getDialog
 from unolib import createService
+
+from smtpserver import Wizard
+from smtpserver import WizardController
+from smtpserver import g_wizard_page
+from smtpserver import g_wizard_paths
 
 from smtpserver import getLoggerUrl
 from smtpserver import getLoggerSetting
@@ -70,13 +76,13 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
-        elif method == 'ViewData':
-            self._showWizard(dialog)
+        elif method == 'LoadWizard':
+            self._loadWizard(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'ViewData')
+                'ViewLog', 'ClearLog', 'LoadWizard')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -96,16 +102,12 @@ class OptionsDialog(unohelper.Base,
         dialog.getControl('CommandButton1').Model.Enabled = enabled
 
     def _viewLog(self, window):
-        try:
-            dialog = getDialog(self.ctx, g_extension, 'LogDialog', self, window.Peer)
-            url = getLoggerUrl(self.ctx)
-            dialog.Title = url
-            self._setDialogText(dialog, url)
-            dialog.execute()
-            dialog.dispose()
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+        dialog = getDialog(self.ctx, g_extension, 'LogDialog', self, window.Peer)
+        url = getLoggerUrl(self.ctx)
+        dialog.Title = url
+        self._setDialogText(dialog, url)
+        dialog.execute()
+        dialog.dispose()
 
     def _clearLog(self, dialog):
         try:
@@ -148,8 +150,25 @@ class OptionsDialog(unohelper.Base,
         handler = dialog.getControl('OptionButton1').State
         setLoggerSetting(self.ctx, enabled, index, handler)
 
-    def _showWizard(self, dialog):
-        pass
+    def _loadWizard(self, dialog):
+        try:
+            print("_loadWizard()")
+            msg = "Wizard Loading ..."
+            wizard = Wizard(self.ctx, g_wizard_page, True)
+            controller = WizardController(self.ctx, wizard)
+            arguments = (g_wizard_paths, controller)
+            wizard.initialize(arguments)
+            msg += " Done ..."
+            if wizard.execute() == OK:
+                msg +=  " Retrieving Authorization Code ..."
+            else:
+                msg +=  " ERROR: Wizard as been aborted"
+            wizard.DialogWindow.dispose()
+            print(msg)
+            logMessage(self.ctx, INFO, msg, 'OAuth2Service', 'getAuthorization()')
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     # XServiceInfo
     def supportsService(self, service):

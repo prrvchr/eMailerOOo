@@ -154,7 +154,7 @@ class OptionsDialog(unohelper.Base,
         try:
             print("_loadWizard()")
             msg = "Wizard Loading ..."
-            wizard = Wizard(self.ctx, g_wizard_page, True, dialog.Peer)
+            wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
             controller = WizardController(self.ctx, wizard)
             arguments = (g_wizard_paths, controller)
             wizard.initialize(arguments)

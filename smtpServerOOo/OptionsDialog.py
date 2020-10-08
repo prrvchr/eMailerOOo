@@ -76,13 +76,13 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
-        elif method == 'LoadWizard':
-            self._loadWizard(dialog)
+        elif method == 'ShowWizard':
+            self._showWizard(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'LoadWizard')
+                'ViewLog', 'ClearLog', 'ShowWizard')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -150,9 +150,9 @@ class OptionsDialog(unohelper.Base,
         handler = dialog.getControl('OptionButton1').State
         setLoggerSetting(self.ctx, enabled, index, handler)
 
-    def _loadWizard(self, dialog):
+    def _showWizard(self, dialog):
         try:
-            print("_loadWizard()")
+            print("_showWizard()")
             msg = "Wizard Loading ..."
             wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
             controller = WizardController(self.ctx, wizard)

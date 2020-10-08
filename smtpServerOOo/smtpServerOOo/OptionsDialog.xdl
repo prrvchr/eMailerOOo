@@ -39,7 +39,7 @@
    <dlg:title dlg:value="&amp;OptionsDialog.FrameControl2.Label"/>
   </dlg:titledbox>
   <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="80" dlg:top="52" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
-   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:LoadWizard" script:language="UNO"/>
+   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowWizard" script:language="UNO"/>
   </dlg:button>
  </dlg:bulletinboard>
 </dlg:window>

@@ -7,6 +7,7 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -15,6 +16,11 @@ from unolib import getStringResource
 from unolib import getResourceLocation
 from unolib import getDialog
 from unolib import createService
+
+from smtpmailer import Wizard
+from smtpmailer import WizardController
+from smtpmailer import g_wizard_page
+from smtpmailer import g_wizard_paths
 
 from smtpmailer import getLoggerUrl
 from smtpmailer import getLoggerSetting
@@ -70,13 +76,13 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
-        elif method == 'ViewData':
+        elif method == 'ShowWizard':
             self._showWizard(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'ViewData')
+                'ViewLog', 'ClearLog', 'ShowWizard')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -145,7 +151,24 @@ class OptionsDialog(unohelper.Base,
         setLoggerSetting(self.ctx, enabled, index, handler)
 
     def _showWizard(self, dialog):
-        pass
+        try:
+            print("_showWizard()")
+            msg = "Wizard Loading ..."
+            wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
+            controller = WizardController(self.ctx, wizard)
+            arguments = (g_wizard_paths, controller)
+            wizard.initialize(arguments)
+            msg += " Done ..."
+            if wizard.execute() == OK:
+                msg +=  " Retrieving Authorization Code ..."
+            else:
+                msg +=  " ERROR: Wizard as been aborted"
+            wizard.DialogWindow.dispose()
+            print(msg)
+            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     # XServiceInfo
     def supportsService(self, service):

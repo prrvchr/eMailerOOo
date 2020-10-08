@@ -43,7 +43,7 @@ class WizardMailer(unohelper.Base,
             #package = createService(self.ctx, 'com.sun.star.deployment.ui.PackageManagerDialog')
     
             #wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
-            wizard = Wizard(self.ctx, g_wizard_page)
+            wizard = Wizard(self.ctx, g_wizard_page, True)
             print("WizardMailer.__init__() 2")
             controller = WizardController(self.ctx, wizard)
             #arguments = ((uno.Any('[]short', g_wizard_paths), controller), )

@@ -30,28 +30,20 @@ class WizardPage(unohelper.Base,
         self.PageId = id
         self.Window = window
         self._handler = handler
+        self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         if id == 1:
-            self._initPage1()
+            window.getControl('TextField1').Text = handler.getEmail()
         elif id == 2:
-            self._initPage2()
+            pass
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
-
-    def _initPage1(self):
-        pass
-
-    def _initPage2(self):
-        pass
 
     # XWizardPage
     def activatePage(self):
         msg = "PageId: %s ..." % self.PageId
-        if self.PageId == 1:
-            pass
-        elif self.PageId == 2:
-            pass
-        elif self.PageId == 3:
-            pass
+        if self.PageId in (2, 3):
+            text = self._stringResource.resolveString('PageWizard%s.Label1.Label' % self.PageId)
+            self.Window.getControl('Label1').Text = text % self._handler.getEmail()
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
 

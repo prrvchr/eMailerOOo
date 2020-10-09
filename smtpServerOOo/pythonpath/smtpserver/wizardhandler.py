@@ -28,9 +28,10 @@ import traceback
 
 class WizardHandler(unohelper.Base,
                     XContainerWindowEventHandler):
-    def __init__(self, ctx, wizard):
+    def __init__(self, ctx, wizard, model):
         self.ctx = ctx
         self._wizard = wizard
+        self._model = model
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
@@ -44,12 +45,16 @@ class WizardHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('TextChange',)
 
+    def getEmail(self):
+        return self._model.Email
+
     def _updateUI(self, window, event):
         try:
             control = event.Source
             tag = control.Model.Tag
             handled = False
             if tag == 'EmailAddress':
+                self._model.Email = control.Text
                 self._wizard.updateTravelUI()
                 handled = True
             return handled

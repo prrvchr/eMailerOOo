@@ -34,13 +34,13 @@ import traceback
 
 class WizardController(unohelper.Base,
                        XWizardController):
-    def __init__(self, ctx, wizard):
+    def __init__(self, ctx, wizard, model):
         self.ctx = ctx
         self._wizard = wizard
         self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
-        self._handler = WizardHandler(self.ctx, self._wizard)
+        self._handler = WizardHandler(self.ctx, self._wizard, model)
 
     # XWizardController
     def createPage(self, parent, id):
@@ -56,7 +56,7 @@ class WizardController(unohelper.Base,
         return self._stringResource.resolveString('PageWizard%s.Step' % id)
 
     def canAdvance(self):
-        return self._wizard.getCurrentPage().canAdvance()
+        return True
 
     def onActivatePage(self, id):
         msg = "PageId: %s..." % id

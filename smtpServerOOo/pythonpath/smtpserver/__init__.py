@@ -8,6 +8,7 @@ from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
 
 from .wizard import Wizard
+from .wizardmodel import WizardModel
 from .wizardcontroller import WizardController
 
 from .logger import getLoggerSetting

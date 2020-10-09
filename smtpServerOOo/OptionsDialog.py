@@ -18,6 +18,7 @@ from unolib import getDialog
 from unolib import createService
 
 from smtpserver import Wizard
+from smtpserver import WizardModel
 from smtpserver import WizardController
 from smtpserver import g_wizard_page
 from smtpserver import g_wizard_paths
@@ -155,7 +156,8 @@ class OptionsDialog(unohelper.Base,
             print("_showWizard()")
             msg = "Wizard Loading ..."
             wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
-            controller = WizardController(self.ctx, wizard)
+            model = WizardModel(self.ctx)
+            controller = WizardController(self.ctx, wizard, model)
             arguments = (g_wizard_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."

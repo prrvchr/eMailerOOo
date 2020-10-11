@@ -12,18 +12,18 @@
    <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ToggleLogger" script:language="UNO"/>
   </dlg:checkbox>
   <dlg:text dlg:id="Label1" dlg:tab-index="2" dlg:left="60" dlg:top="12" dlg:width="15" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:valign="center"/>
-  <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="3" dlg:left="80" dlg:top="12" dlg:width="40" dlg:height="15" dlg:help-text="&amp;OptionsDialog.ComboBox1.HelpText" dlg:value="&amp;OptionsDialog.ComboBox1.Text" dlg:spin="true">
+  <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:left="80" dlg:top="12" dlg:width="40" dlg:height="15" dlg:help-text="&amp;OptionsDialog.ListBox1.HelpText" dlg:spin="true">
    <dlg:menupopup>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.0"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.1"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.2"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.3"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.4"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.5"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.6"/>
-    <dlg:menuitem dlg:value="&amp;OptionsDialog.ComboBox1.StringItemList.7"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.0"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.1"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.2"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.3"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.4"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.5"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.6"/>
+    <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.7"/>
    </dlg:menupopup>
-  </dlg:combobox>
+  </dlg:menulist>
   <dlg:radiogroup>
    <dlg:radio dlg:id="OptionButton1" dlg:tab-index="4" dlg:left="125" dlg:top="15" dlg:width="35" dlg:height="8" dlg:help-text="&amp;OptionsDialog.OptionButton1.HelpText" dlg:value="&amp;OptionsDialog.OptionButton1.Label" dlg:valign="center">
     <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:DisableViewer" script:language="UNO"/>
@@ -39,9 +39,11 @@
    <dlg:title dlg:value="&amp;OptionsDialog.FrameControl2.Label"/>
   </dlg:titledbox>
   <dlg:text dlg:id="Label2" dlg:tab-index="8" dlg:left="10" dlg:top="52" dlg:width="190" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label2.HelpText" dlg:value="&amp;OptionsDialog.Label2.Label" dlg:valign="center" dlg:tabstop="false"/>
-  <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="9" dlg:left="205" dlg:top="52" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionsDialog.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="0" dlg:value-max="30"/>
-  <dlg:text dlg:id="Label3" dlg:tab-index="10" dlg:left="10" dlg:top="70" dlg:width="160" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label3.HelpText" dlg:value="&amp;OptionsDialog.Label3.Label" dlg:valign="center" dlg:tabstop="false"/>
-  <dlg:button dlg:id="CommandButton2" dlg:tab-index="11" dlg:left="175" dlg:top="70" dlg:width="75" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
+  <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="9" dlg:left="205" dlg:top="52" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionsDialog.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="0" dlg:value-max="30">
+      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeTimeout" script:language="UNO"/>
+  </dlg:numericfield>
+  <dlg:text dlg:id="Label3" dlg:tab-index="10" dlg:left="10" dlg:top="70" dlg:width="140" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label3.HelpText" dlg:value="&amp;OptionsDialog.Label3.Label" dlg:valign="center" dlg:tabstop="false"/>
+  <dlg:button dlg:id="CommandButton2" dlg:tab-index="11" dlg:left="155" dlg:top="70" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
    <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowWizard" script:language="UNO"/>
   </dlg:button>
  </dlg:bulletinboard>

@@ -46,12 +46,14 @@ class OptionsDialog(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
+        self._model = WizardModel(self.ctx)
         logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
 
     # XContainerWindowEventHandler, XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
         if method == 'external_event':
+            print("OptionsDialog.callHandlerMethod() %s" % event)
             if event == 'ok':
                 self._saveSetting(dialog)
                 handled = True
@@ -77,23 +79,28 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
+        elif method == 'ChangeTimeout':
+            self._changeTimeout(event.Source)
+            handled = True
         elif method == 'ShowWizard':
             self._showWizard(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'ShowWizard')
+                'ViewLog', 'ClearLog', 'ChangeTimeout', 'ShowWizard')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
+        self._loadSmtpSetting(dialog)
 
     def _saveSetting(self, dialog):
         self._saveLoggerSetting(dialog)
+        self._saveSmtpSetting(dialog)
 
     def _toggleLogger(self, dialog, enabled):
         dialog.getControl('Label1').Model.Enabled = enabled
-        dialog.getControl('ComboBox1').Model.Enabled = enabled
+        dialog.getControl('ListBox1').Model.Enabled = enabled
         dialog.getControl('OptionButton1').Model.Enabled = enabled
         control = dialog.getControl('OptionButton2')
         control.Model.Enabled = enabled
@@ -127,37 +134,31 @@ class OptionsDialog(unohelper.Base,
     def _loadLoggerSetting(self, dialog):
         enabled, index, handler = getLoggerSetting(self.ctx)
         dialog.getControl('CheckBox1').State = int(enabled)
-        self._setLoggerLevel(dialog.getControl('ComboBox1'), index)
+        dialog.getControl('ListBox1').selectItemPos(index, True)
         dialog.getControl('OptionButton%s' % handler).State = 1
         self._toggleLogger(dialog, enabled)
 
-    def _setLoggerLevel(self, control, index):
-        control.Text = self._getLoggerLevelText(control.Model.Name, index)
-
-    def _getLoggerLevel(self, control):
-        name = control.Model.Name
-        for index in range(control.ItemCount):
-            if self._getLoggerLevelText(name, index) == control.Text:
-                break
-        return index
-
-    def _getLoggerLevelText(self, name, index):
-        text = 'OptionsDialog.%s.StringItemList.%s' % (name, index)
-        return self.stringResource.resolveString(text)
-
     def _saveLoggerSetting(self, dialog):
         enabled = bool(dialog.getControl('CheckBox1').State)
-        index = self._getLoggerLevel(dialog.getControl('ComboBox1'))
+        index = dialog.getControl('ListBox1').getSelectedItemPos()
         handler = dialog.getControl('OptionButton1').State
         setLoggerSetting(self.ctx, enabled, index, handler)
+
+    def _loadSmtpSetting(self, dialog):
+        dialog.getControl('NumericField1').Value = self._model.getSavedTimeout()
+
+    def _saveSmtpSetting(self, dialog):
+        self._model.saveTimeout()
+
+    def _changeTimeout(self, control):
+        self._model.Timeout = int(control.Value)
 
     def _showWizard(self, dialog):
         try:
             print("_showWizard()")
             msg = "Wizard Loading ..."
             wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
-            model = WizardModel(self.ctx)
-            controller = WizardController(self.ctx, wizard, model)
+            controller = WizardController(self.ctx, wizard, self._model)
             arguments = (g_wizard_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."

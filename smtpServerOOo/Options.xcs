@@ -7,6 +7,7 @@
   oor:package="com.gmail.prrvchr.extensions"
   oor:name="smtpServerOOo">
     <component>
+        <prop oor:name="ConnectTimeout" oor:type="xs:short" />
         <prop oor:name="IspDbUrl" oor:type="xs:string" />
     </component>
 </oor:component-schema>

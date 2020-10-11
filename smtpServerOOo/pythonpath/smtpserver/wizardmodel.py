@@ -24,6 +24,7 @@ class WizardModel(unohelper.Base):
     def __init__(self, ctx, email=''):
         self.ctx = ctx
         self._email = email
+        self._timeout = self.getSavedTimeout()
 
     @property
     def Email(self):
@@ -31,3 +32,19 @@ class WizardModel(unohelper.Base):
     @Email.setter
     def Email(self, email):
         self._email = email
+
+    @property
+    def Timeout(self):
+        return self._timeout
+    @Timeout.setter
+    def Timeout(self, timeout):
+        self._timeout = timeout
+
+    def getSavedTimeout(self):
+        configuration = getConfiguration(self.ctx, g_identifier, False)
+        return configuration.getByName('ConnectTimeout')
+    def saveTimeout(self):
+        configuration = getConfiguration(self.ctx, g_identifier, True)
+        configuration.replaceByName('ConnectTimeout', self._timeout)
+        if configuration.hasPendingChanges():
+            configuration.commitChanges()

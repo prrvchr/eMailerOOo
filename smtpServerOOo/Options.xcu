@@ -6,6 +6,9 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="com.gmail.prrvchr.extensions"
   oor:name="smtpServerOOo">
+    <prop oor:name="ConnectTimeout" oor:op="fuse">
+        <value>15</value>
+    </prop>
     <prop oor:name="IspDbUrl" oor:op="fuse">
         <value>https://autoconfig.thunderbird.net/v1.1/</value>
     </prop>

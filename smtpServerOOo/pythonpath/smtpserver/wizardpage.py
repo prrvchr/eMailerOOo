@@ -65,7 +65,7 @@ class WizardPage(unohelper.Base,
     def canAdvance(self):
         advance = False
         if self.PageId == 1:
-            advance = self.Window.getControl("TextField1").Text != ''
+            advance = self._handler.isEmailValid()
         elif self.PageId == 2:
             advance = True
         elif self.PageId == 3:

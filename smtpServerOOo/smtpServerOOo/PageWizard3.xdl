@@ -11,22 +11,22 @@
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="3" dlg:left="50" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="ServerName" dlg:help-text="&amp;PageWizard3.TextField1.HelpText"/>
     <dlg:text dlg:id="Label3" dlg:tab-index="4" dlg:left="140" dlg:top="25" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label3.HelpText" dlg:value="&amp;PageWizard3.Label3.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField2" dlg:tab-index="5" dlg:left="180" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="ServerPort" dlg:help-text="&amp;PageWizard3.TextField2.HelpText"/>
-    <dlg:text dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="45" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label4.HelpText" dlg:value="&amp;PageWizard3.Label4.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="7" dlg:left="50" dlg:top="45" dlg:width="80" dlg:height="15" dlg:tag="ConnectionType" dlg:help-text="&amp;PageWizard3.ListBox1.HelpText" dlg:spin="true">
+    <dlg:text dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="45" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label4.HelpText" dlg:value="&amp;PageWizard3.Label4.Label" dlg:valign="center"/>
+    <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="7" dlg:left="75" dlg:top="45" dlg:width="45" dlg:height="15" dlg:tag="ConnectionType" dlg:help-text="&amp;PageWizard3.ComboBox1.HelpText" dlg:value="&amp;PageWizard3.ComboBox1.Text" dlg:spin="true">
       <dlg:menupopup>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox1.StringItemList.0"/>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox1.StringItemList.1"/>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox1.StringItemList.2"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox1.StringItemList.0"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox1.StringItemList.1"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox1.StringItemList.2"/>
       </dlg:menupopup>
-    </dlg:menulist>
-    <dlg:text dlg:id="Label5" dlg:tab-index="8" dlg:left="140" dlg:top="45" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label5.HelpText" dlg:value="&amp;PageWizard3.Label5.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="9" dlg:left="180" dlg:top="45" dlg:width="80" dlg:height="15" dlg:tag="AuthenticationType" dlg:help-text="&amp;PageWizard3.ListBox2.HelpText" dlg:spin="true">
+    </dlg:combobox>
+    <dlg:text dlg:id="Label5" dlg:tab-index="8" dlg:left="140" dlg:top="45" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label5.HelpText" dlg:value="&amp;PageWizard3.Label5.Label" dlg:valign="center"/>
+    <dlg:combobox dlg:id="ComboBox2" dlg:tab-index="9" dlg:left="205" dlg:top="45" dlg:width="45" dlg:height="15" dlg:tag="AuthenticationType" dlg:help-text="&amp;PageWizard3.ComboBox2.HelpText" dlg:value="&amp;PageWizard3.ComboBox2.Text" dlg:spin="true">
       <dlg:menupopup>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.0"/>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.1"/>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.2"/>
-        <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.3"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox2.StringItemList.0"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox2.StringItemList.1"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox2.StringItemList.2"/>
+        <dlg:menuitem dlg:value="&amp;PageWizard3.ComboBox2.StringItemList.3"/>
       </dlg:menupopup>
-    </dlg:menulist>
+    </dlg:combobox>
   </dlg:bulletinboard>
 </dlg:window>

@@ -23,6 +23,7 @@ from .configuration import g_extension
 
 from .logger import logMessage
 
+import validators
 import traceback
 
 
@@ -48,13 +49,24 @@ class WizardHandler(unohelper.Base,
     def getEmail(self):
         return self._model.Email
 
+    def setEmail(self, email):
+        self._model.Email = email
+
+    def isEmailValid(self):
+        if validators.email(self.getEmail()):
+           return True
+        return False
+
+    def getDomain(self):
+        return self.getEmail().split('@').pop()
+
     def _updateUI(self, window, event):
         try:
             control = event.Source
             tag = control.Model.Tag
             handled = False
             if tag == 'EmailAddress':
-                self._model.Email = control.Text
+                self.setEmail(control.Text)
                 self._wizard.updateTravelUI()
                 handled = True
             return handled

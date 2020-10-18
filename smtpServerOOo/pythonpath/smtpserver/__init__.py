@@ -10,6 +10,7 @@ from .configuration import g_wizard_page
 from .wizard import Wizard
 from .wizardmodel import WizardModel
 from .wizardcontroller import WizardController
+from .ispdbdispatch import IspdbDispatch
 
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

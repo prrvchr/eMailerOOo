@@ -58,10 +58,20 @@ class WizardHandler(unohelper.Base,
     def setEmail(self, email):
         self._model.Email = email
 
-    def isEmailValid(self):
+    def _isEmailValid(self):
         if validators.email(self.getEmail()):
            return True
         return False
+
+    def canAdvancePage(self, page):
+        advance = False
+        if page == 1:
+            advance = self._isEmailValid()
+        elif page == 2:
+           advance = True
+        elif page == 2:
+           advance = True
+        return advance
 
     def getDomain(self):
         return self.getEmail().split('@').pop()

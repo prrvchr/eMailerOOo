@@ -1,0 +1,14 @@
+Table|Column|TypeName|TypeLenght|Default|Options|Primary|Unique|ForeignTable|ForeignColumn
+0|0|VARCHAR|100||NOT NULL|true|false||
+0|1|VARCHAR|100||NOT NULL|false|true||
+0|2|VARCHAR|100|||false|false||
+0|8|TIMESTAMP|6|CURRENT_TIMESTAMP|NOT NULL|false|false||
+1|3|VARCHAR|100||NOT NULL|true|false||
+1|0|VARCHAR|100|||false|false|0|0
+1|8|TIMESTAMP|6|CURRENT_TIMESTAMP|NOT NULL|false|false||
+2|4|VARCHAR|100||NOT NULL|true|false||
+2|0|VARCHAR|100|||false|false|0|0
+2|5|SMALLINT|||NOT NULL|false|false||
+2|6|TINYINT|||NOT NULL|false|false||
+2|7|TINYINT|||NOT NULL|false|false||
+2|8|TIMESTAMP|6|CURRENT_TIMESTAMP|NOT NULL|false|false||

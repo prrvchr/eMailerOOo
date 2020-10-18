@@ -145,7 +145,7 @@ class OptionsDialog(unohelper.Base,
         setLoggerSetting(self.ctx, enabled, index, handler)
 
     def _loadSmtpSetting(self, dialog):
-        dialog.getControl('NumericField1').Value = self._model.getSavedTimeout()
+        dialog.getControl('NumericField1').Value = self._model.getTimeout()
 
     def _saveSmtpSetting(self, dialog):
         self._model.saveTimeout()
@@ -155,20 +155,14 @@ class OptionsDialog(unohelper.Base,
 
     def _showWizard(self, dialog):
         try:
-            print("_showWizard()")
-            msg = "Wizard Loading ..."
-            wizard = Wizard(self.ctx, g_wizard_page, True, dialog.getPeer())
-            controller = WizardController(self.ctx, wizard, self._model)
-            arguments = (g_wizard_paths, controller)
-            wizard.initialize(arguments)
-            msg += " Done ..."
-            if wizard.execute() == OK:
-                msg +=  " Retrieving Authorization Code ..."
-            else:
-                msg +=  " ERROR: Wizard as been aborted"
-            wizard.DialogWindow.dispose()
-            print(msg)
-            logMessage(self.ctx, INFO, msg, 'OAuth2Service', 'getAuthorization()')
+            print("_showWizard() 1")
+            desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
+            dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+            dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb', '', 0, ())
+            print("_showWizard() 2")
+            mri = createService(self.ctx, 'mytools.Mri')
+            mri.inspect(desktop)
+            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

@@ -63,14 +63,7 @@ class WizardPage(unohelper.Base,
         return True
 
     def canAdvance(self):
-        advance = False
-        if self.PageId == 1:
-            advance = self._handler.isEmailValid()
-        elif self.PageId == 2:
-            advance = True
-        elif self.PageId == 3:
-            pass
-        return advance
+        return self._handler.canAdvancePage(self.PageId)
 
     def _getPropertySetInfo(self):
         properties = {}

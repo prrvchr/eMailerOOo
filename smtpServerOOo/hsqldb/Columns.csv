@@ -1,0 +1,10 @@
+Column|Name
+0|Provider
+1|DisplayName
+2|DisplayShortName
+3|Domain
+4|Server
+5|Port
+6|Connection
+7|Authentication
+8|TimeStamp

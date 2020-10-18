@@ -11,6 +11,8 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
 
+from .replicator import Replicator
+
 from .configuration import g_identifier
 from .configuration import g_extension
 
@@ -24,7 +26,12 @@ class WizardModel(unohelper.Base):
     def __init__(self, ctx, email=''):
         self.ctx = ctx
         self._email = email
-        self._timeout = self.getSavedTimeout()
+        self._timeout = self.getTimeout()
+        try:
+            self._replicator = Replicator(self.ctx)
+        except Exception as e:
+            msg = "WizardModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     @property
     def Email(self):
@@ -40,9 +47,8 @@ class WizardModel(unohelper.Base):
     def Timeout(self, timeout):
         self._timeout = timeout
 
-    def getSavedTimeout(self):
-        configuration = getConfiguration(self.ctx, g_identifier, False)
-        return configuration.getByName('ConnectTimeout')
+    def getTimeout(self):
+        return getConfiguration(self.ctx, g_identifier, False).getByName('ConnectTimeout')
     def saveTimeout(self):
         configuration = getConfiguration(self.ctx, g_identifier, True)
         configuration.replaceByName('ConnectTimeout', self._timeout)

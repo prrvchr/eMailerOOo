@@ -38,6 +38,7 @@ class IspdbDispatch(unohelper.Base,
         self._listeners = []
         if frame is not None:
             self._parent = frame.getContainerWindow()
+            print("IspdbDispatch.__init__()")
         else:
             self._parent = None
             print("IspdbDispatch.__init__() not parent set!!!!!!")

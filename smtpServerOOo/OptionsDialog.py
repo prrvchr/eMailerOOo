@@ -16,6 +16,7 @@ from unolib import getStringResource
 from unolib import getResourceLocation
 from unolib import getDialog
 from unolib import createService
+from unolib import getPropertyValueSet
 
 from smtpserver import Wizard
 from smtpserver import WizardModel
@@ -156,16 +157,30 @@ class OptionsDialog(unohelper.Base,
     def _showWizard(self, dialog):
         try:
             print("_showWizard() 1")
+            url = self._getUrl('ispdb://')
             desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
-            dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
-            dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb', '', 0, ())
+            dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
+            #dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+            #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
             print("_showWizard() 2")
-            mri = createService(self.ctx, 'mytools.Mri')
-            mri.inspect(desktop)
+            if dispatcher is not None:
+                args = getPropertyValueSet({'Email': 'prrvchr@gmail.com'})
+                dispatcher.dispatch(url, args)
+                print("_showWizard() 3")
+            #mri = createService(self.ctx, 'mytools.Mri')
+            #mri.inspect(desktop)
+            msg = "OptionsDialog._showWizard()"
             logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    def _getUrl(self, uri):
+        url = uno.createUnoStruct('com.sun.star.util.URL')
+        url.Complete = uri
+        transformer = createService(self.ctx, 'com.sun.star.util.URLTransformer')
+        success, url = transformer.parseStrict(url)
+        return url
 
     # XServiceInfo
     def supportsService(self, service):

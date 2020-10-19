@@ -44,7 +44,7 @@ class IspDBServer(unohelper.Base,
 
     # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
-        if url.Protocol != 'ispdb':
+        if url.Protocol != 'ispdb:':
             print("IspDBServer.queryDispatch() 1 %s" % url.Protocol)
             return None
         print("IspDBServer.queryDispatch()2")

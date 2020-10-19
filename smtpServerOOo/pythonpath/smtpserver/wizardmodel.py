@@ -28,7 +28,9 @@ class WizardModel(unohelper.Base):
         self._email = email
         self._timeout = self.getTimeout()
         try:
-            self._replicator = Replicator(self.ctx)
+            msg = "WizardModel.__init__()"
+            print(msg)
+            #self._replicator = Replicator(self.ctx)
         except Exception as e:
             msg = "WizardModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

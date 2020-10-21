@@ -4,11 +4,14 @@
 import uno
 import unohelper
 
+from com.sun.star.auth import XRestDataParser
+
 from unolib import getNamedValue
 from unolib import KeyMap
 
 
-class DataParser(unohelper.Base):
+class DataParser(unohelper.Base,
+                 XRestDataParser):
     def __init__(self, ctx):
         self.ctx = ctx
 

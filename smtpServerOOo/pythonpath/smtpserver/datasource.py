@@ -12,6 +12,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import getConfiguration
+from unolib import createService
 
 from .dbtools import getDataSource
 
@@ -97,7 +98,7 @@ class DataSource(unohelper.Base,
         parameter.NoAuth = True
         parser = DataParser(self.ctx)
         request = createService(self.ctx, service).getRequest(parameter, parser)
-        response = resquest.execute()
+        response = request.execute()
         if response.IsPresent:
             print("DataSource._getIspdbConfig() OK")
         else:

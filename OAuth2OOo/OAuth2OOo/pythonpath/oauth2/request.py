@@ -171,7 +171,7 @@ def execute(session, parameter, timeout, parser=None):
                 content = r.headers.get('Content-Type', '')
                 if content.startswith('application/json'):
                     print("OAuth2Service.execute():\n%s" % (r.json(), ))
-                    response.Value = r.json(object_pairs_hook=parser.jsonParser)
+                    response.Value = r.json(object_pairs_hook=parser.parseResponse)
                 elif content.startswith('text/xml'):
                     print("OAuth2Service.execute():\n%s" % (r.text, ))
                     response.Value = parser.parseResponse(r)

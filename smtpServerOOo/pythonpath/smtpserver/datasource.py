@@ -1,6 +1,8 @@
 #!
 # -*- coding: utf_8 -*-
 
+#from __futur__ import absolute_import
+
 import uno
 import unohelper
 
@@ -9,148 +11,127 @@ from com.sun.star.util import XCloseListener
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.ucb import XRestDataSource
+from unolib import getConfiguration
 
-from unolib import g_oauth2
-from unolib import createService
-
-from .configuration import g_cache
 from .dbtools import getDataSource
 
-from .user import User
-from .identifier import Identifier
-from .replicator import Replicator
 from .database import DataBase
+from .dataparser import DataParser
+
+from .configuration import g_identifier
 
 from .logger import logMessage
 from .logger import getMessage
 
 from collections import OrderedDict
+from threading import Thread
+from threading import Condition
 import traceback
+import time
 
 
 class DataSource(unohelper.Base,
-                 XRestDataSource,
                  XCloseListener):
-    def __init__(self, ctx, event, scheme, plugin):
-        msg = "DataSource for Scheme: %s loading ... " % scheme
+    def __init__(self, ctx):
+        print("DataSource.__init__() 1")
         self.ctx = ctx
-        self._Users = {}
-        self._Uris = {}
-        self._Identifiers = OrderedDict()
-        self.Error = None
-        self.sync = event
-        self.Provider = createService(self.ctx, '%s.Provider' % plugin)
-        datasource, url, created = getDataSource(self.ctx, scheme, plugin, True)
-        self.DataBase = DataBase(self.ctx, datasource)
-        if created:
-            self.Error = self.DataBase.createDataBase()
-            if self.Error is None:
-                self.DataBase.storeDataBase(url)
-        self.DataBase.addCloseListener(self)
-        folder, link = self.DataBase.getContentType()
-        self.Provider.initialize(scheme, plugin, folder, link)
-        self.Replicator = Replicator(ctx, datasource, self.Provider, self._Users, self.sync)
-        msg += "Done"
-        logMessage(self.ctx, INFO, msg, 'DataSource', '__init__()')
+        self._error = None
+        self._progress = 0.5
+        self._configuration = getConfiguration(self.ctx, g_identifier, False)
+        if self._initializeDataBase():
+            print("DataSource.__init__() 2")
+            self.InitThread = Thread(target=self._initDataBase)
+            self.InitThread.start()
+        print("DataSource.__init__() 3")
+
+    _DataBase = None
+    _InitThread = None
+
+    @property
+    def InitThread(self):
+        return DataSource._InitThread
+    @InitThread.setter
+    def InitThread(self, thread):
+        DataSource._InitThread = thread
+    @property
+    def DataBase(self):
+        return DataSource._DataBase
+    @DataBase.setter
+    def DataBase(self, database):
+        DataSource._DataBase = database
+
+    def _initializeDataBase(self):
+        return self.InitThread is None
+
+    # XRestReplicator
+    def cancel(self):
+        self.canceled = True
+        self.sync.set()
+        self.join()
+
+    def loadSmtpConfig(self, email, callback):
+        smtpconfig = Thread(target=self._loadSmtpConfig, args=(email, callback))
+        smtpconfig.start()
+
+    def _loadSmtpConfig(self, email, callback):
+        time.sleep(self._progress)
+        callback(10)
+        time.sleep(self._progress)
+        self.InitThread.join()
+        callback(20)
+        time.sleep(self._progress)
+        domain = self._getDomain(email)
+        config = self.DataBase.getSmtpConfig(domain)
+        if config is None:
+            callback(30)
+            self._getIspdbConfig(domain)
+        else:
+            callback(100)
+
+    def _getIspdbConfig(self, domain):
+        url = '%s%s' % (self._configuration.getByName('IspDBUrl'), domain)
+        service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter.Method = 'GET'
+        parameter.Url = url
+        parameter.NoAuth = True
+        parser = DataParser(self.ctx)
+        request = createService(self.ctx, service).getRequest(parameter, parser)
+        response = resquest.execute()
+        if response.IsPresent:
+            print("DataSource._getIspdbConfig() OK")
+        else:
+            print("DataSource._getIspdbConfig() CANCEL")
+
+    def _getDomain(self, email):
+        return email.split('@').pop()
+
+    def _initDataBase(self):
+        try:
+            msg = "DataSource for Scheme: loading ... "
+            print("DataSource.run() 1 *************************************************************")
+            self.DataBase = self._getDataBase()
+            config = self.DataBase.getSmtpConfig('gmail.com')
+            print("DataSource.run() 2 %s" % (config, ))
+            print("DataSource.run() 3 *************************************************************")
+        except Exception as e:
+            msg = "DataSource run(): Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _getDataBase(self):
+        database = DataBase(self.ctx, 'SmtpServer')
+        database.addCloseListener(self)
+        return database
 
     # XCloseListener
     def queryClosing(self, source, ownership):
-        if self.Replicator.is_alive():
-            self.Replicator.cancel()
-            self.Replicator.join()
+        #if self.DataSource.is_alive():
+        #    self.DataSource.cancel()
+        #    self.DataSource.join()
         #self.deregisterInstance(self.Scheme, self.Plugin)
-        self.DataBase.shutdownDataBase(self.Replicator.fullPull)
+        #self.DataBase.shutdownDataBase(self.DataSource.fullPull)
         msg = "DataSource queryClosing: Scheme: %s ... Done" % self.Provider.Scheme
         logMessage(self.ctx, INFO, msg, 'DataSource', 'queryClosing()')
         print(msg)
     def notifyClosing(self, source):
         pass
-
-    # XRestDataSource
-    def isValid(self):
-        return self.Error is None
-
-    def getUser(self, name, password=''):
-        # User never change... we can cache it...
-        if name in self._Users:
-            user = self._Users[name]
-        else:
-            user = User(self.ctx, self, name)
-            if not self._initializeUser(user, name, password):
-                return None
-            self._Users[name] = user
-            self.sync.set()
-        return user
-
-    def getIdentifier(self, user, uri):
-        # For performance, we have to cache it... if it's valid.
-        if uri.getPath() == '/' and uri.hasFragment():
-            # A Uri with fragment is supposed to be removed from the cache,
-            # usually after the title or Id has been changed
-            identifier = self._removeIdentifierFromCache(user, uri)
-        else:
-            key = self._getUriKey(user, uri)
-            itemid = self._Uris.get(key, None)
-            if itemid is None:
-                identifier = Identifier(self.ctx, user, uri)
-                if identifier.isValid():
-                    self._Uris[key] = identifier.Id
-                    self._Identifiers[identifier.Id] = identifier
-            else:
-                identifier = self._Identifiers[itemid]
-            # To optimize memory usage, the cache size is limited
-            if len(self._Identifiers) > g_cache:
-                k, i = self._Identifiers.popitem(False)
-                self._removeUriFromCache(i)
-        return identifier
-
-    # Private methods
-    def _removeIdentifierFromCache(self, user, uri):
-        # If the title or the Id of the Identifier changes, we must remove
-        # from cache this Identifier, it's Uri and its children if it's a folder.
-        itemid = uri.getFragment()
-        if itemid in self._Identifiers:
-            identifier = self._Identifiers[itemid]
-            self._removeUriFromCache(identifier, True)
-            del self._Identifiers[itemid]
-        else:
-            # We must return an identifier although it is not used
-            identifier = Identifier(self.ctx, user, uri)
-        return identifier
-
-    def _removeUriFromCache(self, identifier, child=False):
-        isfolder = identifier.isFolder()
-        children = '%s/' % self._getUriKey(identifier.User, identifier.getUri())
-        for uri in list(self._Uris):
-            if self._Uris[uri] == identifier.Id or all((child, isfolder, uri.startswith(children))):
-                del self._Uris[uri]
-
-    def _getUriKey(self, user, uri):
-        return '%s/%s' % (user.Name, uri.getPath().strip('/.'))
-
-    def _initializeUser(self, user, name, password):
-        if user.Request is not None:
-            if user.MetaData is not None:
-                user.setDataBase(self.DataBase.getDataSource(), password, self.sync)
-                return True
-            if self.Provider.isOnLine():
-                data = self.Provider.getUser(user.Request, name)
-                if data.IsPresent:
-                    root = self.Provider.getRoot(user.Request, data.Value)
-                    if root.IsPresent:
-                        user.MetaData = self.DataBase.insertUser(user.Provider, data.Value, root.Value)
-                        if self.DataBase.createUser(user, password):
-                            user.setDataBase(self.DataBase.getDataSource(), password, self.sync)
-                            return True
-                        else:
-                            self.Error = getMessage(self.ctx, 602, name)
-                    else:
-                        self.Error = getMessage(self.ctx, 603, name)
-                else:
-                    self.Error = getMessage(self.ctx, 603, name)
-            else:
-                self.Error = getMessage(self.ctx, 604, name)
-        else:
-            self.Error = getMessage(self.ctx, 601, g_oauth2)
-        return False

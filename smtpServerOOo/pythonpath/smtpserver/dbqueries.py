@@ -120,6 +120,21 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getTablesName':
         query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
 
+    elif name == 'getSmtpConfig':
+        s1 = '"Servers"."Server"'
+        s2 = '"Servers"."Port"'
+        s3 = '"Servers"."Connection"'
+        s4 = '"Servers"."Authentication"'
+        s5 = '"Servers"."UserName"'
+        s = (s1,s2,s3,s4,s5)
+        f1 = '"Servers"'
+        f2 = 'JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"'
+        f3 = 'JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"'
+        f = (f1, f2, f3)
+        w = '"Domains"."Provider"=? OR "Domains"."Domain"=?'
+        p = (','.join(s), ' '.join(f), w)
+        query = 'SELECT %s FROM %s WHERE %s;' % p
+
 # Get DataBase Version Query
     elif name == 'getVersion':
         query = 'SELECT DISTINCT DATABASE_VERSION() AS "HSQL Version" FROM INFORMATION_SCHEMA.SYSTEM_TABLES'

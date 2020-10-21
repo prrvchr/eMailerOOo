@@ -9,7 +9,7 @@
     <prop oor:name="ConnectTimeout" oor:op="fuse">
         <value>15</value>
     </prop>
-    <prop oor:name="IspDbUrl" oor:op="fuse">
+    <prop oor:name="IspDBUrl" oor:op="fuse">
         <value>https://autoconfig.thunderbird.net/v1.1/</value>
     </prop>
 </oor:component-data>

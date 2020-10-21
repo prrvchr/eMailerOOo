@@ -8,6 +8,6 @@
   oor:name="smtpServerOOo">
     <component>
         <prop oor:name="ConnectTimeout" oor:type="xs:short" />
-        <prop oor:name="IspDbUrl" oor:type="xs:string" />
+        <prop oor:name="IspDBUrl" oor:type="xs:string" />
     </component>
 </oor:component-schema>

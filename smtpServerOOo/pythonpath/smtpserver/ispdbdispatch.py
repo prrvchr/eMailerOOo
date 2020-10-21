@@ -49,7 +49,8 @@ class IspdbDispatch(unohelper.Base,
         for arg in arguments:
             if arg.Name == 'Email':
                 self._model.Email = arg.Value
-        print("IspdbDispatch.dispatch()")
+                print("IspdbDispatch.dispatch() 1 %s" % self._model.Email)
+        print("IspdbDispatch.dispatch() 2")
         self._showWizard()
     def addStatusListener(self, listener, url):
         print("IspDBServer.addStatusListener()")

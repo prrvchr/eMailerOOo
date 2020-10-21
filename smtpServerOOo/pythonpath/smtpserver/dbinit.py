@@ -143,18 +143,6 @@ def getTablesAndStatements(ctx, statement, version=g_version):
         if version >= '2.5.0' and versioned:
             query += getSqlQuery(ctx, 'getSystemVersioning')
         tables.append(query)
-        if view:
-            typed = False
-            for format in constraint:
-                if format['Column'] == 'Type':
-                    typed = True
-                    break
-            format = {'Table': table}
-            if typed:
-                merge = getSqlQuery(ctx, 'createTypedDataMerge', format)
-            else:
-                merge = getSqlQuery(ctx, 'createUnTypedDataMerge', format)
-            statements.append(merge)
     call.close()
     return tables, statements
 

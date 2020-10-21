@@ -7,4 +7,5 @@ Column|Name
 5|Port
 6|Connection
 7|Authentication
-8|TimeStamp
+8|UserName
+9|TimeStamp

@@ -24,16 +24,17 @@ import traceback
 class WizardPage(unohelper.Base,
                  PropertySet,
                  XWizardPage):
-    def __init__(self, ctx, id, window, handler):
-        msg = "PageId: %s loading ..." % id
+    def __init__(self, ctx, pageid, window, handler):
+        msg = "PageId: %s loading ..." % pageid
         self.ctx = ctx
-        self.PageId = id
+        self.PageId = pageid
         self.Window = window
         self._handler = handler
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
-        if id == 1:
+        if pageid == 1:
+            print("WizardPage.__init__() %s" % handler._model.Email)
             window.getControl('TextField1').Text = handler.getEmail()
-        elif id == 2:
+        elif pageid == 2:
             pass
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
@@ -41,9 +42,13 @@ class WizardPage(unohelper.Base,
     # XWizardPage
     def activatePage(self):
         msg = "PageId: %s ..." % self.PageId
-        if self.PageId in (2, 3):
-            text = self._stringResource.resolveString('PageWizard%s.Label1.Label' % self.PageId)
-            self.Window.getControl('Label1').Text = text % self._handler.getEmail()
+        if self.PageId == 2:
+            email = self._handler.getEmail()
+            self._setPageTitle(email)
+            self._updateProgress(0)
+            self._handler._model._datasource.loadSmtpConfig(email, self._updateProgress)
+        elif self.PageId == 3:
+            self._setPageTitle(self._handler.getEmail())
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
 
@@ -64,6 +69,15 @@ class WizardPage(unohelper.Base,
 
     def canAdvance(self):
         return self._handler.canAdvancePage(self.PageId)
+
+    def _setPageTitle(self, title):
+        text = self._stringResource.resolveString('PageWizard%s.Label1.Label' % self.PageId)
+        self.Window.getControl('Label1').Text = text % title
+
+    def _updateProgress(self, value):
+        self.Window.getControl('ProgressBar1').Value = value
+        text = self._stringResource.resolveString('PageWizard2.Label2.Label.%s' % value)
+        self.Window.getControl('Label2').Text = text
 
     def _getPropertySetInfo(self):
         properties = {}

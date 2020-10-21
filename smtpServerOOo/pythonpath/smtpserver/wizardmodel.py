@@ -11,7 +11,7 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
 
-from .replicator import Replicator
+from .datasource import DataSource
 
 from .configuration import g_identifier
 from .configuration import g_extension
@@ -23,24 +23,27 @@ import traceback
 
 
 class WizardModel(unohelper.Base):
-    def __init__(self, ctx, email=''):
+    def __init__(self, ctx, email=None):
         self.ctx = ctx
-        self._email = email
+        if email is not None:
+            self.Email = email
         self._timeout = self.getTimeout()
         try:
             msg = "WizardModel.__init__()"
             print(msg)
-            #self._replicator = Replicator(self.ctx)
+            self._datasource = DataSource(self.ctx)
         except Exception as e:
             msg = "WizardModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
+    _Email = ''
+
     @property
     def Email(self):
-        return self._email
+        return WizardModel._Email
     @Email.setter
     def Email(self, email):
-        self._email = email
+        WizardModel._Email = email
 
     @property
     def Timeout(self):

@@ -25,5 +25,5 @@ class DataParser(unohelper.Base,
         #        k = map.getValue('Map')
         #        v = self.provider.transform(k, value)
         #        data.setValue(k, v)
-        print("DataParser.parseResponse() %s" % response.text)
-        return data if data.Count else None
+        print("DataParser.parseResponse() %s" % response)
+        return data

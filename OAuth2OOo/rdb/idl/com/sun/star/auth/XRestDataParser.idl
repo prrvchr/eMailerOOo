@@ -10,6 +10,8 @@ interface XRestDataParser: com::sun::star::uno::XInterface
 
     any parseResponse([in] any Response);
 
+    [attribute, readonly] string DataType;
+
 };
 
 

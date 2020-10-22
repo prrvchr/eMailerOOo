@@ -96,8 +96,7 @@ class DataSource(unohelper.Base,
         parameter.Method = 'GET'
         parameter.Url = url
         parameter.NoAuth = True
-        parser = DataParser(self.ctx)
-        request = createService(self.ctx, service).getRequest(parameter, parser)
+        request = createService(self.ctx, service).getRequest(parameter, DataParser())
         response = request.execute()
         if response.IsPresent:
             print("DataSource._getIspdbConfig() OK")

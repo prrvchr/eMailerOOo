@@ -277,16 +277,22 @@ def getValueFromResult(result, index, default=None):
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
         value = result.getString(index)
-    elif dbtype == 'TIMESTAMP':
-        value = result.getTimestamp(index)
     elif dbtype == 'BOOLEAN':
         value = result.getBoolean(index)
-    elif dbtype in ('TINYINT', 'SMALLINT', 'INTEGER', 'BIGINT'):
+    elif dbtype == 'TINYINT':
+        value = result.getByte(index)
+    elif dbtype == 'SMALLINT':
+        value = result.getShort(index)
+    elif dbtype == 'INTEGER':
         value = result.getInt(index)
+    elif dbtype == 'BIGINT':
+        value = result.getLong(index)
     elif dbtype == 'FLOAT':
         value = result.getFloat(index)
     elif dbtype == 'DOUBLE':
         value = result.getDouble(index)
+    elif dbtype == 'TIMESTAMP':
+        value = result.getTimestamp(index)
     elif dbtype == 'TIME':
         value = result.getTime(index)
     elif dbtype == 'DATE':

@@ -45,10 +45,14 @@ class OptionsDialog(unohelper.Base,
                     XContainerWindowEventHandler,
                     XDialogEventHandler):
     def __init__(self, ctx):
-        self.ctx = ctx
-        self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
-        self._model = WizardModel(self.ctx)
-        logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
+        try:
+            self.ctx = ctx
+            self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
+            self._model = WizardModel(self.ctx)
+            logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     # XContainerWindowEventHandler, XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):

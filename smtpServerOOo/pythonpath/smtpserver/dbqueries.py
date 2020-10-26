@@ -135,15 +135,24 @@ def getSqlQuery(ctx, name, format=None):
         p = (','.join(s), ' '.join(f), w)
         query = 'SELECT %s FROM %s WHERE %s;' % p
 
+# Function creation Queries
+    elif name == 'createGetDomain':
+        query = """\
+CREATE FUNCTION "GetDomain"("User" VARCHAR(100))
+  RETURNS VARCHAR(100)
+  SPECIFIC "GetDomain_1"
+  RETURN SUBSTRING("User" FROM POSITION('@' IN "User") + 1);
+"""
+
 # Select Procedure Queries
     elif name == 'createGetUser':
         query = """\
 CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100),
-                           IN "Domain" VARCHAR(100),
                            OUT "Server" VARCHAR(100),
                            OUT "Port" SMALLINT,
                            OUT "LoginName" VARCHAR(100),
-                           OUT "Password" VARCHAR(100))
+                           OUT "Password" VARCHAR(100),
+                           OUT "Domain" VARCHAR(100))
   SPECIFIC "GetUser_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
@@ -153,9 +162,11 @@ CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100),
       "Servers"."Authentication", "Servers"."LoginMode" FROM "Servers"
       JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"
       LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
-      WHERE "Providers"."Provider"="Domain" OR "Domains"."Domain"="Domain" FOR READ ONLY;
+      WHERE "Providers"."Provider"="GetDomain"("User") OR "Domains"."Domain"="GetDomain"("User")
+      FOR READ ONLY;
     SET ("Server", "Port", "LoginName", "Password") = (SELECT "Server", "Port",
     "LoginName", "Password" FROM "Users" WHERE "Users"."User"="User");
+    SET "Domain" = "GetDomain"("User");
     OPEN "Result";
   END;"""
 

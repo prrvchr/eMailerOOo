@@ -25,7 +25,7 @@ import traceback
 
 class WizardModel(unohelper.Base):
     def __init__(self, ctx, email=None):
-        self.ctx = ct
+        self.ctx = ctx
         self._User = None
         self._Servers = ()
         self._index = 0
@@ -62,6 +62,7 @@ class WizardModel(unohelper.Base):
         return self._Servers
     @Servers.setter
     def Servers(self, servers):
+        self._setDefaultIndex(servers)
         self._Servers = servers
 
     @property
@@ -126,3 +127,13 @@ class WizardModel(unohelper.Base):
 
     def getSmtpConfig(self, progress, callback):
         self._datasource.getSmtpConfig(self.Email, progress, callback)
+
+    def _setDefaultIndex(self, servers):
+        self._index = 0
+        port = self.User.getValue('Port')
+        if port != 0:
+            for server in servers:
+                if server.getValue('Port') == port:
+                    self._index = servers.index(server)
+                    break;
+        

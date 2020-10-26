@@ -37,7 +37,7 @@ class DataSource(unohelper.Base,
         print("DataSource.__init__() 1")
         self.ctx = ctx
         self._error = None
-        self._progress = 0.5
+        self._progress = 0.2
         self._configuration = getConfiguration(self.ctx, g_identifier, False)
         if self._initializeDataBase():
             print("DataSource.__init__() 2")
@@ -81,9 +81,8 @@ class DataSource(unohelper.Base,
         self.InitThread.join()
         progress(40)
         time.sleep(self._progress)
-        domain = self._getDomain(email)
-        user, servers = self.DataBase.getSmtpConfig(email, domain)
-        print("DataSource._getSmtpConfig() HsqlDB Query user: %s" % user)
+        user, servers = self.DataBase.getSmtpConfig(email)
+        print("DataSource._getSmtpConfig() HsqlDB Query user: \n%s\n%s" % (user, servers))
         if len(servers) != 0:
             progress(100, 1)
             print("DataSource._getSmtpConfig() HsqlDB Query")
@@ -91,7 +90,7 @@ class DataSource(unohelper.Base,
         else:
             print("DataSource._getSmtpConfig() IspDB Query")
             progress(60)
-            response = self._getIspdbConfig(domain)
+            response = self._getIspdbConfig(user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
                 config = response.Value
@@ -115,16 +114,11 @@ class DataSource(unohelper.Base,
         response = request.execute()
         return response
 
-    def _getDomain(self, email):
-        return email.split('@').pop()
-
     def _initDataBase(self):
         try:
             msg = "DataSource for Scheme: loading ... "
             print("DataSource.run() 1 *************************************************************")
             self.DataBase = self._getDataBase()
-            config = self.DataBase.getSmtpServers('gmail.com')
-            print("DataSource.run() 2 %s" % (config, ))
             print("DataSource.run() 3 *************************************************************")
         except Exception as e:
             msg = "DataSource run(): Error: %s - %s" % (e, traceback.print_exc())

@@ -34,20 +34,19 @@ import traceback
 
 class WizardController(unohelper.Base,
                        XWizardController):
-    def __init__(self, ctx, wizard, model):
+    def __init__(self, ctx, wizard, model=None):
         self.ctx = ctx
-        self._wizard = wizard
         self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
-        self._handler = WizardHandler(self.ctx, self._wizard, model)
+        self._handler = WizardHandler(self.ctx, wizard, model)
 
     # XWizardController
     def createPage(self, parent, id):
         msg = "PageId: %s ..." % id
         url = getDialogUrl(g_extension, 'PageWizard%s' % id)
         window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
-        page = WizardPage(self.ctx, id, window, self._handler)
+        page = WizardPage(self.ctx, id, window, self._handler.getController())
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
         return page
@@ -61,11 +60,11 @@ class WizardController(unohelper.Base,
     def onActivatePage(self, id):
         msg = "PageId: %s..." % id
         title = self._stringResource.resolveString('PageWizard%s.Title' % id)
-        self._wizard.setTitle(title)
+        self._handler.getController().getWizard().setTitle(title)
         backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
         forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
         finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        self._wizard.updateTravelUI()
+        self._handler.getController().getWizard().updateTravelUI()
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 

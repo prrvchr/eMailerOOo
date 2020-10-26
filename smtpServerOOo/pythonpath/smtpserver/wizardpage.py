@@ -11,12 +11,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import PropertySet
 from unolib import getProperty
-from unolib import getStringResource
 
 from .logger import logMessage
-
-from .configuration import g_identifier
-from .configuration import g_extension
 
 import traceback
 
@@ -24,33 +20,29 @@ import traceback
 class WizardPage(unohelper.Base,
                  PropertySet,
                  XWizardPage):
-    def __init__(self, ctx, pageid, window, handler):
+    def __init__(self, ctx, pageid, window, controller):
         msg = "PageId: %s loading ..." % pageid
         self.ctx = ctx
         self.PageId = pageid
         self.Window = window
-        self._handler = handler
-        self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
-        if pageid == 1:
-            print("WizardPage.__init__() %s" % handler._model.Email)
-            window.getControl('TextField1').Text = handler.getEmail()
-        elif pageid == 2:
-            pass
+        self._controller = controller
+        self._controller.initPage(pageid, window)
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
 
     # XWizardPage
     def activatePage(self):
-        msg = "PageId: %s ..." % self.PageId
-        if self.PageId == 2:
-            email = self._handler.getEmail()
-            self._setPageTitle(email)
-            self._updateProgress(0)
-            self._handler._model._datasource.loadSmtpConfig(email, self._updateProgress)
-        elif self.PageId == 3:
-            self._setPageTitle(self._handler.getEmail())
-        msg += " Done"
-        logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
+        try:
+            msg = "PageId: %s ..." % self.PageId
+            if self.PageId == 2:
+                self._controller.activatePage2(self.Window, self._updateProgress)
+            elif self.PageId == 3:
+                self._controller.activatePage3(self.Window)
+            msg += " Done"
+            logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
+        except Exception as e:
+            msg = "WizardPage.activatePage() Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def commitPage(self, reason):
         msg = "PageId: %s ..." % self.PageId
@@ -68,16 +60,10 @@ class WizardPage(unohelper.Base,
         return True
 
     def canAdvance(self):
-        return self._handler.canAdvancePage(self.PageId)
+        return self._controller.canAdvancePage(self.PageId, self.Window)
 
-    def _setPageTitle(self, title):
-        text = self._stringResource.resolveString('PageWizard%s.Label1.Label' % self.PageId)
-        self.Window.getControl('Label1').Text = text % title
-
-    def _updateProgress(self, value):
-        self.Window.getControl('ProgressBar1').Value = value
-        text = self._stringResource.resolveString('PageWizard2.Label2.Label.%s' % value)
-        self.Window.getControl('Label2').Text = text
+    def _updateProgress(self, value, offset=0):
+        self._controller.updateProgress(self.Window, value, offset)
 
     def _getPropertySetInfo(self):
         properties = {}

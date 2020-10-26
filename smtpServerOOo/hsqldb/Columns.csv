@@ -7,5 +7,8 @@ Column|Name
 5|Port
 6|Connection
 7|Authentication
-8|UserName
-9|TimeStamp
+8|LoginMode
+9|User
+10|LoginName
+11|Password
+12|TimeStamp

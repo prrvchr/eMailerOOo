@@ -104,7 +104,7 @@ def getTablesAndStatements(ctx, statement, version=g_version):
         columns = []
         primary = []
         unique = []
-        constraint = []
+        constraint = {}
         call.setString(1, table)
         result = call.executeQuery()
         while result.next():
@@ -126,15 +126,22 @@ def getTablesAndStatements(ctx, statement, version=g_version):
             if data.getValue('Unique'):
                 unique.append({'Table': table, 'Column': column})
             if data.getValue('ForeignTable') and data.getValue('ForeignColumn'):
-                constraint.append({'Table': table,
-                                   'Column': column,
-                                   'ForeignTable': data.getValue('ForeignTable'),
-                                   'ForeignColumn': data.getValue('ForeignColumn')})
+                foreign = data.getValue('ForeignTable')
+                if foreign in constraint:
+                    constraint[foreign]['ColumnNames'] += column
+                    constraint[foreign]['Columns'] += ',"%s"' % column
+                    constraint[foreign]['ForeignColumns'] += ',"%s"' % data.getValue('ForeignColumn')
+                else:
+                    constraint[foreign] = {'Table': table,
+                                           'ColumnNames': column,
+                                           'Columns': '"%s"' % column,
+                                           'ForeignTable': foreign,
+                                           'ForeignColumns': '"%s"' % data.getValue('ForeignColumn')}
         if primary:
             columns.append(getSqlQuery(ctx, 'getPrimayKey', primary))
         for format in unique:
             columns.append(getSqlQuery(ctx, 'getUniqueConstraint', format))
-        for format in constraint:
+        for format in constraint.values():
             columns.append(getSqlQuery(ctx, 'getForeignConstraint', format))
         if version >= '2.5.0' and versioned:
             columns.append(getSqlQuery(ctx, 'getPeriodColumns'))
@@ -210,4 +217,7 @@ def getStaticTables():
     return tables
 
 def getQueries():
-    return ()
+    return (('createGetUser', None),
+            ('createMergeProvider', None),
+            ('createMergeDomain', None),
+            ('createMergeServer', None))

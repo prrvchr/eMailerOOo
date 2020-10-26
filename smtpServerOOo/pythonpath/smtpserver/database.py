@@ -69,16 +69,50 @@ class DataBase(unohelper.Base):
             query = getSqlQuery(self.ctx, 'shutdown')
         self._statement.execute(query)
 
-    def getSmtpConfig(self, domain):
-        config = None
-        call = self._getCall('getSmtpConfig')
-        call.setString(1, domain)
+    def getSmtpConfig(self, email, domain):
+        user = KeyMap()
+        servers = []
+        call = self._getCall('getUser')
+        call.setString(1, email)
         call.setString(2, domain)
         result = call.executeQuery()
-        if result.next():
-            config = getKeyMapFromResult(result)
+        user.setValue('Server', call.getString(3))
+        user.setValue('Port', call.getShort(4))
+        user.setValue('LoginName', call.getString(5))
+        user.setValue('Password', call.getString(6))
+        while result.next():
+            servers.append(getKeyMapFromResult(result))
         call.close()
-        return config
+        return user, servers
+
+    def setSmtpConfig(self, config):
+        timestamp = parseDateTime()
+        provider = config.getValue('Provider')
+        call = self._getCall('mergeProvider')
+        call.setString(1, provider)
+        call.setString(2, config.getValue('DisplayName'))
+        call.setString(3, config.getValue('DisplayShortName'))
+        call.setTimestamp(4, timestamp)
+        result = call.executeUpdate()
+        call.close()
+        call = self._getCall('mergeDomain')
+        call.setString(1, provider)
+        for domain in config.getValue('Domains'):
+            call.setString(2, domain)
+            call.setTimestamp(3, timestamp)
+            result = call.executeUpdate()
+        call.close()
+        call = self._getCall('mergeServer')
+        call.setString(1, provider)
+        for server in config.getValue('Servers'):
+            call.setString(2, server.getValue('Server'))
+            call.setShort(3, server.getValue('Port'))
+            call.setByte(4, server.getValue('Connection'))
+            call.setByte(5, server.getValue('Authentication'))
+            call.setByte(6, server.getValue('LoginMode'))
+            call.setTimestamp(7, timestamp)
+            result = call.executeUpdate()
+        call.close()
 
 # Procedures called by the Identifier
 

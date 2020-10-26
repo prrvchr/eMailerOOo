@@ -71,8 +71,8 @@ def getSqlQuery(ctx, name, format=None):
         query = 'CONSTRAINT "Unique%(Table)s%(Column)s" UNIQUE("%(Column)s")' % format
 
     elif name == 'getForeignConstraint':
-        q = 'CONSTRAINT "Foreign%(Table)s%(Column)s" FOREIGN KEY("%(Column)s") REFERENCES '
-        q += '"%(ForeignTable)s"("%(ForeignColumn)s") ON DELETE CASCADE ON UPDATE CASCADE'
+        q = 'CONSTRAINT "Foreign%(Table)s%(ColumnNames)s" FOREIGN KEY(%(Columns)s) REFERENCES '
+        q += '"%(ForeignTable)s"(%(ForeignColumns)s) ON DELETE CASCADE ON UPDATE CASCADE'
         query = q % format
 
 # Create Cached Table Queries
@@ -120,20 +120,96 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getTablesName':
         query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
 
-    elif name == 'getSmtpConfig':
+    elif name == 'getSmtpServers':
         s1 = '"Servers"."Server"'
         s2 = '"Servers"."Port"'
         s3 = '"Servers"."Connection"'
         s4 = '"Servers"."Authentication"'
-        s5 = '"Servers"."UserName"'
+        s5 = '"Servers"."LoginMode"'
         s = (s1,s2,s3,s4,s5)
         f1 = '"Servers"'
         f2 = 'JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"'
-        f3 = 'JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"'
+        f3 = 'LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"'
         f = (f1, f2, f3)
-        w = '"Domains"."Provider"=? OR "Domains"."Domain"=?'
+        w = '"Providers"."Provider"=? OR "Domains"."Domain"=?'
         p = (','.join(s), ' '.join(f), w)
         query = 'SELECT %s FROM %s WHERE %s;' % p
+
+# Select Procedure Queries
+    elif name == 'createGetUser':
+        query = """\
+CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100),
+                           IN "Domain" VARCHAR(100),
+                           OUT "Server" VARCHAR(100),
+                           OUT "Port" SMALLINT,
+                           OUT "LoginName" VARCHAR(100),
+                           OUT "Password" VARCHAR(100))
+  SPECIFIC "GetUser_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
+      "Servers"."Authentication", "Servers"."LoginMode" FROM "Servers"
+      JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"
+      LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
+      WHERE "Providers"."Provider"="Domain" OR "Domains"."Domain"="Domain" FOR READ ONLY;
+    SET ("Server", "Port", "LoginName", "Password") = (SELECT "Server", "Port",
+    "LoginName", "Password" FROM "Users" WHERE "Users"."User"="User");
+    OPEN "Result";
+  END;"""
+
+# Merge Procedure Queries
+    elif name == 'createMergeProvider':
+        query = """\
+CREATE PROCEDURE "MergeProvider"(IN "Provider" VARCHAR(100),
+                                 IN "DisplayName"  VARCHAR(100),
+                                 IN "DisplayShortName" VARCHAR(100),
+                                 IN "Time" TIMESTAMP(6))
+  SPECIFIC "MergeProvider_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    MERGE INTO "Providers" USING (VALUES("Provider","DisplayName","DisplayShortName","Time"))
+      AS vals(w,x,y,z) ON "Providers"."Provider"=vals.w
+        WHEN MATCHED THEN UPDATE
+          SET "DisplayName"=vals.x, "DisplayShortName"=vals.y, "TimeStamp"=vals.z
+        WHEN NOT MATCHED THEN INSERT ("Provider","DisplayName","DisplayShortName","TimeStamp")
+          VALUES vals.w, vals.x, vals.y, vals.z;
+  END"""
+    elif name == 'createMergeDomain':
+        query = """\
+CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
+                               IN "Domain" VARCHAR(100),
+                               IN "Time" TIMESTAMP(6))
+  SPECIFIC "MergeDomain_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    MERGE INTO "Domains" USING (VALUES("Domain","Provider","Time"))
+      AS vals(x,y,z) ON "Domains"."Domain"=vals.x
+        WHEN MATCHED THEN UPDATE
+          SET "Provider"=vals.y, "TimeStamp"=vals.z
+        WHEN NOT MATCHED THEN INSERT ("Domain","Provider","TimeStamp")
+          VALUES vals.x, vals.y, vals.z;
+  END"""
+    elif name == 'createMergeServer':
+        query = """\
+CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
+                               IN "Server" VARCHAR(100),
+                               IN "Port" SMALLINT,
+                               IN "Connection" TINYINT,
+                               IN "Authentication" TINYINT,
+                               IN "LoginMode" TINYINT,
+                               IN "Time" TIMESTAMP(6))
+  SPECIFIC "MergeServer_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    MERGE INTO "Servers" USING (VALUES("Server","Port","Provider","Connection","Authentication","LoginMode","Time"))
+      AS vals(t,u,v,w,x,y,z) ON "Servers"."Server"=vals.t AND "Servers"."Port"=vals.u
+        WHEN MATCHED THEN UPDATE
+          SET "Provider"=vals.v, "Connection"=vals.w, "Authentication"=vals.x, "LoginMode"=vals.y, "TimeStamp"=vals.z
+        WHEN NOT MATCHED THEN INSERT ("Server","Port","Provider","Connection","Authentication","LoginMode","TimeStamp")
+          VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
+  END"""
 
 # Get DataBase Version Query
     elif name == 'getVersion':
@@ -144,6 +220,16 @@ def getSqlQuery(ctx, name, format=None):
         query = 'SHUTDOWN;'
     elif name == 'shutdownCompact':
         query = 'SHUTDOWN COMPACT;'
+
+# Get Procedure Query
+    elif name == 'getUser':
+        query = 'CALL "GetUser"(?,?,?,?,?,?)'
+    elif name == 'mergeProvider':
+        query = 'CALL "MergeProvider"(?,?,?,?)'
+    elif name == 'mergeDomain':
+        query = 'CALL "MergeDomain"(?,?,?)'
+    elif name == 'mergeServer':
+        query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
 
 # Queries don't exist!!!
     else:

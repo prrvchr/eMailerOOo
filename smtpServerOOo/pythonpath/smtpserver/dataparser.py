@@ -6,7 +6,6 @@ import unohelper
 
 from com.sun.star.auth import XRestDataParser
 
-from unolib import getNamedValue
 from unolib import KeyMap
 
 import xml.etree.ElementTree as XmlTree
@@ -18,30 +17,30 @@ class DataParser(unohelper.Base,
         self.DataType = 'Xml'
 
     def parseResponse(self, response):
-        config = KeyMap()
-        provider = XmlTree.fromstring(response).find('emailProvider')
-        config.insertValue('Provider', provider.attrib['id'])
-        displayname = provider.find('displayName').text
-        config.insertValue('DisplayName', displayname)
-        displayshortname = provider.find('displayShortName').text
-        config.insertValue('DisplayShortName', displayshortname)
+        data = KeyMap()
+        config = XmlTree.fromstring(response).find('emailProvider')
+        provider = config.attrib['id']
+        data.insertValue('Provider', provider)
+        displayname = config.find('displayName').text
+        data.insertValue('DisplayName', displayname)
+        displayshortname = config.find('displayShortName').text
+        data.insertValue('DisplayShortName', displayshortname)
         domains = []
-        for domain in provider.findall('domain'):
-            domains.append(domain.text)
-        config.insertValue('Domains', tuple(domains))
+        for domain in config.findall('domain'):
+            if domain.text != provider:
+                domains.append(domain.text)
+        data.insertValue('Domains', tuple(domains))
         servers = []
-        for s in provider.findall('outgoingServer'):
+        for s in config.findall('outgoingServer'):
             server = KeyMap()
             server.insertValue('Server', s.find('hostname').text)
             server.insertValue('Port', s.find('port').text)
             server.insertValue('Connection', self._getConnexion(s))
-            server.insertValue('UserName', self._getUserName(s))
+            server.insertValue('LoginMode', self._getLoginMode(s))
             server.insertValue('Authentication', self._getAuthentication(s))
             servers.append(server)
-        config.insertValue('Servers', tuple(servers))
-        print("DataParser.parseResponse()\n%s" % response)
-        print("DataParser.parseResponse()\n%s" % config)
-        return config
+        data.insertValue('Servers', tuple(servers))
+        return data
 
     def _getConnexion(self, server):
         map = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
@@ -52,6 +51,6 @@ class DataParser(unohelper.Base,
                'secure': 2, 'OAuth2': 3}
         return map.get(server.find('authentication').text, 0)
 
-    def _getUserName(self, server):
+    def _getLoginMode(self, server):
         map = {'%EMAILADDRESS%': -1, '%EMAILLOCALPART%': 0, '%EMAILDOMAIN%': 1}
         return map.get(server.find('username').text, -1)

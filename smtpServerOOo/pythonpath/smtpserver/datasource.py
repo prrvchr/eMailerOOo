@@ -70,25 +70,40 @@ class DataSource(unohelper.Base,
         self.sync.set()
         self.join()
 
-    def loadSmtpConfig(self, email, callback):
-        smtpconfig = Thread(target=self._loadSmtpConfig, args=(email, callback))
+    def getSmtpConfig(self, email, progress, callback):
+        smtpconfig = Thread(target=self._getSmtpConfig, args=(email, progress, callback))
         smtpconfig.start()
 
-    def _loadSmtpConfig(self, email, callback):
+    def _getSmtpConfig(self, email, progress, callback):
         time.sleep(self._progress)
-        callback(10)
+        progress(20)
         time.sleep(self._progress)
         self.InitThread.join()
-        callback(20)
+        progress(40)
         time.sleep(self._progress)
         domain = self._getDomain(email)
-        config = self.DataBase.getSmtpConfig(domain)
-        if config is None:
-            callback(30)
-            self._getIspdbConfig(domain)
+        user, servers = self.DataBase.getSmtpConfig(email, domain)
+        print("DataSource._getSmtpConfig() HsqlDB Query user: %s" % user)
+        if len(servers) != 0:
+            progress(100, 1)
+            print("DataSource._getSmtpConfig() HsqlDB Query")
+            callback(user, servers)
         else:
-            callback(100)
-
+            print("DataSource._getSmtpConfig() IspDB Query")
+            progress(60)
+            response = self._getIspdbConfig(domain)
+            if response.IsPresent:
+                progress(80)
+                config = response.Value
+                self.DataBase.setSmtpConfig(config)
+                progress(100, 2)
+                print("DataSource._getIspdbConfig() OK")
+                callback(user, config.getValue('Servers'))
+            else:
+                progress(100, 3)
+                print("DataSource._getIspdbConfig() CANCEL")
+                callback(user, ())
+   
     def _getIspdbConfig(self, domain):
         url = '%s%s' % (self._configuration.getByName('IspDBUrl'), domain)
         service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
@@ -98,10 +113,7 @@ class DataSource(unohelper.Base,
         parameter.NoAuth = True
         request = createService(self.ctx, service).getRequest(parameter, DataParser())
         response = request.execute()
-        if response.IsPresent:
-            print("DataSource._getIspdbConfig() OK")
-        else:
-            print("DataSource._getIspdbConfig() CANCEL")
+        return response
 
     def _getDomain(self, email):
         return email.split('@').pop()
@@ -111,7 +123,7 @@ class DataSource(unohelper.Base,
             msg = "DataSource for Scheme: loading ... "
             print("DataSource.run() 1 *************************************************************")
             self.DataBase = self._getDataBase()
-            config = self.DataBase.getSmtpConfig('gmail.com')
+            config = self.DataBase.getSmtpServers('gmail.com')
             print("DataSource.run() 2 %s" % (config, ))
             print("DataSource.run() 3 *************************************************************")
         except Exception as e:
@@ -130,7 +142,7 @@ class DataSource(unohelper.Base,
         #    self.DataSource.join()
         #self.deregisterInstance(self.Scheme, self.Plugin)
         #self.DataBase.shutdownDataBase(self.DataSource.fullPull)
-        msg = "DataSource queryClosing: Scheme: %s ... Done" % self.Provider.Scheme
+        msg = "DataSource queryClosing: Scheme: %s ... Done" % 'SmtpServer'
         logMessage(self.ctx, INFO, msg, 'DataSource', 'queryClosing()')
         print(msg)
     def notifyClosing(self, source):

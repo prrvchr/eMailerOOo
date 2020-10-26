@@ -29,6 +29,7 @@ class WizardModel(unohelper.Base):
         self._User = None
         self._Servers = ()
         self._index = 0
+        self._count = 0
         if email is not None:
             self.Email = email
         self._timeout = self.getTimeout()
@@ -62,7 +63,7 @@ class WizardModel(unohelper.Base):
         return self._Servers
     @Servers.setter
     def Servers(self, servers):
-        self._setDefaultIndex(servers)
+        self._setDefaultValue(servers)
         self._Servers = servers
 
     @property
@@ -89,14 +90,41 @@ class WizardModel(unohelper.Base):
         return False
 
     def getServer(self):
+        if self._isNew():
+            return ''
         return self._Servers[self._index].getValue('Server')
 
+    def getPort(self):
+        if self._isNew():
+            return ''
+        return self._Servers[self._index].getValue('Port')
+
+    def getConnection(self):
+        if self._isNew():
+            return 0
+        return self._Servers[self._index].getValue('Connection')
+
+    def getAuthentication(self):
+        if self._isNew():
+            return 0
+        return self._Servers[self._index].getValue('Authentication')
+
+    def getLoginName(self):
+        login = self._User.getValue('LoginName')
+        if login != '':
+            return login
+        elif self._isNew():
+            return ''
+        mode = self._Servers[self._index].getValue('LoginMode')
+        if mode != -1:
+            return self.Email.split('@')[mode]
+        return self.Email
+
+    def getPassword(self):
+        return self._User.getValue('Password')
+
     def getServerPage(self):
-        count = len(self._Servers)
-        if count > 0:
-            return self, '%s/%s' % (self._index +1, count)
-        else:
-            return  None, '1/0'
+        return '%s/%s' % (self._index + 1, self._count)
 
     def previousServerPage(self):
         self._index -= 1
@@ -108,28 +136,17 @@ class WizardModel(unohelper.Base):
         return self._index == 0
 
     def isLast(self):
-        return self._index + 1 >= len(self._Servers)
-
-    def getPort(self):
-        return self._Servers[self._index].getValue('Port')
-
-    def getConnection(self):
-        return self._Servers[self._index].getValue('Connection')
-
-    def getAuthentication(self):
-        return self._Servers[self._index].getValue('Authentication')
-
-    def getUserName(self):
-        mode = self._Servers[self._index].getValue('LoginMode')
-        if mode != -1:
-            return self.Email.split('@')[mode]
-        return self.Email
+        return self._index + 1 >= self._count
 
     def getSmtpConfig(self, progress, callback):
         self._datasource.getSmtpConfig(self.Email, progress, callback)
 
-    def _setDefaultIndex(self, servers):
+    def _isNew(self):
+        return self._count == 0
+
+    def _setDefaultValue(self, servers):
         self._index = 0
+        self._count = len(servers)
         port = self.User.getValue('Port')
         if port != 0:
             for server in servers:

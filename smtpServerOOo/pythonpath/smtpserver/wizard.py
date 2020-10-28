@@ -1,1 +1,1 @@
-../../../OAuth2OOo/python/wizard.py
+../../../OAuth2OOo/python/wizard/wizard.py

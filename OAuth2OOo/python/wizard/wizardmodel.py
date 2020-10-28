@@ -64,9 +64,7 @@ class WizardModel(unohelper.Base):
         return False
 
     def doFinish(self, reason):
-        return self._pages[self._currentPageId].commitPage(reason):
-
-        return True
+        return self._pages[self._currentPageId].commitPage(reason)
 
     def getRoadmapPath(self, enabled=True):
         paths = []

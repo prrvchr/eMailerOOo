@@ -25,8 +25,8 @@ from unolib import getStringResource
 from .configuration import g_identifier
 from .configuration import g_extension
 
-from .wizardhandler import WizardHandler
 from .wizardpage import WizardPage
+from .pagehandler import PageHandler
 from .logger import logMessage
 
 import traceback
@@ -39,14 +39,14 @@ class WizardController(unohelper.Base,
         self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
-        self._handler = WizardHandler(self.ctx, wizard, model)
+        self._handler = PageHandler(self.ctx, wizard, model)
 
     # XWizardController
     def createPage(self, parent, id):
         msg = "PageId: %s ..." % id
         url = getDialogUrl(g_extension, 'PageWizard%s' % id)
         window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
-        page = WizardPage(self.ctx, id, window, self._handler.getController())
+        page = WizardPage(self.ctx, id, window, self._handler.getManager())
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
         return page
@@ -60,11 +60,11 @@ class WizardController(unohelper.Base,
     def onActivatePage(self, id):
         msg = "PageId: %s..." % id
         title = self._stringResource.resolveString('PageWizard%s.Title' % id)
-        self._handler.getController().getWizard().setTitle(title)
+        self._handler.getManager().getWizard().setTitle(title)
         backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
         forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
         finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        self._handler.getController().getWizard().updateTravelUI()
+        self._handler.getManager().getWizard().updateTravelUI()
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 

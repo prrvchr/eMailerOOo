@@ -20,13 +20,13 @@ import traceback
 class WizardPage(unohelper.Base,
                  PropertySet,
                  XWizardPage):
-    def __init__(self, ctx, pageid, window, controller):
+    def __init__(self, ctx, pageid, window, manager):
         msg = "PageId: %s loading ..." % pageid
         self.ctx = ctx
         self.PageId = pageid
         self.Window = window
-        self._controller = controller
-        self._controller.initPage(pageid, window)
+        self._manager = manager
+        self._manager.initPage(pageid, window)
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
 
@@ -35,9 +35,9 @@ class WizardPage(unohelper.Base,
         try:
             msg = "PageId: %s ..." % self.PageId
             if self.PageId == 2:
-                self._controller.activatePage2(self.Window, self._updateProgress)
+                self._manager.activatePage2(self.Window, self._updateProgress)
             elif self.PageId == 3:
-                self._controller.activatePage3(self.Window)
+                self._manager.activatePage3(self.Window)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
         except Exception as e:
@@ -60,10 +60,10 @@ class WizardPage(unohelper.Base,
         return True
 
     def canAdvance(self):
-        return self._controller.canAdvancePage(self.PageId, self.Window)
+        return self._manager.canAdvancePage(self.PageId, self.Window)
 
     def _updateProgress(self, value, offset=0):
-        self._controller.updateProgress(self.Window, value, offset)
+        self._manager.updateProgress(self.Window, value, offset)
 
     def _getPropertySetInfo(self):
         properties = {}

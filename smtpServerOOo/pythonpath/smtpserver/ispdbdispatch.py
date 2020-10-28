@@ -16,7 +16,6 @@ from unolib import getDialog
 from unolib import createService
 
 from .wizard import Wizard
-from .wizardmodel import WizardModel
 from .wizardcontroller import WizardController
 
 from .configuration import g_extension

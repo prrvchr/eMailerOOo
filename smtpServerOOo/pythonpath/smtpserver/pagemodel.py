@@ -7,6 +7,7 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from unolib import KeyMap
 from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
@@ -23,33 +24,33 @@ import validators
 import traceback
 
 
-class WizardModel(unohelper.Base):
+class PageModel(unohelper.Base):
     def __init__(self, ctx, email=None):
         self.ctx = ctx
         self._User = None
         self._Servers = ()
-        self._index = 0
-        self._count = 0
+        self._index = self._default = self._count = 0
+        self._isnew = False
         if email is not None:
             self.Email = email
         self._timeout = self.getTimeout()
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         try:
-            msg = "WizardModel.__init__()"
+            msg = "PageModel.__init__()"
             print(msg)
             self._datasource = DataSource(self.ctx)
         except Exception as e:
-            msg = "WizardModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
+            msg = "PageModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
     _Email = ''
 
     @property
     def Email(self):
-        return WizardModel._Email
+        return PageModel._Email
     @Email.setter
     def Email(self, email):
-        WizardModel._Email = email
+        PageModel._Email = email
 
     @property
     def User(self):
@@ -63,8 +64,7 @@ class WizardModel(unohelper.Base):
         return self._Servers
     @Servers.setter
     def Servers(self, servers):
-        self._setDefaultValue(servers)
-        self._Servers = servers
+        self._Servers = self._getServers(servers)
 
     @property
     def Timeout(self):
@@ -89,32 +89,37 @@ class WizardModel(unohelper.Base):
            return True
         return False
 
+    def isServerValid(self, server):
+        if validators.domain(server):
+           return True
+        return False
+
+    def isPortValid(self, port):
+        if validators.between(port, min=1, max=1023):
+           return True
+        return False
+
+    def isStringValid(self, value):
+        if validators.length(value, min=1):
+           return True
+        return False
+
     def getServer(self):
-        if self._isNew():
-            return ''
         return self._Servers[self._index].getValue('Server')
 
     def getPort(self):
-        if self._isNew():
-            return ''
         return self._Servers[self._index].getValue('Port')
 
     def getConnection(self):
-        if self._isNew():
-            return 0
         return self._Servers[self._index].getValue('Connection')
 
     def getAuthentication(self):
-        if self._isNew():
-            return 0
         return self._Servers[self._index].getValue('Authentication')
 
     def getLoginName(self):
         login = self._User.getValue('LoginName')
         if login != '':
             return login
-        elif self._isNew():
-            return ''
         mode = self._Servers[self._index].getValue('LoginMode')
         if mode != -1:
             return self.Email.split('@')[mode]
@@ -124,6 +129,8 @@ class WizardModel(unohelper.Base):
         return self._User.getValue('Password')
 
     def getServerPage(self):
+        if self._isnew:
+            return '1/0'
         return '%s/%s' % (self._index + 1, self._count)
 
     def previousServerPage(self):
@@ -141,16 +148,33 @@ class WizardModel(unohelper.Base):
     def getSmtpConfig(self, progress, callback):
         self._datasource.getSmtpConfig(self.Email, progress, callback)
 
-    def _isNew(self):
-        return self._count == 0
-
-    def _setDefaultValue(self, servers):
-        self._index = 0
+    def _getServers(self, servers):
+        self._isnew = False
         self._count = len(servers)
+        self._index = self._default = 0
+        if self._count == 0:
+            self._count = 1
+            self._isnew = True
+            servers = self._getDefaultServers()
+        elif self._count > 1:
+            self._index = self._default = self._getServerIndex(servers)
+        return servers
+
+    def _getDefaultServers(self):
+        server = KeyMap()
+        server.setValue('Server', '')
+        server.setValue('Port', 25)
+        server.setValue('Connection', 0)
+        server.setValue('Authentication', 0)
+        server.setValue('LoginMode', -1)
+        return (server, )
+
+    def _getServerIndex(self, servers):
+        index = 0
         port = self.User.getValue('Port')
         if port != 0:
             for server in servers:
                 if server.getValue('Port') == port:
-                    self._index = servers.index(server)
+                    index = servers.index(server)
                     break;
-        
+        return index

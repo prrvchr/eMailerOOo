@@ -8,7 +8,7 @@ from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
 
 from .wizard import Wizard
-from .wizardmodel import WizardModel
+from .pagemodel import PageModel
 from .wizardcontroller import WizardController
 from .ispdbdispatch import IspdbDispatch
 

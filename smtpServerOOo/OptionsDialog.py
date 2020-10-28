@@ -19,7 +19,7 @@ from unolib import createService
 from unolib import getPropertyValueSet
 
 from smtpserver import Wizard
-from smtpserver import WizardModel
+from smtpserver import PageModel
 from smtpserver import WizardController
 from smtpserver import g_wizard_page
 from smtpserver import g_wizard_paths
@@ -48,7 +48,7 @@ class OptionsDialog(unohelper.Base,
         try:
             self.ctx = ctx
             self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
-            self._model = WizardModel(self.ctx)
+            self._model = PageModel(self.ctx)
             logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())

@@ -11,7 +11,7 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import WizardModel
+from smtpserver import PageModel
 from smtpserver import IspdbDispatch
 
 from smtpserver import logMessage
@@ -33,7 +33,7 @@ class IspDBServer(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         self._frame = None
-        self._model = WizardModel(self.ctx)
+        self._model = PageModel(self.ctx)
         logMessage(self.ctx, INFO, "Loading ... Done", 'IspDBServer', '__init__()')
 
     # XInitialization

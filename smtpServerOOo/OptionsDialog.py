@@ -7,7 +7,7 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -18,11 +18,7 @@ from unolib import getDialog
 from unolib import createService
 from unolib import getPropertyValueSet
 
-from smtpserver import Wizard
 from smtpserver import PageModel
-from smtpserver import WizardController
-from smtpserver import g_wizard_page
-from smtpserver import g_wizard_paths
 
 from smtpserver import getLoggerUrl
 from smtpserver import getLoggerSetting

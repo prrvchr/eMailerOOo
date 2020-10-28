@@ -58,7 +58,7 @@ class PageView(unohelper.Base):
         return validator(self._getServer(window).Text)
 
     def isPortValid(self, window, validator):
-        return validator(self._getPort(window).Text)
+        return validator(int(self._getPort(window).Value))
 
     def isLoginNameValid(self, window, validator):
         control = self._getLoginName(window)

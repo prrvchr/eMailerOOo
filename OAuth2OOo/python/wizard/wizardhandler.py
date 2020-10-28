@@ -7,34 +7,20 @@ import unohelper
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XItemListener
 
-from unolib import createService
-
 import traceback
 
 
-class WizardHandler(unohelper.Base,
-                    XItemListener,
+class DialogHandler(unohelper.Base,
                     XDialogEventHandler):
     def __init__(self, ctx, manager):
         self.ctx = ctx
         self._manager = manager
-
-    # XItemListener
-    def itemStateChanged(self, event):
-        page = event.ItemId
-        mri = createService(self.ctx, 'mytools.Mri')
-        mri.inspect(event.Source)
-        self._manager.changeRoadmapStep(page)
-        #if self._currentPage != page:
-        #    if not self._setPage(self._currentPage, page):
-        #        self._getRoadmap().CurrentItemID = self._currentPage
-
-    def disposing(self, event):
-        pass
+        print("DialogHandler.__init__()")
 
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
+        print("DialogHandler.callHandlerMethod() %s" % method)
         if method == 'Help':
             handled = True
         elif method == 'Previous':
@@ -50,3 +36,20 @@ class WizardHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('Help', 'Previous', 'Next', 'Finish')
+
+
+class ItemHandler(unohelper.Base,
+                  XItemListener):
+    def __init__(self, ctx, dialog, manager):
+        self.ctx = ctx
+        self._dialog = dialog
+        self._manager = manager
+        print("ItemHandler.__init__()")
+
+    # XItemListener
+    def itemStateChanged(self, event):
+        page = event.ItemId
+        self._manager.changeRoadmapStep(self._dialog, page)
+
+    def disposing(self, event):
+        pass

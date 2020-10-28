@@ -11,17 +11,11 @@ from com.sun.star.lang import IllegalArgumentException
 from com.sun.star.util import InvalidStateException
 from com.sun.star.container import NoSuchElementException
 
-from com.sun.star.ui.dialogs.WizardButton import NEXT
-from com.sun.star.ui.dialogs.WizardButton import PREVIOUS
-from com.sun.star.ui.dialogs.WizardButton import FINISH
-from com.sun.star.ui.dialogs.WizardButton import CANCEL
-from com.sun.star.ui.dialogs.WizardButton import HELP
-
 from unolib import getDialog
 from unolib import getInterfaceTypes
 
 from .wizardmanager import WizardManager
-from .wizardhandler import WizardHandler
+from .wizardhandler import DialogHandler, ItemHandler
 
 from .configuration import g_extension
 
@@ -35,12 +29,18 @@ class Wizard(unohelper.Base,
              XWizard,
              XInitialization):
     def __init__(self, ctx, auto=-1, resize=False, parent=None):
-        self.ctx = ctx
-        self._helpUrl = ''
-        self._manager = WizardManager(self.ctx, auto, resize)
-        handler = WizardHandler(self.ctx, self._manager)
-        self._dialog = getDialog(self.ctx, g_extension, 'Wizard', handler, parent)
-        self._manager.initWizard(self._dialog, handler)
+        try:
+            self.ctx = ctx
+            self._helpUrl = ''
+            self._manager = WizardManager(self.ctx, auto, resize)
+            dialog = DialogHandler(self.ctx, self._manager)
+            self._dialog = getDialog(self.ctx, g_extension, 'Wizard', dialog, parent)
+            item = ItemHandler(self.ctx, self._dialog, self._manager)
+            self._manager.initWizard(self._dialog, item)
+            print("Wizard.__init__()")
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     @property
     def HelpURL(self):
@@ -71,28 +71,10 @@ class Wizard(unohelper.Base,
         return self._manager.getCurrentPage()
 
     def enableButton(self, button, enabled):
-        if button == HELP:
-            self._manager.enableButtonHelp(self._dialog, enabled)
-        elif button == PREVIOUS:
-            self._manager.enableButtonPrevious(self._dialog, enabled)
-        elif button == NEXT:
-            self._manager.enableButtonNext(self._dialog, enabled)
-        elif button == FINISH:
-            self._manager.enableButtonFinish(self._dialog, enabled)
-        elif button == CANCEL:
-            self._manager.enableButtonCancel(self._dialog, enabled)
+        self._manager.enableButton(self._dialog, button, enabled)
 
     def setDefaultButton(self, button):
-        if button == HELP:
-            self._manager.setDefaultButtonHelp(self._dialog)
-        elif button == PREVIOUS:
-            self._manager.setDefaultButtonPrevious(self._dialog)
-        elif button == NEXT:
-            self._manager.setDefaultButtonNext(self._dialog)
-        elif button == FINISH:
-            self._manager.setDefaultButtonFinish(self._dialog)
-        elif button == CANCEL:
-            self._manager.setDefaultButtonCancel(self._dialog)
+        self._manager.setDefaultButton(self._dialog, button)
 
     def travelNext(self):
         return self._manager.travelNext(self._dialog)
@@ -113,10 +95,10 @@ class Wizard(unohelper.Base,
         self._manager.updateTravelUI(self._dialog)
 
     def advanceTo(self, page):
-        return self._manager.advanceTo(page)
+        return self._manager.advanceTo(self._dialog, page)
 
     def goBackTo(self, page):
-        return self._manager.goBackTo(page)
+        return self._manager.goBackTo(self._dialog, page)
 
     def activatePath(self, index, final):
         if not self._manager.isMultiPaths():

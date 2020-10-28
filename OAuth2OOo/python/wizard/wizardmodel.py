@@ -21,14 +21,14 @@ class WizardModel(unohelper.Base):
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
 
     def initWizard(self, window, view):
-        return self._setRoadmapModel(window, view)
+        return self._setRoadmapModel(window.getModel(), view)
 
     def setRoadmapSize(self, page):
         self._roadmap.Height = page.Height
         self._roadmap.Width = page.PositionX
 
     def getRoadmapWidth(self):
-         return self._roadmap.Width
+        return self._roadmap.Width
 
     def getCurrentPage(self):
         return self._pages.get(self._currentPageId, None)
@@ -56,11 +56,11 @@ class WizardModel(unohelper.Base):
         self._roadmap.getByIndex(index).Enabled = enabled
 
     def canAdvance(self):
-        return self._canAdvancePage(self._currentPageId):
+        return self._canAdvancePage(self._currentPageId)
 
     def deactivatePage(self, page, reason):
         if page in self._pages:
-            return self._pages[page].commitPage(reason):
+            return self._pages[page].commitPage(reason)
         return False
 
     def doFinish(self, reason):
@@ -76,7 +76,7 @@ class WizardModel(unohelper.Base):
                 paths.append(item.ID)
         return tuple(paths)
 
-    def initRoadmap(self, paths, final):
+    def initRoadmap(self, controller, paths, final):
         initialized = self._roadmap.CurrentItemID != -1
         for i in range(self._roadmap.getCount() -1, -1, -1):
             self._roadmap.removeByIndex(i)
@@ -84,7 +84,7 @@ class WizardModel(unohelper.Base):
         for page in paths:
             item = self._roadmap.createInstance()
             item.ID = page
-            item.Label = self._controller.getPageTitle(page)
+            item.Label = controller.getPageTitle(page)
             if i != 0:
                 item.Enabled = initialized and self._canAdvancePage(pageid)
             self._roadmap.insertByIndex(i, item)

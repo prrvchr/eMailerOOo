@@ -4,6 +4,12 @@
 import uno
 import unohelper
 
+from com.sun.star.ui.dialogs.WizardButton import NEXT
+from com.sun.star.ui.dialogs.WizardButton import PREVIOUS
+from com.sun.star.ui.dialogs.WizardButton import FINISH
+from com.sun.star.ui.dialogs.WizardButton import CANCEL
+from com.sun.star.ui.dialogs.WizardButton import HELP
+
 import traceback
 
 
@@ -14,6 +20,7 @@ class WizardView(unohelper.Base):
         self._roadmap = 'RoadmapControl1'
         self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         self._size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
+        self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
 
     def getRoadmapPosition(self):
         return self._point
@@ -36,7 +43,7 @@ class WizardView(unohelper.Base):
         window.getModel().Step = step
 
     def setDialogSize(self, window, page):
-        button = self._getButtonHelp(window).getModel()
+        button = self._getButton(window, HELP).getModel()
         button.PositionY  = page.Height + self._spacer
         dialog = window.getModel()
         dialog.Height = button.PositionY + button.Height + self._spacer
@@ -45,47 +52,23 @@ class WizardView(unohelper.Base):
         for i in (1,2,3,4):
             self._setButtonPosition(window, i, button.PositionY, dialog.Width)
 
-    def enableButtonHelp(self, window, enabled)
-        self._getButtonHelp(window).Model.Enabled = enabled
+    def enableButton(self, window, button, enabled):
+        self._getButton(window, button).Model.Enabled = enabled
 
-    def enableButtonPrevious(self, window, enabled)
-        self._getButtonPrevious(window).Model.Enabled = enabled
-
-    def enableButtonNext(self, window, enabled)
-        self._getButtonNext(window).Model.Enabled = enabled
-
-    def enableButtonFinish(self, window, enabled)
-        self._getButtonFinish(window).Model.Enabled = enabled
-
-    def enableButtonCancel(self, window, enabled)
-        self._getButtonCancel(window).Model.Enabled = enabled
-
-    def setDefaultButtonHelp(self, window)
-        self._getButtonHelp(window).Model.DefaultButton = True
-
-    def setDefaultButtonPrevious(self, window)
-        self._getButtonPrevious(window).Model.DefaultButton = True
-
-    def setDefaultButtonNext(self, window)
-        self._getButtonNext(window).Model.DefaultButton = True
-
-    def setDefaultButtonFinish(self, window)
-        self._getButtonFinish(window).Model.DefaultButton = True
-
-    def setDefaultButtonCancel(self, window)
-        self._getButtonCancel(window).Model.DefaultButton = True
+    def setDefaultButton(self, window, button):
+        self._getButton(window, button).Model.DefaultButton = True
 
     def updateButtonPrevious(self, window, enabled):
-        self._getButtonPrevious(window).Model.Enabled = enabled
+        self._getButton(window, PREVIOUS).Model.Enabled = enabled
 
     def updateButtonNext(self, window, enabled):
-        button = self._getButtonNext(window).Model
+        button = self._getButton(window, NEXT).Model
         button.Enabled = enabled
         if enabled:
             button.DefaultButton = True
 
     def updateButtonFinish(self, window, enabled):
-        button = self._getButtonFinish(window).Model
+        button = self._getButton(window, FINISH).Model
         button.Enabled = enabled
         if enabled:
             button.DefaultButton = True
@@ -101,6 +84,9 @@ class WizardView(unohelper.Base):
         button.PositionX = width - step * (button.Width + self._spacer)
         button.PositionY = y
 
+    def _getButton(self, window, button):
+        return window.getControl(self._getButtonName(self._button.get(button)))
+
 # WizardView private message methods
     def _getRoadmapTitle(self):
         return 'Wizard.Roadmap.Text'
@@ -111,19 +97,3 @@ class WizardView(unohelper.Base):
 
     def _getButtonName(self, index):
         return 'CommandButton%s' % index
-
-    def _getButtonHelp(self, window):
-        return window.getControl(self._getButtonName(5))
-
-    def _getButtonPrevious(self, window):
-        return window.getControl(self._getButtonName(4))
-
-    def _getButtonNext(self, window):
-        return window.getControl(self._getButtonName(3))
-
-    def _getButtonFinish(self, window):
-        return window.getControl(self._getButtonName(2))
-
-    def _getButtonCancel(self, window):
-        return window.getControl(self._getButtonName(1))
-

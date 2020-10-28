@@ -29,6 +29,7 @@ class WizardManager(unohelper.Base):
         self._controller = None
         self._model = WizardModel(self.ctx)
         self._view = WizardView(self.ctx)
+        print("WizardManager.__init__()")
 
     def initWizard(self, window, handler):
         model = self._model.initWizard(window, self._view)
@@ -66,40 +67,19 @@ class WizardManager(unohelper.Base):
             if self._model.doFinish(reason):
                 if self._controller.confirmFinish():
                     dialog.endDialog(OK)
-        return True
 
-    def changeRoadmapStep(self, page):
+    def changeRoadmapStep(self, window, page):
+        pageid = self._model.getCurrentPageId()
+        if pageid != page:
+            if not self._setCurrentPage(window, page):
+                self._model.setCurrentPageId(pageid)
         print("WizardManager.changeRoadmapStep() %s" % page)
 
-    def enableButtonHelp(self, window, enabled):
-        self._view.enableButtonHelp(window, enabled)
+    def enableButton(self, window, button, enabled):
+        self._view.enableButton(window, button, enabled)
 
-    def enableButtonPrevious(self, window, enabled):
-        self._view.enableButtonPrevious(window, enabled)
-
-    def enableButtonNext(self, window, enabled):
-        self._view.enableButtonNext(window, enabled)
-
-    def enableButtonFinish(self, window, enabled):
-        self._view.enableButtonFinish(window, enabled)
-
-    def enableButtonCancel(self, window, enabled):
-        self._view.enableButtonCancel(window, enabled)
-
-    def setDefaultButtonHelp(self, window):
-        self._view.setDefaultButtonHelp(window)
-
-    def setDefaultButtonPrevious(self, window):
-        self._view.setDefaultButtonPrevious(window)
-
-    def setDefaultButtonNext(self, window):
-        self._view.setDefaultButtonNext(window)
-
-    def setDefaultButtonFinish(self, window):
-        self._view.setDefaultButtonFinish(window)
-
-    def setDefaultButtonCancel(self, window):
-        self._view.setDefaultButtonCancel(window)
+    def setDefaultButton(self, window, button):
+        self._view.setDefaultButton(window, button)
 
     def travelNext(self, window):
         page = self._getNextPage()
@@ -120,17 +100,17 @@ class WizardManager(unohelper.Base):
         self._model.updateRoadmap()
         self._updateButton(window)
 
-    def advanceTo(self, page):
+    def advanceTo(self, window, page):
         if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(page)
+            return self._setCurrentPage(window, page)
         return False
 
-    def goBackTo(self, page):
+    def goBackTo(self, window, page):
         if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(page)
+            return self._setCurrentPage(window, page)
         return False
 
-    def executeWizard(self, dialog)
+    def executeWizard(self, dialog):
         if self._currentPath == -1:
             self._initPath(0, False)
         self._initPage(dialog)
@@ -140,7 +120,7 @@ class WizardManager(unohelper.Base):
         final, paths = self._getActivePath(index, final)
         self._firstPage = min(paths)
         self._lastPage = max(paths)
-        self._model.initRoadmap(paths, final)
+        self._model.initRoadmap(self._controller, paths, final)
 
     def _getActivePath(self, index, final):
         if self._multiPaths:
@@ -179,7 +159,7 @@ class WizardManager(unohelper.Base):
     def _initNextPage(self, window):
         page = self._getNextPage()
         if page is not None:
-            return self._setPage(window, page) and self._isAutoLoad(page)
+            return self._setCurrentPage(window, page) and self._isAutoLoad(page)
         return False
 
     def _canAdvance(self):
@@ -203,14 +183,9 @@ class WizardManager(unohelper.Base):
                 return path[i]
         return None
 
-    def _setCurrentPage(self, window, new):
-        if self._setPage(window, new):
-            return True
-        return False
-
-    def _setPage(self, window, new):
-        if self._deactivatePage(new):
-            self._setPageStep(window, new)
+    def _setCurrentPage(self, window, page):
+        if self._deactivatePage(page):
+            self._setPageStep(window, page)
             return True
         return False
 
@@ -238,16 +213,16 @@ class WizardManager(unohelper.Base):
         self._view.updateButtonFinish(window, enabled)
 
     def _deactivatePage(self, new):
-        old = self._model.getCurentPageId()
+        old = self._model.getCurrentPageId()
         reason = self._getCommitReason(old, new)
-        if self._model.deactivatePage(old, reason)
+        if self._model.deactivatePage(old, reason):
             self._controller.onDeactivatePage(old)
             return True
         return False
 
     def _getCommitReason(self, old=None, new=None):
-        old = self._model.getCurentPageId() if old is None else old
-        new = self._model.getCurentPageId() if new is None else new
+        old = self._model.getCurrentPageId() if old is None else old
+        new = self._model.getCurrentPageId() if new is None else new
         if old < new:
             return FORWARD
         elif old > new:

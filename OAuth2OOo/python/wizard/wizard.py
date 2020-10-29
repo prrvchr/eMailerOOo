@@ -33,9 +33,9 @@ class Wizard(unohelper.Base,
             self.ctx = ctx
             self._helpUrl = ''
             self._manager = WizardManager(self.ctx, auto, resize)
-            dialog = DialogHandler(self.ctx, self._manager)
+            dialog = DialogHandler(self._manager)
             self._dialog = getDialog(self.ctx, g_extension, 'Wizard', dialog, parent)
-            item = ItemHandler(self.ctx, self._dialog, self._manager)
+            item = ItemHandler(self._dialog, self._manager)
             self._manager.initWizard(self._dialog, item)
             print("Wizard.__init__()")
         except Exception as e:

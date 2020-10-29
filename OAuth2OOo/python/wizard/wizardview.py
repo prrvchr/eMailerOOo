@@ -39,9 +39,6 @@ class WizardView(unohelper.Base):
         return self._getRoadmap(window)
 
 # WizardView setter methods
-    def setDialogStep(self, window, step):
-        window.getModel().Step = step
-
     def setDialogSize(self, window, page):
         button = self._getButton(window, HELP).getModel()
         button.PositionY  = page.Height + self._spacer
@@ -72,10 +69,6 @@ class WizardView(unohelper.Base):
         button.Enabled = enabled
         if enabled:
             button.DefaultButton = True
-
-# WizardView getter methods
-    def getDialogStep(self, window):
-        return window.getModel().Step
 
 # WizardView private methods
     def _setButtonPosition(self, window, step, y, width):

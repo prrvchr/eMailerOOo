@@ -12,15 +12,12 @@ import traceback
 
 class DialogHandler(unohelper.Base,
                     XDialogEventHandler):
-    def __init__(self, ctx, manager):
-        self.ctx = ctx
+    def __init__(self, manager):
         self._manager = manager
-        print("DialogHandler.__init__()")
 
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        print("DialogHandler.callHandlerMethod() %s" % method)
         if method == 'Help':
             handled = True
         elif method == 'Previous':
@@ -40,11 +37,9 @@ class DialogHandler(unohelper.Base,
 
 class ItemHandler(unohelper.Base,
                   XItemListener):
-    def __init__(self, ctx, dialog, manager):
-        self.ctx = ctx
+    def __init__(self, dialog, manager):
         self._dialog = dialog
         self._manager = manager
-        print("ItemHandler.__init__()")
 
     # XItemListener
     def itemStateChanged(self, event):

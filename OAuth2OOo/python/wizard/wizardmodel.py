@@ -58,6 +58,10 @@ class WizardModel(unohelper.Base):
     def canAdvance(self):
         return self._canAdvancePage(self._currentPageId)
 
+    def setPageVisible(self, page, enabled):
+        if page in self._pages:
+            self._pages[page].Window.setVisible(enabled)
+
     def deactivatePage(self, page, reason):
         if page in self._pages:
             return self._pages[page].commitPage(reason)

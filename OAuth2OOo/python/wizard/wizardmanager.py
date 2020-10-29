@@ -13,6 +13,8 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from .wizardmodel import WizardModel
 from .wizardview import WizardView
 
+from unolib import createService
+
 import traceback
 
 
@@ -73,7 +75,6 @@ class WizardManager(unohelper.Base):
         if pageid != page:
             if not self._setCurrentPage(window, page):
                 self._model.setCurrentPageId(pageid)
-        print("WizardManager.changeRoadmapStep() %s" % page)
 
     def enableButton(self, window, button, enabled):
         self._view.enableButton(window, button, enabled)
@@ -111,10 +112,14 @@ class WizardManager(unohelper.Base):
         return False
 
     def executeWizard(self, dialog):
-        if self._currentPath == -1:
+        if not self._isCurrentPathSet():
             self._initPath(0, False)
         self._initPage(dialog)
         return dialog.execute()
+
+# WizardManager private methods
+    def _isCurrentPathSet(self):
+        return self._currentPath != -1
 
     def _initPath(self, index, final):
         final, paths = self._getActivePath(index, final)
@@ -147,7 +152,7 @@ class WizardManager(unohelper.Base):
         return tuple(paths)
 
     def _initPage(self, window):
-        self._setPageStep(window, self._firstPage)
+        self._setPage(window, self._firstPage)
         nextpage = self._isAutoLoad()
         while nextpage and self._canAdvance():
             nextpage = self._initNextPage(window)
@@ -185,25 +190,21 @@ class WizardManager(unohelper.Base):
 
     def _setCurrentPage(self, window, page):
         if self._deactivatePage(page):
-            self._setPageStep(window, page)
+            self._setPage(window, page)
             return True
         return False
 
-    def _setPageStep(self, window, pageid):
-        self._view.setDialogStep(window, 0)
-        # TODO: PageId can be equal to zero but Model.Step must be > 0
-        step = self._getDialogStep(pageid)
+    def _setPage(self, window, pageid):
         if not self._model.hasPage(pageid):
             parent = window.getPeer()
             page = self._controller.createPage(parent, pageid)
-            model = page.Window.getModel()
-            self._setModelStep(model, step)
-            self._model.addPage(pageid, self._setPageWindow(window, model, page))
+            name = self._setPageModel(window, page)
+            self._model.addPage(pageid, self._setPageWindow(window, page, name))
         self._model.setCurrentPageId(pageid)
         self._model.updateRoadmap()
         self._updateButton(window)
         self._activatePage(pageid)
-        self._view.setDialogStep(window, step)
+        self._model.setPageVisible(pageid, True)
 
     def _updateButton(self, window):
         self._view.updateButtonPrevious(window, not self._isFirstPage())
@@ -217,12 +218,14 @@ class WizardManager(unohelper.Base):
         reason = self._getCommitReason(old, new)
         if self._model.deactivatePage(old, reason):
             self._controller.onDeactivatePage(old)
+            self._model.setPageVisible(old, False)
             return True
         return False
 
     def _getCommitReason(self, old=None, new=None):
-        old = self._model.getCurrentPageId() if old is None else old
-        new = self._model.getCurrentPageId() if new is None else new
+        page = self._model.getCurrentPageId()
+        old = page if old is None else old
+        new = page if new is None else new
         if old < new:
             return FORWARD
         elif old > new:
@@ -230,22 +233,23 @@ class WizardManager(unohelper.Base):
         else:
             return FINISH
 
-    def _getDialogStep(self, pageid):
-        return pageid + 1
-
-    def _setModelStep(self, model, step):
-        model.PositionX = self._model.getRoadmapWidth()
-        model.PositionY = 0
-        model.Step = step
-        for control in model.getControlModels():
-            control.Step = step
-
-    def _setPageWindow(self, window, model, page):
+    def _setPageModel(self, window, page):
+        model = page.Window.getModel()
         if self._resize:
-            self._model.setRoadmapSize(model)
-            self._view.setDialogSize(window, model)
-            self._resize = False
-        window.addControl(model.Name, page.Window)
+            self._resizeWizard(window, model)
+            model.PositionY = 0
+        else:
+            model.PositionX = self._model.getRoadmapWidth()
+            model.PositionY = 0
+        return model.Name
+
+    def _resizeWizard(self, window, model):
+        self._model.setRoadmapSize(model)
+        self._view.setDialogSize(window, model)
+        self._resize = False
+
+    def _setPageWindow(self, window, page, name):
+        window.addControl(name, page.Window)
         return page
 
     def _activatePage(self, page):

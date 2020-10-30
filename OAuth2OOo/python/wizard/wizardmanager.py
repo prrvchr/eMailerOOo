@@ -31,7 +31,6 @@ class WizardManager(unohelper.Base):
         self._controller = None
         self._model = WizardModel(self.ctx)
         self._view = WizardView(self.ctx)
-        print("WizardManager.__init__()")
 
     def initWizard(self, window, handler):
         model = self._model.initWizard(window, self._view)
@@ -60,7 +59,7 @@ class WizardManager(unohelper.Base):
         return len(self._paths)
 
     def activatePath(self, index, final):
-        if self._currentPath != index or self._model.isFinal() != final:
+        if self._currentPath != index or self._isComplete() != final:
             self._initPath(index, final)
 
     def doFinish(self, dialog):
@@ -98,7 +97,7 @@ class WizardManager(unohelper.Base):
         self._model.enablePage(index, enabled)
 
     def updateTravelUI(self, window):
-        self._model.updateRoadmap()
+        self._model.updateRoadmap(self._firstPage, True)
         self._updateButton(window)
 
     def advanceTo(self, window, page):
@@ -122,19 +121,19 @@ class WizardManager(unohelper.Base):
         return self._currentPath != -1
 
     def _initPath(self, index, final):
-        final, paths = self._getActivePath(index, final)
+        complete, paths = self._getActivePath(index, final)
         self._firstPage = min(paths)
         self._lastPage = max(paths)
-        self._model.initRoadmap(self._controller, paths, final)
+        self._model.initRoadmap(self._controller, self._firstPage, paths, complete)
 
     def _getActivePath(self, index, final):
         if self._multiPaths:
             paths = self._paths[index] if final else self._getFollowingPath(index)
             self._currentPath = index
-            final = paths == self._paths[self._currentPath]
+            complete = paths == self._paths[self._currentPath]
         else:
-            final, paths = True, self._paths
-        return final, paths
+            complete, paths = True, self._paths
+        return complete, paths
 
     def _getFollowingPath(self, index):
         paths = []
@@ -158,7 +157,7 @@ class WizardManager(unohelper.Base):
             nextpage = self._initNextPage(window)
 
     def _isAutoLoad(self, page=None):
-        nextindex = 1 if page is None else self.getCurrentPath().index(page) + 1
+        nextindex = self._firstPage if page is None else self.getCurrentPath().index(page) + 1
         return nextindex < self._auto
 
     def _initNextPage(self, window):
@@ -196,14 +195,14 @@ class WizardManager(unohelper.Base):
 
     def _setPage(self, window, pageid):
         if not self._model.hasPage(pageid):
-            parent = window.getPeer()
-            page = self._controller.createPage(parent, pageid)
+            page = self._controller.createPage(window.getPeer(), pageid)
             name = self._setPageModel(window, page)
             self._model.addPage(pageid, self._setPageWindow(window, page, name))
         self._model.setCurrentPageId(pageid)
-        self._model.updateRoadmap()
-        self._updateButton(window)
         self._activatePage(pageid)
+        # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
+        self._model.updateRoadmap(self._firstPage, False)
+        self._updateButton(window)
         self._model.setPageVisible(pageid, True)
 
     def _updateButton(self, window):
@@ -235,6 +234,7 @@ class WizardManager(unohelper.Base):
 
     def _setPageModel(self, window, page):
         model = page.Window.getModel()
+        # TODO: Fixed: Resizing should be done, if necessary, instead of modifying the model
         if self._resize:
             self._resizeWizard(window, model)
             model.PositionY = 0
@@ -260,7 +260,7 @@ class WizardManager(unohelper.Base):
         return self._model.getCurrentPageId() == self._firstPage
 
     def _isLastPage(self):
-        return self._isFinal() and self._model.getCurrentPageId() == self._lastPage
+        return self._isComplete() and self._model.getCurrentPageId() == self._lastPage
 
-    def _isFinal(self):
-        return self._model.isFinal()
+    def _isComplete(self):
+        return self._model.isComplete()

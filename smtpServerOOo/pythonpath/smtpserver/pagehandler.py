@@ -15,8 +15,15 @@ class PageHandler(unohelper.Base,
                   XContainerWindowEventHandler):
     def __init__(self, ctx, wizard, model):
         self.ctx = ctx
+        self._enabled = True
         self._manager = PageManager(self.ctx, wizard, model)
         print("PageHandler.__init__()")
+
+    def disable(self):
+        self._enabled = False
+
+    def enable(self):
+        self._enabled = True
 
     def getManager(self):
         return self._manager
@@ -26,7 +33,8 @@ class PageHandler(unohelper.Base,
         try:
             handled = False
             if method == 'TextChange':
-                self._manager.updateTravelUI(window, event.Source)
+                if self._enabled:
+                    self._manager.updateTravelUI(window, event.Source)
                 handled = True
             elif method == 'ChangeAuthentication':
                 self._manager.changeAuthentication(window, event.Source)

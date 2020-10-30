@@ -52,7 +52,7 @@ class WizardPage(unohelper.Base,
         if self.PageId == 1:
             pass
         elif self.PageId == 2:
-            pass
+            self._manager.commitPage2()
         elif self.PageId == 3:
             pass
         msg += " Done"

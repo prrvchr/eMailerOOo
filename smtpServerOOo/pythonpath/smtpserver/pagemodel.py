@@ -86,22 +86,22 @@ class PageModel(unohelper.Base):
 
     def isEmailValid(self):
         if validators.email(self.Email):
-           return True
+            return True
         return False
 
     def isServerValid(self, server):
         if validators.domain(server):
-           return True
+            return True
         return False
 
     def isPortValid(self, port):
         if validators.between(port, min=1, max=1023):
-           return True
+            return True
         return False
 
     def isStringValid(self, value):
         if validators.length(value, min=1):
-           return True
+            return True
         return False
 
     def getServer(self):

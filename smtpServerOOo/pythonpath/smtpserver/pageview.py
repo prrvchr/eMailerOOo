@@ -47,6 +47,9 @@ class PageView(unohelper.Base):
         self._getConfirmPwdLabel(window).Model.Enabled = enabled
         self._getConfirmPwd(window).Model.Enabled = enabled
 
+    def enableConnect(self, window, enabled):
+        self._getConnect(window).Model.Enabled = enabled
+
 # PageView getter methods
     def getControlTag(self, control):
         return control.Model.Tag
@@ -54,11 +57,17 @@ class PageView(unohelper.Base):
     def getControlIndex(self, control):
         return control.getSelectedItemPos()
 
+    def getPageStep(self, model, pageid):
+        return model.resolveString(self._getRoadmapStep(pageid))
+
+    def getPageTitle(self, model, pageid):
+        return model.resolveString(self._getPageTitle(pageid))
+
     def isServerValid(self, window, validator):
         return validator(self._getServer(window).Text)
 
     def isPortValid(self, window, validator):
-        return validator(int(self._getPort(window).Value))
+        return validator(self._getPort(window).Value)
 
     def isLoginNameValid(self, window, validator):
         control = self._getLoginName(window)
@@ -76,12 +85,12 @@ class PageView(unohelper.Base):
 
 # PageView private methods
     def _setPageTitle(self, pageid, window, model, title):
-        text = model.resolveString(self._getPageTitleMessage(pageid))
-        self._getPageTitle(window).Text = text % title
+        text = model.resolveString(self._getPageLabelMessage(pageid))
+        self._getPageLabel(window).Text = text % title
 
     def _loadPage3(self, window, model):
         self._getServer(window).Text = model.getServer()
-        self._getPort(window).Text = model.getPort()
+        self._getPort(window).Value = model.getPort()
         self._getConnection(window).selectItemPos(model.getConnection(), True)
         self._getAuthentication(window).selectItemPos(model.getAuthentication(), True)
         self._getLoginName(window).Text = model.getLoginName()
@@ -95,14 +104,20 @@ class PageView(unohelper.Base):
         self._getNext(window).Model.Enabled = not islast
 
 # PageView private message methods
-    def _getPageTitleMessage(self, pageid):
+    def _getRoadmapStep(self, pageid):
+        return 'PageWizard%s.Step' % pageid
+
+    def _getPageTitle(self, pageid):
+        return 'PageWizard%s.Title' % pageid
+
+    def _getPageLabelMessage(self, pageid):
         return 'PageWizard%s.Label1.Label' % pageid
 
     def _getProgressMessage(self, value):
         return 'PageWizard2.Label2.Label.%s' % value
 
 # PageView private control methods
-    def _getPageTitle(self, window):
+    def _getPageLabel(self, window):
         return window.getControl('Label1')
 
     def _getEmail(self, window):
@@ -152,3 +167,7 @@ class PageView(unohelper.Base):
 
     def _getNext(self, window):
         return window.getControl('CommandButton2')
+
+    def _getConnect(self, window):
+        return window.getControl('CommandButton3')
+

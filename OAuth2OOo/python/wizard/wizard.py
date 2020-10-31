@@ -82,23 +82,24 @@ class Wizard(unohelper.Base,
     def travelPrevious(self):
         return self._manager.travelPrevious(self._dialog)
 
-    def enablePage(self, page, enabled):
-        if page == self._manager._model.getCurrentPageId():
+    def enablePage(self, pageid, enabled):
+        if not self._manager.isPathInitialized():
             raise self._getInvalidStateException(111)
         path = self._manager.getCurrentPath()
-        if page not in path:
+        if pageid not in path:
             raise self._getNoSuchElementException(112)
-        index = path.index(page)
-        self._manager.enablePage(index, enabled)
+        if pageid == self._manager._model.getCurrentPageId():
+            raise self._getInvalidStateException(113)
+        self._manager.enablePage(pageid, enabled)
 
     def updateTravelUI(self):
         self._manager.updateTravelUI(self._dialog)
 
-    def advanceTo(self, page):
-        return self._manager.advanceTo(self._dialog, page)
+    def advanceTo(self, pageid):
+        return self._manager.advanceTo(self._dialog, pageid)
 
-    def goBackTo(self, page):
-        return self._manager.goBackTo(self._dialog, page)
+    def goBackTo(self, pageid):
+        return self._manager.goBackTo(self._dialog, pageid)
 
     def activatePath(self, index, final):
         if not self._manager.isMultiPaths():

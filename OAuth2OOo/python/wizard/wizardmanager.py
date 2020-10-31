@@ -25,8 +25,6 @@ class WizardManager(unohelper.Base):
         self._resize = resize
         self._paths = ()
         self._currentPath = -1
-        self._firstPage = -1
-        self._lastPage = -1
         self._multiPaths = False
         self._controller = None
         self._model = WizardModel(self.ctx)
@@ -54,6 +52,9 @@ class WizardManager(unohelper.Base):
 
     def isMultiPaths(self):
         return self._multiPaths
+
+    def isPathInitialized(self):
+        return self._currentPath != -1
 
     def getPathsLength(self):
         return len(self._paths)
@@ -93,11 +94,11 @@ class WizardManager(unohelper.Base):
             return self._setCurrentPage(window, page)
         return False
 
-    def enablePage(self, index, enabled):
-        self._model.enablePage(index, enabled)
+    def enablePage(self, pageid, enabled):
+        self._model.enablePage(pageid, enabled)
 
     def updateTravelUI(self, window):
-        self._model.updateRoadmap(self._firstPage, True)
+        self._model.updateRoadmap(self._getFirstPage())
         self._updateButton(window)
 
     def advanceTo(self, window, page):
@@ -120,13 +121,14 @@ class WizardManager(unohelper.Base):
     def _isCurrentPathSet(self):
         return self._currentPath != -1
 
-    def _initPath(self, index, final):
-        complete, paths = self._getActivePath(index, final)
-        self._firstPage = min(paths)
-        self._lastPage = max(paths)
-        self._model.initRoadmap(self._controller, self._firstPage, paths, complete)
+    def _getActivePath(self):
+        return self._model.getActivePath(self.getCurrentPath())
 
-    def _getActivePath(self, index, final):
+    def _initPath(self, index, final):
+        complete, paths = self._getPath(index, final)
+        self._model.initRoadmap(self._controller, self._getFirstPage(), paths, complete)
+
+    def _getPath(self, index, final):
         if self._multiPaths:
             paths = self._paths[index] if final else self._getFollowingPath(index)
             self._currentPath = index
@@ -151,13 +153,13 @@ class WizardManager(unohelper.Base):
         return tuple(paths)
 
     def _initPage(self, window):
-        self._setPage(window, self._firstPage)
+        self._setPage(window, self._getFirstPage())
         nextpage = self._isAutoLoad()
         while nextpage and self._canAdvance():
             nextpage = self._initNextPage(window)
 
     def _isAutoLoad(self, page=None):
-        nextindex = self._firstPage if page is None else self.getCurrentPath().index(page) + 1
+        nextindex = self._getFirstPage() if page is None else self.getCurrentPath().index(page) + 1
         return nextindex < self._auto
 
     def _initNextPage(self, window):
@@ -201,7 +203,7 @@ class WizardManager(unohelper.Base):
         self._model.setCurrentPageId(pageid)
         self._activatePage(pageid)
         # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
-        self._model.updateRoadmap(self._firstPage, False)
+        self._model.updateRoadmap(self._getFirstPage())
         self._updateButton(window)
         self._model.setPageVisible(pageid, True)
 
@@ -256,11 +258,17 @@ class WizardManager(unohelper.Base):
         self._controller.onActivatePage(page)
         self._model.activatePage(page)
 
+    def _getFirstPage(self):
+        return min(self._getActivePath())
+
+    def _getLastPage(self):
+        return max(self._getActivePath())
+
     def _isFirstPage(self):
-        return self._model.getCurrentPageId() == self._firstPage
+        return self._model.getCurrentPageId() == self._getFirstPage()
 
     def _isLastPage(self):
-        return self._isComplete() and self._model.getCurrentPageId() == self._lastPage
+        return self._isComplete() and self._model.getCurrentPageId() == self._getLastPage()
 
     def _isComplete(self):
         return self._model.isComplete()

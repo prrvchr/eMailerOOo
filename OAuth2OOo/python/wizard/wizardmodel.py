@@ -17,6 +17,7 @@ class WizardModel(unohelper.Base):
         self.ctx = ctx
         self._pages = {}
         self._currentPageId = -1
+        self._disabledPages = []
         self._roadmap = None
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
 
@@ -52,8 +53,12 @@ class WizardModel(unohelper.Base):
         if page in self._pages:
             self._pages[page].activatePage()
 
-    def enablePage(self, index, enabled):
-        self._roadmap.getByIndex(index).Enabled = enabled
+    def enablePage(self, pageid, enabled):
+        if enabled:
+            if pageid in self._disabledPages:
+                self._disabledPages.remove(pageid)
+        elif pageid not in self._disabledPages:
+            self._disabledPages.append(pageid)
 
     def canAdvance(self):
         return self._canAdvancePage(self._currentPageId)
@@ -70,20 +75,23 @@ class WizardModel(unohelper.Base):
     def doFinish(self, reason):
         return self._pages[self._currentPageId].commitPage(reason)
 
-    def getRoadmapPath(self, enabled=True):
+    def getActivePath(self, path):
+        return tuple(page for page in path if page not in self._disabledPages)
+
+    def getRoadmapPath(self):
         paths = []
         for i in range(self._roadmap.getCount()):
             item = self._roadmap.getByIndex(i)
-            if not enabled:
-                paths.append(item.ID)
-            elif item.Enabled:
+            if item.Enabled:
                 paths.append(item.ID)
         return tuple(paths)
 
     def initRoadmap(self, controller, first, paths, complete):
         # TODO: Fixed: Roadmap item will be initialized as follows:
-        # TODO: - Previous and current page will be enabled.
-        # TODO: - Subsequent pages will be enabled if the previous page can advance otherwise disabled.
+        # TODO: - Previous page will be, if not explicitly disabled, enabled.
+        # TODO: - Current page will be enabled, it's mandatory.
+        # TODO: - Subsequent pages will be, if not explicitly disabled, enabled
+        # TODO:   if the previous page can advance, otherwise disabled.
         advance = True
         initialized = self._currentPageId != -1
         pageid = self._currentPageId if initialized else first
@@ -91,13 +99,17 @@ class WizardModel(unohelper.Base):
             self._roadmap.removeByIndex(i)
         i = 0
         for page in paths:
+            enabled = self._isPageEnabled(page)
             item = self._roadmap.createInstance()
             item.ID = page
             item.Label = controller.getPageTitle(page)
-            if page <= pageid:
+            if page < pageid:
+                item.Enabled = enabled
+            elif page == pageid:
                 item.Enabled = True
             elif advance and previous in self._pages:
-                item.Enabled = advance = self._canAdvancePage(previous)
+                advance = self._canAdvancePage(previous)
+                item.Enabled = advance and enabled
             else:
                 item.Enabled = False
             self._roadmap.insertByIndex(i, item)
@@ -107,30 +119,36 @@ class WizardModel(unohelper.Base):
             self._roadmap.CurrentItemID = pageid
         self._roadmap.Complete = complete
 
-    def updateRoadmap(self, first, clear):
+    def updateRoadmap(self, first):
         # TODO: Fixed: Roadmap item will be by default:
-        # TODO: - Previous pages will be enabled if 'clear' otherwise left unchanged.
+        # TODO: - Previous pages will be, if not explicitly disabled, enabled.
         # TODO: - Current page will be enabled, it's mandatory.
-        # TODO: - Subsequent pages will be enabled if the previous page can advance otherwise disabled.
+        # TODO: - Subsequent pages will be, if not explicitly disabled, enabled 
+        # TODO:   if the previous page can advance otherwise disabled.
         advance = True
         pageid = self._currentPageId if self._currentPageId != -1 else first
         if self._currentPageId == -1:
             print("WizardModel.updateRoadmap() %s ****************************************" % pageid)
         for i in range(self._roadmap.getCount()):
             item = self._roadmap.getByIndex(i)
-            if item.ID < pageid:
-                if clear:
-                    item.Enabled = True
-            elif item.ID == pageid:
+            page = item.ID
+            enabled = self._isPageEnabled(page)
+            if page < pageid:
+                item.Enabled = enabled
+            elif page == pageid:
                 item.Enabled = True
             elif advance and previous in self._pages:
-                item.Enabled = advance = self._canAdvancePage(previous)
+                advance = self._canAdvancePage(previous)
+                item.Enabled = advance and enabled
             else:
                 item.Enabled = False
-            previous = item.ID
+            previous = page
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
+
+    def _isPageEnabled(self, page):
+        return page not in self._disabledPages
 
     def _setRoadmapModel(self, window, view):
         self._roadmap = window.createInstance('com.sun.star.awt.UnoControlRoadmapModel')

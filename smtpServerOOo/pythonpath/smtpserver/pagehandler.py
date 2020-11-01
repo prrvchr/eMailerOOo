@@ -34,7 +34,7 @@ class PageHandler(unohelper.Base,
             handled = False
             if method == 'TextChange':
                 if self._enabled:
-                    self._manager.updateTravelUI(window, event.Source)
+                    self._manager.updateTravelUI()
                 handled = True
             elif method == 'ChangeAuthentication':
                 self._manager.changeAuthentication(window, event.Source)

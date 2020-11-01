@@ -50,7 +50,7 @@ class PageManager(unohelper.Base):
     def canAdvancePage(self, pageid, window):
         advance = False
         if pageid == 1:
-            advance = self._model.isEmailValid()
+            advance = self._isUserValid(window)
         elif pageid == 2:
             advance = not self._search
         elif pageid == 3:
@@ -61,6 +61,9 @@ class PageManager(unohelper.Base):
             self._view.enableConnect(window, advance)
         return advance
 
+    def commitPage1(self, window):
+        self._model.Email = self._view.getUser(window)
+
     def commitPage2(self):
         self._search = True
 
@@ -70,27 +73,21 @@ class PageManager(unohelper.Base):
     def setPageTitle(self, pageid):
         self._wizard.setTitle(self._view.getPageTitle(self._model, pageid))
 
-    def updateTravelUI(self, window, control):
-        try:
-            tag = self._view.getControlTag(control)
-            if tag == 'EmailAddress':
-                self._model.Email = control.Text
-            self._wizard.updateTravelUI()
-        except Exception as e:
-            print("PageManager.updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
+    def updateTravelUI(self):
+        self._wizard.updateTravelUI()
 
     def changeAuthentication(self, window, control):
         index = self._view.getControlIndex(control)
         if index == 0:
-            self._view.enableUserName(window, False)
+            self._view.enableLoginName(window, False)
             self._view.enablePassword(window, False)
         elif index == 3:
-            self._view.enableUserName(window, True)
+            self._view.enableLoginName(window, True)
             self._view.enablePassword(window, False)
         else:
-            self._view.enableUserName(window, True)
+            self._view.enableLoginName(window, True)
             self._view.enablePassword(window, True)
-        self._wizard.updateTravelUI()
+        self.updateTravelUI()
         print("PageManager.changeAuthentication()")
 
     def previousServerPage(self, window):
@@ -105,6 +102,9 @@ class PageManager(unohelper.Base):
 
     def smtpConnect(self, window, event):
         print("PageManager._smtpConnect()")
+
+    def _isUserValid(self, window):
+        return self._view.isUserValid(window, self._model.isUserValid)
 
     def _isServerValid(self, window):
         return self._view.isServerValid(window, self._model.isServerValid)

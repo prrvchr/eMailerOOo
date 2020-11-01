@@ -84,8 +84,8 @@ class PageModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def isEmailValid(self):
-        if validators.email(self.Email):
+    def isUserValid(self, user):
+        if validators.email(user):
             return True
         return False
 

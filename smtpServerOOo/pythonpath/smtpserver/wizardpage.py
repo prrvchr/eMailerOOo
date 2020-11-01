@@ -45,19 +45,23 @@ class WizardPage(unohelper.Base,
             print(msg)
 
     def commitPage(self, reason):
-        msg = "PageId: %s ..." % self.PageId
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FORWARD')
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
-        if self.PageId == 1:
-            pass
-        elif self.PageId == 2:
-            self._manager.commitPage2()
-        elif self.PageId == 3:
-            pass
-        msg += " Done"
-        logMessage(self.ctx, INFO, msg, 'WizardPage', 'commitPage()')
-        return True
+        try:
+            msg = "PageId: %s ..." % self.PageId
+            forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FORWARD')
+            backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
+            finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
+            if self.PageId == 1:
+                self._manager.commitPage1(self.Window)
+            elif self.PageId == 2:
+                self._manager.commitPage2()
+            elif self.PageId == 3:
+                pass
+            msg += " Done"
+            logMessage(self.ctx, INFO, msg, 'WizardPage', 'commitPage()')
+            return True
+        except Exception as e:
+            msg = "WizardPage.commitPage() Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def canAdvance(self):
         return self._manager.canAdvancePage(self.PageId, self.Window)

@@ -16,7 +16,7 @@ class PageView(unohelper.Base):
 
 # PageView setter methods
     def initPage1(self, window, model):
-        self._getEmail(window).Text = model.Email
+        self._getUser(window).Text = model.Email
 
     def activatePage2(self, window, model):
         self._setPageTitle(2, window, model, model.Email)
@@ -37,7 +37,7 @@ class PageView(unohelper.Base):
         self._getServerPage(window).Text = model.getServerPage()
         self._loadPage3(window, model)
 
-    def enableUserName(self, window, enabled):
+    def enableLoginName(self, window, enabled):
         self._getLoginNameLabel(window).Model.Enabled = enabled
         self._getLoginName(window).Model.Enabled = enabled
 
@@ -63,6 +63,9 @@ class PageView(unohelper.Base):
     def getPageTitle(self, model, pageid):
         return model.resolveString(self._getPageTitle(pageid))
 
+    def isUserValid(self, window, validator):
+        return validator(self._getUser(window).Text)
+
     def isServerValid(self, window, validator):
         return validator(self._getServer(window).Text)
 
@@ -82,6 +85,9 @@ class PageView(unohelper.Base):
                 return False
             return validator(control.Text)
         return True
+
+    def getUser(self, window):
+        return self._getUser(window).Text
 
 # PageView private methods
     def _setPageTitle(self, pageid, window, model, title):
@@ -120,7 +126,7 @@ class PageView(unohelper.Base):
     def _getPageLabel(self, window):
         return window.getControl('Label1')
 
-    def _getEmail(self, window):
+    def _getUser(self, window):
         return window.getControl('TextField1')
 
     def _getProgressBar(self, window):

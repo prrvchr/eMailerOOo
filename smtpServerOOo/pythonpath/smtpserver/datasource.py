@@ -90,7 +90,8 @@ class DataSource(unohelper.Base,
         else:
             print("DataSource._getSmtpConfig() IspDB Query")
             progress(60)
-            response = self._getIspdbConfig(user.getValue('Domain'))
+            url = self._configuration.getByName('IspDBUrl')
+            response = self._getIspdbConfig(url, user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
                 config = response.Value
@@ -103,16 +104,18 @@ class DataSource(unohelper.Base,
                 print("DataSource._getIspdbConfig() CANCEL")
                 callback(user, ())
    
-    def _getIspdbConfig(self, domain):
-        url = '%s%s' % (self._configuration.getByName('IspDBUrl'), domain)
+    def _getIspdbConfig(self, url, domain):
         service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'
-        parameter.Url = url
+        parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
         request = createService(self.ctx, service).getRequest(parameter, DataParser())
         response = request.execute()
         return response
+
+    def _getHostName(self, url):
+        
 
     def _initDataBase(self):
         try:

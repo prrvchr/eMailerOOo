@@ -13,6 +13,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import getConfiguration
 from unolib import createService
+from unolib import getUrl
 
 from .dbtools import getDataSource
 
@@ -75,6 +76,10 @@ class DataSource(unohelper.Base,
         smtpconfig.start()
 
     def _getSmtpConfig(self, email, progress, callback):
+        url = getUrl(self.ctx, self._configuration.getByName('IspDBUrl'))
+        service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+        request = createService(self.ctx, service)
+        offline = request.isOffLine(url.Server)
         time.sleep(self._progress)
         progress(20)
         time.sleep(self._progress)
@@ -86,36 +91,35 @@ class DataSource(unohelper.Base,
         if len(servers) != 0:
             progress(100, 1)
             print("DataSource._getSmtpConfig() HsqlDB Query")
-            callback(user, servers)
+            callback(user, servers, offline)
+        elif offline:
+            progress(100, 3)
+            print("DataSource._getIspdbConfig() OFFLINE")
+            callback(user, (), offline)
         else:
             print("DataSource._getSmtpConfig() IspDB Query")
             progress(60)
-            url = self._configuration.getByName('IspDBUrl')
-            response = self._getIspdbConfig(url, user.getValue('Domain'))
+            print("DataSource._getSmtpConfig() IspDB Query %s - %s" % (url.Server, url.Complete))
+            response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
                 config = response.Value
                 self.DataBase.setSmtpConfig(config)
                 progress(100, 2)
                 print("DataSource._getIspdbConfig() OK")
-                callback(user, config.getValue('Servers'))
+                callback(user, config.getValue('Servers'), offline)
             else:
-                progress(100, 3)
+                progress(100, 4)
                 print("DataSource._getIspdbConfig() CANCEL")
-                callback(user, ())
+                callback(user, (), offline)
    
-    def _getIspdbConfig(self, url, domain):
-        service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+    def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
-        request = createService(self.ctx, service).getRequest(parameter, DataParser())
-        response = request.execute()
+        response = request.getRequest(parameter, DataParser()).execute()
         return response
-
-    def _getHostName(self, url):
-        
 
     def _initDataBase(self):
         try:

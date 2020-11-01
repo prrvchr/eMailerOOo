@@ -31,6 +31,7 @@ class PageModel(unohelper.Base):
         self._Servers = ()
         self._index = self._default = self._count = 0
         self._isnew = False
+        self._online = False
         if email is not None:
             self.Email = email
         self._timeout = self.getTimeout()
@@ -65,6 +66,13 @@ class PageModel(unohelper.Base):
     @Servers.setter
     def Servers(self, servers):
         self._Servers = self._getServers(servers)
+
+    @property
+    def Online(self):
+        return self._online
+    @Online.setter
+    def Online(self, online):
+        self._online = online
 
     @property
     def Timeout(self):

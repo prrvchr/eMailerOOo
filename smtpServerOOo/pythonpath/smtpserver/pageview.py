@@ -29,6 +29,7 @@ class PageView(unohelper.Base):
 
     def activatePage3(self, window, model):
         self._setPageTitle(3, window, model, model.Email)
+        self._setConnectionMode(window, model.Online)
         self.updatePage3(window, model)
 
     def updatePage3(self, window, model):
@@ -93,6 +94,9 @@ class PageView(unohelper.Base):
     def _setPageTitle(self, pageid, window, model, title):
         text = model.resolveString(self._getPageLabelMessage(pageid))
         self._getPageLabel(window).Text = text % title
+
+    def _setConnectionMode(self, window, enabled):
+        self._getConnectLabel(window).Model.Enabled = enabled
 
     def _loadPage3(self, window, model):
         self._getServer(window).Text = model.getServer()
@@ -173,6 +177,9 @@ class PageView(unohelper.Base):
 
     def _getNext(self, window):
         return window.getControl('CommandButton2')
+
+    def _getConnectLabel(self, window):
+        return window.getControl('Label12')
 
     def _getConnect(self, window):
         return window.getControl('CommandButton3')

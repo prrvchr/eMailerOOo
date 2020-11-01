@@ -39,9 +39,10 @@ class PageManager(unohelper.Base):
     def updateProgress(self, window, value, offset=0):
         self._view.updateProgress(window, self._model, value, offset)
 
-    def updateModel(self, user, servers):
+    def updateModel(self, user, servers, offline):
         self._model.User = user
         self._model.Servers = servers
+        self._model.Online = not offline
         self._search = False
         self._wizard.updateTravelUI()
         if len(servers) > 0:
@@ -58,7 +59,7 @@ class PageManager(unohelper.Base):
                            self._isPortValid(window),
                            self._isLoginNameValid(window),
                            self._isPasswordValid(window)))
-            self._view.enableConnect(window, advance)
+            self._view.enableConnect(window, advance and self._model.Online)
         return advance
 
     def commitPage1(self, window):

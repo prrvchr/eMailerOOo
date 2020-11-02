@@ -36,6 +36,9 @@ class PageHandler(unohelper.Base,
                 if self._enabled:
                     self._manager.updateTravelUI()
                 handled = True
+            elif method == 'ChangeConnection':
+                self._manager.changeConnection(window, event.Source)
+                handled = True
             elif method == 'ChangeAuthentication':
                 self._manager.changeAuthentication(window, event.Source)
                 handled = True
@@ -52,4 +55,5 @@ class PageHandler(unohelper.Base,
         except Exception as e:
             print("PageHandler.callHandlerMethod() ERROR: %s - %s" % (e, traceback.print_exc()))
     def getSupportedMethodNames(self):
-        return ('TextChange', 'ChangeAuthentication', 'Previous', 'Next', 'SmtpConnect')
+        return ('TextChange', 'ChangeConnection', 'ChangeAuthentication',
+                'Previous', 'Next', 'SmtpConnect')

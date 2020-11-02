@@ -77,6 +77,10 @@ class PageManager(unohelper.Base):
     def updateTravelUI(self):
         self._wizard.updateTravelUI()
 
+    def changeConnection(self, window, control):
+        index = self._view.getControlIndex(control)
+        self._view.setConnectionSecurity(window, self._model, index)
+
     def changeAuthentication(self, window, control):
         index = self._view.getControlIndex(control)
         if index == 0:
@@ -88,8 +92,8 @@ class PageManager(unohelper.Base):
         else:
             self._view.enableLoginName(window, True)
             self._view.enablePassword(window, True)
+        self._view.setAuthenticationSecurity(window, self._model, index)
         self.updateTravelUI()
-        print("PageManager.changeAuthentication()")
 
     def previousServerPage(self, window):
         self._model.previousServerPage()

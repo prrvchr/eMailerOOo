@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="PageWizard3" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="125" dlg:help-text="&amp;PageWizard3.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;PageWizard3.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="PageWizard3" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="145" dlg:help-text="&amp;PageWizard3.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;PageWizard3.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
@@ -19,7 +19,7 @@
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
     </dlg:textfield>
     <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="150" dlg:top="25" dlg:width="40" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label4.HelpText" dlg:value="&amp;PageWizard3.Label4.Label" dlg:valign="center"/>
-    <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="8" dlg:left="240" dlg:top="25" dlg:width="40" dlg:height="15" dlg:tag="Port" dlg:help-text="&amp;PageWizard3.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="1" dlg:value-max="1023">
+    <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="8" dlg:left="235" dlg:top="25" dlg:width="45" dlg:height="15" dlg:tag="Port" dlg:help-text="&amp;PageWizard3.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="1" dlg:value-max="1023">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
     </dlg:numericfield>
     <dlg:text dlg:id="Label5" dlg:tab-index="9" dlg:left="10" dlg:top="45" dlg:width="70" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label5.HelpText" dlg:value="&amp;PageWizard3.Label5.Label" dlg:valign="center"/>
@@ -29,11 +29,10 @@
         <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox1.StringItemList.1"/>
         <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox1.StringItemList.2"/>
       </dlg:menupopup>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeConnection" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label6" dlg:tab-index="11" dlg:left="150" dlg:top="45" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label6.HelpText" dlg:value="&amp;PageWizard3.Label6.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label7" dlg:tab-index="12" dlg:left="210" dlg:top="45" dlg:width="70" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label7.HelpText" dlg:value="&amp;PageWizard3.Label7.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label8" dlg:tab-index="13" dlg:left="10" dlg:top="65" dlg:width="70" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label8.HelpText" dlg:value="&amp;PageWizard3.Label8.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="14" dlg:left="80" dlg:top="65" dlg:width="60" dlg:height="15" dlg:tag="Authentication" dlg:help-text="&amp;PageWizard3.ListBox2.HelpText" dlg:spin="true">
+    <dlg:text dlg:id="Label6" dlg:tab-index="11" dlg:left="10" dlg:top="65" dlg:width="70" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label6.HelpText" dlg:value="&amp;PageWizard3.Label6.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="12" dlg:left="80" dlg:top="65" dlg:width="60" dlg:height="15" dlg:tag="Authentication" dlg:help-text="&amp;PageWizard3.ListBox2.HelpText" dlg:spin="true">
       <dlg:menupopup>
         <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.0" dlg:selected="true"/>
         <dlg:menuitem dlg:value="&amp;PageWizard3.ListBox2.StringItemList.1"/>
@@ -42,20 +41,21 @@
       </dlg:menupopup>
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeAuthentication" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label9" dlg:tab-index="15" dlg:disabled="true" dlg:left="10" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label9.HelpText" dlg:value="&amp;PageWizard3.Label9.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField2" dlg:tab-index="16" dlg:disabled="true" dlg:left="70" dlg:top="85" dlg:width="70" dlg:height="15" dlg:tag="LoginName" dlg:help-text="&amp;PageWizard3.TextField2.HelpText">
+    <dlg:text dlg:id="Label7" dlg:tab-index="13" dlg:disabled="true" dlg:left="10" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label7.HelpText" dlg:value="&amp;PageWizard3.Label7.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="14" dlg:disabled="true" dlg:left="70" dlg:top="85" dlg:width="70" dlg:height="15" dlg:tag="LoginName" dlg:help-text="&amp;PageWizard3.TextField2.HelpText">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label10" dlg:tab-index="17" dlg:disabled="true" dlg:left="150" dlg:top="65" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label10.HelpText" dlg:value="&amp;PageWizard3.Label10.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField3" dlg:tab-index="18" dlg:disabled="true" dlg:left="210" dlg:top="65" dlg:width="70" dlg:height="15" dlg:tag="Password" dlg:help-text="&amp;PageWizard3.TextField3.HelpText" dlg:echochar="*">
+    <dlg:text dlg:id="Label8" dlg:tab-index="15" dlg:disabled="true" dlg:left="150" dlg:top="65" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label8.HelpText" dlg:value="&amp;PageWizard3.Label8.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField3" dlg:tab-index="16" dlg:disabled="true" dlg:left="210" dlg:top="65" dlg:width="70" dlg:height="15" dlg:tag="Password" dlg:help-text="&amp;PageWizard3.TextField3.HelpText" dlg:echochar="*">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label11" dlg:tab-index="19" dlg:disabled="true" dlg:left="150" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label11.HelpText" dlg:value="&amp;PageWizard3.Label11.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField4" dlg:tab-index="20" dlg:disabled="true" dlg:left="210" dlg:top="85" dlg:width="70" dlg:height="15" dlg:tag="Password" dlg:help-text="&amp;PageWizard3.TextField4.HelpText" dlg:echochar="*">
+    <dlg:text dlg:id="Label9" dlg:tab-index="17" dlg:disabled="true" dlg:left="150" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label9.HelpText" dlg:value="&amp;PageWizard3.Label9.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField4" dlg:tab-index="18" dlg:disabled="true" dlg:left="210" dlg:top="85" dlg:width="70" dlg:height="15" dlg:tag="Password" dlg:help-text="&amp;PageWizard3.TextField4.HelpText" dlg:echochar="*">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label12" dlg:tab-index="21" dlg:left="10" dlg:top="105" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label12.HelpText" dlg:value="&amp;PageWizard3.Label12.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="22" dlg:disabled="true" dlg:left="100" dlg:top="105" dlg:width="140" dlg:height="15" dlg:help-text="&amp;PageWizard3.CommandButton3.HelpText" dlg:value="&amp;PageWizard3.CommandButton3.Label">
+    <dlg:text dlg:id="Label10" dlg:tab-index="19" dlg:left="10" dlg:top="105" dlg:width="270" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label10.HelpText" dlg:value="&amp;PageWizard3.Label10.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:id="Label11" dlg:tab-index="20" dlg:left="10" dlg:top="125" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label11.HelpText" dlg:value="&amp;PageWizard3.Label11.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="22" dlg:disabled="true" dlg:left="100" dlg:top="125" dlg:width="140" dlg:height="15" dlg:help-text="&amp;PageWizard3.CommandButton3.HelpText" dlg:value="&amp;PageWizard3.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SmtpConnect" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

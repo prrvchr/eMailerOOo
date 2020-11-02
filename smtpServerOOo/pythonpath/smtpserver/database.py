@@ -37,19 +37,26 @@ import traceback
 
 class DataBase(unohelper.Base):
     def __init__(self, ctx, dbname, name='', password='', sync=None):
-        print("DataBase.__init__() 1")
-        self.ctx = ctx
-        self._error = None
-        datasource, url, created = getDataSource(self.ctx, dbname, g_identifier, True)
-        self._statement = datasource.getConnection(name, password).createStatement()
-        print("DataBase.__init__() 2")
-        if created:
+        try:
+            print("DataBase.__init__() 1")
+            self.ctx = ctx
+            self._error = None
+            datasource, url, created = getDataSource(self.ctx, dbname, g_identifier, True)
+            print("DataBase.__init__() 2")
+            connection = datasource.getConnection(name, password)
             print("DataBase.__init__() 3")
-            self._error = self._createDataBase()
-            if self._error is None:
-                self._storeDataBase(url)
-        print("DataBase.__init__() 4")
-        self.sync = sync
+            self._statement = connection.createStatement()
+            print("DataBase.__init__() 4")
+            if created:
+                print("DataBase.__init__() 5")
+                self._error = self._createDataBase()
+                if self._error is None:
+                    self._storeDataBase(url)
+            print("DataBase.__init__() 6")
+            self.sync = sync
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     @property
     def Connection(self):
@@ -105,7 +112,8 @@ class DataBase(unohelper.Base):
         call = self._getCall('mergeServer')
         call.setString(1, provider)
         i = 1
-        for server in config.getValue('Servers'):
+        servers = config.getValue('Servers')
+        for server in servers:
             print("DataBase.setSmtpConfig() server: %s" % i)
             i += 1
             call.setString(2, server.getValue('Server'))
@@ -116,6 +124,7 @@ class DataBase(unohelper.Base):
             call.setTimestamp(7, timestamp)
             result = call.executeUpdate()
         call.close()
+        return servers
 
 # Procedures called by the Identifier
 

@@ -4,6 +4,11 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.FontWeight import BOLD
+from com.sun.star.awt.FontWeight import NORMAL
+
+from unolib import createService
+
 from .logger import logMessage
 
 import traceback
@@ -12,6 +17,9 @@ import traceback
 class PageView(unohelper.Base):
     def __init__(self, ctx):
         self.ctx = ctx
+        secure = {0: 3, 1: 4, 2: 4, 3: 5}
+        unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
+        self._levels = {0: unsecure, 1: secure, 2: secure}
         print("PageView.__init__()")
 
 # PageView setter methods
@@ -50,6 +58,14 @@ class PageView(unohelper.Base):
 
     def enableConnect(self, window, enabled):
         self._getConnect(window).Model.Enabled = enabled
+
+    def setConnectionSecurity(self, window, model, index):
+        level = self._getConnectionLevel(window, index)
+        self._setSecurityLevel(window, model, level)
+
+    def setAuthenticationSecurity(self, window, model, index):
+        level = self._getAuthenticationLevel(window, index)
+        self._setSecurityLevel(window, model, level)
 
 # PageView getter methods
     def getControlTag(self, control):
@@ -113,6 +129,19 @@ class PageView(unohelper.Base):
     def _enableNext(self, window, islast):
         self._getNext(window).Model.Enabled = not islast
 
+    def _getConnectionLevel(self, window, index):
+        i = self.getControlIndex(self._getAuthentication(window))
+        return self._levels.get(index).get(i)
+
+    def _getAuthenticationLevel(self, window, index):
+        i = self.getControlIndex(self._getConnection(window))
+        return self._levels.get(i).get(index)
+
+    def _setSecurityLevel(self, window, model, level):
+        control = self._getSecurityLabel(window)
+        control.Model.FontWeight = BOLD if level < 3 else NORMAL
+        control.Text = model.resolveString(self._getSecurityMessage(level))
+
 # PageView private message methods
     def _getRoadmapStep(self, pageid):
         return 'PageWizard%s.Step' % pageid
@@ -125,6 +154,9 @@ class PageView(unohelper.Base):
 
     def _getProgressMessage(self, value):
         return 'PageWizard2.Label2.Label.%s' % value
+
+    def _getSecurityMessage(self, level):
+        return 'PageWizard3.Label10.Label.%s' % level
 
 # PageView private control methods
     def _getPageLabel(self, window):
@@ -155,19 +187,19 @@ class PageView(unohelper.Base):
         return window.getControl('ListBox2')
 
     def _getLoginNameLabel(self, window):
-        return window.getControl('Label9')
+        return window.getControl('Label7')
 
     def _getLoginName(self, window):
         return window.getControl('TextField2')
 
     def _getPasswordLabel(self, window):
-        return window.getControl('Label10')
+        return window.getControl('Label8')
 
     def _getPassword(self, window):
         return window.getControl('TextField3')
 
     def _getConfirmPwdLabel(self, window):
-        return window.getControl('Label11')
+        return window.getControl('Label9')
 
     def _getConfirmPwd(self, window):
         return window.getControl('TextField4')
@@ -178,8 +210,11 @@ class PageView(unohelper.Base):
     def _getNext(self, window):
         return window.getControl('CommandButton2')
 
+    def _getSecurityLabel(self, window):
+        return window.getControl('Label10')
+
     def _getConnectLabel(self, window):
-        return window.getControl('Label12')
+        return window.getControl('Label11')
 
     def _getConnect(self, window):
         return window.getControl('CommandButton3')

@@ -7,8 +7,6 @@ import unohelper
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
-from unolib import createService
-
 from .logger import logMessage
 
 import traceback
@@ -61,11 +59,11 @@ class PageView(unohelper.Base):
 
     def setConnectionSecurity(self, window, model, index):
         level = self._getConnectionLevel(window, index)
-        self._setSecurityLevel(window, model, level)
+        self._setSecurityMessage(window, model, level)
 
     def setAuthenticationSecurity(self, window, model, index):
         level = self._getAuthenticationLevel(window, index)
-        self._setSecurityLevel(window, model, level)
+        self._setSecurityMessage(window, model, level)
 
 # PageView getter methods
     def getControlTag(self, control):
@@ -137,7 +135,7 @@ class PageView(unohelper.Base):
         i = self.getControlIndex(self._getConnection(window))
         return self._levels.get(i).get(index)
 
-    def _setSecurityLevel(self, window, model, level):
+    def _setSecurityMessage(self, window, model, level):
         control = self._getSecurityLabel(window)
         control.Model.FontWeight = BOLD if level < 3 else NORMAL
         control.Text = model.resolveString(self._getSecurityMessage(level))

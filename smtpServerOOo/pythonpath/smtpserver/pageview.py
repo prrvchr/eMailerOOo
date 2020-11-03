@@ -4,6 +4,9 @@
 import uno
 import unohelper
 
+from com.sun.star.uno import XCurrentContext
+from com.sun.star.mail import XAuthenticator
+
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
@@ -103,6 +106,23 @@ class PageView(unohelper.Base):
 
     def getUser(self, window):
         return self._getUser(window).Text
+
+    def getConnectionContext(self, window, model):
+        index = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
+        connection = index.get(self.getControlIndex(self._getConnection(window)))
+        index = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
+        authentication = index.get(self.getControlIndex(self._getAuthentication(window)))
+        data = {'ServerName': self._getServer(window).Text,
+                'Port': int(self._getPort(window).Value),
+                'ConnectionType': connection,
+                'AuthenticationType': authentication,
+                'Timeout': model.Timeout}
+        return CurrentContext(data)
+
+    def getAuthenticator(self, window, model):
+        user = self._getLoginName(window).Text
+        password = self._getPassword(window).Text
+        return Authenticator(user, password)
 
 # PageView private methods
     def _setPageTitle(self, pageid, window, model, title):
@@ -217,3 +237,24 @@ class PageView(unohelper.Base):
     def _getConnect(self, window):
         return window.getControl('CommandButton3')
 
+
+class CurrentContext(unohelper.Base,
+                     XCurrentContext):
+    def __init__(self, data):
+        self._data = data
+
+    def getValueByName(self, name):
+        return self._data[name]
+
+
+class Authenticator(unohelper.Base,
+                    XAuthenticator):
+    def __init__(self, user, password):
+        self._user = user
+        self._password = password
+
+    def getUserName(self):
+        return self._user
+
+    def getPassword(self):
+        return self._password

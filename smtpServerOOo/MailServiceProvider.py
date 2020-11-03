@@ -32,14 +32,15 @@ from email.utils import parseaddr
 from unolib import getOAuth2
 from unolib import getConfiguration
 
-from logger import logMessage
-from logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 g_message = 'MailServiceProvider'
 
 import sys
 import smtplib
 import imaplib
 import poplib
+import base64
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -82,6 +83,7 @@ class SmtpService(unohelper.Base,
         timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType')
         authentication = context.getValueByName('AuthenticationType')
+        print("SmtpService.connect() %s %s %s %s %s - %s %s" % (server, port, timeout, connection, authentication, type(port), type(timeout)))
         if connection.upper() == 'SSL':
             self._server = smtplib.SMTP_SSL(host=server, port=port, timeout=timeout)
         else:
@@ -98,11 +100,13 @@ class SmtpService(unohelper.Base,
                         password = password.encode('ascii')
                 self._server.login(user, password)
         elif authentication.upper() == 'OAUTH2':
+            print("SmtpService.connect() 2")
             user = authenticator.getUserName()
-            token = getOAuth2Token(self.ctx, self._sessions, server, user)
+            token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
             self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
         for listener in self._listeners:
             listener.connected(self._notify)
+        print("SmtpService.connect() 3")
 
     def disconnect(self):
         if self.isConnected():
@@ -445,8 +449,12 @@ g_ImplementationHelper.addImplementation(MailMessage,
                                          ('com.sun.star.mail.MailMessage', ), )
 
 
-def getOAuth2Token(ctx, sessions, server, user):
+def getOAuth2Token(ctx, sessions, server, user, encode=False):
     key = '%s/%s' % (server, user)
     if key not in sessions:
         sessions[key] = getOAuth2(ctx, server, user)
-    return sessions[key].getToken()
+    token = sessions[key].getToken('')
+    authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
+    if encode:
+        authstring = base64.b64encode(authstring.encode("ascii"))
+    return 

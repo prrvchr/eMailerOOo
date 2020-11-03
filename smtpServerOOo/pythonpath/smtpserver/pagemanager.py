@@ -4,8 +4,12 @@
 import uno
 import unohelper
 
+from com.sun.star.mail.MailServiceType import SMTP
+
 from .pagemodel import PageModel
 from .pageview import PageView
+
+from unolib import createService
 
 from .logger import logMessage
 
@@ -105,8 +109,16 @@ class PageManager(unohelper.Base):
         self._view.updatePage3(window, self._model)
         print("PageManager.nextServerPage()")
 
-    def smtpConnect(self, window, event):
-        print("PageManager._smtpConnect()")
+    def smtpConnect(self, window):
+        print("PageManager._smtpConnect() 1")
+        context = self._view.getConnectionContext(window, self._model)
+        authenticator = self._view.getAuthenticator(window, self._model)
+        print("PageManager._smtpConnect() 2")
+        service = 'com.sun.star.mail.MailServiceProvider'
+        server = createService(self.ctx, service).create(SMTP)
+        server.connect(context, authenticator)
+        format = (server.isConnected(), server.getSupportedAuthenticationTypes())
+        print("PageManager._smtpConnect() isConnected: %s - %s" % format)
 
     def _isUserValid(self, window):
         return self._view.isUserValid(window, self._model.isUserValid)

@@ -49,7 +49,7 @@ class PageHandler(unohelper.Base,
                 self._manager.nextServerPage(window)
                 handled = True
             elif method == 'SmtpConnect':
-                self._manager.smtpConnect(window, event.Source)
+                self._manager.smtpConnect(window)
                 handled = True
             return handled
         except Exception as e:

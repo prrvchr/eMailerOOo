@@ -36,6 +36,7 @@ from .unotools import unparseDateTime
 from .unotools import unparseTimeStamp
 from .unotools import getConnectionMode
 from .unotools import getRequest
+from .unotools import getOAuth2
 from .unotools import getParentWindow
 from .unotools import getUrl
 

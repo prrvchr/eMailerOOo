@@ -44,6 +44,12 @@ def getRequest(ctx, scheme, name):
         request.initializeSession(scheme, name)
     return request
 
+def getOAuth2(ctx, url, name):
+    oauth2 = createService(ctx, g_oauth2)
+    if oauth2 is not None:
+        oauth2.initializeSession(url, name)
+    return oauth2
+
 def getFileSequence(ctx, url, default=None):
     length, sequence = 0, uno.ByteSequence(b'')
     fs = getSimpleFile(ctx)

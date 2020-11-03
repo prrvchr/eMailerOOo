@@ -1,0 +1,19 @@
+#ifndef __com_sun_star_mail_XMailServiceProvider2_idl__
+#define __com_sun_star_mail_XMailServiceProvider2_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/mail/XMailService2.idl>
+#include <com/sun/star/mail/MailServiceType.idl>
+
+module com { module sun { module star { module mail {
+
+interface XMailServiceProvider2: com::sun::star::uno::XInterface
+{
+
+    com::sun::star::mail::XMailService2 create([in] com::sun::star::mail::MailServiceType Service);
+
+};
+
+}; }; }; };
+
+#endif

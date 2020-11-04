@@ -50,6 +50,12 @@ def getOAuth2(ctx, url, name):
         oauth2.initializeSession(url, name)
     return oauth2
 
+def getExceptionMessage(exception):
+    message = max((arg for arg in exception.args if isinstance(arg, str)), len, None)
+    if message is None
+        message = str(exception)
+    return message
+
 def getFileSequence(ctx, url, default=None):
     length, sequence = 0, uno.ByteSequence(b'')
     fs = getSimpleFile(ctx)

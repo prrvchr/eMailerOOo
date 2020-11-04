@@ -39,6 +39,7 @@ from .unotools import getRequest
 from .unotools import getOAuth2
 from .unotools import getParentWindow
 from .unotools import getUrl
+from .unotools import getExceptionMessage
 
 from .unocore import PropertyContainer
 

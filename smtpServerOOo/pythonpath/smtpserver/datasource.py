@@ -6,6 +6,8 @@ import unohelper
 
 from com.sun.star.util import XCloseListener
 
+from com.sun.star.mail.MailServiceType import SMTP
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -106,7 +108,31 @@ class DataSource(unohelper.Base,
             else:
                 progress(100, 4)
         callback(user, servers, offline)
-   
+
+    def smtpConnect(self, context, authenticator, dialog):
+        arguments = (context, authenticator, dialog)
+        connect = self._addThread(Thread(target=self._smtpConnect, args=arguments))
+        connect.start()
+
+    def _smtpConnect(self, context, authenticator, dialog):
+        dialog.updateProgress(25)
+        print("DataSource._smtpConnect() 1")
+        service = 'com.sun.star.mail.MailServiceProvider'
+        server = createService(self.ctx, service).create(SMTP)
+        print("DataSource._smtpConnect() 2")
+        dialog.updateProgress(50)
+        server.connect(context, authenticator)
+        dialog.updateProgress(75)
+        if server.isConnected():
+            dialog.updateProgress(100, 1)
+            format = (server.isConnected(), server.getSupportedAuthenticationTypes())
+            print("DataSource._smtpConnect() 3 isConnected: %s - %s" % format)
+            server.disconnect()
+            dialog.callBack()
+        else:
+            dialog.updateProgress(100, 2)
+        print("DataSource._smtpConnect() 4")
+
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'

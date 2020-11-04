@@ -156,6 +156,10 @@ class PageModel(unohelper.Base):
     def getSmtpConfig(self, progress, callback):
         self._datasource.getSmtpConfig(self.Email, progress, callback)
 
+    def smtpConnect(self, context, authenticator, dialog):
+        dialog.updateProgress(0)
+        self._datasource.smtpConnect(context, authenticator, dialog)
+
     def _getServers(self, servers):
         self._isnew = False
         self._count = len(servers)

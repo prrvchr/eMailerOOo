@@ -4,10 +4,12 @@
 import uno
 import unohelper
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.mail.MailServiceType import SMTP
 
 from .pagemodel import PageModel
 from .pageview import PageView
+from .dialogview import DialogView
 
 from unolib import createService
 
@@ -114,11 +116,13 @@ class PageManager(unohelper.Base):
         context = self._view.getConnectionContext(window, self._model)
         authenticator = self._view.getAuthenticator(window, self._model)
         print("PageManager._smtpConnect() 2")
-        service = 'com.sun.star.mail.MailServiceProvider'
-        server = createService(self.ctx, service).create(SMTP)
-        server.connect(context, authenticator)
-        format = (server.isConnected(), server.getSupportedAuthenticationTypes())
-        print("PageManager._smtpConnect() isConnected: %s - %s" % format)
+        dialog = DialogView(self.ctx, 'SmtpDialog')
+        dialog.setTitle(context)
+        self._model.smtpConnect(context, authenticator, dialog)
+        if dialog.execute() == OK:
+            print("PageManager.smtpConnect() OK")
+        else:
+            print("PageManager.smtpConnect() CANCEL")
 
     def _isUserValid(self, window):
         return self._view.isUserValid(window, self._model.isUserValid)

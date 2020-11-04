@@ -18,6 +18,12 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.mail import NoMailServiceProviderException
+from com.sun.star.mail import MailException
+from com.sun.star.auth import AuthenticationFailedException 
+from com.sun.star.lang import IllegalArgumentException
+from com.sun.star.io import AlreadyConnectedException
+from com.sun.star.io import UnknownHostException
+from com.sun.star.io import ConnectException
 
 from email.mime.base import MIMEBase
 from email.message import Message
@@ -31,6 +37,7 @@ from email.utils import parseaddr
 
 from unolib import getOAuth2
 from unolib import getConfiguration
+from unolib import getInterfaceTypes
 
 from smtpserver import logMessage
 from smtpserver import getMessage
@@ -74,39 +81,71 @@ class SmtpService(unohelper.Base,
         return self._supportedauthentication
 
     def connect(self, context, authenticator):
-        #mri = self.ctx.ServiceManager.createInstance("mytools.Mri")
-        #mri.inspect(context)
-        #mri.inspect(authenticator)
-        self._context = context
+        if self.isConnected():
+            raise AlreadyConnectedException()
+        unotype = uno.getTypeByName('com.sun.star.uno.XCurrentContext')
+        if unotype not in getInterfaceTypes(context):
+            raise IllegalArgumentException()
+        unotype = uno.getTypeByName('com.sun.star.mail.XAuthenticator')
+        if unotype not in getInterfaceTypes(authenticator):
+            raise IllegalArgumentException()
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType')
-        authentication = context.getValueByName('AuthenticationType')
+        connection = context.getValueByName('ConnectionType').upper()
+        authentication = context.getValueByName('AuthenticationType').upper()
         print("SmtpService.connect() %s %s %s %s %s - %s %s" % (server, port, timeout, connection, authentication, type(port), type(timeout)))
-        if connection.upper() == 'SSL':
-            self._server = smtplib.SMTP_SSL(host=server, port=port, timeout=timeout)
-        else:
-            self._server = smtplib.SMTP(host=server, port=port, timeout=timeout)
-        if connection.upper() == 'TLS':
-            self._server.starttls()
-        if authentication.upper() == 'LOGIN':
-            user = authenticator.getUserName()
-            password = authenticator.getPassword()
-            if user != '':
-                if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
-                    user = user.encode('ascii')
-                    if password != '':
-                        password = password.encode('ascii')
-                self._server.login(user, password)
-        elif authentication.upper() == 'OAUTH2':
-            print("SmtpService.connect() 2")
-            user = authenticator.getUserName()
-            token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
-            self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
+        error = self._setServer(connection, server, port, timeout)
+        if error is not None:
+            raise error
+        if authentication != 'NONE':
+            error = self._doLogin(authentication, authenticator, server)
+            if error is not None:
+                raise error
+        self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
         print("SmtpService.connect() 3")
+
+    def _setServer(self, connection, host, port, timeout):
+        error = None
+        try:
+            if connection == 'SSL':
+                server = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
+            else:
+                server = smtplib.SMTP(host=host, port=port, timeout=timeout)
+            if connection == 'TLS':
+                server.starttls()
+        except smtplib.SMTPConnectError as e:
+            error = ConnectException('smtplib.SMTPConnectError: %s - %s' % (e, e.args), self)
+        except smtplib.SMTPException as e:
+            error = UnknownHostException('smtplib.SMTPException: %s - %s' % (e, e.args), self)
+        except Exception as e:
+            error = MailException('Exception: %s - %s' % (e, e.args), self)
+        else:
+            self._server = server
+        return error
+
+    def _doLogin(self, authentication, authenticator, server):
+        error = None
+        user = authenticator.getUserName()
+        if authentication == 'LOGIN':
+            password = authenticator.getPassword()
+            if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
+                user = user.encode('ascii')
+                password = password.encode('ascii')
+            try:
+                self._server.login(user, password)
+            except:
+                error = AuthenticationFailedException()
+        elif authentication == 'OAUTH2':
+            print("SmtpService._doLogin() 2")
+            token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
+            try:
+                self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
+            except:
+                error = AuthenticationFailedException()
+        return error
 
     def disconnect(self):
         if self.isConnected():

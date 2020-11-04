@@ -51,7 +51,8 @@ def getOAuth2(ctx, url, name):
     return oauth2
 
 def getExceptionMessage(exception):
-    message = max((arg for arg in exception.args if isinstance(arg, str)), len, None)
+    messages = (arg for arg in exception.args if isinstance(arg, str))
+    message = max(messages, key=len, default=None)
     if message is None:
         message = str(exception)
     return message

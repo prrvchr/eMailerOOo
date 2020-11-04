@@ -38,6 +38,7 @@ from email.utils import parseaddr
 from unolib import getOAuth2
 from unolib import getConfiguration
 from unolib import getInterfaceTypes
+from unolib import getExceptionMessage
 
 from smtpserver import logMessage
 from smtpserver import getMessage
@@ -117,11 +118,11 @@ class SmtpService(unohelper.Base,
             if connection == 'TLS':
                 server.starttls()
         except smtplib.SMTPConnectError as e:
-            error = ConnectException('smtplib.SMTPConnectError: %s - %s' % (e, e.args), self)
+            error = ConnectException('smtplib.SMTPConnectError: %s - %s - %s' % (e, e.args getExceptionMessage(e)), self)
         except smtplib.SMTPException as e:
-            error = UnknownHostException('smtplib.SMTPException: %s - %s' % (e, e.args), self)
+            error = UnknownHostException('smtplib.SMTPException: %s - %s - %s' % (e, e.args getExceptionMessage(e)), self)
         except Exception as e:
-            error = MailException('Exception: %s - %s' % (e, e.args), self)
+            error = MailException('Exception: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
         else:
             self._server = server
         return error

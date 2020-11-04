@@ -118,9 +118,9 @@ class SmtpService(unohelper.Base,
             if connection == 'TLS':
                 server.starttls()
         except smtplib.SMTPConnectError as e:
-            error = ConnectException('smtplib.SMTPConnectError: %s - %s - %s' % (e, e.args getExceptionMessage(e)), self)
+            error = ConnectException('smtplib.SMTPConnectError: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
         except smtplib.SMTPException as e:
-            error = UnknownHostException('smtplib.SMTPException: %s - %s - %s' % (e, e.args getExceptionMessage(e)), self)
+            error = UnknownHostException('smtplib.SMTPException: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
         except Exception as e:
             error = MailException('Exception: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
         else:

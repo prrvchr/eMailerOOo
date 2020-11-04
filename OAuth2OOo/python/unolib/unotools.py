@@ -52,7 +52,7 @@ def getOAuth2(ctx, url, name):
 
 def getExceptionMessage(exception):
     message = max((arg for arg in exception.args if isinstance(arg, str)), len, None)
-    if message is None
+    if message is None:
         message = str(exception)
     return message
 

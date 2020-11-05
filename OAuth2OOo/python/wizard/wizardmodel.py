@@ -21,8 +21,8 @@ class WizardModel(unohelper.Base):
         self._roadmap = None
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
 
-    def initWizard(self, window, view):
-        return self._setRoadmapModel(window.getModel(), view)
+    def initWizard(self, view):
+        return self._setRoadmapModel(view)
 
     def setRoadmapSize(self, page):
         self._roadmap.Height = page.Height
@@ -93,6 +93,7 @@ class WizardModel(unohelper.Base):
         # TODO: - Subsequent pages will be, if not explicitly disabled, enabled
         # TODO:   if the previous page can advance, otherwise disabled.
         advance = True
+        previous = -1
         initialized = self._currentPageId != -1
         pageid = self._currentPageId if initialized else first
         for i in range(self._roadmap.getCount() -1, -1, -1):
@@ -107,13 +108,16 @@ class WizardModel(unohelper.Base):
                 item.Enabled = enabled
             elif page == pageid:
                 item.Enabled = True
+            elif not enabled:
+                item.Enabled = False
             elif advance and previous in self._pages:
                 advance = self._canAdvancePage(previous)
-                item.Enabled = advance and enabled
+                item.Enabled = advance
             else:
                 item.Enabled = False
             self._roadmap.insertByIndex(i, item)
-            previous = page
+            if enabled:
+                previous = page
             i += 1
         if initialized:
             self._roadmap.CurrentItemID = pageid
@@ -126,6 +130,7 @@ class WizardModel(unohelper.Base):
         # TODO: - Subsequent pages will be, if not explicitly disabled, enabled 
         # TODO:   if the previous page can advance otherwise disabled.
         advance = True
+        previous = -1
         pageid = self._currentPageId if self._currentPageId != -1 else first
         if self._currentPageId == -1:
             print("WizardModel.updateRoadmap() %s ****************************************" % pageid)
@@ -137,12 +142,15 @@ class WizardModel(unohelper.Base):
                 item.Enabled = enabled
             elif page == pageid:
                 item.Enabled = True
+            elif not enabled:
+                item.Enabled = False
             elif advance and previous in self._pages:
                 advance = self._canAdvancePage(previous)
-                item.Enabled = advance and enabled
+                item.Enabled = advance
             else:
                 item.Enabled = False
-            previous = page
+            if enabled:
+                previous = page
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
@@ -150,7 +158,8 @@ class WizardModel(unohelper.Base):
     def _isPageEnabled(self, page):
         return page not in self._disabledPages
 
-    def _setRoadmapModel(self, window, view):
+    def _setRoadmapModel(self, view):
+        window = view.DialogWindow.Model
         self._roadmap = window.createInstance('com.sun.star.awt.UnoControlRoadmapModel')
         position, size = view.getRoadmapPosition(), view.getRoadmapSize()
         self._roadmap.Name = view.getRoadmapName()

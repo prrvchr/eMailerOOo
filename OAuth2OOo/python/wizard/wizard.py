@@ -15,7 +15,6 @@ from unolib import getDialog
 from unolib import getInterfaceTypes
 
 from .wizardmanager import WizardManager
-from .wizardhandler import DialogHandler, ItemHandler
 
 from .configuration import g_extension
 
@@ -32,11 +31,8 @@ class Wizard(unohelper.Base,
         try:
             self.ctx = ctx
             self._helpUrl = ''
-            self._manager = WizardManager(self.ctx, auto, resize)
-            dialog = DialogHandler(self._manager)
-            self._dialog = getDialog(self.ctx, g_extension, 'Wizard', dialog, parent)
-            item = ItemHandler(self._dialog, self._manager)
-            self._manager.initWizard(self._dialog, item)
+            self._manager = WizardManager(self.ctx, auto, resize, parent)
+            self._manager.initWizard()
             print("Wizard.__init__()")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -48,10 +44,10 @@ class Wizard(unohelper.Base,
     @HelpURL.setter
     def HelpURL(self, url):
         self._helpUrl = url
-        self._dialog.getControl('CommandButton5').Model.Enabled = url != ''
+        self.DialogWindow.getControl('CommandButton5').Model.Enabled = url != ''
     @property
     def DialogWindow(self):
-        return self._dialog
+        return self._manager._view.DialogWindow
 
     # XInitialization
     def initialize(self, arguments):
@@ -71,16 +67,16 @@ class Wizard(unohelper.Base,
         return self._manager.getCurrentPage()
 
     def enableButton(self, button, enabled):
-        self._manager.enableButton(self._dialog, button, enabled)
+        self._manager.enableButton(button, enabled)
 
     def setDefaultButton(self, button):
-        self._manager.setDefaultButton(self._dialog, button)
+        self._manager.setDefaultButton(button)
 
     def travelNext(self):
-        return self._manager.travelNext(self._dialog)
+        return self._manager.travelNext()
 
     def travelPrevious(self):
-        return self._manager.travelPrevious(self._dialog)
+        return self._manager.travelPrevious()
 
     def enablePage(self, pageid, enabled):
         if not self._manager.isPathInitialized():
@@ -93,13 +89,13 @@ class Wizard(unohelper.Base,
         self._manager.enablePage(pageid, enabled)
 
     def updateTravelUI(self):
-        self._manager.updateTravelUI(self._dialog)
+        self._manager.updateTravelUI()
 
     def advanceTo(self, pageid):
-        return self._manager.advanceTo(self._dialog, pageid)
+        return self._manager.advanceTo(pageid)
 
     def goBackTo(self, pageid):
-        return self._manager.goBackTo(self._dialog, pageid)
+        return self._manager.goBackTo(pageid)
 
     def activatePath(self, index, final):
         if not self._manager.isMultiPaths():
@@ -114,10 +110,10 @@ class Wizard(unohelper.Base,
 
     # XExecutableDialog -> XWizard
     def setTitle(self, title):
-        self._dialog.setTitle(title)
+        self.DialogWindow.setTitle(title)
 
     def execute(self):
-        return self._manager.executeWizard(self._dialog)
+        return self._manager.executeWizard(self.DialogWindow)
 
     # Private methods
     def _getIllegalArgumentException(self, position, code):

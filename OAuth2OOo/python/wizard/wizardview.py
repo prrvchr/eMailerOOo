@@ -10,17 +10,22 @@ from com.sun.star.ui.dialogs.WizardButton import FINISH
 from com.sun.star.ui.dialogs.WizardButton import CANCEL
 from com.sun.star.ui.dialogs.WizardButton import HELP
 
+from unolib import getDialog
+
+from .configuration import g_extension
+
 import traceback
 
 
 class WizardView(unohelper.Base):
-    def __init__(self, ctx):
+    def __init__(self, ctx, handler, xdl, parent):
         self.ctx = ctx
         self._spacer = 5
         self._roadmap = 'RoadmapControl1'
         self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         self._size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
         self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
+        self.DialogWindow = getDialog(self.ctx, g_extension, xdl, handler, parent)
 
     def getRoadmapPosition(self):
         return self._point
@@ -34,59 +39,66 @@ class WizardView(unohelper.Base):
     def getRoadmapTitle(self):
         return self._getRoadmapTitle()
 
-    def initWizard(self, window, roadmap):
-        window.getModel().insertByName(roadmap.Name, roadmap)
-        return self._getRoadmap(window)
+    def initWizard(self, roadmap):
+        self.DialogWindow.Model.insertByName(roadmap.Name, roadmap)
+        return self._getRoadmap()
+
+    def getPageStep(self, model, pageid):
+        return model.resolveString(self._getRoadmapStep(pageid))
 
 # WizardView setter methods
-    def setDialogSize(self, window, page):
-        button = self._getButton(window, HELP).getModel()
+    def setDialogSize(self, page):
+        button = self._getButton(HELP).Model
         button.PositionY  = page.Height + self._spacer
-        dialog = window.getModel()
+        dialog = self.DialogWindow.Model
         dialog.Height = button.PositionY + button.Height + self._spacer
         dialog.Width = page.PositionX + page.Width
         # We assume all buttons are named appropriately
         for i in (1,2,3,4):
-            self._setButtonPosition(window, i, button.PositionY, dialog.Width)
+            self._setButtonPosition(i, button.PositionY, dialog.Width)
 
-    def enableButton(self, window, button, enabled):
-        self._getButton(window, button).Model.Enabled = enabled
+    def enableButton(self, button, enabled):
+        self._getButton(button).Model.Enabled = enabled
 
-    def setDefaultButton(self, window, button):
-        self._getButton(window, button).Model.DefaultButton = True
+    def setDefaultButton(self, button):
+        self._getButton(button).Model.DefaultButton = True
 
-    def updateButtonPrevious(self, window, enabled):
-        self._getButton(window, PREVIOUS).Model.Enabled = enabled
+    def updateButtonPrevious(self, enabled):
+        self._getButton(PREVIOUS).Model.Enabled = enabled
 
-    def updateButtonNext(self, window, enabled):
-        button = self._getButton(window, NEXT).Model
+    def updateButtonNext(self, enabled):
+        button = self._getButton(NEXT).Model
         button.Enabled = enabled
         if enabled:
             button.DefaultButton = True
 
-    def updateButtonFinish(self, window, enabled):
-        button = self._getButton(window, FINISH).Model
+    def updateButtonFinish(self, enabled):
+        button = self._getButton(FINISH).Model
         button.Enabled = enabled
         if enabled:
             button.DefaultButton = True
 
 # WizardView private methods
-    def _setButtonPosition(self, window, step, y, width):
+    def _setButtonPosition(self, step, y, width):
         # We assume that all buttons are the same Width
-        button = window.getControl(self._getButtonName(step)).getModel()
+        button = self._getButtonByIndex(step).Model
         button.PositionX = width - step * (button.Width + self._spacer)
         button.PositionY = y
 
-    def _getButton(self, window, button):
-        return window.getControl(self._getButtonName(self._button.get(button)))
+    def _getButton(self, button):
+        index = self._button.get(button)
+        return self._getButtonByIndex(index)
 
 # WizardView private message methods
     def _getRoadmapTitle(self):
         return 'Wizard.Roadmap.Text'
 
-# WizardView private control methods
-    def _getRoadmap(self, window):
-        return window.getControl(self._roadmap)
+    def _getRoadmapStep(self, pageid):
+        return 'PageWizard%s.Step' % pageid
 
-    def _getButtonName(self, index):
-        return 'CommandButton%s' % index
+# WizardView private control methods
+    def _getRoadmap(self):
+        return self.DialogWindow.getControl(self.getRoadmapName())
+
+    def _getButtonByIndex(self, index):
+        return self.DialogWindow.getControl('CommandButton%s' % index)

@@ -12,6 +12,7 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from .wizardmodel import WizardModel
 from .wizardview import WizardView
+from .wizardhandler import DialogHandler, ItemHandler
 
 from unolib import createService
 
@@ -19,7 +20,7 @@ import traceback
 
 
 class WizardManager(unohelper.Base):
-    def __init__(self, ctx, auto, resize):
+    def __init__(self, ctx, auto, resize, parent):
         self.ctx = ctx
         self._auto = auto
         self._resize = resize
@@ -28,12 +29,16 @@ class WizardManager(unohelper.Base):
         self._multiPaths = False
         self._controller = None
         self._model = WizardModel(self.ctx)
-        self._view = WizardView(self.ctx)
+        handler = DialogHandler(self)
+        self._view = WizardView(self.ctx, handler, 'Wizard', parent)
 
-    def initWizard(self, window, handler):
-        model = self._model.initWizard(window, self._view)
-        roadmap = self._view.initWizard(window, model)
-        roadmap.addItemListener(handler)
+    def initWizard(self):
+        model = self._model.initWizard(self._view)
+        roadmap = self._view.initWizard(model)
+        roadmap.addItemListener(ItemHandler(self))
+
+    def getPageStep(self, pageid):
+        return self._view.getPageStep(self._model, pageid)
 
     def getCurrentPage(self):
         return self._model.getCurrentPage()
@@ -70,51 +75,51 @@ class WizardManager(unohelper.Base):
                 if self._controller.confirmFinish():
                     dialog.endDialog(OK)
 
-    def changeRoadmapStep(self, window, page):
+    def changeRoadmapStep(self, page):
         pageid = self._model.getCurrentPageId()
         if pageid != page:
-            if not self._setCurrentPage(window, page):
+            if not self._setCurrentPage(page):
                 self._model.setCurrentPageId(pageid)
 
-    def enableButton(self, window, button, enabled):
-        self._view.enableButton(window, button, enabled)
+    def enableButton(self, button, enabled):
+        self._view.enableButton(button, enabled)
 
-    def setDefaultButton(self, window, button):
-        self._view.setDefaultButton(window, button)
+    def setDefaultButton(self, button):
+        self._view.setDefaultButton(button)
 
-    def travelNext(self, window):
+    def travelNext(self):
         page = self._getNextPage()
         if page is not None:
-            return self._setCurrentPage(window, page)
+            return self._setCurrentPage(page)
         return False
 
-    def travelPrevious(self, window):
+    def travelPrevious(self):
         page = self._getPreviousPage()
         if page is not None:
-            return self._setCurrentPage(window, page)
+            return self._setCurrentPage(page)
         return False
 
     def enablePage(self, pageid, enabled):
         self._model.enablePage(pageid, enabled)
 
-    def updateTravelUI(self, window):
+    def updateTravelUI(self):
         self._model.updateRoadmap(self._getFirstPage())
-        self._updateButton(window)
+        self._updateButton()
 
-    def advanceTo(self, window, page):
+    def advanceTo(self, page):
         if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(window, page)
+            return self._setCurrentPage(page)
         return False
 
-    def goBackTo(self, window, page):
+    def goBackTo(self, page):
         if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(window, page)
+            return self._setCurrentPage(page)
         return False
 
     def executeWizard(self, dialog):
         if not self._isCurrentPathSet():
             self._initPath(0, False)
-        self._initPage(dialog)
+        self._initPage()
         return dialog.execute()
 
 # WizardManager private methods
@@ -152,20 +157,20 @@ class WizardManager(unohelper.Base):
             i += 1
         return tuple(paths)
 
-    def _initPage(self, window):
-        self._setPage(window, self._getFirstPage())
+    def _initPage(self):
+        self._setPage(self._getFirstPage())
         nextpage = self._isAutoLoad()
         while nextpage and self._canAdvance():
-            nextpage = self._initNextPage(window)
+            nextpage = self._initNextPage()
 
     def _isAutoLoad(self, page=None):
         nextindex = self._getFirstPage() if page is None else self.getCurrentPath().index(page) + 1
         return nextindex < self._auto
 
-    def _initNextPage(self, window):
+    def _initNextPage(self):
         page = self._getNextPage()
         if page is not None:
-            return self._setCurrentPage(window, page) and self._isAutoLoad(page)
+            return self._setCurrentPage(page) and self._isAutoLoad(page)
         return False
 
     def _canAdvance(self):
@@ -189,30 +194,31 @@ class WizardManager(unohelper.Base):
                 return path[i]
         return None
 
-    def _setCurrentPage(self, window, page):
+    def _setCurrentPage(self, page):
         if self._deactivatePage(page):
-            self._setPage(window, page)
+            self._setPage(page)
             return True
         return False
 
-    def _setPage(self, window, pageid):
+    def _setPage(self, pageid):
         if not self._model.hasPage(pageid):
+            window = self._view.DialogWindow
             page = self._controller.createPage(window.getPeer(), pageid)
-            name = self._setPageModel(window, page)
+            name = self._setPageModel(page)
             self._model.addPage(pageid, self._setPageWindow(window, page, name))
         self._model.setCurrentPageId(pageid)
         self._activatePage(pageid)
         # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
         self._model.updateRoadmap(self._getFirstPage())
-        self._updateButton(window)
+        self._updateButton()
         self._model.setPageVisible(pageid, True)
 
-    def _updateButton(self, window):
-        self._view.updateButtonPrevious(window, not self._isFirstPage())
+    def _updateButton(self):
+        self._view.updateButtonPrevious(not self._isFirstPage())
         enabled = self._getNextPage() is not None and self._canAdvance()
-        self._view.updateButtonNext(window, enabled)
+        self._view.updateButtonNext(enabled)
         enabled = self._isLastPage() and self._canAdvance()
-        self._view.updateButtonFinish(window, enabled)
+        self._view.updateButtonFinish(enabled)
 
     def _deactivatePage(self, new):
         old = self._model.getCurrentPageId()
@@ -234,20 +240,20 @@ class WizardManager(unohelper.Base):
         else:
             return FINISH
 
-    def _setPageModel(self, window, page):
+    def _setPageModel(self, page):
         model = page.Window.getModel()
         # TODO: Fixed: Resizing should be done, if necessary, instead of modifying the model
         if self._resize:
-            self._resizeWizard(window, model)
+            self._resizeWizard(model)
             model.PositionY = 0
         else:
             model.PositionX = self._model.getRoadmapWidth()
             model.PositionY = 0
         return model.Name
 
-    def _resizeWizard(self, window, model):
+    def _resizeWizard(self, model):
         self._model.setRoadmapSize(model)
-        self._view.setDialogSize(window, model)
+        self._view.setDialogSize(model)
         self._resize = False
 
     def _setPageWindow(self, window, page, name):

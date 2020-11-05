@@ -21,10 +21,10 @@ class DialogHandler(unohelper.Base,
         if method == 'Help':
             handled = True
         elif method == 'Previous':
-            self._manager.travelPrevious(dialog)
+            self._manager.travelPrevious()
             handled = True
         elif method == 'Next':
-            self._manager.travelNext(dialog)
+            self._manager.travelNext()
             handled = True
         elif method == 'Finish':
             self._manager.doFinish(dialog)
@@ -37,14 +37,12 @@ class DialogHandler(unohelper.Base,
 
 class ItemHandler(unohelper.Base,
                   XItemListener):
-    def __init__(self, dialog, manager):
-        self._dialog = dialog
+    def __init__(self, manager):
         self._manager = manager
 
     # XItemListener
     def itemStateChanged(self, event):
-        page = event.ItemId
-        self._manager.changeRoadmapStep(self._dialog, page)
+        self._manager.changeRoadmapStep(event.ItemId)
 
     def disposing(self, event):
         pass

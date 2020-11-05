@@ -10,6 +10,7 @@ from com.sun.star.mail.MailServiceType import SMTP
 from .pagemodel import PageModel
 from .pageview import PageView
 from .dialogview import DialogView
+from .pagehandler import DialogHandler
 
 from unolib import createService
 
@@ -24,117 +25,146 @@ class PageManager(unohelper.Base):
         self._search = True
         self._wizard = wizard
         self._model = PageModel(self.ctx) if model is None else model
-        self._view = PageView(self.ctx)
+        self._views = {}
+        self._dialog = None
         print("PageManager.__init__() %s" % self._model.Email)
 
-    def getWizard(self):
+    @property
+    def View(self):
+        pageid = self.Wizard.getCurrentPage().PageId
+        return self.getView(pageid)
+
+    @property
+    def Model(self):
+        return self._model
+
+    @property
+    def Wizard(self):
         return self._wizard
 
-    def initPage(self, pageid, window):
-        if pageid == 1:
-            self._view.initPage1(window, self._model)
+    def getView(self, pageid):
+        if pageid in self._views:
+            return self._views[pageid]
+        print("PageManager.getView ERROR **************************")
+        return None
 
-    def activatePage2(self, window, progress):
-        self._view.activatePage2(window, self._model)
-        self._model.getSmtpConfig(progress, self.updateModel)
+    def getWizard(self):
+        return self.Wizard
+
+    def initPage(self, pageid, window):
+        self._views[pageid] = PageView(self.ctx, window)
+        if pageid == 1:
+            self.getView(pageid).initPage1(self.Model)
+
+    def activatePage2(self):
+        self.View.activatePage2(self.Model)
+        self.Model.getSmtpConfig(self.updateProgress, self.updateModel)
         self._search = True
 
-    def activatePage3(self, window):
-        self._view.activatePage3(window, self._model)
+    def activatePage3(self):
+        self.View.activatePage3(self.Model)
 
-    def updateProgress(self, window, value, offset=0):
-        self._view.updateProgress(window, self._model, value, offset)
+    def updateProgress(self, value, offset=0):
+        self.View.updateProgress(self.Model, value, offset)
+
+    def updateDialog(self, value, offset=0, msg=None):
+        self._dialog.updateProgress(value, offset, msg)
+
+    def callBackDialog(self, state):
+        self._dialog.callBack(state)
 
     def updateModel(self, user, servers, offline):
-        self._model.User = user
-        self._model.Servers = servers
-        self._model.Online = not offline
+        self.Model.User = user
+        self.Model.Servers = servers
+        self.Model.Online = not offline
         self._search = False
-        self._wizard.updateTravelUI()
+        self.Wizard.updateTravelUI()
         if len(servers) > 0:
-            self._wizard.travelNext()
+            self.Wizard.travelNext()
 
-    def canAdvancePage(self, pageid, window):
+    def canAdvancePage(self, pageid):
         advance = False
         if pageid == 1:
-            advance = self._isUserValid(window)
+            advance = self._isUserValid()
         elif pageid == 2:
             advance = not self._search
         elif pageid == 3:
-            advance = all((self._isServerValid(window),
-                           self._isPortValid(window),
-                           self._isLoginNameValid(window),
-                           self._isPasswordValid(window)))
-            self._view.enableConnect(window, advance and self._model.Online)
+            advance = all((self._isServerValid(),
+                           self._isPortValid(),
+                           self._isLoginNameValid(),
+                           self._isPasswordValid()))
+            self.getView(pageid).enableConnect(advance and self.Model.Online)
         return advance
 
-    def commitPage1(self, window):
-        self._model.Email = self._view.getUser(window)
+    def commitPage1(self):
+        self.Model.Email = self.View.getUser()
 
     def commitPage2(self):
         self._search = True
 
-    def getPageStep(self, pageid):
-        return self._view.getPageStep(self._model, pageid)
-
     def setPageTitle(self, pageid):
-        self._wizard.setTitle(self._view.getPageTitle(self._model, pageid))
+        self.Wizard.setTitle(self.getView(pageid).getPageTitle(self.Model, pageid))
 
     def updateTravelUI(self):
-        self._wizard.updateTravelUI()
+        self.Wizard.updateTravelUI()
 
-    def changeConnection(self, window, control):
-        index = self._view.getControlIndex(control)
-        self._view.setConnectionSecurity(window, self._model, index)
+    def changeConnection(self, control):
+        index = self.View.getControlIndex(control)
+        self.View.setConnectionSecurity(self.Model, index)
 
-    def changeAuthentication(self, window, control):
-        index = self._view.getControlIndex(control)
+    def changeAuthentication(self, control):
+        index = self.View.getControlIndex(control)
         if index == 0:
-            self._view.enableLoginName(window, False)
-            self._view.enablePassword(window, False)
+            self.View.enableLoginName(False)
+            self.View.enablePassword(False)
         elif index == 3:
-            self._view.enableLoginName(window, True)
-            self._view.enablePassword(window, False)
+            self.View.enableLoginName(True)
+            self.View.enablePassword(False)
         else:
-            self._view.enableLoginName(window, True)
-            self._view.enablePassword(window, True)
-        self._view.setAuthenticationSecurity(window, self._model, index)
+            self.View.enableLoginName(True)
+            self.View.enablePassword(True)
+        self.View.setAuthenticationSecurity(self.Model, index)
         self.updateTravelUI()
 
-    def previousServerPage(self, window):
-        self._model.previousServerPage()
-        self._view.updatePage3(window, self._model)
-        print("PageManager.previousServerPage()")
+    def previousServerPage(self):
+        self.Model.previousServerPage()
+        self.View.updatePage3(self.Model)
 
-    def nextServerPage(self, window):
-        self._model.nextServerPage()
-        self._view.updatePage3(window, self._model)
-        print("PageManager.nextServerPage()")
+    def nextServerPage(self):
+        self.Model.nextServerPage()
+        self.View.updatePage3(self.Model)
 
-    def smtpConnect(self, window):
-        print("PageManager._smtpConnect() 1")
-        context = self._view.getConnectionContext(window, self._model)
-        authenticator = self._view.getAuthenticator(window, self._model)
-        print("PageManager._smtpConnect() 2")
-        dialog = DialogView(self.ctx, 'SmtpDialog')
-        dialog.setTitle(context)
-        self._model.smtpConnect(context, authenticator, dialog)
-        if dialog.execute() == OK:
-            print("PageManager.smtpConnect() OK")
+    def showSmtpConnect(self):
+        context = self.View.getConnectionContext(self.Model)
+        authenticator = self.View.getAuthenticator()
+        handler = DialogHandler(self)
+        parent = self.Wizard.DialogWindow.getPeer()
+        self._dialog = DialogView(self.ctx, 'SmtpDialog', handler, parent)
+        self._dialog.setTitle(context)
+        self.Model.smtpConnect(context, authenticator, self.updateDialog, self.callBackDialog)
+        if self._dialog.execute() == OK:
+            print("PageManager.showSmtpConnect() OK")
         else:
-            print("PageManager.smtpConnect() CANCEL")
+            print("PageManager.showSmtpConnect() CANCEL")
 
-    def _isUserValid(self, window):
-        return self._view.isUserValid(window, self._model.isUserValid)
+    def smtpConnect(self):
+        self._dialog.enableButtonOk(False)
+        self._dialog.enableButtonRetry(False)
+        context = self.View.getConnectionContext(self.Model)
+        authenticator = self.View.getAuthenticator()
+        self.Model.smtpConnect(context, authenticator, self.updateDialog, self.callBackDialog)
 
-    def _isServerValid(self, window):
-        return self._view.isServerValid(window, self._model.isServerValid)
+    def _isUserValid(self):
+        return self.View.isUserValid(self.Model.isUserValid)
 
-    def _isPortValid(self, window):
-        return self._view.isPortValid(window, self._model.isPortValid)
+    def _isServerValid(self):
+        return self.View.isServerValid(self.Model.isServerValid)
 
-    def _isLoginNameValid(self, window):
-        return self._view.isLoginNameValid(window, self._model.isStringValid)
+    def _isPortValid(self):
+        return self.View.isPortValid(self.Model.isPortValid)
 
-    def _isPasswordValid(self, window):
-        return self._view.isPasswordValid(window, self._model.isStringValid)
+    def _isLoginNameValid(self):
+        return self.View.isLoginNameValid(self.Model.isStringValid)
+
+    def _isPasswordValid(self):
+        return self.View.isPasswordValid(self.Model.isStringValid)

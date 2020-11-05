@@ -118,11 +118,14 @@ class SmtpService(unohelper.Base,
             if connection == 'TLS':
                 server.starttls()
         except smtplib.SMTPConnectError as e:
-            error = ConnectException('smtplib.SMTPConnectError: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
+            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            error = ConnectException(msg, self)
         except smtplib.SMTPException as e:
-            error = UnknownHostException('smtplib.SMTPException: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
+            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            error = UnknownHostException(msg, self)
         except Exception as e:
-            error = MailException('Exception: %s - %s - %s' % (e, e.args, getExceptionMessage(e)), self)
+            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            error = MailException(msg, self)
         else:
             self._server = server
         return error
@@ -137,15 +140,17 @@ class SmtpService(unohelper.Base,
                 password = password.encode('ascii')
             try:
                 self._server.login(user, password)
-            except:
-                error = AuthenticationFailedException()
+            except Exception as e:
+                msg = getMessage(self.ctx, g_message, 121, getExceptionMessage(e))
+                error = AuthenticationFailedException(msg, self)
         elif authentication == 'OAUTH2':
             print("SmtpService._doLogin() 2")
             token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
             try:
                 self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
-            except:
-                error = AuthenticationFailedException()
+            except Exception as e:
+                msg = getMessage(self.ctx, g_message, 121, getExceptionMessage(e))
+                error = AuthenticationFailedException(msg, self)
         return error
 
     def disconnect(self):

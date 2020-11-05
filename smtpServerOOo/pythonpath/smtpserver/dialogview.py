@@ -16,9 +16,9 @@ import traceback
 
 
 class DialogView(unohelper.Base):
-    def __init__(self, ctx, xdl):
+    def __init__(self, ctx, xdl, handler, parent):
         self.ctx = ctx
-        self._dialog = getDialog(self.ctx, g_extension, xdl)
+        self._dialog = getDialog(self.ctx, g_extension, xdl, handler, parent)
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         print("DialogView.__init__()")
 
@@ -28,13 +28,23 @@ class DialogView(unohelper.Base):
         title = self._stringResource.resolveString(self._getTitleMessage())
         self._dialog.setTitle(title % (server, port))
 
-    def updateProgress(self, value, offset=0):
+    def updateProgress(self, value, offset=0, msg=None):
         self._getProgressBar().Value = value
         text = self._stringResource.resolveString(self._getProgressMessage(value + offset))
+        if msg is not None:
+            text = text % msg
         self._getProgressLabel().Text = text
 
-    def callBack(self):
-        self._getButtonOk().Model.Enabled = True
+    def callBack(self, state):
+        if state:
+            self._getButtonOk().Model.Enabled = True
+        self._getButtonRetry().Model.Enabled = True
+
+    def enableButtonOk(self, enabled):
+        self._getButtonOk().Model.Enabled = enabled
+
+    def enableButtonRetry(self, enabled):
+        self._getButtonRetry().Model.Enabled = enabled
 
 # DialogView getter methods
     def execute(self):
@@ -54,5 +64,8 @@ class DialogView(unohelper.Base):
     def _getProgressLabel(self):
         return self._dialog.getControl('Label1')
 
+    def _getButtonRetry(self):
+        return self._dialog.getControl('CommandButton1')
+
     def _getButtonOk(self):
-        return self._dialog.getControl('CommandButton2')
+        return self._dialog.getControl('CommandButton3')

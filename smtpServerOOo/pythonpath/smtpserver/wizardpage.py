@@ -24,20 +24,23 @@ class WizardPage(unohelper.Base,
         msg = "PageId: %s loading ..." % pageid
         self.ctx = ctx
         self.PageId = pageid
-        self.Window = window
         self._manager = manager
         self._manager.initPage(pageid, window)
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardPage', '__init__()')
+
+    @property
+    def Window(self):
+        return self._manager.getView(self.PageId).Window
 
     # XWizardPage
     def activatePage(self):
         try:
             msg = "PageId: %s ..." % self.PageId
             if self.PageId == 2:
-                self._manager.activatePage2(self.Window, self._updateProgress)
+                self._manager.activatePage2()
             elif self.PageId == 3:
-                self._manager.activatePage3(self.Window)
+                self._manager.activatePage3()
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
         except Exception as e:
@@ -51,7 +54,7 @@ class WizardPage(unohelper.Base,
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
             if self.PageId == 1:
-                self._manager.commitPage1(self.Window)
+                self._manager.commitPage1()
             elif self.PageId == 2:
                 self._manager.commitPage2()
             elif self.PageId == 3:
@@ -64,10 +67,7 @@ class WizardPage(unohelper.Base,
             print(msg)
 
     def canAdvance(self):
-        return self._manager.canAdvancePage(self.PageId, self.Window)
-
-    def _updateProgress(self, value, offset=0):
-        self._manager.updateProgress(self.Window, value, offset)
+        return self._manager.canAdvancePage(self.PageId)
 
     def _getPropertySetInfo(self):
         properties = {}

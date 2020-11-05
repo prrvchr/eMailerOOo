@@ -111,34 +111,31 @@ class DataSource(unohelper.Base,
                 progress(100, 4)
         callback(user, servers, offline)
 
-    def smtpConnect(self, context, authenticator, dialog):
-        arguments = (context, authenticator, dialog)
+    def smtpConnect(self, context, authenticator, progress, callback):
+        arguments = (context, authenticator, progress, callback)
         connect = self._addThread(Thread(target=self._smtpConnect, args=arguments))
         connect.start()
 
-    def _smtpConnect(self, context, authenticator, dialog):
-        dialog.updateProgress(25)
-        print("DataSource._smtpConnect() 1")
+    def _smtpConnect(self, context, authenticator, progress, callback):
+        connected = False
+        self._waitForThread()
+        progress(25)
         service = 'com.sun.star.mail.MailServiceProvider'
         server = createService(self.ctx, service).create(SMTP)
-        print("DataSource._smtpConnect() 2")
-        dialog.updateProgress(50)
+        progress(50)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            print("DataSource._smtpConnect() ERROR: %s" % e.Message)
-            dialog.updateProgress(100, 2)
+            progress(100, 2, e.Message)
         else:
-            dialog.updateProgress(75)
+            progress(75)
             if server.isConnected():
-                dialog.updateProgress(100, 1)
-                format = (server.isConnected(), server.getSupportedAuthenticationTypes())
-                print("DataSource._smtpConnect() 3 isConnected: %s - %s" % format)
                 server.disconnect()
-                dialog.callBack()
+                connected = True
+                progress(100, 1)
             else:
-                dialog.updateProgress(100, 2)
-        print("DataSource._smtpConnect() 4")
+                progress(100, 3)
+        callback(connected)
 
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')

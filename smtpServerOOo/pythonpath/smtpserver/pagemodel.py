@@ -154,11 +154,12 @@ class PageModel(unohelper.Base):
         return self._index + 1 >= self._count
 
     def getSmtpConfig(self, progress, callback):
+        progress(0)
         self._datasource.getSmtpConfig(self.Email, progress, callback)
 
-    def smtpConnect(self, context, authenticator, dialog):
-        dialog.updateProgress(0)
-        self._datasource.smtpConnect(context, authenticator, dialog)
+    def smtpConnect(self, context, authenticator, progress, callback):
+        progress(0)
+        self._datasource.smtpConnect(context, authenticator, progress, callback)
 
     def _getServers(self, servers):
         self._isnew = False

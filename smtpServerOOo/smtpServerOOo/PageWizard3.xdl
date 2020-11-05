@@ -56,7 +56,7 @@
     <dlg:text dlg:id="Label10" dlg:tab-index="19" dlg:left="10" dlg:top="105" dlg:width="270" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label10.HelpText" dlg:value="&amp;PageWizard3.Label10.Label" dlg:align="center" dlg:valign="center"/>
     <dlg:text dlg:id="Label11" dlg:tab-index="20" dlg:left="10" dlg:top="125" dlg:width="60" dlg:height="15" dlg:help-text="&amp;PageWizard3.Label11.HelpText" dlg:value="&amp;PageWizard3.Label11.Label" dlg:valign="center"/>
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="22" dlg:disabled="true" dlg:left="100" dlg:top="125" dlg:width="140" dlg:height="15" dlg:help-text="&amp;PageWizard3.CommandButton3.HelpText" dlg:value="&amp;PageWizard3.CommandButton3.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SmtpConnect" script:language="UNO"/>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSmtpConnect" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>

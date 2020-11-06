@@ -94,15 +94,13 @@ class SmtpService(unohelper.Base,
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType').upper()
-        authentication = context.getValueByName('AuthenticationType').upper()
-        print("SmtpService.connect() %s %s %s %s %s - %s %s" % (server, port, timeout, connection, authentication, type(port), type(timeout)))
         error = self._setServer(connection, server, port, timeout)
         if error is not None:
             raise error
-        if authentication != 'NONE':
-            error = self._doLogin(authentication, authenticator, server)
-            if error is not None:
-                raise error
+        authentication = context.getValueByName('AuthenticationType').upper()
+        error = self._doLogin(authentication, authenticator, server)
+        if error is not None:
+            raise error
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
@@ -132,8 +130,8 @@ class SmtpService(unohelper.Base,
 
     def _doLogin(self, authentication, authenticator, server):
         error = None
-        user = authenticator.getUserName()
         if authentication == 'LOGIN':
+            user = authenticator.getUserName()
             password = authenticator.getPassword()
             if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
                 user = user.encode('ascii')
@@ -144,6 +142,7 @@ class SmtpService(unohelper.Base,
                 msg = getMessage(self.ctx, g_message, 121, getExceptionMessage(e))
                 error = AuthenticationFailedException(msg, self)
         elif authentication == 'OAUTH2':
+            user = authenticator.getUserName()
             print("SmtpService._doLogin() 2")
             token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
             try:

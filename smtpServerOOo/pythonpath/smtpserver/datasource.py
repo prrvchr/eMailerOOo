@@ -42,19 +42,17 @@ class DataSource(unohelper.Base,
     def __init__(self, ctx):
         print("DataSource.__init__() 1")
         self.ctx = ctx
-        self._error = None
-        self._progress = 0.2
+        self._progress = 0
+        self._connect = None
         self._configuration = getConfiguration(self.ctx, g_identifier, False)
         if not self._isInitialized():
             print("DataSource.__init__() 2")
-            DataSource._Initialized = True
-            initdatabase = self._addThread(Thread(target=self._initDataBase))
-            initdatabase.start()
+            DataSource._Init = Thread(target=self._initDataBase)
+            DataSource._Init.start()
         print("DataSource.__init__() 3")
 
+    _Init = None
     _DataBase = None
-    _Initialized = False
-    _ThreadPool = []
 
     @property
     def DataBase(self):
@@ -64,16 +62,7 @@ class DataSource(unohelper.Base,
         DataSource._DataBase = database
 
     def _isInitialized(self):
-        return DataSource._Initialized
-
-    def _addThread(self, thread):
-        DataSource._ThreadPool.append(thread)
-        return thread
-
-    def _waitForThread(self):
-        while len(DataSource._ThreadPool) > 1:
-            thread = DataSource._ThreadPool.pop(0)
-            thread.join()
+        return DataSource._Init is not None
 
     # XRestReplicator
     def cancel(self):
@@ -82,9 +71,9 @@ class DataSource(unohelper.Base,
         self.join()
 
     def getSmtpConfig(self, email, progress, callback):
-        arguments = (email, progress, callback)
-        smtpconfig = self._addThread(Thread(target=self._getSmtpConfig, args=arguments))
-        smtpconfig.start()
+        args = (email, progress, callback)
+        config = Thread(target=self._getSmtpConfig, args=args)
+        config.start()
 
     def _getSmtpConfig(self, email, progress, callback):
         url = getUrl(self.ctx, self._configuration.getByName('IspDBUrl'))
@@ -93,7 +82,7 @@ class DataSource(unohelper.Base,
         progress(10)
         offline = request.isOffLine(url.Server)
         progress(20)
-        self._waitForThread()
+        DataSource._Init.join()
         progress(40)
         user, servers = self.DataBase.getSmtpConfig(email)
         if len(servers) > 0:
@@ -112,30 +101,39 @@ class DataSource(unohelper.Base,
         callback(user, servers, offline)
 
     def smtpConnect(self, context, authenticator, progress, callback):
-        arguments = (context, authenticator, progress, callback)
-        connect = self._addThread(Thread(target=self._smtpConnect, args=arguments))
-        connect.start()
+        if self._isRunning():
+            progress(self._progress)
+        else:
+            args = (context, authenticator, progress, callback)
+            self._connect = Thread(target=self._smtpConnect, args=args)
+            self._connect.start()
 
     def _smtpConnect(self, context, authenticator, progress, callback):
         connected = False
-        self._waitForThread()
-        progress(25)
+        self._updateProgress(progress, 25)
         service = 'com.sun.star.mail.MailServiceProvider'
         server = createService(self.ctx, service).create(SMTP)
-        progress(50)
+        self._updateProgress(progress, 50)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            progress(100, 2, e.Message)
+            self._updateProgress(progress, 100, 2, e.Message)
         else:
-            progress(75)
+            self._updateProgress(progress, 50)
             if server.isConnected():
                 server.disconnect()
                 connected = True
-                progress(100, 1)
+                self._updateProgress(progress, 100, 1)
             else:
-                progress(100, 3)
+                self._updateProgress(progress, 100, 3)
         callback(connected)
+
+    def _isRunning(self):
+        return self._connect is not None and self._connect.is_alive()
+
+    def _updateProgress(self, progress, value, offset=0, msg=None):
+        self._progress = value if value != 100 else 0
+        progress(value, offset, msg)
 
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')

@@ -129,9 +129,7 @@ class PageModel(unohelper.Base):
         if login != '':
             return login
         mode = self._Servers[self._index].getValue('LoginMode')
-        if mode != -1:
-            return self.Email.split('@')[mode]
-        return self.Email
+        return self.Email.partition('@')[mode] if mode != 1 else self.Email
 
     def getPassword(self):
         return self._User.getValue('Password')

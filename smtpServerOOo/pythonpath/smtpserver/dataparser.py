@@ -52,5 +52,5 @@ class DataParser(unohelper.Base,
         return map.get(server.find('authentication').text, 0)
 
     def _getLoginMode(self, server):
-        map = {'%EMAILADDRESS%': -1, '%EMAILLOCALPART%': 0, '%EMAILDOMAIN%': 1}
-        return map.get(server.find('username').text, -1)
+        map = {'%EMAILLOCALPART%': 0, '%EMAILADDRESS%': 1, '%EMAILDOMAIN%': 2}
+        return map.get(server.find('username').text, 1)

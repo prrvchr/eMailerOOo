@@ -70,6 +70,7 @@ class IspdbDispatch(unohelper.Base,
             else:
                 msg +=  " ERROR: Wizard as been aborted"
             wizard.DialogWindow.dispose()
+            wizard.DialogWindow = None
             print(msg)
             logMessage(self.ctx, INFO, msg, 'IspdbDispatch', '_showWizard()')
         except Exception as e:

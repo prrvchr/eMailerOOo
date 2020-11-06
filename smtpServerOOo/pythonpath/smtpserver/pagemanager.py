@@ -63,22 +63,26 @@ class PageManager(unohelper.Base):
         self.View.activatePage3(self.Model)
 
     def updateProgress(self, value, offset=0):
-        self.View.updateProgress(self.Model, value, offset)
-
-    def updateDialog(self, value, offset=0, msg=None):
-        self._dialog.updateProgress(value, offset, msg)
-
-    def callBackDialog(self, state):
-        self._dialog.callBack(state)
+        if self.Wizard.DialogWindow is not None:
+            self.View.updateProgress(self.Model, value, offset)
 
     def updateModel(self, user, servers, offline):
-        self.Model.User = user
-        self.Model.Servers = servers
-        self.Model.Online = not offline
-        self._search = False
-        self.Wizard.updateTravelUI()
-        if len(servers) > 0:
-            self.Wizard.travelNext()
+        if self.Wizard.DialogWindow is not None:
+            self.Model.User = user
+            self.Model.Servers = servers
+            self.Model.Online = not offline
+            self._search = False
+            self.Wizard.updateTravelUI()
+            if len(servers) > 0:
+                self.Wizard.travelNext()
+
+    def updateDialog(self, value, offset=0, msg=None):
+        if self._dialog is not None:
+            self._dialog.updateProgress(value, offset, msg)
+
+    def callBackDialog(self, state):
+        if self._dialog is not None:
+            self._dialog.callBack(state)
 
     def canAdvancePage(self, pageid):
         advance = False
@@ -147,6 +151,7 @@ class PageManager(unohelper.Base):
         else:
             print("PageManager.showSmtpConnect() CANCEL")
         self._dialog.dispose()
+        self._dialog = None
 
     def smtpConnect(self):
         self._dialog.enableButtonOk(False)

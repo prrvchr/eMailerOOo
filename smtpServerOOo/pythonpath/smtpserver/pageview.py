@@ -16,8 +16,7 @@ import traceback
 
 
 class PageView(unohelper.Base):
-    def __init__(self, ctx, window):
-        self.ctx = ctx
+    def __init__(self, window):
         self.Window = window
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}

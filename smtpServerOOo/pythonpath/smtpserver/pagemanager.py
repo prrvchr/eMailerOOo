@@ -33,11 +33,9 @@ class PageManager(unohelper.Base):
     def View(self):
         pageid = self.Wizard.getCurrentPage().PageId
         return self.getView(pageid)
-
     @property
     def Model(self):
         return self._model
-
     @property
     def Wizard(self):
         return self._wizard
@@ -52,14 +50,14 @@ class PageManager(unohelper.Base):
         return self.Wizard
 
     def initPage(self, pageid, window):
-        self._views[pageid] = PageView(self.ctx, window)
+        self._views[pageid] = PageView(window)
         if pageid == 1:
             self.getView(pageid).initPage1(self.Model)
 
     def activatePage2(self):
+        self.Wizard.enablePage(1, False)
         self.View.activatePage2(self.Model)
         self.Model.getSmtpConfig(self.updateProgress, self.updateModel)
-        self._search = True
 
     def activatePage3(self):
         self.View.activatePage3(self.Model)
@@ -100,6 +98,8 @@ class PageManager(unohelper.Base):
         self.Model.Email = self.View.getUser()
 
     def commitPage2(self):
+        print("PageManager.commitPage2()")
+        self.Wizard.enablePage(1, True)
         self._search = True
 
     def setPageTitle(self, pageid):
@@ -146,6 +146,7 @@ class PageManager(unohelper.Base):
             print("PageManager.showSmtpConnect() OK")
         else:
             print("PageManager.showSmtpConnect() CANCEL")
+        self._dialog.dispose()
 
     def smtpConnect(self):
         self._dialog.enableButtonOk(False)

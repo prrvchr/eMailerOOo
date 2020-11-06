@@ -34,22 +34,22 @@ class PageHandler(unohelper.Base,
         handled = False
         if method == 'TextChange':
             if self._enabled:
-                self.Manager.updateTravelUI()
+                self._manager.updateTravelUI()
             handled = True
         elif method == 'ChangeConnection':
-            self.Manager.changeConnection(event.Source)
+            self._manager.changeConnection(event.Source)
             handled = True
         elif method == 'ChangeAuthentication':
-            self.Manager.changeAuthentication(event.Source)
+            self._manager.changeAuthentication(event.Source)
             handled = True
         elif method == 'Previous':
-            self.Manager.previousServerPage()
+            self._manager.previousServerPage()
             handled = True
         elif method == 'Next':
-            self.Manager.nextServerPage()
+            self._manager.nextServerPage()
             handled = True
         elif method == 'ShowSmtpConnect':
-            self.Manager.showSmtpConnect()
+            self._manager.showSmtpConnect()
             handled = True
         return handled
 

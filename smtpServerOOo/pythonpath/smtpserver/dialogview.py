@@ -17,9 +17,8 @@ import traceback
 
 class DialogView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
-        self.ctx = ctx
-        self._dialog = getDialog(self.ctx, g_extension, xdl, handler, parent)
-        self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
+        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
         print("DialogView.__init__()")
 
 # DialogView setter methods
@@ -37,14 +36,17 @@ class DialogView(unohelper.Base):
 
     def callBack(self, state):
         if state:
-            self._getButtonOk().Model.Enabled = True
-        self._getButtonRetry().Model.Enabled = True
+            self.enableButtonOk(True)
+        self.enableButtonRetry(True)
 
     def enableButtonOk(self, enabled):
         self._getButtonOk().Model.Enabled = enabled
 
     def enableButtonRetry(self, enabled):
         self._getButtonRetry().Model.Enabled = enabled
+
+    def dispose(self):
+        self._dialog.dispose()
 
 # DialogView getter methods
     def execute(self):

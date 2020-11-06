@@ -66,7 +66,7 @@ class IspdbDispatch(unohelper.Base,
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
-                msg +=  " Retrieving Authorization Code ..."
+                msg +=  " Retrieving SMTP configuration OK..."
             else:
                 msg +=  " ERROR: Wizard as been aborted"
             wizard.DialogWindow.dispose()

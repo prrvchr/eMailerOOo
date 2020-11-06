@@ -48,6 +48,9 @@ class Wizard(unohelper.Base,
     @property
     def DialogWindow(self):
         return self._manager._view.DialogWindow
+    @DialogWindow.setter
+    def DialogWindow(self, dialog):
+        self._manager._view.DialogWindow = dialog
 
     # XInitialization
     def initialize(self, arguments):

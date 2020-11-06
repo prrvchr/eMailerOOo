@@ -1,12 +1,11 @@
 import os
 import socket
+import warnings
 from sys import platform
 from functools import wraps, partial
 from itertools import count, chain
 from weakref import WeakValueDictionary
 from errno import errorcode
-
-from cryptography.utils import deprecated
 
 from six import (
     binary_type as _binary_type, integer_types as integer_types, int2byte,
@@ -16,6 +15,7 @@ from OpenSSL._util import (
     UNSPECIFIED as _UNSPECIFIED,
     exception_from_error_queue as _exception_from_error_queue,
     ffi as _ffi,
+    from_buffer as _from_buffer,
     lib as _lib,
     make_assert as _make_assert,
     native as _native,
@@ -47,6 +47,7 @@ __all__ = [
     'OP_NO_TLSv1',
     'OP_NO_TLSv1_1',
     'OP_NO_TLSv1_2',
+    'OP_NO_TLSv1_3',
     'MODE_RELEASE_BUFFERS',
     'OP_SINGLE_DH_USE',
     'OP_SINGLE_ECDH_USE',
@@ -140,6 +141,10 @@ OP_NO_SSLv3 = _lib.SSL_OP_NO_SSLv3
 OP_NO_TLSv1 = _lib.SSL_OP_NO_TLSv1
 OP_NO_TLSv1_1 = _lib.SSL_OP_NO_TLSv1_1
 OP_NO_TLSv1_2 = _lib.SSL_OP_NO_TLSv1_2
+try:
+    OP_NO_TLSv1_3 = _lib.SSL_OP_NO_TLSv1_3
+except AttributeError:
+    pass
 
 MODE_RELEASE_BUFFERS = _lib.SSL_MODE_RELEASE_BUFFERS
 
@@ -423,6 +428,9 @@ class _NpnSelectHelper(_CallbackExceptionHelper):
         )
 
 
+NO_OVERLAPPING_PROTOCOLS = object()
+
+
 class _ALPNSelectHelper(_CallbackExceptionHelper):
     """
     Wrap a callback such that it can be used as an ALPN selection callback.
@@ -448,24 +456,32 @@ class _ALPNSelectHelper(_CallbackExceptionHelper):
                     instr = instr[encoded_len + 1:]
 
                 # Call the callback
-                outstr = callback(conn, protolist)
-
-                if not isinstance(outstr, _binary_type):
-                    raise TypeError("ALPN callback must return a bytestring.")
+                outbytes = callback(conn, protolist)
+                any_accepted = True
+                if outbytes is NO_OVERLAPPING_PROTOCOLS:
+                    outbytes = b''
+                    any_accepted = False
+                elif not isinstance(outbytes, _binary_type):
+                    raise TypeError(
+                        "ALPN callback must return a bytestring or the "
+                        "special NO_OVERLAPPING_PROTOCOLS sentinel value."
+                    )
 
                 # Save our callback arguments on the connection object to make
                 # sure that they don't get freed before OpenSSL can use them.
                 # Then, return them in the appropriate output parameters.
                 conn._alpn_select_callback_args = [
-                    _ffi.new("unsigned char *", len(outstr)),
-                    _ffi.new("unsigned char[]", outstr),
+                    _ffi.new("unsigned char *", len(outbytes)),
+                    _ffi.new("unsigned char[]", outbytes),
                 ]
                 outlen[0] = conn._alpn_select_callback_args[0][0]
                 out[0] = conn._alpn_select_callback_args[1]
-                return 0
+                if not any_accepted:
+                    return _lib.SSL_TLSEXT_ERR_NOACK
+                return _lib.SSL_TLSEXT_ERR_OK
             except Exception as e:
                 self._problems.append(e)
-                return 2  # SSL_TLSEXT_ERR_ALERT_FATAL
+                return _lib.SSL_TLSEXT_ERR_ALERT_FATAL
 
         self.callback = _ffi.callback(
             ("int (*)(SSL *, unsigned char **, unsigned char *, "
@@ -628,6 +644,11 @@ def SSLeay_version(type):
     return _ffi.string(_lib.SSLeay_version(type))
 
 
+def _warn_npn():
+    warnings.warn("NPN is deprecated. Protocols should switch to using ALPN.",
+                  DeprecationWarning, stacklevel=3)
+
+
 def _make_requires(flag, error):
     """
     Builds a decorator that ensures that functions that rely on OpenSSL
@@ -657,11 +678,6 @@ _requires_npn = _make_requires(
 
 _requires_alpn = _make_requires(
     _lib.Cryptography_HAS_ALPN, "ALPN not available"
-)
-
-
-_requires_sni = _make_requires(
-    _lib.Cryptography_HAS_TLSEXT_HOSTNAME, "SNI not available"
 )
 
 
@@ -1191,13 +1207,22 @@ class Context(object):
         # invalid cipher string is passed, but without the following check
         # for the TLS 1.3 specific cipher suites it would never error.
         tmpconn = Connection(self, None)
-        _openssl_assert(
-            tmpconn.get_cipher_list() != [
+        if (
+            tmpconn.get_cipher_list() == [
                 'TLS_AES_256_GCM_SHA384',
                 'TLS_CHACHA20_POLY1305_SHA256',
                 'TLS_AES_128_GCM_SHA256'
             ]
-        )
+        ):
+            raise Error(
+                [
+                    (
+                        'SSL routines',
+                        'SSL_CTX_set_cipher_list',
+                        'no cipher match',
+                    ),
+                ],
+            )
 
     def set_client_ca_list(self, certificate_authorities):
         """
@@ -1358,7 +1383,6 @@ class Context(object):
 
         return _lib.SSL_CTX_set_mode(self._context, mode)
 
-    @_requires_sni
     def set_tlsext_servername_callback(self, callback):
         """
         Specify a callback function to be called when clients specify a server
@@ -1408,6 +1432,7 @@ class Context(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         self._npn_advertise_helper = _NpnAdvertiseHelper(callback)
         self._npn_advertise_callback = self._npn_advertise_helper.callback
         _lib.SSL_CTX_set_next_protos_advertised_cb(
@@ -1426,6 +1451,7 @@ class Context(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         self._npn_select_helper = _NpnSelectHelper(callback)
         self._npn_select_callback = self._npn_select_helper.callback
         _lib.SSL_CTX_set_next_proto_select_cb(
@@ -1461,8 +1487,12 @@ class Context(object):
 
         :param callback: The callback function.  It will be invoked with two
             arguments: the Connection, and a list of offered protocols as
-            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It should return
-            one of those bytestrings, the chosen protocol.
+            bytestrings, e.g ``[b'http/1.1', b'spdy/2']``.  It can return
+            one of those bytestrings to indicate the chosen protocol, the
+            empty bytestring to terminate the TLS connection, or the
+            :py:obj:`NO_OVERLAPPING_PROTOCOLS` to indicate that no offered
+            protocol was selected, but that the connection should not be
+            aborted.
         """
         self._alpn_select_helper = _ALPNSelectHelper(callback)
         self._alpn_select_callback = self._alpn_select_helper.callback
@@ -1526,12 +1556,6 @@ class Context(object):
         """
         helper = _OCSPClientCallbackHelper(callback)
         self._set_ocsp_callback(helper, data)
-
-
-ContextType = deprecated(
-    Context, __name__,
-    "ContextType has been deprecated, use Context instead", DeprecationWarning
-)
 
 
 class Connection(object):
@@ -1666,7 +1690,6 @@ class Connection(object):
         _lib.SSL_set_SSL_CTX(self._ssl, context._context)
         self._context = context
 
-    @_requires_sni
     def get_servername(self):
         """
         Retrieve the servername extension value if provided in the client hello
@@ -1684,7 +1707,6 @@ class Connection(object):
 
         return _ffi.string(name)
 
-    @_requires_sni
     def set_tlsext_host_name(self, name):
         """
         Set the value of the servername extension to send in the client hello.
@@ -1724,18 +1746,18 @@ class Connection(object):
         # Backward compatibility
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        if isinstance(buf, memoryview):
-            buf = buf.tobytes()
-        if isinstance(buf, _buffer):
-            buf = str(buf)
-        if not isinstance(buf, bytes):
-            raise TypeError("data must be a memoryview, buffer or byte string")
-        if len(buf) > 2147483647:
-            raise ValueError("Cannot send more than 2**31-1 bytes at once.")
+        with _from_buffer(buf) as data:
+            # check len(buf) instead of len(data) for testability
+            if len(buf) > 2147483647:
+                raise ValueError(
+                    "Cannot send more than 2**31-1 bytes at once."
+                )
 
-        result = _lib.SSL_write(self._ssl, buf, len(buf))
-        self._raise_ssl_error(self._ssl, result)
-        return result
+            result = _lib.SSL_write(self._ssl, data, len(data))
+            self._raise_ssl_error(self._ssl, result)
+
+            return result
+
     write = send
 
     def sendall(self, buf, flags=0):
@@ -1751,28 +1773,24 @@ class Connection(object):
         """
         buf = _text_to_bytes_and_warn("buf", buf)
 
-        if isinstance(buf, memoryview):
-            buf = buf.tobytes()
-        if isinstance(buf, _buffer):
-            buf = str(buf)
-        if not isinstance(buf, bytes):
-            raise TypeError("buf must be a memoryview, buffer or byte string")
+        with _from_buffer(buf) as data:
 
-        left_to_send = len(buf)
-        total_sent = 0
-        data = _ffi.new("char[]", buf)
+            left_to_send = len(buf)
+            total_sent = 0
 
-        while left_to_send:
-            # SSL_write's num arg is an int,
-            # so we cannot send more than 2**31-1 bytes at once.
-            result = _lib.SSL_write(
-                self._ssl,
-                data + total_sent,
-                min(left_to_send, 2147483647)
-            )
-            self._raise_ssl_error(self._ssl, result)
-            total_sent += result
-            left_to_send -= result
+            while left_to_send:
+                # SSL_write's num arg is an int,
+                # so we cannot send more than 2**31-1 bytes at once.
+                result = _lib.SSL_write(
+                    self._ssl,
+                    data + total_sent,
+                    min(left_to_send, 2147483647)
+                )
+                self._raise_ssl_error(self._ssl, result)
+                total_sent += result
+                left_to_send -= result
+
+            return total_sent
 
     def recv(self, bufsiz, flags=None):
         """
@@ -1886,10 +1904,11 @@ class Connection(object):
         if self._into_ssl is None:
             raise TypeError("Connection sock was not None")
 
-        result = _lib.BIO_write(self._into_ssl, buf, len(buf))
-        if result <= 0:
-            self._handle_bio_errors(self._into_ssl, result)
-        return result
+        with _from_buffer(buf) as data:
+            result = _lib.BIO_write(self._into_ssl, data, len(data))
+            if result <= 0:
+                self._handle_bio_errors(self._into_ssl, result)
+            return result
 
     def renegotiate(self):
         """
@@ -1906,7 +1925,7 @@ class Connection(object):
     def do_handshake(self):
         """
         Perform an SSL handshake (usually called after :meth:`renegotiate` or
-        one of :meth:`set_accept_state` or :meth:`set_accept_state`). This can
+        one of :meth:`set_accept_state` or :meth:`set_connect_state`). This can
         raise the same exceptions as :meth:`send` and :meth:`recv`.
 
         :return: None.
@@ -2436,6 +2455,7 @@ class Connection(object):
 
         .. versionadded:: 0.15
         """
+        _warn_npn()
         data = _ffi.new("unsigned char **")
         data_len = _ffi.new("unsigned int *")
 
@@ -2495,12 +2515,6 @@ class Connection(object):
         )
         _openssl_assert(rc == 1)
 
-
-ConnectionType = deprecated(
-    Connection, __name__,
-    "ConnectionType has been deprecated, use Connection instead",
-    DeprecationWarning
-)
 
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
 # but is exercised mostly by the Context initializer.

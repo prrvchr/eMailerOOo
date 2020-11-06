@@ -1,7 +1,7 @@
 import sys
 import warnings
 
-from six import PY3, binary_type, text_type
+from six import PY2, binary_type, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
 
@@ -81,12 +81,12 @@ def native(s):
     """
     if not isinstance(s, (binary_type, text_type)):
         raise TypeError("%r is neither bytes nor unicode" % s)
-    if PY3:
-        if isinstance(s, binary_type):
-            return s.decode("utf-8")
-    else:
+    if PY2:
         if isinstance(s, text_type):
             return s.encode("utf-8")
+    else:
+        if isinstance(s, binary_type):
+            return s.decode("utf-8")
     return s
 
 
@@ -107,12 +107,12 @@ def path_string(s):
         raise TypeError("Path must be represented as bytes or unicode string")
 
 
-if PY3:
-    def byte_string(s):
-        return s.encode("charmap")
-else:
+if PY2:
     def byte_string(s):
         return s
+else:
+    def byte_string(s):
+        return s.encode("charmap")
 
 
 # A marker object to observe whether some optional arguments are passed any
@@ -145,3 +145,17 @@ def text_to_bytes_and_warn(label, obj):
         )
         return obj.encode('utf-8')
     return obj
+
+
+try:
+    # newer versions of cffi free the buffer deterministically
+    with ffi.from_buffer(b""):
+        pass
+    from_buffer = ffi.from_buffer
+except AttributeError:
+    # cffi < 0.12 frees the buffer with refcounting gc
+    from contextlib import contextmanager
+
+    @contextmanager
+    def from_buffer(*args):
+        yield ffi.from_buffer(*args)

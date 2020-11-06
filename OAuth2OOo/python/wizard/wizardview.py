@@ -19,13 +19,12 @@ import traceback
 
 class WizardView(unohelper.Base):
     def __init__(self, ctx, handler, xdl, parent):
-        self.ctx = ctx
         self._spacer = 5
         self._roadmap = 'RoadmapControl1'
         self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         self._size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
         self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
-        self.DialogWindow = getDialog(self.ctx, g_extension, xdl, handler, parent)
+        self.DialogWindow = getDialog(ctx, g_extension, xdl, handler, parent)
 
     def getRoadmapPosition(self):
         return self._point

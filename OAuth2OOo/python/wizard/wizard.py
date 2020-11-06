@@ -99,13 +99,13 @@ class Wizard(unohelper.Base,
 
     def activatePath(self, index, final):
         if not self._manager.isMultiPaths():
-            return
-        if index not in range(self._manager.getPathsLength()):
-            raise self._getNoSuchElementException(121)
+            raise self._getInvalidStateException(121)
+        if index not in self._manager.getMultiPathsIndex():
+            raise self._getNoSuchElementException(122)
         path = self._manager.getPath(index)
         page = self._manager._model.getCurrentPageId()
         if page != -1 and page not in path:
-            raise self._getInvalidStateException(122)
+            raise self._getInvalidStateException(123)
         self._manager.activatePath(index, final)
 
     # XExecutableDialog -> XWizard

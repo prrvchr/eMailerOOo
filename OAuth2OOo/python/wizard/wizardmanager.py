@@ -59,14 +59,15 @@ class WizardManager(unohelper.Base):
         return self._multiPaths
 
     def isPathInitialized(self):
-        return self._currentPath != -1
+        return not self._multiPaths or self._currentPath != -1
 
-    def getPathsLength(self):
-        return len(self._paths)
+    def getMultiPathsIndex(self):
+        return range(len(self._paths))
 
     def activatePath(self, index, final):
         if self._currentPath != index or self._isComplete() != final:
             self._initPath(index, final)
+            self._model.updateRoadmap(self._getFirstPage())
 
     def doFinish(self, dialog):
         if self._isLastPage():
@@ -100,7 +101,9 @@ class WizardManager(unohelper.Base):
         return False
 
     def enablePage(self, pageid, enabled):
-        self._model.enablePage(pageid, enabled)
+        changed = self._model.enablePage(pageid, enabled)
+        if changed:
+            self._model.updateRoadmap(self._getFirstPage())
 
     def updateTravelUI(self):
         self._model.updateRoadmap(self._getFirstPage())
@@ -131,7 +134,7 @@ class WizardManager(unohelper.Base):
 
     def _initPath(self, index, final):
         complete, paths = self._getPath(index, final)
-        self._model.initRoadmap(self._controller, self._getFirstPage(), paths, complete)
+        self._model.initRoadmap(self._controller, paths, complete)
 
     def _getPath(self, index, final):
         if self._multiPaths:

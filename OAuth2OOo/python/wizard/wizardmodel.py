@@ -54,11 +54,15 @@ class WizardModel(unohelper.Base):
             self._pages[page].activatePage()
 
     def enablePage(self, pageid, enabled):
+        changed = False
         if enabled:
             if pageid in self._disabledPages:
                 self._disabledPages.remove(pageid)
+                changed = True
         elif pageid not in self._disabledPages:
             self._disabledPages.append(pageid)
+            changed = True
+        return changed
 
     def canAdvance(self):
         return self._canAdvancePage(self._currentPageId)
@@ -86,7 +90,21 @@ class WizardModel(unohelper.Base):
                 paths.append(item.ID)
         return tuple(paths)
 
-    def initRoadmap(self, controller, first, paths, complete):
+    def initRoadmap(self, controller, paths, complete):
+        for i in range(self._roadmap.getCount() -1, -1, -1):
+            self._roadmap.removeByIndex(i)
+        i = 0
+        for page in paths:
+            item = self._roadmap.createInstance()
+            item.ID = page
+            item.Label = controller.getPageTitle(page)
+            self._roadmap.insertByIndex(i, item)
+            i += 1
+        if self._currentPageId != -1:
+            self._roadmap.CurrentItemID = self._currentPageId
+        self._roadmap.Complete = complete
+
+    def initRoadmap1(self, controller, first, paths, complete):
         # TODO: Fixed: Roadmap item will be initialized as follows:
         # TODO: - Previous page will be, if not explicitly disabled, enabled.
         # TODO: - Current page will be enabled, it's mandatory.

@@ -573,6 +573,8 @@ def _getKeyWordArguments(parameter):
         kwargs['auth'] = NoOAuth2()
     if parameter.NoRedirect:
         kwargs['allow_redirects'] = False
+    if parameter.NoVerify:
+        kwargs['verify'] = False
     return kwargs
 
 def _parseResponse(response):

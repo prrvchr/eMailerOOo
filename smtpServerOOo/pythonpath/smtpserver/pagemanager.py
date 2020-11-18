@@ -13,6 +13,7 @@ from .dialogview import DialogView
 from .pagehandler import DialogHandler
 
 from unolib import createService
+from unolib import getDialog
 
 from .logger import logMessage
 
@@ -27,6 +28,7 @@ class PageManager(unohelper.Base):
         self._model = PageModel(self.ctx) if model is None else model
         self._views = {}
         self._dialog = None
+        self._server = None
         print("PageManager.__init__() %s" % self._model.Email)
 
     @property
@@ -74,11 +76,17 @@ class PageManager(unohelper.Base):
             self._search = False
             self.Wizard.updateTravelUI()
             if len(servers) > 0:
-                self.Wizard.travelNext()
+                print("PageManager.updateModel() 1")
+                #self.Wizard._manager._setCurrentPage(3)
+                #self.Wizard.travelNext()
+                print("PageManager.updateModel() 2")
 
     def updateDialog(self, value, offset=0, msg=None):
         if self._dialog is not None:
             self._dialog.updateProgress(value, offset, msg)
+
+    def connectServer(self, context, authenticator):
+        self._server.connect(context, authenticator)
 
     def callBackDialog(self, state):
         if self._dialog is not None:
@@ -145,7 +153,9 @@ class PageManager(unohelper.Base):
         parent = self.Wizard.DialogWindow.getPeer()
         self._dialog = DialogView(self.ctx, 'SmtpDialog', handler, parent)
         self._dialog.setTitle(context)
-        self.Model.smtpConnect(context, authenticator, self.updateDialog, self.callBackDialog)
+        server = self._getSmtpServer()
+        #server.connect(context, authenticator)
+        self.Model.smtpConnect(server, context, authenticator, self.updateDialog, self.connectServer, self.callBackDialog)
         if self._dialog.execute() == OK:
             print("PageManager.showSmtpConnect() OK")
         else:
@@ -153,12 +163,22 @@ class PageManager(unohelper.Base):
         self._dialog.dispose()
         self._dialog = None
 
+    def _getSmtpServer(self):
+        if self._server is None:
+            print("PageManager._getSmtpServer() 1")
+            #dialog = getDialog(self.ctx, 'OAuth2OOo', 'Wizard')
+            print("PageManager._getSmtpServer() 2")
+            service = 'com.sun.star.mail.MailServiceProvider2'
+            self._server = createService(self.ctx, service).create(SMTP)
+        return self._server
+
     def smtpConnect(self):
         self._dialog.enableButtonOk(False)
         self._dialog.enableButtonRetry(False)
+        server = self._getSmtpServer()
         context = self.View.getConnectionContext(self.Model)
         authenticator = self.View.getAuthenticator()
-        self.Model.smtpConnect(context, authenticator, self.updateDialog, self.callBackDialog)
+        self.Model.smtpConnect(server, context, authenticator, self.updateDialog, self.connectServer, self.callBackDialog)
 
     def _isUserValid(self):
         return self.View.isUserValid(self.Model.isUserValid)

@@ -25,11 +25,15 @@ from smtpserver import getLoggerSetting
 from smtpserver import setLoggerSetting
 from smtpserver import clearLogger
 from smtpserver import logMessage
+from smtpserver import getMessage
+g_message = 'OptionsDialog'
 
 from smtpserver import g_extension
 from smtpserver import g_identifier
 
 import traceback
+import sys
+import ssl
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -80,6 +84,9 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
+        elif method == 'LogInfo':
+            self._logInfo(dialog)
+            handled = True
         elif method == 'ChangeTimeout':
             self._changeTimeout(event.Source)
             handled = True
@@ -89,7 +96,7 @@ class OptionsDialog(unohelper.Base,
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'ChangeTimeout', 'ShowWizard')
+                'ViewLog', 'ClearLog', 'LogInfo', 'ChangeTimeout', 'ShowWizard')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -121,12 +128,19 @@ class OptionsDialog(unohelper.Base,
     def _clearLog(self, dialog):
         try:
             clearLogger()
-            logMessage(self.ctx, INFO, "ClearingLog ... Done", 'OptionsDialog', '_doClearLog()')
+            msg = getMessage(self.ctx, g_message, 101)
+            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
             url = getLoggerUrl(self.ctx)
             self._setDialogText(dialog, url)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_doClearLog()")
+            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
+
+    def _logInfo(self, dialog):
+        msg = getMessage(self.ctx, g_message, 111, sys.version)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        url = getLoggerUrl(self.ctx)
+        self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
         length, sequence = getFileSequence(self.ctx, url)
@@ -156,7 +170,7 @@ class OptionsDialog(unohelper.Base,
 
     def _showWizard(self, dialog):
         try:
-            print("_showWizard() 1")
+            print("_showWizard() 1 Python Version: %s / SSL Version: %s" % (sys.version, ssl.OPENSSL_VERSION))
             url = self._getUrl('ispdb://')
             desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
             dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)

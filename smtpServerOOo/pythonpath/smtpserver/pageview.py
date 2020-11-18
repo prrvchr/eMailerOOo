@@ -29,7 +29,7 @@ class PageView(unohelper.Base):
 
     def activatePage2(self, model):
         self._setPageTitle(2, model, model.Email)
-        self.updateProgress(model, 0)
+        self.updateProgress(model, 5)
 
     def updateProgress(self, model, value, offset=0):
         self._getProgressBar().Value = value

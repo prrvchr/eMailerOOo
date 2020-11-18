@@ -3,13 +3,18 @@
 
 #include <com/sun/star/mail/XMailService2.idl>
 #include <com/sun/star/mail/XMailMessage.idl>
+#include <com/sun/star/io/NotConnectedException.idl>
+#include <com/sun/star/mail/MailException.idl>
+#include <com/sun/star/mail/SendMailMessageFailedException.idl>
+#include <com/sun/star/datatransfer/UnsupportedFlavorException.idl>
 
 module com { module sun { module star { module mail {
 
 interface XSmtpService2: com::sun::star::mail::XMailService2
 {
 
-    void sendMailMessage([in] ::com::sun::star::mail::XMailMessage MailMessage);
+    void sendMailMessage([in] ::com::sun::star::mail::XMailMessage MailMessage)
+        raises(com::sun::star::io::NotConnectedException, com::sun::star::mail::SendMailMessageFailedException, com::sun::star::mail::MailException, com::sun::star::datatransfer::UnsupportedFlavorException);
 
 };
 

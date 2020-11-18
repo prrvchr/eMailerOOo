@@ -52,8 +52,10 @@ import base64
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_providerImplName = 'org.openoffice.pyuno.MailServiceProvider2'
-g_messageImplName = 'org.openoffice.pyuno.MailMessage2'
+g_providerImplName = 'com.sun.star.mail.MailServiceProvider2'
+g_messageImplName = 'com.sun.star.mail.MailMessage2'
+#g_providerImplName = 'org.openoffice.pyuno.MailServiceProvider2'
+#g_messageImplName = 'org.openoffice.pyuno.MailMessage2'
 
 
 class SmtpService(unohelper.Base,
@@ -93,12 +95,10 @@ class SmtpService(unohelper.Base,
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType').upper()
-        error = self._setServer(connection, server, port, timeout)
+        error = self._setServer(context, server, port, timeout)
         if error is not None:
             raise error
-        authentication = context.getValueByName('AuthenticationType').upper()
-        error = self._doLogin(authentication, authenticator, server)
+        error = self._doLogin(context, authenticator, server)
         if error is not None:
             raise error
         self._context = context
@@ -106,8 +106,9 @@ class SmtpService(unohelper.Base,
             listener.connected(self._notify)
         print("SmtpService.connect() 3")
 
-    def _setServer(self, connection, host, port, timeout):
+    def _setServer(self, context, host, port, timeout):
         error = None
+        connection = context.getValueByName('ConnectionType').upper()
         try:
             if connection == 'SSL':
                 server = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
@@ -128,8 +129,9 @@ class SmtpService(unohelper.Base,
             self._server = server
         return error
 
-    def _doLogin(self, authentication, authenticator, server):
+    def _doLogin(self, context, authenticator, server):
         error = None
+        authentication = context.getValueByName('AuthenticationType').upper()
         if authentication == 'LOGIN':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
@@ -486,11 +488,11 @@ class MailMessage(unohelper.Base,
 
 g_ImplementationHelper.addImplementation(MailServiceProvider,
                                          g_providerImplName,
-                                         ('com.sun.star.mail.MailServiceProvider', ), )
+                                         ('com.sun.star.mail.MailServiceProvider2', ), )
 
 g_ImplementationHelper.addImplementation(MailMessage,
                                          g_messageImplName,
-                                         ('com.sun.star.mail.MailMessage', ), )
+                                         ('com.sun.star.mail.MailMessage2', ), )
 
 
 def getOAuth2Token(ctx, sessions, server, user, encode=False):

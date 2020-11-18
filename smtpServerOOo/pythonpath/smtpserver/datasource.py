@@ -100,26 +100,27 @@ class DataSource(unohelper.Base,
                 progress(100, 4)
         callback(user, servers, offline)
 
-    def smtpConnect(self, context, authenticator, progress, callback):
+    def smtpConnect(self, server, context, authenticator, progress, connect, callback):
         if self._isRunning():
             progress(self._progress)
         else:
-            args = (context, authenticator, progress, callback)
+            args = (server, context, authenticator, progress, connect, callback)
             self._connect = Thread(target=self._smtpConnect, args=args)
             self._connect.start()
 
-    def _smtpConnect(self, context, authenticator, progress, callback):
+    def _smtpConnect(self, server, context, authenticator, progress, connect, callback):
         connected = False
         self._updateProgress(progress, 25)
-        service = 'com.sun.star.mail.MailServiceProvider'
-        server = createService(self.ctx, service).create(SMTP)
+        #service = 'com.sun.star.mail.MailServiceProvider2'
+        #server = createService(self.ctx, service).create(SMTP)
         self._updateProgress(progress, 50)
         try:
-            server.connect(context, authenticator)
+            connect(context, authenticator)
+            #server.connect(context, authenticator)
         except UnoException as e:
             self._updateProgress(progress, 100, 2, e.Message)
         else:
-            self._updateProgress(progress, 50)
+            self._updateProgress(progress, 75)
             if server.isConnected():
                 server.disconnect()
                 connected = True
@@ -140,6 +141,7 @@ class DataSource(unohelper.Base,
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
+        parameter.NoVerify = True
         response = request.getRequest(parameter, DataParser()).execute()
         return response
 

@@ -1,0 +1,17 @@
+#ifndef __com_sun_star_mail_MailServiceProvider2_idl__
+#define __com_sun_star_mail_MailServiceProvider2_idl__
+
+#include <com/sun/star/mail/XMailServiceProvider2.idl>
+
+module com { module sun { module star { module mail {
+
+service MailServiceProvider2: XMailServiceProvider2
+{
+
+    create();
+
+};
+
+}; }; }; };
+
+#endif

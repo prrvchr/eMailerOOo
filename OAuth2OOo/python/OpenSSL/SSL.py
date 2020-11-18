@@ -2519,3 +2519,5 @@ class Connection(object):
 # This is similar to the initialization calls at the end of OpenSSL/crypto.py
 # but is exercised mostly by the Context initializer.
 _lib.SSL_library_init()
+
+print("OpenSSL.SSL.py OK*************")

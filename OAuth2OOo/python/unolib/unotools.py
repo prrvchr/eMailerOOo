@@ -130,7 +130,7 @@ def generateUuid():
 
 def getDialog(ctx, library, xdl, handler=None, window=None):
     dialog = None
-    provider = createService(ctx, 'com.sun.star.awt.DialogProvider')
+    provider = createService(ctx, 'com.sun.star.awt.DialogProvider2')
     url = getDialogUrl(library, xdl)
     if handler is None and window is None:
         dialog = provider.createDialog(url)

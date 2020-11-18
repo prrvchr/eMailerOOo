@@ -204,17 +204,28 @@ class WizardManager(unohelper.Base):
         return False
 
     def _setPage(self, pageid):
-        if not self._model.hasPage(pageid):
-            window = self._view.DialogWindow
-            page = self._controller.createPage(window.getPeer(), pageid)
-            name = self._setPageModel(page)
-            self._model.addPage(pageid, self._setPageWindow(window, page, name))
-        self._model.setCurrentPageId(pageid)
-        self._activatePage(pageid)
-        # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
-        self._model.updateRoadmap(self._getFirstPage())
-        self._updateButton()
-        self._model.setPageVisible(pageid, True)
+        try:
+            print("WizardManager._setPage() 1")
+            if not self._model.hasPage(pageid):
+                print("WizardManager._setPage() 2")
+                window = self._view.DialogWindow
+                print("WizardManager._setPage() 3")
+                page = self._controller.createPage(window.getPeer(), pageid)
+                print("WizardManager._setPage() 4")
+                name = self._setPageModel(page)
+                self._model.addPage(pageid, self._setPageWindow(window, page, name))
+                print("WizardManager._setPage() 5")
+            self._model.setCurrentPageId(pageid)
+            self._activatePage(pageid)
+            # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
+            self._model.updateRoadmap(self._getFirstPage())
+            self._updateButton()
+            print("WizardManager._setPage() 6")
+            self._model.setPageVisible(pageid, True)
+            print("WizardManager._setPage() 7")
+        except Exception as e:
+            msg = "WizardManager._setPage() Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def _updateButton(self):
         self._view.updateButtonPrevious(not self._isFirstPage())

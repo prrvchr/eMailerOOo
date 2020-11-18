@@ -45,6 +45,7 @@ class Wizard(unohelper.Base,
              XItemListener,
              XDialogEventHandler):
     def __init__(self, ctx, auto=-1, resize=False, parent=None):
+        print("Wizard.__init__() 1")
         self.ctx = ctx
         self._auto = auto
         self._resize = resize
@@ -58,12 +59,18 @@ class Wizard(unohelper.Base,
         self._multiPaths = False
         self._controller = None
         self._helpUrl = ''
+        print("Wizard.__init__() 2")
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
+        print("Wizard.__init__() 3")
+        #self._dialog = getDialog(self.ctx, g_extension, 'Wizard')
         self._dialog = getDialog(self.ctx, g_extension, 'Wizard', self, parent)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
+        print("Wizard.__init__() 4")
         roadmap = self._getRoadmapControl('RoadmapControl1', point, size)
+        print("Wizard.__init__() 5")
         roadmap.addItemListener(self)
+        print("Wizard.__init__() 6")
 
     @property
     def HelpURL(self):

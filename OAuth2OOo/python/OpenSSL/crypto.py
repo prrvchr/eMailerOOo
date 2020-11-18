@@ -8,10 +8,11 @@ from six import (
     integer_types as _integer_types,
     text_type as _text_type,
     PY3 as _PY3)
-
+print("OpenSSL.crypto.py 1")
 from cryptography import x509
+print("OpenSSL.crypto.py 2")
 from cryptography.hazmat.primitives.asymmetric import dsa, rsa
-
+print("OpenSSL.crypto.py 3")
 from OpenSSL._util import (
     ffi as _ffi,
     lib as _lib,
@@ -22,7 +23,7 @@ from OpenSSL._util import (
     text_to_bytes_and_warn as _text_to_bytes_and_warn,
     make_assert as _make_assert,
 )
-
+print("OpenSSL.crypto.py 4")
 __all__ = [
     'FILETYPE_PEM',
     'FILETYPE_ASN1',
@@ -3062,3 +3063,5 @@ _lib.SSL_load_error_strings()
 # Set the default string mask to match OpenSSL upstream (since 2005) and
 # RFC5280 recommendations.
 _lib.ASN1_STRING_set_default_mask_asc(b'utf8only')
+
+print("OpenSSL.crypto.py OK*************")

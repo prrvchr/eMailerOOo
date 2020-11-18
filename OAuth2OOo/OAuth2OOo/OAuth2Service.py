@@ -51,7 +51,6 @@ from oauth2 import g_wizard_page
 from oauth2 import g_refresh_overlap
 from oauth2 import requests
 
-import sys
 import time
 
 import traceback
@@ -70,7 +69,8 @@ class OAuth2Service(unohelper.Base,
         self.ctx = ctx
         self.configuration = getConfiguration(self.ctx, g_identifier, True)
         self.Setting = OAuth2Setting(self.ctx)
-        self.Session = self._getSession()
+        version = self._getSSLVersion()
+        self.Session = self._getSession(version)
         self._Url = ''
         self._Provider = KeyMap()
         self._Users = None
@@ -82,7 +82,7 @@ class OAuth2Service(unohelper.Base,
         self.Error = ''
         self.stringResource = getStringResource(self.ctx, g_identifier, 'OAuth2OOo')
         self._SessionMode = OFFLINE
-        self._checkSSL()
+        #self._checkSSL()
 
     @property
     def ResourceUrl(self):
@@ -174,11 +174,16 @@ class OAuth2Service(unohelper.Base,
     def getAuthorization(self, url, username, close=True, parent=None):
         authorized = False
         msg = "Wizard Loading ..."
+        print("OAuth2Service.getAuthorization() 1")
         wizard = Wizard(self.ctx, g_wizard_page, True, parent)
+        print("OAuth2Service.getAuthorization() 2")
         controller = WizardController(self.ctx, wizard, self.Session, url, username, close)
+        print("OAuth2Service.getAuthorization() 3")
         arguments = (g_wizard_paths, controller)
+        print("OAuth2Service.getAuthorization() 4")
         wizard.initialize(arguments)
         msg += " Done ..."
+        print("OAuth2Service.getAuthorization() 5")
         if wizard.execute() == OK:
             msg +=  " Retrieving Authorization Code ..."
             if controller.Error:
@@ -248,31 +253,48 @@ class OAuth2Service(unohelper.Base,
     def getUploader(self, chunk, url, user):
         return Uploader(self.ctx, self.Session, chunk, url, user.callBack, self.Timeout)
 
-    def _getSession(self):
-        if sys.version_info[0] < 3:
-            requests.packages.urllib3.disable_warnings()
-        session = requests.Session()
-        session.auth = OAuth2OOo(self)
-        session.codes = requests.codes
+    def _getSession(self, version):
+        print("OAuth2Service._getSession() 1 %s" % version)
+        session = None
+        #if sys.version_info[0] < 3:
+        #    requests.packages.urllib3.disable_warnings()
+        if version is not None:
+            #if version < 'OpenSSL 1.0.0':
+            #    print("OAuth2Service._getSession() 2 %s" % version)
+            #    monkey.patch()
+            #    print("OAuth2Service._getSession() 3 %s" % version)
+            session = requests.Session()
+            session.auth = OAuth2OOo(self)
+            session.codes = requests.codes
         return session
 
-    def _checkSSL(self):
+    def _getSSLVersion(self):
         try:
             import ssl
         except ImportError:
             self.Error = "Can't load module: 'ssl.py'. Your Python SSL configuration is broken..."
+            version = None
+        else:
+            version = ssl.OPENSSL_VERSION
+            print("OAuth2Service._getSSLVersion() %s" % version)
+        return version
 
     def _isAuthorized(self):
+        print("OAuth2Service._isAuthorized() 1")
         if self.Setting.Initialized and self.Setting.Url.Scope.Authorized:
             return True
+        print("OAuth2Service._isAuthorized() 2")
         msg = "OAuth2 initialization ... AuthorizationCode needed ..."
         parent = getParentWindow(self.ctx)
+        print("OAuth2Service._isAuthorized() 3")
         if self.getAuthorization(self.ResourceUrl, self.UserName, True, parent):
+            print("OAuth2Service._isAuthorized() 4")
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'OAuth2Service', '_isAuthorized()')
             return True
         msg += " ERROR: Wizard Aborted!!!"
         logMessage(self.ctx, SEVERE, msg, 'OAuth2Service', '_isAuthorized()')
+        print("OAuth2Service._isAuthorized() 5")
         return False
 
     def _getToolkit(self):

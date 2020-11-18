@@ -28,6 +28,7 @@ from oauth2 import logMessage
 from oauth2 import g_identifier
 from oauth2 import g_oauth2
 
+import sys
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -95,10 +96,14 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
+        elif method == 'LogInfo':
+            self._logInfo(dialog)
+            handled = True
         return handled
     def getSupportedMethodNames(self):
-        return ('external_event', 'TextChanged', 'SelectionChanged', 'Connect', 'Remove', 'Reset',
-                'AutoClose', 'ToggleLogger', 'EnableViewer', 'DisableViewer', 'ViewLog', 'ClearLog')
+        return ('external_event', 'TextChanged', 'SelectionChanged', 'Connect',
+                'Remove', 'Reset','AutoClose', 'ToggleLogger', 'EnableViewer',
+                'DisableViewer', 'ViewLog', 'ClearLog', 'LogInfo')
 
     def _doTextChanged(self, dialog, control):
         enabled = control.Text != ''
@@ -170,12 +175,19 @@ class OptionsDialog(unohelper.Base,
     def _clearLog(self, dialog):
         try:
             clearLogger()
-            logMessage(self.ctx, INFO, "ClearingLog ... Done", 'OptionsDialog', '_doClearLog()')
+            msg = getMessage(self.ctx, g_message, 101)
+            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
             url = getLoggerUrl(self.ctx)
             self._setDialogText(dialog, url)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_doClearLog()")
+            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
+
+    def _logInfo(self, dialog):
+        msg = getMessage(self.ctx, g_message, 111, sys.version)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        url = getLoggerUrl(self.ctx)
+        self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
         length, sequence = getFileSequence(self.ctx, url)

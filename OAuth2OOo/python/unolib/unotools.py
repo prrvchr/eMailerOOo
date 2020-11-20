@@ -14,6 +14,7 @@ from .oauth2config import g_oauth2
 
 import datetime
 import binascii
+import six
 import traceback
 
 
@@ -51,10 +52,13 @@ def getOAuth2(ctx, url, name):
     return oauth2
 
 def getExceptionMessage(exception):
-    messages = (arg for arg in exception.args if isinstance(arg, str))
-    message = max(messages, key=len, default=None)
-    if message is None:
+    messages = [arg for arg in exception.args if isinstance(arg, six.string_types)]
+    if len(messages) == 0:
         message = str(exception)
+    elif len(messages) == 1:
+        message = messages[0].decode('utf-8')
+    else:
+        message = max(messages, key=len).decode('utf-8')
     return message
 
 def getFileSequence(ctx, url, default=None):

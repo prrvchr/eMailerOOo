@@ -18,6 +18,7 @@ from unolib import getConfiguration
 from unolib import getInteractionHandler
 from unolib import InteractionRequest
 from unolib import getUserNameFromHandler
+from unolib import getOAuth2UserName
 from unolib import getDialog
 
 from oauth2 import getLoggerUrl
@@ -25,6 +26,9 @@ from oauth2 import getLoggerSetting
 from oauth2 import setLoggerSetting
 from oauth2 import clearLogger
 from oauth2 import logMessage
+from oauth2 import getMessage
+g_message = 'OptionsDialog'
+
 from oauth2 import g_identifier
 from oauth2 import g_oauth2
 
@@ -122,7 +126,7 @@ class OptionsDialog(unohelper.Base,
                 message = "Authentication needed!!!"
                 if self.service.initializeUrl(url):
                     print("OptionDialog._doConnect() 2 %s" % url)
-                    user = getUserNameFromHandler(self.ctx, url, self, message)
+                    user = getOAuth2UserName(self.ctx, self, url, message)
             autoclose = bool(dialog.getControl('CheckBox2').State)
             print("OptionDialog._doConnect() 3 %s - %s - %s" % (user, url, autoclose))
             enabled = self.service.getAuthorization(url, user, autoclose, dialog.getPeer())

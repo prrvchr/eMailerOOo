@@ -36,36 +36,48 @@ class InteractionAbort(unohelper.Base,
 
 class InteractionUserName(unohelper.Base,
                           XInteractionUserName):
-    def __init__(self, result):
-        self.result = result
-        self.username = ''
+    def __init__(self):
+        self._username = ''
+        self._token = ''
 
     # XInteractionUserName
     def setUserName(self, name):
-        self.username = name
+        self._username = name
+
+    def getUserName(self):
+        return self._username
+
+    def setToken(self, token):
+        self._token = token
+
+    def getToken(self):
+        return self._token
+
     def select(self):
-        self.result.Value = self.username
-        self.result.IsPresent = True
+        pass
 
 
 class InteractionRequest(unohelper.Base,
                          XInteractionRequest):
-    def __init__(self, url, source, message, response):
-        self.url = url
-        self.source = source
-        self.message = message
-        self.response = response
+    def __init__(self, source, url, user, format, message):
+        self._request = self._getRequest(source, url, user, format, message)
+        self._abort = InteractionAbort()
+        self._continue = InteractionUserName()
 
     # XInteractionRequest
     def getRequest(self):
+        return self._request
+
+    def getContinuations(self):
+        return (self._abort, self._continue)
+
+    def _getRequest(self, context, url, user, format, message):
         request = OAuth2Request()
         classification = 'com.sun.star.task.InteractionClassification'
         request.Classification = uno.Enum(classification, 'QUERY')
-        request.ResourceUrl = self.url
-        request.Context = self.source
-        if self.message is not None:
-            request.Message = self.message
+        request.Context = context
+        request.ResourceUrl = url
+        request.UserName = user
+        request.Format = format
+        request.Message = message
         return request
-    def getContinuations(self):
-        continuations = (InteractionAbort(), InteractionUserName(self.response))
-        return continuations

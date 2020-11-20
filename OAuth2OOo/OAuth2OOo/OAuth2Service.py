@@ -45,6 +45,7 @@ from oauth2 import WizardController
 from oauth2 import getRefreshToken
 from oauth2 import logMessage
 from oauth2 import g_identifier
+from oauth2 import g_extension
 from oauth2 import g_oauth2
 from oauth2 import g_wizard_paths
 from oauth2 import g_wizard_page
@@ -76,7 +77,7 @@ class OAuth2Service(unohelper.Base,
         self._Users = None
         self._UserName = ''
         self._User = KeyMap()
-        self.Parent = None
+        self._parent = None
         self._Warnings = []
         self._Error = None
         self.Error = ''
@@ -101,7 +102,7 @@ class OAuth2Service(unohelper.Base,
     def initialize(self, properties):
         for property in properties:
             if property.Name == 'Parent':
-                self.Parent = property.Value
+                self._parent = property.Value
 
     # XInteractionHandler2, XInteractionHandler
     def handle(self, interaction):
@@ -113,10 +114,30 @@ class OAuth2Service(unohelper.Base,
         # TODO: at line 525 in "_uno_struct__setattr__"
         # TODO: as a workaround we must set an "args" attribute of type "sequence<any>" to
         # TODO: IDL file of com.sun.star.auth.OAuth2Request Exception who is normally returned...
-        url = interaction.getRequest().ResourceUrl
+        request = interaction.getRequest()
+        url = request.ResourceUrl
+        user = request.UserName
+        print("handleInteractionRequest() %s - %s" %(type(user), user))
+        if user != '':
+            approved = self._getToken(interaction, url, user, request.Format)
+        else:
+            approved = self._showUserDialog(interaction, url, request.Message)
+        return approved
+
+    def _getToken(self, interaction, url, user, format):
+        self.initializeSession(url, user)
+        token = self.getToken(format)
+        status = 1 if token != '' else 0
+        continuation = interaction.getContinuations()[status]
+        if status:
+            continuation.setToken(token)
+        continuation.select()
+        return status == 1
+
+    def _showUserDialog(self, interaction, url, message):
         provider = self._getProviderNameFromUrl(url)
-        dialog = getDialog(self.ctx, 'OAuth2OOo', 'UserDialog', DialogHandler(), self.Parent)
-        self._initUserDialog(dialog, provider)
+        dialog = getDialog(self.ctx, g_extension, 'UserDialog', DialogHandler(), self._parent)
+        self._initUserDialog(dialog, provider, message)
         status = dialog.execute()
         approved = status == OK
         continuation = interaction.getContinuations()[status]
@@ -126,11 +147,11 @@ class OAuth2Service(unohelper.Base,
         dialog.dispose()
         return approved
 
-    def _initUserDialog(self, dialog, name=''):
+    def _initUserDialog(self, dialog, provider, message):
         title = self.stringResource.resolveString('UserDialog.Title')
         label = self.stringResource.resolveString('UserDialog.Label1.Label')
-        dialog.setTitle(title % name)
-        dialog.getControl('Label1').Text = label % name
+        dialog.setTitle(title % provider)
+        dialog.getControl('Label1').Text = label % message
 
     def _getUserName(self, dialog):
         return dialog.getControl('TextField1').Model.Text
@@ -285,7 +306,7 @@ class OAuth2Service(unohelper.Base,
             return True
         print("OAuth2Service._isAuthorized() 2")
         msg = "OAuth2 initialization ... AuthorizationCode needed ..."
-        parent = getParentWindow(self.ctx)
+        parent = getParentWindow(self.ctx) if self._parent is None else self._parent
         print("OAuth2Service._isAuthorized() 3")
         if self.getAuthorization(self.ResourceUrl, self.UserName, True, parent):
             print("OAuth2Service._isAuthorized() 4")

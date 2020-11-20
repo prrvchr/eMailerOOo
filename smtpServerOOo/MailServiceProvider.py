@@ -36,6 +36,7 @@ from email.utils import formatdate
 from email.utils import parseaddr
 
 from unolib import getOAuth2
+from unolib import getOAuth2Token
 from unolib import getConfiguration
 from unolib import getInterfaceTypes
 from unolib import getExceptionMessage
@@ -146,7 +147,7 @@ class SmtpService(unohelper.Base,
         elif authentication == 'OAUTH2':
             user = authenticator.getUserName()
             print("SmtpService._doLogin() 2")
-            token = getOAuth2Token(self.ctx, self._sessions, server, user, True)
+            token = getToken(self.ctx, self, server, user, True)
             try:
                 self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
             except Exception as e:
@@ -317,7 +318,7 @@ class ImapService(unohelper.Base,
                 self._server.login(user, password)
         elif authentication.upper() == 'OAUTH2':
             user = authenticator.getUserName()
-            token = getOAuth2Token(self.ctx, self._sessions, server, user)
+            token = getToken(self.ctx, self, server, user)
             self._server.authenticate('XOAUTH2', lambda x: token)
         for listener in self._listeners:
             listener.connected(self._notify)
@@ -495,7 +496,14 @@ g_ImplementationHelper.addImplementation(MailMessage,
                                          ('com.sun.star.mail.MailMessage2', ), )
 
 
-def getOAuth2Token(ctx, sessions, server, user, encode=False):
+def getToken(ctx, context, url, user, encode=False):
+    token = getOAuth2Token(ctx, context, url, user)
+    authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
+    if encode:
+        authstring = base64.b64encode(authstring.encode("ascii"))
+    return authstring
+
+def getOAuth2Token1(ctx, sessions, server, user, encode=False):
     key = '%s/%s' % (server, user)
     if key not in sessions:
         sessions[key] = getOAuth2(ctx, server, user)
@@ -503,4 +511,4 @@ def getOAuth2Token(ctx, sessions, server, user, encode=False):
     authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
     if encode:
         authstring = base64.b64encode(authstring.encode("ascii"))
-    return 
+    return

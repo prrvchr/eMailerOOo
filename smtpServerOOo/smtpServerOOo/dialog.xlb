@@ -7,5 +7,5 @@
   <library:element library:name="PageWizard1"/>
   <library:element library:name="PageWizard2"/>
   <library:element library:name="PageWizard3"/>
-  <library:element library:name="SmtpDialog"/>
+  <library:element library:name="PageWizard4"/>
 </library:library>

@@ -29,17 +29,21 @@ class PageView(unohelper.Base):
 
     def activatePage2(self, model):
         self._setPageTitle(2, model, model.Email)
-        self.updateProgress(model, 5)
 
-    def updateProgress(self, model, value, offset=0):
+    def updateProgress(self, model, pageid, value, offset=0, msg=None):
         self._getProgressBar().Value = value
-        text = model.resolveString(self._getProgressMessage(value + offset))
+        text = model.resolveString(self._getProgressMessage(pageid, value + offset))
+        if msg is not None:
+            text = text % msg
         self._getProgressLabel().Text = text
 
     def activatePage3(self, model):
         self._setPageTitle(3, model, model.Email)
         self._setConnectionMode(model.Online)
         self.updatePage3(model)
+
+    def activatePage4(self, model):
+        self._setPageTitle(4, model, (model.getServer(), model.getPort()))
 
     def updatePage3(self, model):
         self._enablePrevious(model.isFirst())
@@ -122,9 +126,9 @@ class PageView(unohelper.Base):
         return Authenticator(user, password)
 
 # PageView private methods
-    def _setPageTitle(self, pageid, model, title):
+    def _setPageTitle(self, pageid, model, format):
         text = model.resolveString(self._getPageLabelMessage(pageid))
-        self._getPageLabel().Text = text % title
+        self._getPageLabel().Text = text % format
 
     def _setConnectionMode(self, enabled):
         self._getConnectLabel().Model.Enabled = enabled
@@ -164,8 +168,8 @@ class PageView(unohelper.Base):
     def _getPageLabelMessage(self, pageid):
         return 'PageWizard%s.Label1.Label' % pageid
 
-    def _getProgressMessage(self, value):
-        return 'PageWizard2.Label2.Label.%s' % value
+    def _getProgressMessage(self, pageid, value):
+        return 'PageWizard%s.Label2.Label.%s' % (pageid, value)
 
     def _getSecurityMessage(self, level):
         return 'PageWizard3.Label10.Label.%s' % level

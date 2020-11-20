@@ -16,6 +16,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from unolib import getConfiguration
 from unolib import createService
 from unolib import getUrl
+from unolib import getUserNameFromHandler
 
 from .dbtools import getDataSource
 
@@ -100,23 +101,25 @@ class DataSource(unohelper.Base,
                 progress(100, 4)
         callback(user, servers, offline)
 
-    def smtpConnect(self, server, context, authenticator, progress, connect, callback):
+    def smtpConnect(self, context, authenticator, progress, callback):
         if self._isRunning():
             progress(self._progress)
         else:
-            args = (server, context, authenticator, progress, connect, callback)
+            args = (context, authenticator, progress, callback)
             self._connect = Thread(target=self._smtpConnect, args=args)
             self._connect.start()
 
-    def _smtpConnect(self, server, context, authenticator, progress, connect, callback):
+    def _smtpConnect(self, context, authenticator, progress, callback):
         connected = False
+        url = 'smtp.gmail.com'
+        message = "Authentication needed!!!"
+        user = getUserNameFromHandler(self.ctx, url, self, message)
         self._updateProgress(progress, 25)
-        #service = 'com.sun.star.mail.MailServiceProvider2'
-        #server = createService(self.ctx, service).create(SMTP)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        server = createService(self.ctx, service).create(SMTP)
         self._updateProgress(progress, 50)
         try:
-            connect(context, authenticator)
-            #server.connect(context, authenticator)
+            server.connect(context, authenticator)
         except UnoException as e:
             self._updateProgress(progress, 100, 2, e.Message)
         else:

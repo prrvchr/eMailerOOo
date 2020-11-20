@@ -37,10 +37,7 @@ class WizardPage(unohelper.Base,
     def activatePage(self):
         try:
             msg = "PageId: %s ..." % self.PageId
-            if self.PageId == 2:
-                self._manager.activatePage2()
-            elif self.PageId == 3:
-                self._manager.activatePage3()
+            self._manager.activatePage(self.PageId)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardPage', 'activatePage()')
         except Exception as e:
@@ -53,12 +50,7 @@ class WizardPage(unohelper.Base,
             forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FORWARD')
             backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.BACKWARD')
             finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardTravelType.FINISH')
-            if self.PageId == 1:
-                self._manager.commitPage1()
-            elif self.PageId == 2:
-                self._manager.commitPage2()
-            elif self.PageId == 3:
-                pass
+            self._manager.commitPage(self.PageId, reason)
             msg += " Done"
             logMessage(self.ctx, INFO, msg, 'WizardPage', 'commitPage()')
             return True
@@ -67,6 +59,7 @@ class WizardPage(unohelper.Base,
             print(msg)
 
     def canAdvance(self):
+        print("WizardPage.canAdvance() %s" % self.PageId)
         return self._manager.canAdvancePage(self.PageId)
 
     def _getPropertySetInfo(self):

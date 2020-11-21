@@ -48,14 +48,11 @@ class PageHandler(unohelper.Base,
         elif method == 'Next':
             self._manager.nextServerPage()
             handled = True
-        elif method == 'ShowSmtpConnect':
-            self._manager.showSmtpConnect()
-            handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('TextChange', 'ChangeConnection', 'ChangeAuthentication',
-                'Previous', 'Next', 'ShowSmtpConnect')
+        return ('TextChange', 'ChangeConnection',
+                'ChangeAuthentication', 'Previous', 'Next')
 
 
 class DialogHandler(unohelper.Base,

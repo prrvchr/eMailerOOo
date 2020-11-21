@@ -7,6 +7,8 @@ import unohelper
 from com.sun.star.uno import Exception as UnoException
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
 from .pagemodel import PageModel
 from .pageview import PageView
@@ -16,7 +18,11 @@ from .pagehandler import DialogHandler
 from unolib import createService
 from unolib import getDialog
 
+from .logger import setDebugMode
 from .logger import logMessage
+from .logger import getMessage
+g_message = 'pagemanager'
+
 
 import traceback
 
@@ -30,7 +36,6 @@ class PageManager(unohelper.Base):
         self._model = PageModel(self.ctx) if model is None else model
         self._views = {}
         self._dialog = None
-        self._server = None
         print("PageManager.__init__() %s" % self._model.Email)
 
     @property
@@ -54,50 +59,37 @@ class PageManager(unohelper.Base):
         return self.Wizard
 
     def initPage(self, pageid, window):
-        self._views[pageid] = PageView(window)
+        view = PageView(self.ctx, window)
+        self._views[pageid] = view
         if pageid == 1:
-            self.getView(pageid).initPage1(self.Model)
+            view.initPage1(self.Model)
 
     def activatePage(self, pageid):
         if pageid == 2:
             self.Wizard.enablePage(1, False)
             self.getView(pageid).activatePage2(self.Model)
-            self.Model.getSmtpConfig(self.updateProgress, self.updateModel)
+            self.Model.getSmtpConfig(self.updatePage2, self.updateModel)
         elif pageid == 3:
             self.getView(pageid).activatePage3(self.Model)
         elif pageid == 4:
             self._connected = False
+            setDebugMode(True)
             self.getView(pageid).activatePage4(self.Model)
             context = self.getView(3).getConnectionContext(self.Model)
             authenticator = self.getView(3).getAuthenticator()
-            self.Model.smtpConnect(context, authenticator, self.updateProgress, self.callBack)
+            self.Model.smtpConnect(context, authenticator, self.updatePage4, self.callBack)
 
-    def serverConnect(self):
-        connected = False
-        context = self.getView(3).getConnectionContext(self.Model)
-        authenticator = self.getView(3).getAuthenticator()
-        self.View.updateProgress(self.Model, 4, 25)
-        service = 'com.sun.star.mail.MailServiceProvider2'
-        server = createService(self.ctx, service).create(SMTP)
-        self.View.updateProgress(self.Model, 4, 50)
-        try:
-            server.connect(context, authenticator)
-        except UnoException as e:
-            self.View.updateProgress(self.Model, 4, 100, 2, e.Message)
-        else:
-            self.View.updateProgress(self.Model, 4, 75)
-            if server.isConnected():
-                server.disconnect()
-                connected = True
-                self.View.updateProgress(self.Model, 4, 100, 1)
-            else:
-                self.View.updateProgress(self.Model, 4, 100, 3)
-        return connected
-
-    def updateProgress(self, value, offset=0, msg=None):
+    def updatePage2(self, value, offset=0):
         if self.Wizard.DialogWindow is not None:
-            pageid = self.Wizard.getCurrentPage().PageId
-            self.View.updateProgress(self.Model, pageid, value, offset, msg)
+            self.getView(2).updatePage2(self.Model, value, offset)
+
+    def updatePage4(self, value, offset=0, msg=None):
+        message = getMessage(self.ctx, g_message, value + offset)
+        if msg is not None:
+            message = message % msg
+        logMessage(self.ctx, INFO, message, 'PageManager', 'updatePage4()')
+        if self.Wizard.DialogWindow is not None:
+            self.getView(4).updatePage4(self.Model, value)
 
     def updateModel(self, user, servers, offline):
         print("PageManager.updateModel() 1: %s" % self.Wizard.getCurrentPage().PageId)
@@ -107,6 +99,7 @@ class PageManager(unohelper.Base):
             self.Model.Online = not offline
             self._search = False
             print("PageManager.updateModel() 2")
+            self.Wizard.enablePage(1, True)
             self.Wizard.updateTravelUI()
             if len(servers) > 0:
                 print("PageManager.updateModel() 3")
@@ -134,7 +127,6 @@ class PageManager(unohelper.Base):
                            self._isPortValid(pageid),
                            self._isLoginNameValid(pageid),
                            self._isPasswordValid(pageid)))
-            self.getView(pageid).enableConnect(advance and self.Model.Online)
         elif pageid == 4:
             advance = self._connected
         return advance
@@ -143,9 +135,10 @@ class PageManager(unohelper.Base):
         if pageid == 1:
             self.Model.Email = self.View.getUser()
         elif pageid == 2:
-            print("PageManager.commitPage2()")
-            self.Wizard.enablePage(1, True)
             self._search = True
+        elif pageid == 4:
+            setDebugMode(False)
+        return True
 
     def setPageTitle(self, pageid):
         self.Wizard.setTitle(self.getView(pageid).getPageTitle(self.Model, pageid))
@@ -186,8 +179,6 @@ class PageManager(unohelper.Base):
         parent = self.Wizard.DialogWindow.getPeer()
         self._dialog = DialogView(self.ctx, 'SmtpDialog', handler, parent)
         self._dialog.setTitle(context)
-        server = self._getSmtpServer()
-        #server.connect(context, authenticator)
         self.Model.smtpConnect(server, context, authenticator, self.updateDialog, self.connectServer, self.callBackDialog)
         if self._dialog.execute() == OK:
             print("PageManager.showSmtpConnect() OK")
@@ -195,23 +186,6 @@ class PageManager(unohelper.Base):
             print("PageManager.showSmtpConnect() CANCEL")
         self._dialog.dispose()
         self._dialog = None
-
-    def _getSmtpServer(self):
-        if self._server is None:
-            print("PageManager._getSmtpServer() 1")
-            #dialog = getDialog(self.ctx, 'OAuth2OOo', 'Wizard')
-            print("PageManager._getSmtpServer() 2")
-            service = 'com.sun.star.mail.MailServiceProvider2'
-            self._server = createService(self.ctx, service).create(SMTP)
-        return self._server
-
-    def smtpConnect1(self):
-        self._dialog.enableButtonOk(False)
-        self._dialog.enableButtonRetry(False)
-        server = self._getSmtpServer()
-        context = self.View.getConnectionContext(self.Model)
-        authenticator = self.View.getAuthenticator()
-        self.Model.smtpConnect(server, context, authenticator, self.updateDialog, self.connectServer, self.callBackDialog)
 
     def _isUserValid(self, pageid):
         return self.getView(pageid).isUserValid(self.Model.isUserValid)

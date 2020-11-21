@@ -41,6 +41,7 @@ from unolib import getConfiguration
 from unolib import getInterfaceTypes
 from unolib import getExceptionMessage
 
+from smtpserver import isDebugMode
 from smtpserver import logMessage
 from smtpserver import getMessage
 g_message = 'MailServiceProvider'
@@ -62,6 +63,10 @@ g_messageImplName = 'com.sun.star.mail.MailMessage2'
 class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
+        print("SmtpService.__init__() %s" % isDebugMode())
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 121)
+            logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
         self.ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
@@ -70,6 +75,9 @@ class SmtpService(unohelper.Base,
         self._context = None
         self._sessions = {}
         self._notify = EventObject(self)
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 122)
+            logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
 
     def addConnectionListener(self, listener):
         self._listeners.append(listener)
@@ -94,9 +102,7 @@ class SmtpService(unohelper.Base,
         if unotype not in getInterfaceTypes(authenticator):
             raise IllegalArgumentException()
         server = context.getValueByName('ServerName')
-        port = context.getValueByName('Port')
-        timeout = context.getValueByName('Timeout')
-        error = self._setServer(context, server, port, timeout)
+        error = self._setServer(context, server)
         if error is not None:
             raise error
         error = self._doLogin(context, authenticator, server)
@@ -107,8 +113,10 @@ class SmtpService(unohelper.Base,
             listener.connected(self._notify)
         print("SmtpService.connect() 3")
 
-    def _setServer(self, context, host, port, timeout):
+    def _setServer(self, context, host):
         error = None
+        port = context.getValueByName('Port')
+        timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType').upper()
         try:
             if connection == 'SSL':
@@ -118,13 +126,13 @@ class SmtpService(unohelper.Base,
             if connection == 'TLS':
                 server.starttls()
         except smtplib.SMTPConnectError as e:
-            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
             error = ConnectException(msg, self)
         except smtplib.SMTPException as e:
-            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
             error = UnknownHostException(msg, self)
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 111, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
             error = MailException(msg, self)
         else:
             self._server = server
@@ -142,7 +150,7 @@ class SmtpService(unohelper.Base,
             try:
                 self._server.login(user, password)
             except Exception as e:
-                msg = getMessage(self.ctx, g_message, 121, getExceptionMessage(e))
+                msg = getMessage(self.ctx, g_message, 141, getExceptionMessage(e))
                 error = AuthenticationFailedException(msg, self)
         elif authentication == 'OAUTH2':
             user = authenticator.getUserName()
@@ -151,7 +159,7 @@ class SmtpService(unohelper.Base,
             try:
                 self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
             except Exception as e:
-                msg = getMessage(self.ctx, g_message, 121, getExceptionMessage(e))
+                msg = getMessage(self.ctx, g_message, 141, getExceptionMessage(e))
                 error = AuthenticationFailedException(msg, self)
         return error
 
@@ -410,19 +418,32 @@ class MailServiceProvider(unohelper.Base,
                           XMailServiceProvider2,
                           XServiceInfo):
     def __init__(self, ctx):
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 101)
+            logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
         self.ctx = ctx
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 102)
+            logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
 
-    def create(self, service):
-        if service == SMTP:
-            return SmtpService(self.ctx)
-        elif service == POP3:
-            return Pop3Service(self.ctx)
-        elif service == IMAP:
-            return ImapService(self.ctx)
+    def create(self, mailtype):
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 111, mailtype)
+            logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
+        if mailtype == SMTP:
+            service = SmtpService(self.ctx)
+        elif mailtype == POP3:
+            service = Pop3Service(self.ctx)
+        elif mailtype == IMAP:
+            service = ImapService(self.ctx)
         else:
-            e = self._getNoMailServiceProviderException(101, service)
+            e = self._getNoMailServiceProviderException(113, mailtype)
             logMessage(self.ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
             raise e
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 112, mailtype)
+            logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
+        return service
 
     # XServiceInfo
     def supportsService(self, service):
@@ -496,19 +517,9 @@ g_ImplementationHelper.addImplementation(MailMessage,
                                          ('com.sun.star.mail.MailMessage2', ), )
 
 
-def getToken(ctx, context, url, user, encode=False):
-    token = getOAuth2Token(ctx, context, url, user)
+def getToken(ctx, source, url, user, encode=False):
+    token = getOAuth2Token(ctx, source, url, user)
     authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
     if encode:
         authstring = base64.b64encode(authstring.encode("ascii"))
     return authstring
-
-def getOAuth2Token1(ctx, sessions, server, user, encode=False):
-    key = '%s/%s' % (server, user)
-    if key not in sessions:
-        sessions[key] = getOAuth2(ctx, server, user)
-    token = sessions[key].getToken('')
-    authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
-    if encode:
-        authstring = base64.b64encode(authstring.encode("ascii"))
-    return

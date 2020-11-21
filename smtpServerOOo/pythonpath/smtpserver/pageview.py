@@ -10,13 +10,18 @@ from com.sun.star.mail import XAuthenticator
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
+from unolib import getFileSequence
+
+from .logger import clearLogger
+from .logger import getLoggerUrl
 from .logger import logMessage
 
 import traceback
 
 
 class PageView(unohelper.Base):
-    def __init__(self, window):
+    def __init__(self, ctx, window):
+        self.ctx = ctx
         self.Window = window
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
@@ -30,26 +35,29 @@ class PageView(unohelper.Base):
     def activatePage2(self, model):
         self._setPageTitle(2, model, model.Email)
 
-    def updateProgress(self, model, pageid, value, offset=0, msg=None):
-        self._getProgressBar().Value = value
-        text = model.resolveString(self._getProgressMessage(pageid, value + offset))
-        if msg is not None:
-            text = text % msg
-        self._getProgressLabel().Text = text
-
     def activatePage3(self, model):
         self._setPageTitle(3, model, model.Email)
-        self._setConnectionMode(model.Online)
         self.updatePage3(model)
 
     def activatePage4(self, model):
         self._setPageTitle(4, model, (model.getServer(), model.getPort()))
 
+    def updatePage2(self, model, value, offset=0):
+        self._getProgressBar().Value = value
+        text = model.resolveString(self._getPage2Message(value + offset))
+        self._getProgressLabel().Text = text
+
     def updatePage3(self, model):
-        self._enablePrevious(model.isFirst())
-        self._enableNext(model.isLast())
+        #self._enablePrevious(model.isFirst())
+        #self._enableNext(model.isLast())
         self._getServerPage().Text = model.getServerPage()
         self._loadPage3(model)
+
+    def updatePage4(self, model, value):
+        self._getProgressBar().Value = value
+        if value == 0:
+            clearLogger()
+        self._updateLogger()
 
     def enableLoginName(self, enabled):
         self._getLoginNameLabel().Model.Enabled = enabled
@@ -60,9 +68,6 @@ class PageView(unohelper.Base):
         self._getPassword().Model.Enabled = enabled
         self._getConfirmPwdLabel().Model.Enabled = enabled
         self._getConfirmPwd().Model.Enabled = enabled
-
-    def enableConnect(self, enabled):
-        self._getConnect().Model.Enabled = enabled
 
     def setConnectionSecurity(self, model, index):
         level = self._getConnectionLevel(index)
@@ -130,9 +135,6 @@ class PageView(unohelper.Base):
         text = model.resolveString(self._getPageLabelMessage(pageid))
         self._getPageLabel().Text = text % format
 
-    def _setConnectionMode(self, enabled):
-        self._getConnectLabel().Model.Enabled = enabled
-
     def _loadPage3(self, model):
         self._getServer().Text = model.getServer()
         self._getPort().Value = model.getPort()
@@ -161,6 +163,14 @@ class PageView(unohelper.Base):
         control.Model.FontWeight = BOLD if level < 3 else NORMAL
         control.Text = model.resolveString(self._getSecurityMessage(level))
 
+    def _updateLogger(self):
+        url = getLoggerUrl(self.ctx)
+        length, sequence = getFileSequence(self.ctx, url)
+        control = self._getLogger()
+        control.Text = sequence.value.decode('utf-8')
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
+
 # PageView private message methods
     def _getPageTitle(self, pageid):
         return 'PageWizard%s.Title' % pageid
@@ -168,8 +178,8 @@ class PageView(unohelper.Base):
     def _getPageLabelMessage(self, pageid):
         return 'PageWizard%s.Label1.Label' % pageid
 
-    def _getProgressMessage(self, pageid, value):
-        return 'PageWizard%s.Label2.Label.%s' % (pageid, value)
+    def _getPage2Message(self, value):
+        return 'PageWizard2.Label2.Label.%s' % value
 
     def _getSecurityMessage(self, level):
         return 'PageWizard3.Label10.Label.%s' % level
@@ -186,6 +196,9 @@ class PageView(unohelper.Base):
 
     def _getProgressLabel(self):
         return self.Window.getControl('Label2')
+
+    def _getLogger(self):
+        return self.Window.getControl('TextField1')
 
     def _getServerPage(self):
         return self.Window.getControl('Label2')
@@ -228,12 +241,6 @@ class PageView(unohelper.Base):
 
     def _getSecurityLabel(self):
         return self.Window.getControl('Label10')
-
-    def _getConnectLabel(self):
-        return self.Window.getControl('Label11')
-
-    def _getConnect(self):
-        return self.Window.getControl('CommandButton3')
 
 
 class CurrentContext(unohelper.Base,

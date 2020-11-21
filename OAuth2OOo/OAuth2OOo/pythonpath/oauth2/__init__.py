@@ -4,7 +4,6 @@
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_oauth2
-from .configuration import g_logger
 from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
 from .configuration import g_refresh_overlap

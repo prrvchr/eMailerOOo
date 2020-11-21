@@ -14,13 +14,21 @@ from com.sun.star.logging.LogLevel import OFF
 from unolib import getConfiguration
 from unolib import getStringResource
 
-from .configuration import g_logger
 from .configuration import g_identifier
 
-g_loggerPool = {}
 g_stringResource = {}
 g_pathResource = 'resource'
+g_logger = '%s.Logger' % g_identifier
+g_loggerService = None
+g_debugMode = False
 
+
+def setDebugMode(mode):
+    global g_debugMode
+    g_debugMode = mode
+
+def isDebugMode():
+    return g_debugMode
 
 def getMessage(ctx, fileresource, resource, format=()):
     msg = _getResource(ctx, fileresource).resolveString('%s' % resource)
@@ -28,66 +36,68 @@ def getMessage(ctx, fileresource, resource, format=()):
         msg = msg % format
     return msg
 
-def logMessage(ctx, level, msg, cls=None, mtd=None, logger=g_logger):
-    log = _getLogger(ctx, logger)
-    if log.isLoggable(level):
-        if cls is None or mtd is None:
-            log.log(level, msg)
+def logMessage(ctx, level, msg, cls=None, method=None):
+    logger = _getLogger(ctx)
+    if logger.isLoggable(level):
+        if cls is None or method is None:
+            logger.log(level, msg)
         else:
-            log.logp(level, cls, mtd, msg)
+            logger.logp(level, cls, method, msg)
 
-def clearLogger(logger=g_logger):
-    if logger in g_loggerPool:
-        del g_loggerPool[logger]
+def clearLogger():
+    global g_loggerService
+    g_loggerService = None
 
-def isLoggerEnabled(ctx, logger=g_logger):
-    level = _getLoggerConfiguration(ctx, logger).LogLevel
+def isLoggerEnabled(ctx):
+    level = _getLoggerConfiguration(ctx).LogLevel
     enabled = _isLoggerEnabled(level)
     return enabled
 
-def getLoggerSetting(ctx, logger=g_logger):
-    configuration = _getLoggerConfiguration(ctx, logger)
+def getLoggerSetting(ctx):
+    configuration = _getLoggerConfiguration(ctx)
     enabled, index = _getLogIndex(configuration)
     handler = _getLogHandler(configuration)
     return enabled, index, handler
 
-def setLoggerSetting(ctx, enabled, index, handler, logger=g_logger):
-    configuration = _getLoggerConfiguration(ctx, logger)
+def setLoggerSetting(ctx, enabled, index, handler):
+    configuration = _getLoggerConfiguration(ctx)
     _setLogIndex(configuration, enabled, index)
     _setLogHandler(configuration, handler, index)
     if configuration.hasPendingChanges():
         configuration.commitChanges()
-        clearLogger(logger)
+        clearLogger()
 
-def getLoggerUrl(ctx, logger=g_logger):
+def getLoggerUrl(ctx):
     url = '$(userurl)/$(loggername).log'
-    settings = _getLoggerConfiguration(ctx, logger).getByName('HandlerSettings')
+    settings = _getLoggerConfiguration(ctx).getByName('HandlerSettings')
     if settings.hasByName('FileURL'):
         url = settings.getByName('FileURL')
     service = ctx.ServiceManager.createInstance('com.sun.star.util.PathSubstitution')
-    return service.substituteVariables(url.replace('$(loggername)', logger), True)
+    return service.substituteVariables(url.replace('$(loggername)', g_logger), True)
 
-def _getLogger(ctx, logger=g_logger):
-    if logger not in g_loggerPool:
-        singleton = '/singletons/com.sun.star.logging.LoggerPool'
-        log = ctx.getValueByName(singleton).getNamedLogger(logger)
-        g_loggerPool[logger] = log
-    return g_loggerPool[logger]
+def _getLogger(ctx):
+    if g_loggerService is None:
+        _setLogger(ctx)
+    return g_loggerService
 
-def _getResource(ctx, fileresource, identifier=g_identifier):
+def _setLogger(ctx):
+    global g_loggerService
+    singleton = '/singletons/com.sun.star.logging.LoggerPool'
+    g_loggerService = ctx.getValueByName(singleton).getNamedLogger(g_logger)
+
+def _getResource(ctx, fileresource):
     if fileresource not in g_stringResource:
-        print("logger.py._getResource() %s" % fileresource)
-        resource = getStringResource(ctx, identifier, g_pathResource, fileresource)
+        resource = getStringResource(ctx, g_identifier, g_pathResource, fileresource)
         g_stringResource[fileresource] = resource
     return g_stringResource[fileresource]
 
-def _getLoggerConfiguration(ctx, logger):
+def _getLoggerConfiguration(ctx):
     nodepath = '/org.openoffice.Office.Logging/Settings'
     configuration = getConfiguration(ctx, nodepath, True)
-    if not configuration.hasByName(logger):
-        configuration.insertByName(logger, configuration.createInstance())
+    if not configuration.hasByName(g_logger):
+        configuration.insertByName(g_logger, configuration.createInstance())
         configuration.commitChanges()
-    nodepath += '/%s' % logger
+    nodepath += '/%s' % g_logger
     return getConfiguration(ctx, nodepath, True)
 
 def _getLogIndex(configuration):

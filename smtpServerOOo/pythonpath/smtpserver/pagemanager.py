@@ -73,7 +73,7 @@ class PageManager(unohelper.Base):
             self.getView(pageid).activatePage3(self.Model)
         elif pageid == 4:
             self._connected = False
-            setDebugMode(True)
+            setDebugMode(self.ctx, True)
             self.getView(pageid).activatePage4(self.Model)
             context = self.getView(3).getConnectionContext(self.Model)
             authenticator = self.getView(3).getAuthenticator()
@@ -84,10 +84,10 @@ class PageManager(unohelper.Base):
             self.getView(2).updatePage2(self.Model, value, offset)
 
     def updatePage4(self, value, offset=0, msg=None):
-        message = getMessage(self.ctx, g_message, value + offset)
-        if msg is not None:
-            message = message % msg
-        logMessage(self.ctx, INFO, message, 'PageManager', 'updatePage4()')
+        #message = getMessage(self.ctx, g_message, value + offset)
+        #if msg is not None:
+        #    message = message % msg
+        #logMessage(self.ctx, INFO, message, 'PageManager', 'updatePage4()')
         if self.Wizard.DialogWindow is not None:
             self.getView(4).updatePage4(self.Model, value)
 
@@ -137,7 +137,7 @@ class PageManager(unohelper.Base):
         elif pageid == 2:
             self._search = True
         elif pageid == 4:
-            setDebugMode(False)
+            setDebugMode(self.ctx, False)
         return True
 
     def setPageTitle(self, pageid):

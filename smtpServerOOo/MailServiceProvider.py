@@ -63,7 +63,6 @@ g_messageImplName = 'com.sun.star.mail.MailMessage2'
 class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
-        print("SmtpService.__init__() %s" % isDebugMode())
         if isDebugMode():
             msg = getMessage(ctx, g_message, 121)
             logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
@@ -93,6 +92,9 @@ class SmtpService(unohelper.Base,
         return self._supportedauthentication
 
     def connect(self, context, authenticator):
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 131)
+            logMessage(self.ctx, INFO, msg, 'SmtpService', 'connect()')
         if self.isConnected():
             raise AlreadyConnectedException()
         unotype = uno.getTypeByName('com.sun.star.uno.XCurrentContext')
@@ -111,37 +113,59 @@ class SmtpService(unohelper.Base,
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
-        print("SmtpService.connect() 3")
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 132)
+            logMessage(self.ctx, INFO, msg, 'SmtpService', 'connect()')
 
     def _setServer(self, context, host):
         error = None
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType').upper()
+        connection = context.getValueByName('ConnectionType').title()
+        args = (host, port, timeout)
         try:
-            if connection == 'SSL':
+            if connection == 'Ssl':
+                if isDebugMode():
+                    msg = getMessage(self.ctx, g_message, 141, args)
+                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
             else:
+                if isDebugMode():
+                    msg = getMessage(self.ctx, g_message, 142, args)
+                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP(host=host, port=port, timeout=timeout)
-            if connection == 'TLS':
+            if connection == 'Tls':
+                if isDebugMode():
+                    msg = getMessage(self.ctx, g_message, 143)
+                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server.starttls()
         except smtplib.SMTPConnectError as e:
-            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 144, getExceptionMessage(e))
             error = ConnectException(msg, self)
         except smtplib.SMTPException as e:
-            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 144, getExceptionMessage(e))
             error = UnknownHostException(msg, self)
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 131, getExceptionMessage(e))
+            msg = getMessage(self.ctx, g_message, 144, getExceptionMessage(e))
             error = MailException(msg, self)
         else:
             self._server = server
+        if isDebugMode():
+            if error is None:
+                msg = getMessage(self.ctx, g_message, 145)
+                logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+            else:
+                msg = getMessage(self.ctx, g_message, 146, error.Message)
+                logMessage(self.ctx, SEVERE, msg, 'SmtpService', '_setServer()')
         return error
 
     def _doLogin(self, context, authenticator, server):
+        authentication = context.getValueByName('AuthenticationType').title()
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 151, authentication)
+            logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
         error = None
-        authentication = context.getValueByName('AuthenticationType').upper()
-        if authentication == 'LOGIN':
+        if authentication == 'Login':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
@@ -150,17 +174,24 @@ class SmtpService(unohelper.Base,
             try:
                 self._server.login(user, password)
             except Exception as e:
-                msg = getMessage(self.ctx, g_message, 141, getExceptionMessage(e))
+                msg = getMessage(self.ctx, g_message, 152, getExceptionMessage(e))
                 error = AuthenticationFailedException(msg, self)
-        elif authentication == 'OAUTH2':
+        elif authentication == 'Oauth2':
             user = authenticator.getUserName()
             print("SmtpService._doLogin() 2")
             token = getToken(self.ctx, self, server, user, True)
             try:
                 self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
             except Exception as e:
-                msg = getMessage(self.ctx, g_message, 141, getExceptionMessage(e))
+                msg = getMessage(self.ctx, g_message, 152, getExceptionMessage(e))
                 error = AuthenticationFailedException(msg, self)
+        if isDebugMode():
+            if error is None:
+                msg = getMessage(self.ctx, g_message, 153, authentication)
+                logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+            else:
+                msg = getMessage(self.ctx, g_message, 154, (authentication, error.Message))
+                logMessage(self.ctx, SEVERE, msg, 'SmtpService', '_doLogin()')
         return error
 
     def disconnect(self):

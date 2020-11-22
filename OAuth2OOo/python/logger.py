@@ -16,27 +16,48 @@ from unolib import getStringResource
 
 from .configuration import g_identifier
 
-g_stringResource = {}
+g_resources = {}
 g_logger = None
-g_debugMode = False
-g_logSettings = None
+g_debug = False
+g_settings = None
 
 
-def setDebugMode(ctx, mode):
-    if mode:
-        _setDebugModeOn(ctx)
-    else:
-        _setDebugModeOff(ctx)
-    _setDebugMode(mode)
-
+# Public getter method
 def isDebugMode():
-    return g_debugMode
+    return g_debug
+
+def isLoggerEnabled(ctx):
+    level = _getLogConfig(ctx).LogLevel
+    enabled = _isLogEnabled(level)
+    return enabled
 
 def getMessage(ctx, fileresource, resource, format=()):
     msg = _getResource(ctx, fileresource).resolveString(resource)
     if format:
         msg = msg % format
     return msg
+
+def getLoggerSetting(ctx):
+    enabled, index, handler = _getLoggerSetting(ctx)
+    state = _getState(handler)
+    return enabled, index, state
+
+def getLoggerUrl(ctx):
+    url = '$(userurl)/$(loggername).log'
+    settings = _getLogConfig(ctx).getByName('HandlerSettings')
+    if settings.hasByName('FileURL'):
+        url = settings.getByName('FileURL')
+    service = ctx.ServiceManager.createInstance('com.sun.star.util.PathSubstitution')
+    logger = _getLogName()
+    return service.substituteVariables(url.replace('$(loggername)', logger), True)
+
+# Public setter method
+def setDebugMode(ctx, mode):
+    if mode:
+        _setDebugModeOn(ctx)
+    else:
+        _setDebugModeOff(ctx)
+    _setDebugMode(mode)
 
 def logMessage(ctx, level, msg, cls=None, method=None):
     logger = _getLogger(ctx)
@@ -50,27 +71,9 @@ def clearLogger():
     global g_logger
     g_logger = None
 
-def isLoggerEnabled(ctx):
-    level = _getLogConfig(ctx).LogLevel
-    enabled = _isLogEnabled(level)
-    return enabled
-
-def getLoggerSetting(ctx):
-    enabled, index, handler = _getLoggerSetting(ctx)
-    return enabled, index, _getState(handler)
-
 def setLoggerSetting(ctx, enabled, index, state):
     handler = _getHandler(state)
     _setLoggerSetting(ctx, enabled, index, handler)
-
-def getLoggerUrl(ctx):
-    url = '$(userurl)/$(loggername).log'
-    settings = _getLogConfig(ctx).getByName('HandlerSettings')
-    if settings.hasByName('FileURL'):
-        url = settings.getByName('FileURL')
-    service = ctx.ServiceManager.createInstance('com.sun.star.util.PathSubstitution')
-    logger = _getLogName()
-    return service.substituteVariables(url.replace('$(loggername)', logger), True)
 
 # Private getter method
 def _getLogger(ctx):
@@ -79,10 +82,10 @@ def _getLogger(ctx):
     return g_logger
 
 def _getResource(ctx, fileresource):
-    if fileresource not in g_stringResource:
+    if fileresource not in g_resources:
         resource = getStringResource(ctx, g_identifier, _getPathResource(), fileresource)
-        g_stringResource[fileresource] = resource
-    return g_stringResource[fileresource]
+        g_resources[fileresource] = resource
+    return g_resources[fileresource]
 
 def _getLogName():
     return '%s.Logger' % g_identifier
@@ -128,17 +131,6 @@ def _getLogLevels():
 def _isLogEnabled(level):
     return level != OFF
 
-def _getLogSetting():
-    global g_logSettings
-    enabled = g_logSettings['enabled']
-    index = g_logSettings['index']
-    handler = g_logSettings['handler']
-    g_logSettings = None
-    return enabled, index, handler
-
-def _getDebugSetting():
-    return True, 7, 'com.sun.star.logging.FileHandler'
-
 def _getHandler(state):
     handlers = {True: 'ConsoleHandler', False: 'FileHandler'}
     return 'com.sun.star.logging.%s' % handlers.get(state)
@@ -147,6 +139,15 @@ def _getState(handler):
     states = {'com.sun.star.logging.ConsoleHandler' : 1,
               'com.sun.star.logging.FileHandler': 2}
     return states.get(handler)
+
+def _getLogSetting():
+    global g_settings
+    enabled, index, handler = g_settings['enabled'], g_settings['index'], g_settings['handler']
+    g_settings = None
+    return enabled, index, handler
+
+def _getDebugSetting():
+    return True, 7, 'com.sun.star.logging.FileHandler'
 
 # Private setter method
 def _setLogger(ctx):
@@ -179,17 +180,17 @@ def _setLogHandler(configuration, handler, index):
         settings.insertByName('Threshold', index)
 
 def _setDebugMode(mode):
-    global g_debugMode
-    g_debugMode = mode
+    global g_debug
+    g_debug = mode
 
 def _setDebugModeOn(ctx):
     _setLogSetting(*_getLoggerSetting(ctx))
     _setLoggerSetting(ctx, *_getDebugSetting())
 
 def _setDebugModeOff(ctx):
-    if g_logSettings is not None:
+    if g_settings is not None:
         _setLoggerSetting(ctx, *_getLogSetting())
 
 def _setLogSetting(enabled, index, handler):
-    global g_logSettings
-    g_logSettings = {'enabled': enabled, 'index': index, 'handler': handler}
+    global g_settings
+    g_settings = {'enabled': enabled, 'index': index, 'handler': handler}

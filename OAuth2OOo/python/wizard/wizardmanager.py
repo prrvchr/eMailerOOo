@@ -137,27 +137,31 @@ class WizardManager(unohelper.Base):
         self._model.initRoadmap(self._controller, paths, complete)
 
     def _getPath(self, index, final):
-        if self._multiPaths:
-            paths = self._paths[index] if final else self._getFollowingPath(index)
+        if self.isMultiPaths():
+            if final:
+                complete, paths = True, self._paths[index]
+            else:
+                complete, paths =  False, self._getCommunPath(index)
             self._currentPath = index
-            complete = paths == self._paths[self._currentPath]
         else:
             complete, paths = True, self._paths
         return complete, paths
 
-    def _getFollowingPath(self, index):
+    def _getCommunPath(self, index):
         paths = []
         i = 0
         pageid = self._model.getCurrentPageId()
         for page in self._paths[index]:
             if page > pageid:
                 for j in range(len(self._paths)):
-                    if j in (index, self._currentPath):
+                    if j == index or j == self._currentPath:
                         continue
                     if i >= len(self._paths[j]) or page != self._paths[j][i]:
+                        print("WizardManager._getCommunPath() 1 %s" % (tuple(paths), ))
                         return tuple(paths)
             paths.append(page)
             i += 1
+        print("WizardManager._getCommunPath() 2 %s" % (tuple(paths), ))
         return tuple(paths)
 
     def _initPage(self):

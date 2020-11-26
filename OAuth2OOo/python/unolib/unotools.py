@@ -56,9 +56,11 @@ def getExceptionMessage(exception):
     if len(messages) == 0:
         message = str(exception)
     elif len(messages) == 1:
-        message = messages[0].decode('utf-8')
+        message = messages[0]
     else:
-        message = max(messages, key=len).decode('utf-8')
+        message = max(messages, key=len)
+    if isinstance(message, six.binary_type):
+        message = message.decode('utf-8')
     return message
 
 def getFileSequence(ctx, url, default=None):

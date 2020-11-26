@@ -222,22 +222,18 @@ class OAuth2Service(unohelper.Base,
     def getToken(self, format=''):
         level = INFO
         msg = "Request Token ... "
-        print("OAuth2Service.getToken() 1")
         if not self._isAuthorized():
             level = SEVERE
             msg += "ERROR: Cannot InitializeSession()..."
             token = ''
         elif self.Setting.Url.Scope.Provider.User.HasExpired:
-            print("OAuth2Service.getToken() 2")
             provider = self.Setting.Url.Scope.Provider.MetaData
             user = self.Setting.Url.Scope.Provider.User
             token, self._Error = getRefreshToken(self.Session, provider, user.MetaData, self.Timeout)
             if token.IsPresent:
-                print("OAuth2Service.getToken() 3")
                 user.MetaData = token.Value
                 token = user.AccessToken
                 msg += "Refresh needed ... Done"
-                print("OAuth2Service.getToken() 4")
             else:
                 level = SEVERE
                 msg += "ERROR: Cannot RefreshToken()..."

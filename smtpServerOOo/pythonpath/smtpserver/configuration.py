@@ -4,6 +4,6 @@
 # General configuration
 g_extension = 'smtpServerOOo'
 g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
-g_wizard_paths = (1, 2, 3, 4)
+# Online and Offline roadmap wizard paths
+g_wizard_paths = ((1, 2, 3, 4), (1, 2, 3))
 g_wizard_page = -1
-g_mail_debug = False

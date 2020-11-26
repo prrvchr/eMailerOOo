@@ -10,6 +10,7 @@ from com.sun.star.mail import XAuthenticator
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
+from unolib import KeyMap
 from unolib import getFileSequence
 
 from .logger import clearLogger
@@ -30,17 +31,18 @@ class PageView(unohelper.Base):
 
 # PageView setter methods
     def initPage1(self, model):
-        self._getUser().Text = model.Email
+        self._setEmail(model.Email)
 
     def activatePage2(self, model):
-        self._setPageTitle(2, model, model.Email)
+        self._setPageLabel(2, model, model.Email)
 
     def activatePage3(self, model):
-        self._setPageTitle(3, model, model.Email)
+        self._setPageLabel(3, model, model.Email)
         self.updatePage3(model)
 
     def activatePage4(self, model):
-        self._setPageTitle(4, model, (model.getServer(), model.getPort()))
+        self._setPageLabel(4, model, (model.getHost(), model.getPort()))
+        self.setPage4Step(1)
 
     def updatePage2(self, model, value, offset=0):
         self._getProgressBar().Value = value
@@ -48,8 +50,7 @@ class PageView(unohelper.Base):
         self._getProgressLabel().Text = text
 
     def updatePage3(self, model):
-        #self._enablePrevious(model.isFirst())
-        #self._enableNext(model.isLast())
+        self._enableNavigation(model)
         self._getServerPage().Text = model.getServerPage()
         self._loadPage3(model)
 
@@ -59,9 +60,12 @@ class PageView(unohelper.Base):
             clearLogger()
         self._updateLogger()
 
-    def enableLoginName(self, enabled):
-        self._getLoginNameLabel().Model.Enabled = enabled
-        self._getLoginName().Model.Enabled = enabled
+    def setPage4Step(self, step):
+        self.Window.Model.Step = step
+
+    def enableLogin(self, enabled):
+        self._getLoginLabel().Model.Enabled = enabled
+        self._getLogin().Model.Enabled = enabled
 
     def enablePassword(self, enabled):
         self._getPasswordLabel().Model.Enabled = enabled
@@ -78,26 +82,23 @@ class PageView(unohelper.Base):
         self._setSecurityMessage(model, level)
 
 # PageView getter methods
-    def getControlTag(self, control):
-        return control.Model.Tag
-
     def getControlIndex(self, control):
         return control.getSelectedItemPos()
 
-    def getPageTitle(self, model, pageid):
-        return model.resolveString(self._getPageTitle(pageid))
+    def getPageTitle(self, model, pageid, offline):
+        return model.resolveString(self._getPageTitle(pageid, offline))
 
-    def isUserValid(self, validator):
-        return validator(self._getUser().Text)
+    def isEmailValid(self, validator):
+        return validator(self._getEmail())
 
-    def isServerValid(self, validator):
-        return validator(self._getServer().Text)
+    def isHostValid(self, validator):
+        return validator(self._getHost())
 
     def isPortValid(self, validator):
-        return validator(self._getPort().Value)
+        return validator(self._getPort())
 
-    def isLoginNameValid(self, validator):
-        control = self._getLoginName()
+    def isLoginValid(self, validator):
+        control = self._getLogin()
         if control.Model.Enabled:
             return validator(control.Text)
         return True
@@ -110,39 +111,58 @@ class PageView(unohelper.Base):
             return validator(control.Text)
         return True
 
-    def getUser(self):
-        return self._getUser().Text
+    def getEmail(self):
+        return self._getEmail()
 
     def getConnectionContext(self, model):
-        index = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
-        connection = index.get(self.getControlIndex(self._getConnection()))
-        index = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
-        authentication = index.get(self.getControlIndex(self._getAuthentication()))
-        data = {'ServerName': self._getServer().Text,
-                'Port': int(self._getPort().Value),
+        connection, authentication = self._getConnectionMode(model)
+        data = {'ServerName': self._getHost(),
+                'Port': self._getPort(),
                 'ConnectionType': connection,
                 'AuthenticationType': authentication,
                 'Timeout': model.Timeout}
         return CurrentContext(data)
 
     def getAuthenticator(self):
-        user = self._getLoginName().Text
+        user = self._getLogin().Text
         password = self._getPassword().Text
         return Authenticator(user, password)
 
+    def getConfiguration(self, model):
+        host = self._getHost()
+        port = self._getPort()
+        connection, authentication = self._getConnectionIndex()
+        user = KeyMap()
+        user.setValue('Server', host)
+        user.setValue('Port', port)
+        user.setValue('LoginName', self._getLogin().Text)
+        user.setValue('Password', self._getPassword().Text)
+        user.setValue('Domain', model.User.getValue('Domain'))
+        server = KeyMap()
+        server.setValue('Server', host)
+        server.setValue('Port', port)
+        server.setValue('Connection', connection)
+        server.setValue('Authentication', authentication)
+        server.setValue('LoginMode', model.getLoginMode())
+        return user, server
+
 # PageView private methods
-    def _setPageTitle(self, pageid, model, format):
+    def _setPageLabel(self, pageid, model, format):
         text = model.resolveString(self._getPageLabelMessage(pageid))
         self._getPageLabel().Text = text % format
 
     def _loadPage3(self, model):
-        self._getServer().Text = model.getServer()
-        self._getPort().Value = model.getPort()
-        self._getConnection().selectItemPos(model.getConnection(), True)
-        self._getAuthentication().selectItemPos(model.getAuthentication(), True)
-        self._getLoginName().Text = model.getLoginName()
+        self._setHost(model.getHost())
+        self._setPort(model.getPort())
+        self._setConnection(model.getConnection())
+        self._setAuthentication(model.getAuthentication())
+        self._getLogin().Text = model.getLoginName()
         self._getPassword().Text = model.getPassword()
         self._getConfirmPwd().Text = model.getPassword()
+
+    def _enableNavigation(self, model):
+        self._enablePrevious(model.isFirst())
+        self._enableNext(model.isLast())
 
     def _enablePrevious(self, isfirst):
         self._getPrevious().Model.Enabled = not isfirst
@@ -171,9 +191,20 @@ class PageView(unohelper.Base):
         selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
         control.setSelection(selection)
 
+    def _getConnectionIndex(self):
+        connection = self.getControlIndex(self._getConnection())
+        authentication = self.getControlIndex(self._getAuthentication())
+        return connection, authentication
+
+    def _getConnectionMode(self, model):
+        i, j = self._getConnectionIndex()
+        connection = model.getConnectionMap(i)
+        authentication = model.getAuthenticationMap(j)
+        return connection, authentication
+
 # PageView private message methods
-    def _getPageTitle(self, pageid):
-        return 'PageWizard%s.Title' % pageid
+    def _getPageTitle(self, pageid, offline):
+        return 'PageWizard%s.Title.%s' % (pageid, offline)
 
     def _getPageLabelMessage(self, pageid):
         return 'PageWizard%s.Label1.Label' % pageid
@@ -184,12 +215,12 @@ class PageView(unohelper.Base):
     def _getSecurityMessage(self, level):
         return 'PageWizard3.Label10.Label.%s' % level
 
-# PageView private control methods
+# PageView private getter control methods
     def _getPageLabel(self):
         return self.Window.getControl('Label1')
 
-    def _getUser(self):
-        return self.Window.getControl('TextField1')
+    def _getEmail(self):
+        return self.Window.getControl('TextField1').Text
 
     def _getProgressBar(self):
         return self.Window.getControl('ProgressBar1')
@@ -203,11 +234,11 @@ class PageView(unohelper.Base):
     def _getServerPage(self):
         return self.Window.getControl('Label2')
 
-    def _getServer(self):
-        return self.Window.getControl('TextField1')
+    def _getHost(self):
+        return self.Window.getControl('TextField1').Text
 
     def _getPort(self):
-        return self.Window.getControl('NumericField1')
+        return int(self.Window.getControl('NumericField1').Value)
 
     def _getConnection(self):
         return self.Window.getControl('ListBox1')
@@ -215,10 +246,10 @@ class PageView(unohelper.Base):
     def _getAuthentication(self):
         return self.Window.getControl('ListBox2')
 
-    def _getLoginNameLabel(self):
+    def _getLoginLabel(self):
         return self.Window.getControl('Label7')
 
-    def _getLoginName(self):
+    def _getLogin(self):
         return self.Window.getControl('TextField2')
 
     def _getPasswordLabel(self):
@@ -242,14 +273,30 @@ class PageView(unohelper.Base):
     def _getSecurityLabel(self):
         return self.Window.getControl('Label10')
 
+# PageView private setter control methods
+    def _setEmail(self, text):
+        self.Window.getControl('TextField1').Text = text
+
+    def _setHost(self, text):
+        self.Window.getControl('TextField1').Text = text
+
+    def _setPort(self, value):
+        self.Window.getControl('NumericField1').Value = value
+
+    def _setConnection(self, index):
+        self.Window.getControl('ListBox1').selectItemPos(index, True)
+
+    def _setAuthentication(self, index):
+        self.Window.getControl('ListBox2').selectItemPos(index, True)
+
 
 class CurrentContext(unohelper.Base,
                      XCurrentContext):
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, context):
+        self._context = context
 
     def getValueByName(self, name):
-        return self._data[name]
+        return self._context[name]
 
 
 class Authenticator(unohelper.Base,

@@ -34,13 +34,16 @@ class DataParser(unohelper.Base,
         for s in config.findall('outgoingServer'):
             server = KeyMap()
             server.insertValue('Server', s.find('hostname').text)
-            server.insertValue('Port', s.find('port').text)
+            server.insertValue('Port', self._getPort(s))
             server.insertValue('Connection', self._getConnexion(s))
-            server.insertValue('LoginMode', self._getLoginMode(s))
             server.insertValue('Authentication', self._getAuthentication(s))
+            server.insertValue('LoginMode', self._getLoginMode(s))
             servers.append(server)
         data.insertValue('Servers', tuple(servers))
         return data
+
+    def _getPort(self, server):
+        return int(server.find('port').text)
 
     def _getConnexion(self, server):
         map = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}

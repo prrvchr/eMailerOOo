@@ -48,11 +48,14 @@ class PageHandler(unohelper.Base,
         elif method == 'Next':
             self._manager.nextServerPage()
             handled = True
+        elif method == 'SendMail':
+            self._manager.sendMail()
+            handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('TextChange', 'ChangeConnection',
-                'ChangeAuthentication', 'Previous', 'Next')
+        return ('TextChange', 'ChangeConnection', 'ChangeAuthentication',
+                'Previous', 'Next', 'SendMail')
 
 
 class DialogHandler(unohelper.Base,
@@ -63,10 +66,10 @@ class DialogHandler(unohelper.Base,
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'SmtpConnect':
-            self._manager.smtpConnect()
+        if method == 'TextChange':
+            self._manager.updateDialog()
             handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('SmtpConnect', )
+        return ('TextChange', )

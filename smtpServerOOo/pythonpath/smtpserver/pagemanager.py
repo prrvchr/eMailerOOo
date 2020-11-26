@@ -5,6 +5,10 @@ import uno
 import unohelper
 
 from com.sun.star.uno import Exception as UnoException
+
+from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
+from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
+from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.logging.LogLevel import INFO
@@ -18,7 +22,6 @@ from .pagehandler import DialogHandler
 from unolib import createService
 from unolib import getDialog
 
-from .logger import setDebugMode
 from .logger import logMessage
 from .logger import getMessage
 g_message = 'pagemanager'
@@ -36,6 +39,9 @@ class PageManager(unohelper.Base):
         self._model = PageModel(self.ctx) if model is None else model
         self._views = {}
         self._dialog = None
+        self._refresh = False
+        self._new = False
+        self._updated = False
         print("PageManager.__init__() %s" % self._model.Email)
 
     @property
@@ -65,29 +71,33 @@ class PageManager(unohelper.Base):
             view.initPage1(self.Model)
 
     def activatePage(self, pageid):
-        if pageid == 2:
+        if pageid == 1:
+            self.Wizard.activatePath(1, False)
+        elif pageid == 2:
+            self._setPageTitle(pageid, 0)
+            self.Wizard.activatePath(1, False)
             self.Wizard.enablePage(1, False)
             self.getView(pageid).activatePage2(self.Model)
+            self._refresh = True
             self.Model.getSmtpConfig(self.updatePage2, self.updateModel)
         elif pageid == 3:
-            self.getView(pageid).activatePage3(self.Model)
+            self.setPageTitle(pageid)
+            if self._refresh:
+                self._refresh = False
+                self.getView(pageid).activatePage3(self.Model)
         elif pageid == 4:
             self._connected = False
-            setDebugMode(self.ctx, True)
             self.getView(pageid).activatePage4(self.Model)
             context = self.getView(3).getConnectionContext(self.Model)
             authenticator = self.getView(3).getAuthenticator()
-            self.Model.smtpConnect(context, authenticator, self.updatePage4, self.callBack)
+            self.Model.smtpConnect(context, authenticator,
+                                   self.updatePage4, self.updatePageStep)
 
     def updatePage2(self, value, offset=0):
         if self.Wizard.DialogWindow is not None:
             self.getView(2).updatePage2(self.Model, value, offset)
 
-    def updatePage4(self, value, offset=0, msg=None):
-        #message = getMessage(self.ctx, g_message, value + offset)
-        #if msg is not None:
-        #    message = message % msg
-        #logMessage(self.ctx, INFO, message, 'PageManager', 'updatePage4()')
+    def updatePage4(self, value):
         if self.Wizard.DialogWindow is not None:
             self.getView(4).updatePage4(self.Model, value)
 
@@ -96,36 +106,30 @@ class PageManager(unohelper.Base):
         if self.Wizard.DialogWindow is not None:
             self.Model.User = user
             self.Model.Servers = servers
-            self.Model.Online = not offline
+            self.Model.Offline = offline
             self._search = False
             print("PageManager.updateModel() 2")
+            self.setPageTitle(2)
             self.Wizard.enablePage(1, True)
+            self.Wizard.activatePath(self._getActivePath(), True)
             self.Wizard.updateTravelUI()
-            if len(servers) > 0:
-                print("PageManager.updateModel() 3")
-                #self.Wizard._manager._setCurrentPage(3)
-                #self.Wizard.travelNext()
-                print("PageManager.updateModel() 4")
 
-    def updateDialog(self, value, offset=0, msg=None):
-        if self._dialog is not None:
-            self._dialog.updateProgress(value, offset, msg)
-
-    def callBack(self, state):
+    def updatePageStep(self, step):
         if self.Wizard.DialogWindow is not None:
-            self._connected = state
+            self._connected = step > 3
+            self.getView(4).setPage4Step(step)
             self.Wizard.updateTravelUI()
 
     def canAdvancePage(self, pageid):
         advance = False
         if pageid == 1:
-            advance = self._isUserValid(pageid)
+            advance = self._isEmailValid(pageid)
         elif pageid == 2:
             advance = not self._search
         elif pageid == 3:
-            advance = all((self._isServerValid(pageid),
+            advance = all((self._isHostValid(pageid),
                            self._isPortValid(pageid),
-                           self._isLoginNameValid(pageid),
+                           self._isLoginValid(pageid),
                            self._isPasswordValid(pageid)))
         elif pageid == 4:
             advance = self._connected
@@ -133,15 +137,19 @@ class PageManager(unohelper.Base):
 
     def commitPage(self, pageid, reason):
         if pageid == 1:
-            self.Model.Email = self.View.getUser()
+            self.Model.Email = self.View.getEmail()
         elif pageid == 2:
             self._search = True
+        elif pageid == 3:
+            if reason == FINISH:
+                self._saveConfiguration()
         elif pageid == 4:
-            setDebugMode(self.ctx, False)
+            if reason == FINISH:
+               self._saveConfiguration()
         return True
 
     def setPageTitle(self, pageid):
-        self.Wizard.setTitle(self.getView(pageid).getPageTitle(self.Model, pageid))
+        self._setPageTitle(pageid, self.Model.Offline)
 
     def updateTravelUI(self):
         self.Wizard.updateTravelUI()
@@ -153,13 +161,13 @@ class PageManager(unohelper.Base):
     def changeAuthentication(self, control):
         index = self.View.getControlIndex(control)
         if index == 0:
-            self.View.enableLoginName(False)
+            self.View.enableLogin(False)
             self.View.enablePassword(False)
         elif index == 3:
-            self.View.enableLoginName(True)
+            self.View.enableLogin(True)
             self.View.enablePassword(False)
         else:
-            self.View.enableLoginName(True)
+            self.View.enableLogin(True)
             self.View.enablePassword(True)
         self.View.setAuthenticationSecurity(self.Model, index)
         self.updateTravelUI()
@@ -172,32 +180,50 @@ class PageManager(unohelper.Base):
         self.Model.nextServerPage()
         self.View.updatePage3(self.Model)
 
-    def showSmtpConnect(self):
-        context = self.View.getConnectionContext(self.Model)
-        authenticator = self.View.getAuthenticator()
+    def sendMail(self):
         handler = DialogHandler(self)
         parent = self.Wizard.DialogWindow.getPeer()
-        self._dialog = DialogView(self.ctx, 'SmtpDialog', handler, parent)
-        self._dialog.setTitle(context)
-        self.Model.smtpConnect(server, context, authenticator, self.updateDialog, self.connectServer, self.callBackDialog)
+        self._dialog = DialogView(self.ctx, 'SendDialog', handler, parent)
+        self._dialog.setTitle(self.Model)
         if self._dialog.execute() == OK:
-            print("PageManager.showSmtpConnect() OK")
-        else:
-            print("PageManager.showSmtpConnect() CANCEL")
+            self.updatePage4(0)
+            self.getView(4).setPage4Step(1)
+            recipient = self._dialog.getRecipient()
+            object = self._dialog.getObject()
+            message = self._dialog.getMessage()
+            context = self.getView(3).getConnectionContext(self.Model)
+            authenticator = self.getView(3).getAuthenticator()
+            self.Model.smtpSend(context, authenticator,
+                                recipient, object, message,
+                                self.updatePage4, self.updatePageStep)
         self._dialog.dispose()
         self._dialog = None
 
-    def _isUserValid(self, pageid):
-        return self.getView(pageid).isUserValid(self.Model.isUserValid)
+    def updateDialog(self):
+        self._dialog.enableButtonSend(self.Model)
 
-    def _isServerValid(self, pageid):
-        return self.getView(pageid).isServerValid(self.Model.isServerValid)
+    def _saveConfiguration(self):
+        user, server = self.getView(3).getConfiguration(self.Model)
+        self.Model.saveConfiguration(user, server)
+
+    def _setPageTitle(self, pageid, offline):
+        title = self.getView(pageid).getPageTitle(self.Model, pageid, offline)
+        self.Wizard.setTitle(title)
+
+    def _getActivePath(self):
+        return self.Model.Offline
+
+    def _isEmailValid(self, pageid):
+        return self.getView(pageid).isEmailValid(self.Model.isEmailValid)
+
+    def _isHostValid(self, pageid):
+        return self.getView(pageid).isHostValid(self.Model.isHostValid)
 
     def _isPortValid(self, pageid):
         return self.getView(pageid).isPortValid(self.Model.isPortValid)
 
-    def _isLoginNameValid(self, pageid):
-        return self.getView(pageid).isLoginNameValid(self.Model.isStringValid)
+    def _isLoginValid(self, pageid):
+        return self.getView(pageid).isLoginValid(self.Model.isStringValid)
 
     def _isPasswordValid(self, pageid):
         return self.getView(pageid).isPasswordValid(self.Model.isStringValid)

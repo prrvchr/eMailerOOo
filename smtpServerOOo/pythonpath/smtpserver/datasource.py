@@ -9,12 +9,13 @@ from com.sun.star.util import XCloseListener
 from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail.MailServiceType import SMTP
-
+from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import getConfiguration
 from unolib import createService
+from unolib import getConnectionMode
 from unolib import getUrl
 
 from .dbtools import getDataSource
@@ -24,6 +25,7 @@ from .dataparser import DataParser
 
 from .configuration import g_identifier
 
+from .logger import setDebugMode
 from .logger import logMessage
 from .logger import getMessage
 
@@ -70,27 +72,27 @@ class DataSource(unohelper.Base,
         self.sync.set()
         self.join()
 
-    def getSmtpConfig(self, email, progress, callback):
-        args = (email, progress, callback)
+    def getSmtpConfig(self, *args):
         config = Thread(target=self._getSmtpConfig, args=args)
         config.start()
 
     def _getSmtpConfig(self, email, progress, callback):
+        progress(5)
         url = getUrl(self.ctx, self._configuration.getByName('IspDBUrl'))
-        service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
-        request = createService(self.ctx, service)
         progress(10)
-        offline = request.isOffLine(url.Server)
+        mode = getConnectionMode(self.ctx, url.Server)
         progress(20)
         DataSource._Init.join()
         progress(40)
         user, servers = self.DataBase.getSmtpConfig(email)
         if len(servers) > 0:
             progress(100, 1)
-        elif offline:
+        elif mode == OFFLINE:
             progress(100, 2)
         else:
             progress(60)
+            service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+            request = createService(self.ctx, service)
             response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
@@ -98,51 +100,71 @@ class DataSource(unohelper.Base,
                 progress(100, 3)
             else:
                 progress(100, 4)
-        callback(user, servers, offline)
+        callback(user, servers, mode)
 
-    def smtpConnect(self, context, authenticator, progress, callback):
-        if self._isRunning():
-            progress(self._progress)
-        else:
-            progress(0)
-            args = (context, authenticator, progress, callback)
-            self._connect = Thread(target=self._smtpConnect, args=args)
-            self._connect.start()
+    def smtpConnect(self, *args):
+        setDebugMode(self.ctx, True)
+        connect = Thread(target=self._smtpConnect, args=args)
+        connect.start()
 
     def _smtpConnect(self, context, authenticator, progress, callback):
-        self._updateProgress(progress, 5)
-        connected = False
-        self._updateProgress(progress, 25)
+        progress(0)
+        step = 2
+        progress(5)
         service = 'com.sun.star.mail.MailServiceProvider2'
+        progress(25)
         server = createService(self.ctx, service).create(SMTP)
-        self._updateProgress(progress, 50)
+        progress(50)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            self._updateProgress(progress, 100, 2, e.Message)
+            print("DataSoure._smtpConnect() 1 Error: %s" % e.Message)
+            progress(100)
         else:
-            self._updateProgress(progress, 75)
+            progress(75)
             if server.isConnected():
                 server.disconnect()
-                connected = True
-                self._updateProgress(progress, 100, 1)
+                step = 4
+                progress(100)
             else:
-                self._updateProgress(progress, 100, 3)
-        callback(connected)
+                progress(100)
+        setDebugMode(self.ctx, False)
+        callback(step)
 
-    def _isRunning(self):
-        return self._connect is not None and self._connect.is_alive()
+    def smtpSend(self, *args):
+        setDebugMode(self.ctx, True)
+        send = Thread(target=self._smtpSend, args=args)
+        send.start()
 
-    def _updateProgress(self, progress, value, offset=0, msg=None):
-        self._progress = value if value != 100 else 0
-        progress(value, offset, msg)
+    def _smtpSend(self, context, authenticator, recipient, object, message, progress, callback):
+        step = 3
+        progress(5)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        progress(25)
+        server = createService(self.ctx, service).create(SMTP)
+        progress(50)
+        try:
+            server.connect(context, authenticator)
+        except UnoException as e:
+            print("DataSoure._smtpSend() 1 Error: %s" % e.Message)
+            progress(100)
+        else:
+            progress(75)
+            if server.isConnected():
+                server.disconnect()
+                step = 5
+                progress(100)
+            else:
+                progress(100)
+        setDebugMode(self.ctx, False)
+        callback(step)
 
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
-        parameter.NoVerify = True
+        #parameter.NoVerify = True
         response = request.getRequest(parameter, DataParser()).execute()
         return response
 

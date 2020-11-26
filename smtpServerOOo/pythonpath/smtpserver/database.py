@@ -87,6 +87,7 @@ class DataBase(unohelper.Base):
         user.setValue('LoginName', call.getString(4))
         user.setValue('Password', call.getString(5))
         user.setValue('Domain', call.getString(6))
+        print("DataBase.getSmtpConfig() %s" % (user, ))
         while result.next():
             servers.append(getKeyMapFromResult(result))
         call.close()

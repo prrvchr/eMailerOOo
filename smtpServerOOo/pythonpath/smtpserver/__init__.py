@@ -5,7 +5,6 @@ from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
-from .configuration import g_mail_debug
 
 from .wizard import Wizard
 from .pagemodel import PageModel
@@ -20,3 +19,5 @@ from .logger import logMessage
 from .logger import getMessage
 from .logger import setDebugMode
 from .logger import isDebugMode
+
+from . import smtplib

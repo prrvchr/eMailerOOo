@@ -29,12 +29,13 @@ class PageModel(unohelper.Base):
         self.ctx = ctx
         self._User = None
         self._Servers = ()
-        self._index = self._default = self._count = 0
+        self._index = self._default = self._count = self._offline = 0
         self._isnew = False
-        self._online = False
         if email is not None:
             self.Email = email
         self._timeout = self.getTimeout()
+        self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
+        self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         try:
             msg = "PageModel.__init__()"
@@ -65,14 +66,24 @@ class PageModel(unohelper.Base):
         return self._Servers
     @Servers.setter
     def Servers(self, servers):
-        self._Servers = self._getServers(servers)
+        self._isnew = False
+        self._count = len(servers)
+        self._index = 0
+        self._default = -1
+        if self._count == 0:
+            self._count = 1
+            self._isnew = True
+            servers = self._getDefaultServers()
+        else:
+            self._index, self._default = self._getServerIndex(servers)
+        self._Servers = servers
 
     @property
-    def Online(self):
-        return self._online
-    @Online.setter
-    def Online(self, online):
-        self._online = online
+    def Offline(self):
+        return self._offline
+    @Offline.setter
+    def Offline(self, offline):
+        self._offline = offline
 
     @property
     def Timeout(self):
@@ -80,6 +91,12 @@ class PageModel(unohelper.Base):
     @Timeout.setter
     def Timeout(self, timeout):
         self._timeout = timeout
+
+    def getConnectionMap(self, index):
+        return self._connections.get(index)
+
+    def getAuthenticationMap(self, index):
+        return self._authentications.get(index)
 
     def getTimeout(self):
         return getConfiguration(self.ctx, g_identifier, False).getByName('ConnectTimeout')
@@ -92,13 +109,13 @@ class PageModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def isUserValid(self, user):
-        if validators.email(user):
+    def isEmailValid(self, email):
+        if validators.email(email):
             return True
         return False
 
-    def isServerValid(self, server):
-        if validators.domain(server):
+    def isHostValid(self, host):
+        if validators.domain(host):
             return True
         return False
 
@@ -112,24 +129,27 @@ class PageModel(unohelper.Base):
             return True
         return False
 
-    def getServer(self):
-        return self._Servers[self._index].getValue('Server')
+    def getHost(self):
+        return self._getServer().getValue('Server')
 
     def getPort(self):
-        return self._Servers[self._index].getValue('Port')
+        return self._getServer().getValue('Port')
 
     def getConnection(self):
-        return self._Servers[self._index].getValue('Connection')
+        return self._getServer().getValue('Connection')
 
     def getAuthentication(self):
-        return self._Servers[self._index].getValue('Authentication')
+        return self._getServer().getValue('Authentication')
 
     def getLoginName(self):
         login = self._User.getValue('LoginName')
         if login != '':
             return login
-        mode = self._Servers[self._index].getValue('LoginMode')
+        mode = self.getLoginMode()
         return self.Email.partition('@')[mode] if mode != 1 else self.Email
+
+    def getLoginMode(self):
+        return self._getServer().getValue('LoginMode')
 
     def getPassword(self):
         return self._User.getValue('Password')
@@ -151,23 +171,23 @@ class PageModel(unohelper.Base):
     def isLast(self):
         return self._index + 1 >= self._count
 
-    def getSmtpConfig(self, progress, callback):
-        self._datasource.getSmtpConfig(self.Email, progress, callback)
+    def getSmtpConfig(self, *args):
+        self._datasource.getSmtpConfig(self.Email, *args)
 
-    def smtpConnect(self, context, authenticator, progress, callback):
-        self._datasource.smtpConnect(context, authenticator, progress, callback)
+    def smtpConnect(self, *args):
+        self._datasource.smtpConnect(*args)
 
-    def _getServers(self, servers):
-        self._isnew = False
-        self._count = len(servers)
-        self._index = self._default = 0
-        if self._count == 0:
-            self._count = 1
-            self._isnew = True
-            servers = self._getDefaultServers()
-        elif self._count > 1:
-            self._index = self._default = self._getServerIndex(servers)
-        return servers
+    def smtpSend(self, *args):
+        self._datasource.smtpSend(*args)
+
+    def saveConfiguration(self, user, server):
+        if user.toJson() != self.User.toJson():
+            print("PageModel.saveConfiguration() user:\n%s\n%s" % (user.toJson(), self.User.toJson()))
+        if server.toJson() != self._getServer().toJson():
+            print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._getServer().toJson()))
+
+    def _getServer(self):
+        return self._Servers[self._index]
 
     def _getDefaultServers(self):
         server = KeyMap()
@@ -180,10 +200,11 @@ class PageModel(unohelper.Base):
 
     def _getServerIndex(self, servers):
         index = 0
+        default = -1
         port = self.User.getValue('Port')
         if port != 0:
             for server in servers:
                 if server.getValue('Port') == port:
-                    index = servers.index(server)
+                    index = default = servers.index(server)
                     break;
-        return index
+        return index, default

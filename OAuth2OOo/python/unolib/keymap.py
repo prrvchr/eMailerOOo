@@ -110,7 +110,8 @@ class KeyMap(unohelper.Base,
         return False
 
     def update(self, keymap):
-        self.__add__(self, keymap)
+        for key in keymap.getKeys():
+            self._value[key] = keymap.getValue(key)
 
     def fromJson(self, jsonstr):
         self._value = json.loads(jsonstr)

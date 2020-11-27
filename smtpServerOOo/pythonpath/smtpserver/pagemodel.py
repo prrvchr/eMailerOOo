@@ -160,12 +160,24 @@ class PageModel(unohelper.Base):
         return '%s/%s' % (self._index + 1, self._count)
 
     def previousServerPage(self, server):
-        self._Servers[self._index].update(server)
+        try:
+            print("PageModel.previousServerPage() 1 %s" % (self._getServer(), ))
+            self._getServer().update(server)
+            print("PageModel.previousServerPage() 2 %s" % (self._getServer(), ))
         self._index -= 1
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print("PageModel.nextServerPage() Error: %s" % msg)
 
     def nextServerPage(self, server):
-        self._Servers[self._index].update(server)
-        self._index += 1
+        try:
+            print("PageModel.nextServerPage() 1 %s" % (self._getServer(), ))
+            self._getServer().update(server)
+            print("PageModel.nextServerPage() 2 %s" % (self._getServer(), ))
+            self._index += 1
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print("PageModel.nextServerPage() Error: %s" % msg)
 
     def isFirst(self):
         return self._index == 0

@@ -109,6 +109,9 @@ class KeyMap(unohelper.Base,
             return isinstance(value, KeyMap)
         return False
 
+    def update(self, keymap):
+        self.__add__(self, keymap)
+
     def fromJson(self, jsonstr):
         self._value = json.loads(jsonstr)
     def fromJsonKey(self, jsonstr, key):

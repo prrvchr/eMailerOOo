@@ -138,14 +138,11 @@ class WizardManager(unohelper.Base):
 
     def _getPath(self, index, final):
         if self.isMultiPaths():
-            if final:
-                complete, paths = True, self._paths[index]
-            else:
-                complete, paths =  False, self._getCommunPath(index)
+            paths = self._paths[index] if final else self._getCommunPath(index)
             self._currentPath = index
         else:
-            complete, paths = True, self._paths
-        return complete, paths
+            final, paths = True, self._paths
+        return final, paths
 
     def _getCommunPath(self, index):
         paths = []
@@ -157,11 +154,9 @@ class WizardManager(unohelper.Base):
                     if j == index or j == self._currentPath:
                         continue
                     if i >= len(self._paths[j]) or page != self._paths[j][i]:
-                        print("WizardManager._getCommunPath() 1 %s" % (tuple(paths), ))
                         return tuple(paths)
             paths.append(page)
             i += 1
-        print("WizardManager._getCommunPath() 2 %s" % (tuple(paths), ))
         return tuple(paths)
 
     def _initPage(self):

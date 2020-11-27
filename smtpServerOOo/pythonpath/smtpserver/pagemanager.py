@@ -173,11 +173,11 @@ class PageManager(unohelper.Base):
         self.updateTravelUI()
 
     def previousServerPage(self):
-        self.Model.previousServerPage()
+        self.Model.previousServerPage(self.View.getServer())
         self.View.updatePage3(self.Model)
 
     def nextServerPage(self):
-        self.Model.nextServerPage()
+        self.Model.nextServerPage(self.View.getServer())
         self.View.updatePage3(self.Model)
 
     def sendMail(self):

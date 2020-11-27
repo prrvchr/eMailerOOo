@@ -159,10 +159,12 @@ class PageModel(unohelper.Base):
             return '1/0'
         return '%s/%s' % (self._index + 1, self._count)
 
-    def previousServerPage(self):
+    def previousServerPage(self, server):
+        self._Servers[self._index].update(server)
         self._index -= 1
 
-    def nextServerPage(self):
+    def nextServerPage(self, server):
+        self._Servers[self._index].update(server)
         self._index += 1
 
     def isFirst(self):

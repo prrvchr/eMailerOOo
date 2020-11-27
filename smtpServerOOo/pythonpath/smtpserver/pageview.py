@@ -146,6 +146,14 @@ class PageView(unohelper.Base):
         server.setValue('LoginMode', model.getLoginMode())
         return user, server
 
+    def getServer(self):
+        server = KeyMap()
+        connection, authentication = self._getConnectionIndex()
+        server.setValue('Server', self._getHost())
+        server.setValue('Port', self._getPort())
+        server.setValue('Connection', connection)
+        server.setValue('Authentication', authentication)
+
 # PageView private methods
     def _setPageLabel(self, pageid, model, format):
         text = model.resolveString(self._getPageLabelMessage(pageid))

@@ -1,6 +1,28 @@
 #!
 # -*- coding: utf_8 -*-
 
+'''
+    Copyright (c) 2020 https://prrvchr.github.io
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the Software
+    is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+    OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'''
+
 import uno
 import unohelper
 
@@ -29,8 +51,6 @@ from .logger import setDebugMode
 from .logger import logMessage
 from .logger import getMessage
 
-from collections import OrderedDict
-
 from multiprocessing import Process
 from threading import Thread
 #from threading import Condition
@@ -44,6 +64,7 @@ class DataSource(unohelper.Base,
     def __init__(self, ctx):
         print("DataSource.__init__() 1")
         self.ctx = ctx
+        self._dbname = 'SmtpServer'
         self._configuration = getConfiguration(self.ctx, g_identifier, False)
         if not self._isInitialized():
             print("DataSource.__init__() 2")
@@ -126,7 +147,6 @@ class DataSource(unohelper.Base,
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            print("DataSoure._smtpConnect() 1 Error: %s" % e.Message)
             progress(100)
         else:
             progress(75)
@@ -177,17 +197,13 @@ class DataSource(unohelper.Base,
         return response
 
     def _initDataBase(self):
-        self.DataBase = DataBase(self.ctx, 'SmtpServer')
+        self.DataBase = DataBase(self.ctx, self._dbname)
         self.DataBase.addCloseListener(self)
 
     # XCloseListener
     def queryClosing(self, source, ownership):
-        #if self.DataSource.is_alive():
-        #    self.DataSource.cancel()
-        #    self.DataSource.join()
-        #self.deregisterInstance(self.Scheme, self.Plugin)
-        #self.DataBase.shutdownDataBase(self.DataSource.fullPull)
-        msg = "DataSource queryClosing: Scheme: %s ... Done" % 'SmtpServer'
+        self.DataBase.shutdownDataBase()
+        msg = "DataBase  '%s' closing ... Done" % self._dbname
         logMessage(self.ctx, INFO, msg, 'DataSource', 'queryClosing()')
         print(msg)
     def notifyClosing(self, source):

@@ -1,6 +1,28 @@
 #!
 # -*- coding: utf_8 -*-
 
+'''
+    Copyright (c) 2020 https://prrvchr.github.io
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the Software
+    is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+    OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'''
+
 import uno
 import unohelper
 
@@ -31,7 +53,7 @@ class PageModel(unohelper.Base):
         self._User = None
         self._Servers = ()
         self._metadata = ()
-        self._index = self._default = self._count = self._offline = 0
+        self._index = self._count = self._offline = 0
         self._isnew = False
         if email is not None:
             self.Email = email
@@ -72,14 +94,12 @@ class PageModel(unohelper.Base):
         if self._count == 0:
             self._count = 1
             self._isnew = True
-            self._index = 0
-            self._default = -1
             servers = self._getDefaultServers()
         else:
             self._isnew = False
-            self._index, self._default = self._getServerIndex(servers)
         self._metadata = tuple(s.toJson() for s in servers)
         self._Servers = servers
+        self._index = self._getServerIndex(0)
 
     @property
     def Offline(self):
@@ -156,7 +176,7 @@ class PageModel(unohelper.Base):
 
     def getServerPage(self):
         page = '1/0' if self._isnew else '%s/%s' % (self._index + 1, self._count)
-        default = self._index == self._default
+        default = self._index == self._getServerIndex()
         return page, default
 
     def previousServerPage(self, server):
@@ -212,14 +232,12 @@ class PageModel(unohelper.Base):
         server.setValue('LoginMode', 1)
         return (server, )
 
-    def _getServerIndex(self, servers):
-        index = 0
-        default = -1
+    def _getServerIndex(self, default=-1):
         port = self.User.getValue('Port')
         server = self.User.getValue('Server')
         if port != 0:
-            for s in servers:
+            for s in self._Servers:
                 if s.getValue('Server') == server and s.getValue('Port') == port:
-                    index = default = servers.index(s)
+                    default = self._Servers.index(s)
                     break;
-        return index, default
+        return default

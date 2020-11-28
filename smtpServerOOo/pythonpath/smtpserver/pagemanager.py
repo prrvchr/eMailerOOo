@@ -34,6 +34,7 @@ class PageManager(unohelper.Base):
     def __init__(self, ctx, wizard, model=None):
         self.ctx = ctx
         self._search = True
+        self._loaded = False
         self._connected = False
         self._wizard = wizard
         self._model = PageModel(self.ctx) if model is None else model
@@ -72,6 +73,7 @@ class PageManager(unohelper.Base):
 
     def activatePage(self, pageid):
         if pageid == 1:
+            self._loaded = False
             self.Wizard.activatePath(1, False)
         elif pageid == 2:
             self._setPageTitle(pageid, 0)
@@ -79,11 +81,13 @@ class PageManager(unohelper.Base):
             self.Wizard.enablePage(1, False)
             self.getView(pageid).activatePage2(self.Model)
             self._refresh = True
+            self._loaded = False
             self.Model.getSmtpConfig(self.updatePage2, self.updateModel)
         elif pageid == 3:
             self.setPageTitle(pageid)
             if self._refresh:
                 self._refresh = False
+                self._loaded = True
                 self.getView(pageid).activatePage3(self.Model)
         elif pageid == 4:
             self._connected = False
@@ -127,7 +131,8 @@ class PageManager(unohelper.Base):
         elif pageid == 2:
             advance = not self._search
         elif pageid == 3:
-            advance = all((self._isHostValid(pageid),
+            advance = all((self._loaded,
+                           self._isHostValid(pageid),
                            self._isPortValid(pageid),
                            self._isLoginValid(pageid),
                            self._isPasswordValid(pageid)))

@@ -44,8 +44,6 @@ class DataSource(unohelper.Base,
     def __init__(self, ctx):
         print("DataSource.__init__() 1")
         self.ctx = ctx
-        self._progress = 0
-        self._connect = None
         self._configuration = getConfiguration(self.ctx, g_identifier, False)
         if not self._isInitialized():
             print("DataSource.__init__() 2")
@@ -71,6 +69,16 @@ class DataSource(unohelper.Base,
         self.canceled = True
         self.sync.set()
         self.join()
+
+    def saveUser(self, *args):
+        self.DataBase.mergeUser(*args)
+
+    def saveServer(self, new, provider, host, port, server):
+        if new:
+            self.DataBase.mergeProvider(provider)
+            self.DataBase.mergeServer(provider, server)
+        else:
+            self.DataBase.updateServer(host, port, server)
 
     def getSmtpConfig(self, *args):
         config = Thread(target=self._getSmtpConfig, args=args)

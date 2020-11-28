@@ -21,6 +21,7 @@ from .logger import logMessage
 from .logger import getMessage
 
 import validators
+import json
 import traceback
 
 
@@ -29,6 +30,7 @@ class PageModel(unohelper.Base):
         self.ctx = ctx
         self._User = None
         self._Servers = ()
+        self._metadata = ()
         self._index = self._default = self._count = self._offline = 0
         self._isnew = False
         if email is not None:
@@ -66,16 +68,17 @@ class PageModel(unohelper.Base):
         return self._Servers
     @Servers.setter
     def Servers(self, servers):
-        self._isnew = False
         self._count = len(servers)
-        self._index = 0
-        self._default = -1
         if self._count == 0:
             self._count = 1
             self._isnew = True
+            self._index = 0
+            self._default = -1
             servers = self._getDefaultServers()
         else:
+            self._isnew = False
             self._index, self._default = self._getServerIndex(servers)
+        self._metadata = tuple(s.toJson() for s in servers)
         self._Servers = servers
 
     @property
@@ -143,10 +146,7 @@ class PageModel(unohelper.Base):
 
     def getLoginName(self):
         login = self._User.getValue('LoginName')
-        if login != '':
-            return login
-        mode = self.getLoginMode()
-        return self.Email.partition('@')[mode] if mode != 1 else self.Email
+        return login if login != '' else self._getLoginFromEmail()
 
     def getLoginMode(self):
         return self._getServer().getValue('LoginMode')
@@ -160,24 +160,12 @@ class PageModel(unohelper.Base):
         return '%s/%s' % (self._index + 1, self._count)
 
     def previousServerPage(self, server):
-        try:
-            print("PageModel.previousServerPage() 1 %s" % (self._getServer(), ))
-            self._getServer().update(server)
-            print("PageModel.previousServerPage() 2 %s" % (self._getServer(), ))
+        self._getServer().update(server)
         self._index -= 1
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print("PageModel.nextServerPage() Error: %s" % msg)
 
     def nextServerPage(self, server):
-        try:
-            print("PageModel.nextServerPage() 1 %s" % (self._getServer(), ))
-            self._getServer().update(server)
-            print("PageModel.nextServerPage() 2 %s" % (self._getServer(), ))
-            self._index += 1
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print("PageModel.nextServerPage() Error: %s" % msg)
+        self._getServer().update(server)
+        self._index += 1
 
     def isFirst(self):
         return self._index == 0
@@ -195,10 +183,22 @@ class PageModel(unohelper.Base):
         self._datasource.smtpSend(*args)
 
     def saveConfiguration(self, user, server):
+        if self._isnew or server.toJson() != self._metadata[self._index]:
+            provider = user.getValue('Domain')
+            host, port = self._getServerKeys()
+            self._datasource.saveServer(self._isnew, provider, host, port, server)
+            print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._metadata[self._index]))
         if user.toJson() != self.User.toJson():
             print("PageModel.saveConfiguration() user:\n%s\n%s" % (user.toJson(), self.User.toJson()))
-        if server.toJson() != self._getServer().toJson():
-            print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._getServer().toJson()))
+            self._datasource.saveUser(self.Email, user)
+
+    def _getLoginFromEmail(self):
+        mode = self.getLoginMode()
+        return self.Email.partition('@')[mode] if mode != 1 else self.Email
+
+    def _getServerKeys(self):
+        server = json.loads(self._metadata[self._index])
+        return server['Server'], server['Port']
 
     def _getServer(self):
         return self._Servers[self._index]
@@ -209,7 +209,7 @@ class PageModel(unohelper.Base):
         server.setValue('Port', 25)
         server.setValue('Connection', 0)
         server.setValue('Authentication', 0)
-        server.setValue('LoginMode', -1)
+        server.setValue('LoginMode', 1)
         return (server, )
 
     def _getServerIndex(self, servers):

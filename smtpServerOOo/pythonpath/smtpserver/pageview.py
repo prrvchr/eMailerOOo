@@ -129,21 +129,14 @@ class PageView(unohelper.Base):
         return Authenticator(user, password)
 
     def getConfiguration(self, model):
-        host = self._getHost()
-        port = self._getPort()
-        connection, authentication = self._getConnectionIndex()
+        server = self.getServer()
+        server.setValue('LoginMode', model.getLoginMode())
         user = KeyMap()
-        user.setValue('Server', host)
-        user.setValue('Port', port)
+        user.setValue('Server', server.getValue('Server'))
+        user.setValue('Port',  server.getValue('Port'))
         user.setValue('LoginName', self._getLogin().Text)
         user.setValue('Password', self._getPassword().Text)
         user.setValue('Domain', model.User.getValue('Domain'))
-        server = KeyMap()
-        server.setValue('Server', host)
-        server.setValue('Port', port)
-        server.setValue('Connection', connection)
-        server.setValue('Authentication', authentication)
-        server.setValue('LoginMode', model.getLoginMode())
         return user, server
 
     def getServer(self):
@@ -153,6 +146,7 @@ class PageView(unohelper.Base):
         server.setValue('Port', self._getPort())
         server.setValue('Connection', connection)
         server.setValue('Authentication', authentication)
+        return server
 
 # PageView private methods
     def _setPageLabel(self, pageid, model, format):

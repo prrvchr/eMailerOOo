@@ -221,6 +221,41 @@ CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
         WHEN NOT MATCHED THEN INSERT ("Server","Port","Provider","Connection","Authentication","LoginMode","TimeStamp")
           VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
+    elif name == 'createUpdateServer':
+        query = """\
+CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(100),
+                                IN "Port1" SMALLINT,
+                                IN "Server2" VARCHAR(100),
+                                IN "Port2" SMALLINT,
+                                IN "Connection" TINYINT,
+                                IN "Authentication" TINYINT,
+                                IN "Time" TIMESTAMP(6))
+  SPECIFIC "UpdateServer_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Servers" SET "Server"="Server2", "Port"="Port2",
+      "Connection"="Connection", "Authentication"="Authentication",
+      "TimeStamp"="Time"
+      WHERE "Server" = "Server1" AND "Port" = "Port1";
+  END"""
+    elif name == 'createMergeUser':
+        query = """\
+CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(100),
+                             IN "Server" VARCHAR(100),
+                             IN "Port" SMALLINT,
+                             IN "LoginName" VARCHAR(100),
+                             IN "Password" VARCHAR(100),
+                             IN "Time" TIMESTAMP(6))
+  SPECIFIC "MergeUser_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    MERGE INTO "Users" USING (VALUES("User","Server","Port","LoginName","Password","Time"))
+      AS vals(u,v,w,x,y,z) ON "Users"."User"=vals.u
+        WHEN MATCHED THEN UPDATE
+          SET "Server"=vals.v, "Port"=vals.w, "LoginName"=vals.x, "Password"=vals.y, "TimeStamp"=vals.z
+        WHEN NOT MATCHED THEN INSERT ("User","Server","Port","LoginName","Password","TimeStamp")
+          VALUES vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
+  END"""
 
 # Get DataBase Version Query
     elif name == 'getVersion':
@@ -241,6 +276,10 @@ CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
         query = 'CALL "MergeDomain"(?,?,?)'
     elif name == 'mergeServer':
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
+    elif name == 'updateServer':
+        query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
+    elif name == 'mergeUser':
+        query = 'CALL "MergeUser"(?,?,?,?,?,?)'
 
 # Queries don't exist!!!
     else:

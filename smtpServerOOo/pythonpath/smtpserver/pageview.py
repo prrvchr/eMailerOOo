@@ -51,7 +51,10 @@ class PageView(unohelper.Base):
 
     def updatePage3(self, model):
         self._enableNavigation(model)
-        self._getServerPage().Text = model.getServerPage()
+        page, default = model.getServerPage()
+        control = self._getServerPage()
+        control.Model.FontWeight = BOLD if default else NORMAL
+        control.Text = page
         self._loadPage3(model)
 
     def updatePage4(self, model, value):

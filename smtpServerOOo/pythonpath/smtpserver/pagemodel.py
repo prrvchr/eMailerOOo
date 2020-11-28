@@ -155,9 +155,9 @@ class PageModel(unohelper.Base):
         return self._User.getValue('Password')
 
     def getServerPage(self):
-        if self._isnew:
-            return '1/0'
-        return '%s/%s' % (self._index + 1, self._count)
+        page = '1/0' if self._isnew else '%s/%s' % (self._index + 1, self._count)
+        default = self._index == self._default
+        return page, default
 
     def previousServerPage(self, server):
         self._getServer().update(server)
@@ -216,9 +216,10 @@ class PageModel(unohelper.Base):
         index = 0
         default = -1
         port = self.User.getValue('Port')
+        server = self.User.getValue('Server')
         if port != 0:
-            for server in servers:
-                if server.getValue('Port') == port:
-                    index = default = servers.index(server)
+            for s in servers:
+                if s.getValue('Server') == server and s.getValue('Port') == port:
+                    index = default = servers.index(s)
                     break;
         return index, default

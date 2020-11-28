@@ -178,8 +178,7 @@ class OptionsDialog(unohelper.Base,
             #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
             print("_showWizard() 2")
             if dispatcher is not None:
-                args = getPropertyValueSet({'Email': 'prrvchr@gmail.com'})
-                dispatcher.dispatch(url, args)
+                dispatcher.dispatch(url, ())
                 print("_showWizard() 3")
             #mri = createService(self.ctx, 'mytools.Mri')
             #mri.inspect(desktop)

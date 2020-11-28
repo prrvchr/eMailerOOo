@@ -14,6 +14,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from unolib import getFileSequence
 from unolib import getStringResource
 from unolib import getResourceLocation
+from unolib import getUrl
 from unolib import getDialog
 from unolib import createService
 from unolib import getPropertyValueSet
@@ -137,7 +138,8 @@ class OptionsDialog(unohelper.Base,
             logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
 
     def _logInfo(self, dialog):
-        msg = getMessage(self.ctx, g_message, 111, sys.version)
+        version  = ' '.join(sys.version.split())
+        msg = getMessage(self.ctx, g_message, 111, version)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         url = getLoggerUrl(self.ctx)
         self._setDialogText(dialog, url)
@@ -171,7 +173,7 @@ class OptionsDialog(unohelper.Base,
     def _showWizard(self, dialog):
         try:
             print("_showWizard() 1 Python Version: %s / SSL Version: %s" % (sys.version, ssl.OPENSSL_VERSION))
-            url = self._getUrl('ispdb://')
+            url = getUrl(self.ctx, 'ispdb://')
             desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
             dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
             #dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
@@ -187,13 +189,6 @@ class OptionsDialog(unohelper.Base,
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
-
-    def _getUrl(self, uri):
-        url = uno.createUnoStruct('com.sun.star.util.URL')
-        url.Complete = uri
-        transformer = createService(self.ctx, 'com.sun.star.util.URLTransformer')
-        success, url = transformer.parseStrict(url)
-        return url
 
     # XServiceInfo
     def supportsService(self, service):

@@ -32,6 +32,7 @@ g_message = 'OptionsDialog'
 from oauth2 import g_identifier
 from oauth2 import g_oauth2
 
+from oauth2 import requests
 import sys
 import traceback
 
@@ -188,7 +189,17 @@ class OptionsDialog(unohelper.Base,
             logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
 
     def _logInfo(self, dialog):
-        msg = getMessage(self.ctx, g_message, 111, sys.version)
+        version  = ' '.join(sys.version.split())
+        msg = getMessage(self.ctx, g_message, 111, version)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        msg = getMessage(self.ctx, g_message, 112, requests.__version__)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        msg = getMessage(self.ctx, g_message, 113, requests.urllib3.__version__)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        if requests.ssl is None:
+            msg = getMessage(self.ctx, g_message, 115)
+        else:
+            msg = getMessage(self.ctx, g_message, 114, requests.ssl.OPENSSL_VERSION)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         url = getLoggerUrl(self.ctx)
         self._setDialogText(dialog, url)

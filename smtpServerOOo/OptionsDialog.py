@@ -56,7 +56,7 @@ from smtpserver import g_identifier
 
 import traceback
 import sys
-import ssl
+
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -194,7 +194,7 @@ class OptionsDialog(unohelper.Base,
 
     def _showWizard(self, dialog):
         try:
-            print("_showWizard() 1 Python Version: %s / SSL Version: %s" % (sys.version, ssl.OPENSSL_VERSION))
+            print("_showWizard() 1 Python Version: %s" % (sys.version, ))
             url = getUrl(self.ctx, 'ispdb://')
             desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
             dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)

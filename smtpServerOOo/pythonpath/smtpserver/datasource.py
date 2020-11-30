@@ -1,32 +1,37 @@
 #!
 # -*- coding: utf_8 -*-
 
-'''
-    Copyright (c) 2020 https://prrvchr.github.io
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the Software
-    is furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-    OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
 
 import uno
 import unohelper
 
 from com.sun.star.util import XCloseListener
+from com.sun.star.datatransfer import XTransferable
 
 from com.sun.star.uno import Exception as UnoException
 
@@ -164,7 +169,7 @@ class DataSource(unohelper.Base,
         send = Thread(target=self._smtpSend, args=args)
         send.start()
 
-    def _smtpSend(self, context, authenticator, recipient, object, message, progress, callback):
+    def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, callback):
         step = 3
         progress(5)
         service = 'com.sun.star.mail.MailServiceProvider2'
@@ -179,8 +184,18 @@ class DataSource(unohelper.Base,
         else:
             progress(75)
             if server.isConnected():
+                service = 'com.sun.star.mail.MailMessage2'
+                body = MailTransferable(self.ctx, message)
+                arguments = (recipient, sender, subject, body)
+                mail = createService(self.ctx, service, *arguments)
+                print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
+                try:
+                    server.sendMailMessage(mail)
+                except UnoException as e:
+                    print("DataSoure._smtpSend() 3 Error: %s - %s" % (e.Message, traceback.print_exc()))
+                else:
+                    step = 5
                 server.disconnect()
-                step = 5
                 progress(100)
             else:
                 progress(100)
@@ -208,3 +223,42 @@ class DataSource(unohelper.Base,
         print(msg)
     def notifyClosing(self, source):
         pass
+
+
+class MailTransferable(unohelper.Base,
+                       XTransferable):
+    def __init__(self, ctx, body):
+        print("MailTransferable.__init__() 1")
+        self.ctx = ctx
+        self._body = body
+        self._html = False
+        print("MailTransferable.__init__() 2")
+
+    # XTransferable
+    def getTransferData(self, flavor):
+        if flavor.MimeType == "text/plain;charset=utf-16":
+            print("MailTransferable.getTransferData() 1")
+            data = self._body
+        elif flavor.MimeType == "text/html;charset=utf-8":
+            print("MailTransferable.getTransferData() 2")
+            data = ''
+        else:
+            print("MailTransferable.getTransferData() 3")
+            data = ''
+        return data
+
+    def getTransferDataFlavors(self):
+        flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
+        if self._html:
+            flavor.MimeType = 'text/html;charset=utf-8'
+            flavor.HumanPresentableName = 'HTML-Documents'
+        else:
+            flavor.MimeType = 'text/plain;charset=utf-16'
+            flavor.HumanPresentableName = 'Unicode text'
+        print("MailTransferable.getTransferDataFlavors() 1")
+        return (flavor,)
+
+    def isDataFlavorSupported(self, flavor):
+        support = flavor.MimeType == 'text/plain;charset=utf-16' or flavor.MimeType == 'text/html;charset=utf-8'
+        print("MailTransferable.isDataFlavorSupported() 1 %s" % support)
+        return support

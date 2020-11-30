@@ -1,31 +1,65 @@
 #!
 # -*- coding: utf_8 -*-
 
-'''
-    Caolan McNamara caolanm@redhat.com
-    a simple email mailmerge component
-'''
-'''
-    Copyright (c) 2020 https://prrvchr.github.io
+# *************************************************************
+#  
+#  Licensed to the Apache Software Foundation (ASF) under one
+#  or more contributor license agreements.  See the NOTICE file
+#  distributed with this work for additional information
+#  regarding copyright ownership.  The ASF licenses this file
+#  to you under the Apache License, Version 2.0 (the
+#  "License"); you may not use this file except in compliance
+#  with the License.  You may obtain a copy of the License at
+#  
+#    http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing,
+#  software distributed under the License is distributed on an
+#  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#  KIND, either express or implied.  See the License for the
+#  specific language governing permissions and limitations
+#  under the License.
+#  
+# *************************************************************
 
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the Software
-    is furnished to do so, subject to the following conditions:
+# Caolan McNamara caolanm@redhat.com
+# a simple email mailmerge component
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+# manual installation for hackers, not necessary for users
+# cp mailmerge.py /usr/lib/openoffice.org2.0/program
+# cd /usr/lib/openoffice.org2.0/program
+# ./unopkg add --shared mailmerge.py
+# edit ~/.openoffice.org2/user/registry/data/org/openoffice/Office/Writer.xcu
+# and change EMailSupported to as follows...
+#  <prop oor:name="EMailSupported" oor:type="xs:boolean">
+#   <value>true</value>
+#  </prop>
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-    OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
 
 import uno
 import unohelper
@@ -74,6 +108,7 @@ g_message = 'MailServiceProvider'
 
 from smtpserver import smtplib
 
+import re
 import sys
 import six
 import imaplib
@@ -139,12 +174,14 @@ class SmtpService(unohelper.Base,
                 msg = getMessage(self.ctx, g_message, 132, error.Message)
                 logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'connect()')
             raise error
-        error = self._doLogin(context, authenticator, server)
-        if error is not None:
-            if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 133, error.Message)
-                logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'connect()')
-            raise error
+        authentication = context.getValueByName('AuthenticationType').title()
+        if authentication != 'None':
+            error = self._doLogin(authentication, authenticator, server)
+            if error is not None:
+                if isDebugMode():
+                    msg = getMessage(self.ctx, g_message, 133, error.Message)
+                    logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'connect()')
+                raise error
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
@@ -173,8 +210,7 @@ class SmtpService(unohelper.Base,
                 server = smtplib.SMTP(timeout=timeout)
             if isDebugMode():
                 server.set_debuglevel(1)
-            code, reply = server.connect(host=host, port=port)
-            reply = getReply(reply)
+            code, reply = getReply(*server.connect(host=host, port=port))
             if isDebugMode():
                 msg = getMessage(self.ctx, g_message, 144, (host, port, code, reply))
                 logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
@@ -182,8 +218,7 @@ class SmtpService(unohelper.Base,
                 msg = getMessage(self.ctx, g_message, 146, reply)
                 error = ConnectException(msg, self)
             elif connection == 'Tls':
-                code, reply = server.starttls()
-                reply = getReply(reply)
+                code, reply = getReply(*server.starttls())
                 if isDebugMode():
                     msg = getMessage(self.ctx, g_message, 145, (code, reply))
                     logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
@@ -206,33 +241,27 @@ class SmtpService(unohelper.Base,
             logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
         return error
 
-    def _doLogin(self, context, authenticator, server):
+    def _doLogin(self, authentication, authenticator, server):
         error = None
-        authentication = context.getValueByName('AuthenticationType').title()
-        if authentication == 'None':
-            return error
+        user = authenticator.getUserName()
         if isDebugMode():
             msg = getMessage(self.ctx, g_message, 151, authentication)
             logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
         try:
             if authentication == 'Login':
-                user = authenticator.getUserName()
                 password = authenticator.getPassword()
                 if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
                     user = user.encode('ascii')
                     password = password.encode('ascii')
-                    code, reply = self._server.login(user, password)
-                    reply = getReply(reply)
-                    if isDebugMode():
-                        pwd = '*' * len(password)
-                        msg = getMessage(self.ctx, g_message, 152, (user, pwd, code, reply))
-                        logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+                code, reply = getReply(*self._server.login(user, password))
+                if isDebugMode():
+                    pwd = '*' * len(password)
+                    msg = getMessage(self.ctx, g_message, 152, (user, pwd, code, reply))
+                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
             elif authentication == 'Oauth2':
-                user = authenticator.getUserName()
                 token = getToken(self.ctx, self, server, user, True)
                 self._server.ehlo_or_helo_if_needed()
-                code, reply = self._server.docmd('AUTH', 'XOAUTH2 %s' % token)
-                reply = getReply(reply)
+                code, reply = getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
                 if code != 235:
                     msg = getMessage(self.ctx, g_message, 154, reply)
                     error = AuthenticationFailedException(msg, self)
@@ -253,7 +282,7 @@ class SmtpService(unohelper.Base,
     def disconnect(self):
         if self.isConnected():
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 161)
+                msg = getMessage(self.ctx, g_message, 171)
                 logMessage(self.ctx, INFO, msg, 'SmtpService', 'disconnect()')
             self._server.quit()
             self._server = None
@@ -261,7 +290,7 @@ class SmtpService(unohelper.Base,
             for listener in self._listeners:
                 listener.disconnected(self._notify)
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 162)
+                msg = getMessage(self.ctx, g_message, 172)
                 logMessage(self.ctx, INFO, msg, 'SmtpService', 'disconnect()')
 
     def getCurrentConnectionContext(self):
@@ -273,6 +302,9 @@ class SmtpService(unohelper.Base,
         sendermail = message.SenderAddress
         sendername = message.SenderName
         subject = message.Subject
+        if isDebugMode():
+            msg = getMessage(self.ctx, g_message, 161, subject)
+            logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
         ccrecipients = message.getCcRecipients()
         bccrecipients = message.getBccRecipients()
         attachments = message.getAttachments()
@@ -362,7 +394,15 @@ class SmtpService(unohelper.Base,
             for key in bccrecipients:
                 uniquer[key] = True
         truerecipients = uniquer.keys()
-        self._server.sendmail(sendermail, truerecipients, msg.as_string())
+        refused = self._server.sendmail(sendermail, truerecipients, msg.as_string())
+        if len(refused) != 0:
+            for address, result in refused.items():
+                code, reply = getReply(*result)
+                msg = getMessage(self.ctx, g_message, 162, (subject, address, code, reply))
+                logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
+        elif isDebugMode():
+            msg = getMessage(self.ctx, g_message, 163, subject)
+            logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
 
 
 class ImapService(unohelper.Base,
@@ -397,15 +437,15 @@ class ImapService(unohelper.Base,
         self._context = context
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
-        connection = context.getValueByName('ConnectionType')
-        authentication = context.getValueByName('AuthenticationType')
-        if connection.upper() == 'SSL':
+        connection = context.getValueByName('ConnectionType').title()
+        authentication = context.getValueByName('AuthenticationType').title()
+        if connection == 'Ssl':
             self._server = imaplib.IMAP4_SSL(host=server, port=port)
         else:
             self._server = imaplib.IMAP4(host=server, port=port)
-        if connection.upper() == 'TLS':
+        if connection == 'Tls':
             self._server.starttls()
-        if authentication.upper() == 'LOGIN':
+        if authentication == 'Login':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             if user != '':
@@ -414,7 +454,7 @@ class ImapService(unohelper.Base,
                     if password != '':
                         password = password.encode('ascii')
                 self._server.login(user, password)
-        elif authentication.upper() == 'OAUTH2':
+        elif authentication == 'Oauth2':
             user = authenticator.getUserName()
             token = getToken(self.ctx, self, server, user)
             self._server.authenticate('XOAUTH2', lambda x: token)
@@ -468,15 +508,15 @@ class Pop3Service(unohelper.Base,
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType')
-        authentication = context.getValueByName('AuthenticationType')
-        if connection.upper() == 'SSL':
+        connection = context.getValueByName('ConnectionType').title()
+        authentication = context.getValueByName('AuthenticationType').title()
+        if connection == 'Ssl':
             self._server = poplib.POP3_SSL(host=server, port=port, timeout=timeout)
         else:
             self._server = poplib.POP3(host=server, port=port, timeout=timeout)
-        if connection.upper() == 'TLS':
+        if connection == 'Tls':
             self._server.stls()
-        if authentication.upper() == 'LOGIN':
+        if authentication == 'Login':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             if user != '':
@@ -561,9 +601,17 @@ class MailMessage(unohelper.Base,
         if attachment is not None:
             self._attachments.append(attachment)
         self._sendername, self._senderaddress = parseaddr(sender)
-        self._replytoaddress = sender
-        self._subject = subject
-        self._body = body
+        self.ReplyToAddress = sender
+        self.Subject = subject
+        self.Body = body
+
+    @property
+    def SenderName(self):
+        return self._sendername
+
+    @property
+    def SenderAddress(self):
+        return self._senderaddress
 
     def addRecipient(self, recipient):
         self._recipients.append(recipient)
@@ -614,7 +662,7 @@ def getToken(ctx, source, url, user, encode=False):
         authstring = base64.b64encode(authstring.encode('ascii')).decode('ascii')
     return authstring
 
-def getReply(reply):
+def getReply(code, reply):
     if isinstance(reply, six.binary_type):
         reply = reply.decode('ascii')
-    return reply
+    return code, reply

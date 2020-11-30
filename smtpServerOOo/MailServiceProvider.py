@@ -600,18 +600,18 @@ class MailMessage(unohelper.Base,
         self._attachments = []
         if attachment is not None:
             self._attachments.append(attachment)
-        self._sendername, self._senderaddress = parseaddr(sender)
+        self._sname, self._saddress = parseaddr(sender)
         self.ReplyToAddress = sender
         self.Subject = subject
         self.Body = body
 
     @property
     def SenderName(self):
-        return self._sendername
+        return self._sname
 
     @property
     def SenderAddress(self):
-        return self._senderaddress
+        return self._saddress
 
     def addRecipient(self, recipient):
         self._recipients.append(recipient)

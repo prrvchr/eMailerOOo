@@ -161,6 +161,22 @@ def getSqlQuery(ctx, name, format=None):
         p = (','.join(s), ' '.join(f), w)
         query = 'SELECT %s FROM %s WHERE %s;' % p
 
+    elif name == 'getUser1':
+        s1 = '"Servers"."Server"'
+        s2 = '"Servers"."Port"'
+        s3 = '"Servers"."Connection"'
+        s4 = '"Servers"."Authentication"'
+        s5 = '"Users"."LoginName"'
+        s6 = '"Users"."Password"'
+        s = (s1, s2, s3, s4, s5, s6)
+        f1 = '"Users"'
+        f2 = 'JOIN "Servers"'
+        f3 = 'ON "Users"."Server"="Servers"."Server" AND "Users"."Port"="Servers"."Port"'
+        f = (f1, f2, f3)
+        w = '"Users"."User"=?'
+        p = (','.join(s), ' '.join(f), w)
+        query = 'SELECT %s FROM %s WHERE %s;' % p
+
 # Function creation Queries
     elif name == 'createGetDomain':
         query = """\
@@ -173,13 +189,28 @@ CREATE FUNCTION "GetDomain"("User" VARCHAR(100))
 # Select Procedure Queries
     elif name == 'createGetUser':
         query = """\
-CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100),
-                           OUT "Server" VARCHAR(100),
-                           OUT "Port" SMALLINT,
-                           OUT "LoginName" VARCHAR(100),
-                           OUT "Password" VARCHAR(100),
-                           OUT "Domain" VARCHAR(100))
+CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100))
   SPECIFIC "GetUser_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
+      "Servers"."Authentication", "Users"."LoginName", "Users"."Password" FROM "Users"
+      JOIN "Servers" ON "Users"."Server"="Servers"."Server" AND "Users"."Port"="Servers"."Port"
+      WHERE "Users"."User"="User"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+    elif name == 'createGetServers':
+        query = """\
+CREATE PROCEDURE "GetServers"(IN "User" VARCHAR(100),
+                              OUT "Server" VARCHAR(100),
+                              OUT "Port" SMALLINT,
+                              OUT "LoginName" VARCHAR(100),
+                              OUT "Password" VARCHAR(100),
+                              OUT "Domain" VARCHAR(100))
+  SPECIFIC "GetServers_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
@@ -295,7 +326,9 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(100),
 
 # Get Procedure Query
     elif name == 'getUser':
-        query = 'CALL "GetUser"(?,?,?,?,?,?)'
+        query = 'CALL "GetUser"(?)'
+    elif name == 'getServers':
+        query = 'CALL "GetServers"(?,?,?,?,?,?)'
     elif name == 'mergeProvider':
         query = 'CALL "MergeProvider"(?,?,?,?)'
     elif name == 'mergeDomain':

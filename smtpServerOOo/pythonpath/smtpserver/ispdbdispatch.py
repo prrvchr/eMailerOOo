@@ -30,8 +30,13 @@
 import uno
 import unohelper
 
-from com.sun.star.frame import XDispatch
+from com.sun.star.frame import XNotifyingDispatch
+
+from com.sun.star.frame.DispatchResultState import SUCCESS
+from com.sun.star.frame.DispatchResultState import FAILURE
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -56,7 +61,7 @@ import traceback
 
 
 class IspdbDispatch(unohelper.Base,
-                    XDispatch):
+                    XNotifyingDispatch):
     def __init__(self, ctx, model, frame):
         self.ctx = ctx
         self._model = model
@@ -69,22 +74,50 @@ class IspdbDispatch(unohelper.Base,
             print("IspdbDispatch.__init__() not parent set!!!!!!")
         logMessage(self.ctx, INFO, "Loading ... Done", 'IspdbDispatch', '__init__()')
 
-    # XDispatch
+    # XNotifyingDispatch
+    def dispatchWithNotification(self, url, arguments, listener):
+        state = SUCCESS
+        email = self._getEmail(arguments)
+        config = self._model._datasource.getConfig(email)
+        if config is None:
+            state = self._dispatch(email)
+            if state == SUCCESS:
+                email = self._model.Email
+                config = self._model._datasource.getConfig(email)
+        struct = 'com.sun.star.frame.DispatchResultEvent'
+        notification = uno.createUnoStruct(struct, self, state, config)
+        listener.dispatchFinished(notification)
+
     def dispatch(self, url, arguments):
-        for arg in arguments:
-            if arg.Name == 'Email':
-                self._model.Email = arg.Value
-                print("IspdbDispatch.dispatch() 1 %s" % self._model.Email)
+        email = self._getEmail(arguments)
+        self._dispatch(email)
         print("IspdbDispatch.dispatch() 2")
-        self._showWizard()
+
     def addStatusListener(self, listener, url):
         print("IspDBServer.addStatusListener()")
+
     def removeStatusListener(self, listener, url):
         print("IspDBServer.removeStatusListener()")
+
+    def _dispatch(self, email):
+        if email:
+            self._model.Email = email
+        print("IspdbDispatch.dispatch() 1 %s" % self._model.Email)
+        print("IspdbDispatch.dispatch() 2")
+        return self._showWizard()
+
+    def _getEmail(self, arguments):
+        email = ''
+        for arg in arguments:
+            if arg.Name == 'Email':
+                email = arg.Value
+                break
+        return email
 
     def _showWizard(self):
         try:
             print("_showWizard()")
+            state = FAILURE
             msg = "Wizard Loading ..."
             wizard = Wizard(self.ctx, g_wizard_page, True, self._parent)
             controller = WizardController(self.ctx, wizard, self._model)
@@ -92,13 +125,13 @@ class IspdbDispatch(unohelper.Base,
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
+                state = SUCCESS
                 msg +=  " Retrieving SMTP configuration OK..."
-            else:
-                msg +=  " ERROR: Wizard as been aborted"
             wizard.DialogWindow.dispose()
             wizard.DialogWindow = None
             print(msg)
             logMessage(self.ctx, INFO, msg, 'IspdbDispatch', '_showWizard()')
+            return state
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

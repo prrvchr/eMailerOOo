@@ -134,6 +134,7 @@ class PageManager(unohelper.Base):
     def updateModel(self, user, servers, offline):
         print("PageManager.updateModel() 1: %s" % self.Wizard.getCurrentPage().PageId)
         if self.Wizard.DialogWindow is not None:
+            # TODO: The order of assignment is important (ie: the user before the servers)
             self.Model.User = user
             self.Model.Servers = servers
             self.Model.Offline = offline

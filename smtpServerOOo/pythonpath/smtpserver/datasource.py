@@ -40,7 +40,6 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getConfiguration
 from unolib import createService
 from unolib import getConnectionMode
 from unolib import getUrl
@@ -70,7 +69,7 @@ class DataSource(unohelper.Base,
         print("DataSource.__init__() 1")
         self.ctx = ctx
         self._dbname = 'SmtpServer'
-        self._configuration = getConfiguration(self.ctx, g_identifier, False)
+        self._config = None
         if not self._isInitialized():
             print("DataSource.__init__() 2")
             DataSource._Init = Thread(target=self._initDataBase)
@@ -106,17 +105,25 @@ class DataSource(unohelper.Base,
         else:
             self.DataBase.updateServer(host, port, server)
 
+    def waitForDataBase(self):
+        DataSource._Init.join()
+
+    def getConfig(self, email):
+        self.waitForDataBase()
+        config = self.DataBase.getConfig(email)
+        return config
+
     def getSmtpConfig(self, *args):
         config = Thread(target=self._getSmtpConfig, args=args)
         config.start()
 
-    def _getSmtpConfig(self, email, progress, callback):
+    def _getSmtpConfig(self, email, url, progress, callback):
         progress(5)
-        url = getUrl(self.ctx, self._configuration.getByName('IspDBUrl'))
+        url = getUrl(self.ctx, url)
         progress(10)
         mode = getConnectionMode(self.ctx, url.Server)
         progress(20)
-        DataSource._Init.join()
+        self.waitForDataBase()
         progress(40)
         user, servers = self.DataBase.getSmtpConfig(email)
         if len(servers) > 0:

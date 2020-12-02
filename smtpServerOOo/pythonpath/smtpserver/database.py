@@ -102,10 +102,20 @@ class DataBase(unohelper.Base):
             query = getSqlQuery(self.ctx, 'shutdown')
         self._statement.execute(query)
 
+    def getConfig(self, email):
+        config = None
+        call = self._getCall('getUser')
+        call.setString(1, email)
+        result = call.executeQuery()
+        if result.next():
+            config = getKeyMapFromResult(result)
+        call.close()
+        return config
+
     def getSmtpConfig(self, email):
         user = KeyMap()
         servers = []
-        call = self._getCall('getUser')
+        call = self._getCall('getServers')
         call.setString(1, email)
         result = call.executeQuery()
         user.setValue('Server', call.getString(2))
@@ -113,7 +123,6 @@ class DataBase(unohelper.Base):
         user.setValue('LoginName', call.getString(4))
         user.setValue('Password', call.getString(5))
         user.setValue('Domain', call.getString(6))
-        print("DataBase.getSmtpConfig() %s" % (user, ))
         while result.next():
             servers.append(getKeyMapFromResult(result))
         call.close()

@@ -558,7 +558,7 @@ class MailServiceProvider(unohelper.Base,
 
     def create(self, mailtype):
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 111, mailtype)
+            msg = getMessage(self.ctx, g_message, 111, mailtype.value)
             logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
         if mailtype == SMTP:
             service = SmtpService(self.ctx)
@@ -571,7 +571,7 @@ class MailServiceProvider(unohelper.Base,
             logMessage(self.ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
             raise e
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 112, mailtype)
+            msg = getMessage(self.ctx, g_message, 112, mailtype.value)
             logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
         return service
 

@@ -61,10 +61,11 @@ class PageModel(unohelper.Base):
         self._isnew = False
         if email is not None:
             self.Email = email
-        self._timeout = self.getTimeout()
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
+        self._configuration = getConfiguration(self.ctx, g_identifier, True)
+        self._timeout = self._configuration.getByName('ConnectTimeout')
         try:
             msg = "PageModel.__init__()"
             print(msg)
@@ -125,13 +126,10 @@ class PageModel(unohelper.Base):
     def getAuthenticationMap(self, index):
         return self._authentications.get(index)
 
-    def getTimeout(self):
-        return getConfiguration(self.ctx, g_identifier, False).getByName('ConnectTimeout')
     def saveTimeout(self):
-        configuration = getConfiguration(self.ctx, g_identifier, True)
-        configuration.replaceByName('ConnectTimeout', self._timeout)
-        if configuration.hasPendingChanges():
-            configuration.commitChanges()
+        self._configuration.replaceByName('ConnectTimeout', self._timeout)
+        if self._configuration.hasPendingChanges():
+            self._configuration.commitChanges()
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
@@ -198,7 +196,8 @@ class PageModel(unohelper.Base):
         return self._index + 1 >= self._count
 
     def getSmtpConfig(self, *args):
-        self._datasource.getSmtpConfig(self.Email, *args)
+        url = self._configuration.getByName('IspDBUrl')
+        self._datasource.getSmtpConfig(self.Email, url, *args)
 
     def smtpConnect(self, *args):
         self._datasource.smtpConnect(*args)
@@ -208,7 +207,7 @@ class PageModel(unohelper.Base):
 
     def saveConfiguration(self, user, server):
         if self._isnew or server.toJson() != self._metadata[self._index]:
-            provider = user.getValue('Domain')
+            provider = self._getDomain()
             host, port = self._getServerKeys()
             self._datasource.saveServer(self._isnew, provider, host, port, server)
             print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._metadata[self._index]))
@@ -227,9 +226,12 @@ class PageModel(unohelper.Base):
     def _getServer(self):
         return self._Servers[self._index]
 
+    def _getDomain(self):
+        return self.User.getValue('Domain')
+
     def _getDefaultServers(self):
         server = KeyMap()
-        server.setValue('Server', '')
+        server.setValue('Server', 'smtp.%s' % self._getDomain())
         server.setValue('Port', 25)
         server.setValue('Connection', 0)
         server.setValue('Authentication', 0)

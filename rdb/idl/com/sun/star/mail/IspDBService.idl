@@ -1,0 +1,17 @@
+#ifndef __com_sun_star_mail_IspDBService_idl__
+#define __com_sun_star_mail_IspDBService_idl__
+
+#include <com/sun/star/mail/XIspDBService.idl>
+
+module com { module sun { module star { module mail {
+
+service IspDBService: XIspDBService
+{
+
+    create();
+
+};
+
+}; }; }; };
+
+#endif

@@ -1,0 +1,21 @@
+#ifndef __com_sun_star_mail_XIspDBService_idl__
+#define __com_sun_star_mail_XIspDBService_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/uno/XCurrentContext.idl>
+#include <com/sun/star/mail/XAuthenticator.idl>
+
+module com { module sun { module star { module mail {
+
+interface XIspDBService: com::sun::star::uno::XInterface
+{
+
+    void initialize([in] string Email);
+    com::sun::star::uno::XCurrentContext getConnectionContext();
+    XAuthenticator getAuthenticator();
+
+};
+
+}; }; }; };
+
+#endif

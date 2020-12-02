@@ -33,6 +33,7 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -70,7 +71,8 @@ g_ImplementationName = '%s.OptionsDialog' % g_identifier
 class OptionsDialog(unohelper.Base,
                     XServiceInfo,
                     XContainerWindowEventHandler,
-                    XDialogEventHandler):
+                    XDialogEventHandler,
+                    XDispatchResultListener):
     def __init__(self, ctx):
         try:
             self.ctx = ctx
@@ -188,7 +190,7 @@ class OptionsDialog(unohelper.Base,
         setLoggerSetting(self.ctx, enabled, index, handler)
 
     def _loadSmtpSetting(self, dialog):
-        dialog.getControl('NumericField1').Value = self._model.getTimeout()
+        dialog.getControl('NumericField1').Value = self._model.Timeout
 
     def _saveSmtpSetting(self, dialog):
         self._model.saveTimeout()
@@ -206,6 +208,7 @@ class OptionsDialog(unohelper.Base,
             #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
             print("_showWizard() 2")
             if dispatcher is not None:
+                #dispatcher.dispatchWithNotification(url, (), self)
                 dispatcher.dispatch(url, ())
                 print("_showWizard() 3")
             #mri = createService(self.ctx, 'mytools.Mri')
@@ -215,6 +218,13 @@ class OptionsDialog(unohelper.Base,
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
+        print("OptionsDialog.dispatchFinished() %s" % (notification.Result.getKeys(), ))
+    def disposing(self, source):
+        pass
+
 
     # XServiceInfo
     def supportsService(self, service):

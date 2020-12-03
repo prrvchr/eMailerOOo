@@ -78,6 +78,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.mail import NoMailServiceProviderException
+from com.sun.star.mail import SendMailMessageFailedException
 from com.sun.star.mail import MailException
 from com.sun.star.auth import AuthenticationFailedException 
 from com.sun.star.lang import IllegalArgumentException
@@ -394,15 +395,35 @@ class SmtpService(unohelper.Base,
             for key in bccrecipients:
                 uniquer[key] = True
         truerecipients = uniquer.keys()
-        refused = self._server.sendmail(sendermail, truerecipients, msg.as_string())
-        if len(refused) != 0:
-            for address, result in refused.items():
-                code, reply = getReply(*result)
-                msg = getMessage(self.ctx, g_message, 162, (subject, address, code, reply))
-                logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
-        elif isDebugMode():
-            msg = getMessage(self.ctx, g_message, 163, subject)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+        error = None
+        try:
+            refused = self._server.sendmail(sendermail, truerecipients, msg.as_string())
+        except smtplib.SMTPSenderRefused as e:
+            msg = getMessage(self.ctx, g_message, 162, (subject, getExceptionMessage(e)))
+            error = MailException(msg, self)
+        except smtplib.SMTPRecipientsRefused as e:
+            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            # TODO: return SendMailMessageFailedException in place of MailException
+            # TODO: error = SendMailMessageFailedException(msg, self)
+            error = MailException(msg, self)
+        except smtplib.SMTPDataError as e:
+            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            error = MailException(msg, self)
+        except Exception as e:
+            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            error = MailException(msg, self)
+        else:
+            if len(refused) > 0:
+                for address, result in refused.items():
+                    code, reply = getReply(*result)
+                    msg = getMessage(self.ctx, g_message, 164, (subject, address, code, reply))
+                    logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
+            elif isDebugMode():
+                msg = getMessage(self.ctx, g_message, 165, subject)
+                logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+        if error is not None:
+            logMessage(self.ctx, SEVERE, error.Message, 'SmtpService', 'sendMailMessage()')
+            raise error
 
 
 class ImapService(unohelper.Base,

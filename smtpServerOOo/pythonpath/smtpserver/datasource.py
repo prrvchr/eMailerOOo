@@ -187,7 +187,6 @@ class DataSource(unohelper.Base,
             server.connect(context, authenticator)
         except UnoException as e:
             print("DataSoure._smtpSend() 1 Error: %s" % e.Message)
-            progress(100)
         else:
             progress(75)
             if server.isConnected():
@@ -203,9 +202,7 @@ class DataSource(unohelper.Base,
                 else:
                     step = 5
                 server.disconnect()
-                progress(100)
-            else:
-                progress(100)
+        progress(100)
         setDebugMode(self.ctx, False)
         callback(step)
 

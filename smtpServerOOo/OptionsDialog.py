@@ -173,8 +173,11 @@ class OptionsDialog(unohelper.Base,
         self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
+        control = dialog.getControl('TextField1')
         length, sequence = getFileSequence(self.ctx, url)
-        dialog.getControl('TextField1').Text = sequence.value.decode('utf-8')
+        control.Text = sequence.value.decode('utf-8')
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
 
     def _loadLoggerSetting(self, dialog):
         enabled, index, handler = getLoggerSetting(self.ctx)

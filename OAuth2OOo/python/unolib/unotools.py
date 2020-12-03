@@ -93,6 +93,7 @@ def getExceptionMessage(exception):
         message = max(messages, key=len)
     if isinstance(message, six.binary_type):
         message = message.decode('utf-8')
+    message = ' '.join(message.split())
     return message
 
 def getFileSequence(ctx, url, default=None):

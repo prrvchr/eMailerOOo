@@ -27,10 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+#TODO: smtplib have been patched to correct Bug: https://github.com/python/cpython/pull/11998
+#TODO: patch is available at: https://github.com/prrvchr/cpython/blob/2.7/Lib/smtplib.py
 
-from six import PY3
-
-if PY3:
-    from .smtplib3 import *
-else:
-    from .smtplib2 import *
+from .smtplib import *

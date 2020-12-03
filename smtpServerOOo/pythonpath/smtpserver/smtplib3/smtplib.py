@@ -1,5 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
+#! /usr/bin/env python3
 
 '''SMTP/ESMTP client class.
 
@@ -41,8 +40,6 @@ Example:
 # RFC 2554 (authentication) support by Gerhard Haering <gerhard@bigfoot.de>.
 #
 # This was modified from the Python 1.5 library HTTP lib.
-
-from __future__ import print_function
 
 import socket
 import io
@@ -338,7 +335,7 @@ class SMTP:
                     raise OSError("nonnumeric port")
         if not port:
             port = self.default_port
-        #sys.audit("smtplib.connect", self, host, port)
+        sys.audit("smtplib.connect", self, host, port)
         self.sock = self._get_socket(host, port, self.timeout)
         self.file = None
         (code, msg) = self.getreply()
@@ -358,7 +355,7 @@ class SMTP:
                 # should not be used, but 'data' needs to convert the string to
                 # binary itself anyway, so that's not a problem.
                 s = s.encode(self.command_encoding)
-            #sys.audit("smtplib.send", self, s)
+            sys.audit("smtplib.send", self, s)
             try:
                 self.sock.sendall(s)
             except OSError:
@@ -421,7 +418,7 @@ class SMTP:
 
         errmsg = b"\n".join(resp)
         if self.debuglevel > 0:
-            self._print_debug('reply: retcode (%s); Msg: %s' % (errcode, errmsg))
+            self._print_debug('reply: retcode (%s); Msg: %a' % (errcode, errmsg))
         return errcode, errmsg
 
     def docmd(self, cmd, args=""):
@@ -611,7 +608,7 @@ class SMTP:
                 if not (200 <= code <= 299):
                     raise SMTPHeloError(code, resp)
 
-    def auth(self, mechanism, authobject, initial_response_ok=True):
+    def auth(self, mechanism, authobject, *, initial_response_ok=True):
         """Authentication command - requires response processing.
 
         'mechanism' specifies which authentication mechanism is to
@@ -672,7 +669,7 @@ class SMTP:
         else:
             return self.password
 
-    def login(self, user, password, initial_response_ok=True):
+    def login(self, user, password, *, initial_response_ok=True):
         """Log in on an SMTP server that requires authentication.
 
         The arguments are:
@@ -955,7 +952,7 @@ class SMTP:
         del msg_copy['Resent-Bcc']
         international = False
         try:
-            ''.join([from_addr, ] + to_addrs).encode('ascii')
+            ''.join([from_addr, *to_addrs]).encode('ascii')
         except UnicodeEncodeError:
             if not self.has_extn('smtputf8'):
                 raise SMTPNotSupportedError(
@@ -967,7 +964,7 @@ class SMTP:
             if international:
                 g = email.generator.BytesGenerator(
                     bytesmsg, policy=msg.policy.clone(utf8=True))
-                mail_options = mail_options + ('SMTPUTF8', 'BODY=8BITMIME')
+                mail_options = (*mail_options, 'SMTPUTF8', 'BODY=8BITMIME')
             else:
                 g = email.generator.BytesGenerator(bytesmsg)
             g.flatten(msg_copy, linesep='\r\n')
@@ -1042,7 +1039,7 @@ if _have_ssl:
         def _get_socket(self, host, port, timeout):
             if self.debuglevel > 0:
                 self._print_debug('connect:', (host, port))
-            new_socket = SMTP._get_socket(self, host, port, timeout)
+            new_socket = super()._get_socket(host, port, timeout)
             new_socket = self.context.wrap_socket(new_socket,
                                                   server_hostname=host)
             return new_socket

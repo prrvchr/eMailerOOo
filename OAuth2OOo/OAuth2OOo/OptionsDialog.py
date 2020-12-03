@@ -59,6 +59,7 @@ from oauth2 import g_identifier
 from oauth2 import g_oauth2
 
 from oauth2 import requests
+import os
 import sys
 import traceback
 
@@ -218,28 +219,37 @@ class OptionsDialog(unohelper.Base,
         version  = ' '.join(sys.version.split())
         msg = getMessage(self.ctx, g_message, 111, version)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
-        msg = getMessage(self.ctx, g_message, 112, requests.__version__)
+        path = os.pathsep.join(sys.path)
+        msg = getMessage(self.ctx, g_message, 112, path)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
-        msg = getMessage(self.ctx, g_message, 113, requests.urllib3.__version__)
+        msg = getMessage(self.ctx, g_message, 113, requests.__version__)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        msg = getMessage(self.ctx, g_message, 114, requests.urllib3.__version__)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         if requests.ssl is None:
             msg = ''
             try:
-                import ssl
+                from oauth2 import ssl
             except ImportError as e:
                 print("OptionsDialog._logInfo() 1")
                 msg = getExceptionMessage(e)
+                msg = getMessage(self.ctx, g_message, 116, msg)
+            else:
+                msg = getMessage(self.ctx, g_message, 115, ssl.OPENSSL_VERSION)
                 print("OptionsDialog._logInfo() 2")
-            msg = getMessage(self.ctx, g_message, 115, msg)
         else:
-            msg = getMessage(self.ctx, g_message, 114, requests.ssl.OPENSSL_VERSION)
+            msg = getMessage(self.ctx, g_message, 115, requests.ssl.OPENSSL_VERSION)
+            print("OptionsDialog._logInfo() 3")
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         url = getLoggerUrl(self.ctx)
         self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
+        control = dialog.getControl('TextField1')
         length, sequence = getFileSequence(self.ctx, url)
-        dialog.getControl('TextField1').Text = sequence.value.decode('utf-8')
+        control.Text = sequence.value.decode('utf-8')
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
 
     def _loadLoggerSetting(self, dialog):
         enabled, index, handler = getLoggerSetting(self.ctx)

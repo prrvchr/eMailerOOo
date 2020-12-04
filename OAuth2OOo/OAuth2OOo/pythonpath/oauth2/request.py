@@ -1,6 +1,32 @@
 #!
 # -*- coding: utf-8 -*-
 
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
+
 import uno
 import unohelper
 
@@ -29,10 +55,13 @@ from com.sun.star.auth.RestRequestTokenType import TOKEN_JSON
 from com.sun.star.auth.RestRequestTokenType import TOKEN_SYNC
 
 from unolib import KeyMap
+print("request.py 1")
 from unolib import NoOAuth2
-
+print("request.py 2")
 from .logger import logMessage
+print("request.py 3")
 from . import requests
+print("request.py 4")
 
 import traceback
 import sys
@@ -173,9 +202,10 @@ def execute(session, parameter, timeout, parser=None):
                 response.Value = r.json(object_pairs_hook=parser.parseResponse)
                 response.IsPresent = True
             elif parser.DataType == 'Xml':
-                response.Value = parser.parseResponse(r.text)
+                response.Value = parser.parseResponse(r.content)
                 response.IsPresent = True
     return response, error
+
 
 class Request(unohelper.Base,
               XRestRequest):
@@ -573,6 +603,8 @@ def _getKeyWordArguments(parameter):
         kwargs['auth'] = NoOAuth2()
     if parameter.NoRedirect:
         kwargs['allow_redirects'] = False
+    if parameter.NoVerify:
+        kwargs['verify'] = False
     return kwargs
 
 def _parseResponse(response):

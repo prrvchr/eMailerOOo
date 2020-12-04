@@ -226,19 +226,15 @@ class OptionsDialog(unohelper.Base,
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         msg = getMessage(self.ctx, g_message, 114, requests.urllib3.__version__)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
-        if requests.ssl is None:
-            msg = ''
-            try:
-                from oauth2 import ssl
-            except ImportError as e:
-                print("OptionsDialog._logInfo() 1")
-                msg = getExceptionMessage(e)
-                msg = getMessage(self.ctx, g_message, 116, msg)
-            else:
-                msg = getMessage(self.ctx, g_message, 115, ssl.OPENSSL_VERSION)
-                print("OptionsDialog._logInfo() 2")
+        try:
+            import ssl
+        except ImportError as e:
+            print("OptionsDialog._logInfo() 1 %s" % (dir(e), ))
+            msg = getExceptionMessage(e)
+            print("OptionsDialog._logInfo() 2")
+            msg = getMessage(self.ctx, g_message, 116, msg)
         else:
-            msg = getMessage(self.ctx, g_message, 115, requests.ssl.OPENSSL_VERSION)
+            msg = getMessage(self.ctx, g_message, 115, ssl.OPENSSL_VERSION)
             print("OptionsDialog._logInfo() 3")
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         url = getLoggerUrl(self.ctx)

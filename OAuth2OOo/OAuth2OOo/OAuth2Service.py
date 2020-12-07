@@ -126,9 +126,12 @@ class OAuth2Service(unohelper.Base,
 
     # XInitialization
     def initialize(self, properties):
+        print("OAuth2Service.initialize() 1")
         for property in properties:
+            print("OAuth2Service.initialize() 2")
             if property.Name == 'Parent':
                 self._parent = property.Value
+                print("OAuth2Service.initialize() 3 %s" % self._parent)
 
     # XInteractionHandler2, XInteractionHandler
     def handle(self, interaction):

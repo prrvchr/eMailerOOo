@@ -169,12 +169,11 @@ class WizardModel(unohelper.Base):
     def _setRoadmapModel(self, view):
         window = view.DialogWindow.Model
         self._roadmap = window.createInstance('com.sun.star.awt.UnoControlRoadmapModel')
-        position, size = view.getRoadmapPosition(), view.getRoadmapSize()
         self._roadmap.Name = view.getRoadmapName()
-        self._roadmap.PositionX = position.X
-        self._roadmap.PositionY = position.Y
-        self._roadmap.Height = size.Height
-        self._roadmap.Width = size.Width
+        self._roadmap.PositionX = view.getRoadmapArea().X
+        self._roadmap.PositionY = view.getRoadmapArea().Y
+        self._roadmap.Height = view.getRoadmapArea().Height
+        self._roadmap.Width = view.getRoadmapArea().Width
         self._roadmap.Text = self.resolveString(view.getRoadmapTitle())
         return self._roadmap
 

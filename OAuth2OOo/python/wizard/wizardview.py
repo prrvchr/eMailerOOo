@@ -47,10 +47,14 @@ class WizardView(unohelper.Base):
     def __init__(self, ctx, handler, xdl, parent):
         self._spacer = 5
         self._roadmap = 'RoadmapControl1'
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 85, 180)
         self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         self._size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
         self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
         self.DialogWindow = getDialog(ctx, g_extension, xdl, handler, parent)
+
+    def getRoadmapArea(self):
+        return self._rectangle
 
     def getRoadmapPosition(self):
         return self._point

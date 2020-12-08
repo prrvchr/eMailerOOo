@@ -54,7 +54,7 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from unolib import getDialog
 from unolib import createService
 from unolib import getStringResource
-from unolib import getInterfaceTypes
+from unolib import hasInterface
 
 from .configuration import g_identifier
 from .configuration import g_extension
@@ -96,6 +96,8 @@ class Wizard(unohelper.Base,
         roadmap = self._getRoadmapControl('RoadmapControl1', point, size)
         print("Wizard.__init__() 5")
         roadmap.addItemListener(self)
+        self._createPeer(parent)
+        self._dialog.toFront()
         print("Wizard.__init__() 6")
 
     @property
@@ -109,6 +111,16 @@ class Wizard(unohelper.Base,
     def DialogWindow(self):
         return self._dialog
 
+    def _createPeer(self, peer=None):
+        self._dialog.setVisible(False)
+        toolkit = createService(self.ctx, 'com.sun.star.awt.Toolkit')
+        if peer is None:
+            peer = toolkit.getDesktopWindow()
+        self._dialog.createPeer(toolkit, peer)
+        #self.xWindowPeer = self.DialogWindow.getPeer()
+        return self._dialog.getPeer()
+
+
     # XInitialization
     def initialize(self, args):
         if not isinstance(args, tuple) or len(args) != 2:
@@ -117,8 +129,8 @@ class Wizard(unohelper.Base,
         controller = args[1]
         if not isinstance(paths, tuple) or len(paths) < 2:
             raise self._getIllegalArgumentException(0, 102)
-        unotype = uno.getTypeByName('com.sun.star.ui.dialogs.XWizardController')
-        if unotype not in getInterfaceTypes(controller):
+        interface = 'com.sun.star.ui.dialogs.XWizardController'
+        if not hasInterface(controller, interface):
             raise self._getIllegalArgumentException(0, 103)
         self._paths = paths
         self._multiPaths = isinstance(paths[0], tuple)
@@ -137,6 +149,7 @@ class Wizard(unohelper.Base,
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
+        self._dialog.toFront()
         if method == 'Help':
             handled = True
         elif method == 'Previous':
@@ -233,9 +246,11 @@ class Wizard(unohelper.Base,
         self._dialog.setTitle(title)
 
     def execute(self):
+        print("Wizard.execute() 1")
         if self._currentPath == -1:
             self._initPath(0, False)
         self._initPage()
+        print("Wizard.execute() 2")
         #self._setButtonFocus()
         return self._dialog.execute()
 

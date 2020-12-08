@@ -126,9 +126,12 @@ class OAuth2Service(unohelper.Base,
 
     # XInitialization
     def initialize(self, properties):
+        print("OAuth2Service.initialize() 1")
         for property in properties:
+            print("OAuth2Service.initialize() 2")
             if property.Name == 'Parent':
                 self._parent = property.Value
+                print("OAuth2Service.initialize() 3 %s" % self._parent)
 
     # XInteractionHandler2, XInteractionHandler
     def handle(self, interaction):
@@ -140,10 +143,14 @@ class OAuth2Service(unohelper.Base,
         # TODO: at line 525 in "_uno_struct__setattr__"
         # TODO: as a workaround we must set an "args" attribute of type "sequence<any>" to
         # TODO: IDL file of com.sun.star.auth.OAuth2Request Exception who is normally returned...
+        print("OAuth2Service.handleInteractionRequest() 1")
         request = interaction.getRequest()
+        mri = createService(self.ctx, 'mytools.Mri')
+        if mri:
+            print("OAuth2Service.handleInteractionRequest() 2")
+            mri.inspect(interaction)
         url = request.ResourceUrl
         user = request.UserName
-        print("handleInteractionRequest() %s - %s" %(type(user), user))
         if user != '':
             approved = self._getToken(interaction, url, user, request.Format)
         else:
@@ -230,6 +237,7 @@ class OAuth2Service(unohelper.Base,
         print("OAuth2Service.getAuthorization() 4")
         wizard.initialize(arguments)
         msg += " Done ..."
+        #wizard.DialogWindow.toFront()
         print("OAuth2Service.getAuthorization() 5")
         if wizard.execute() == OK:
             msg +=  " Retrieving Authorization Code ..."

@@ -167,15 +167,16 @@ class WizardModel(unohelper.Base):
         return page not in self._disabledPages
 
     def _setRoadmapModel(self, view):
-        window = view.DialogWindow.Model
-        self._roadmap = window.createInstance('com.sun.star.awt.UnoControlRoadmapModel')
-        position, size = view.getRoadmapPosition(), view.getRoadmapSize()
+        model = 'com.sun.star.awt.UnoControlRoadmapModel'
+        rectangle = view.getRoadmapArea()
+        self._roadmap = view.DialogWindow.Model.createInstance(model)
         self._roadmap.Name = view.getRoadmapName()
-        self._roadmap.PositionX = position.X
-        self._roadmap.PositionY = position.Y
-        self._roadmap.Height = size.Height
-        self._roadmap.Width = size.Width
+        self._roadmap.PositionX = rectangle.X
+        self._roadmap.PositionY = rectangle.Y
+        self._roadmap.Height = rectangle.Height
+        self._roadmap.Width = rectangle.Width
         self._roadmap.Text = self.resolveString(view.getRoadmapTitle())
+        self._roadmap.TabIndex = view.getRoadmapTabIndex()
         return self._roadmap
 
     def _canAdvancePage(self, page):

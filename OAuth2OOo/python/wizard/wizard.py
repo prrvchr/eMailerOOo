@@ -38,7 +38,7 @@ from com.sun.star.util import InvalidStateException
 from com.sun.star.container import NoSuchElementException
 
 from unolib import getDialog
-from unolib import getInterfaceTypes
+from unolib import hasInterface
 
 from .wizardmanager import WizardManager
 
@@ -85,8 +85,8 @@ class Wizard(unohelper.Base,
         paths, controller = arguments
         if not isinstance(paths, tuple) or len(paths) < 1:
             raise self._getIllegalArgumentException(0, 102)
-        unotype = uno.getTypeByName('com.sun.star.ui.dialogs.XWizardController')
-        if unotype not in getInterfaceTypes(controller):
+        interface = 'com.sun.star.ui.dialogs.XWizardController'
+        if not hasInterface(controller, interface):
             raise self._getIllegalArgumentException(0, 103)
         self._manager.setPaths(paths)
         self._manager._controller = controller

@@ -1,1 +1,1 @@
-../../../OAuth2OOo/python/dbconfig.py
+../../../OAuth2OOo/python/database/dbconfig.py

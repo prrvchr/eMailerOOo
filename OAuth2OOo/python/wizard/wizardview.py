@@ -45,25 +45,22 @@ import traceback
 
 class WizardView(unohelper.Base):
     def __init__(self, ctx, handler, xdl, parent):
-        self._spacer = 5
-        self._roadmap = 'RoadmapControl1'
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 85, 180)
-        self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
-        self._size = uno.createUnoStruct('com.sun.star.awt.Size', 85, 180)
+        self._spacer = 6
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 85, 180)
+        self._roadmap = {'name': 'RoadmapControl1', 'index': 1, 'area': rectangle}
         self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
         self.DialogWindow = getDialog(ctx, g_extension, xdl, handler, parent)
-
-    def getRoadmapArea(self):
-        return self._rectangle
-
-    def getRoadmapPosition(self):
-        return self._point
-
-    def getRoadmapSize(self):
-        return self._size
+        #self._createPeer(parent)
+        #self.DialogWindow.toFront()
 
     def getRoadmapName(self):
-        return self._roadmap
+        return self._roadmap.get('name')
+
+    def getRoadmapTabIndex(self):
+        return self._roadmap.get('index')
+
+    def getRoadmapArea(self):
+        return self._roadmap.get('area')
 
     def getRoadmapTitle(self):
         return self._getRoadmapTitle()
@@ -117,6 +114,15 @@ class WizardView(unohelper.Base):
     def _getButton(self, button):
         index = self._button.get(button)
         return self._getButtonByIndex(index)
+
+    def _createPeer(self, peer=None):
+        self.DialogWindow.setVisible(False)
+        toolkit = createService(self.ctx, 'com.sun.star.awt.Toolkit')
+        if peer is None:
+            peer = toolkit.getDesktopWindow()
+        self.DialogWindow.createPeer(toolkit, peer)
+        #self.xWindowPeer = self.DialogWindow.getPeer()
+        return self.DialogWindow.getPeer()
 
 # WizardView private message methods
     def _getRoadmapTitle(self):

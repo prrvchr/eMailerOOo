@@ -18,7 +18,6 @@ ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XInteractionUserName
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XRestUploader
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XOAuth2Service
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/OAuth2Service
-${Path}/merge_rdb.sh ${OOoPath} com/sun/star/ucb/AuthenticationRequest2
 
 read -p "Press enter to continue"
 

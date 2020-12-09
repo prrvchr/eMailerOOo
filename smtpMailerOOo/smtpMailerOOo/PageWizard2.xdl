@@ -16,7 +16,7 @@
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="45" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label4.HelpText" dlg:value="&amp;PageWizard2.Label4.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:disabled="true" dlg:left="135" dlg:top="60" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton1.HelpText" dlg:value="&amp;PageWizard2.CommandButton1.Label">
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:disabled="true" dlg:left="135" dlg:top="60" dlg:width="15" dlg:height="15" dlg:tag="Recipient" dlg:help-text="&amp;PageWizard2.CommandButton1.HelpText" dlg:value="&amp;PageWizard2.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddAll" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:disabled="true" dlg:left="135" dlg:top="95" dlg:width="15" dlg:height="15" dlg:tag="Recipient" dlg:help-text="&amp;PageWizard2.CommandButton2.HelpText" dlg:value="&amp;PageWizard2.CommandButton2.Label">
@@ -25,7 +25,7 @@
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:disabled="true" dlg:left="135" dlg:top="125" dlg:width="15" dlg:height="15" dlg:tag="Recipient" dlg:help-text="&amp;PageWizard2.CommandButton3.HelpText" dlg:value="&amp;PageWizard2.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton4" dlg:tab-index="10" dlg:disabled="true" dlg:left="135" dlg:top="160" dlg:width="15" dlg:height="15" dlg:help-text="&amp;PageWizard2.CommandButton4.HelpText" dlg:value="&amp;PageWizard2.CommandButton4.Label">
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="10" dlg:disabled="true" dlg:left="135" dlg:top="160" dlg:width="15" dlg:height="15" dlg:tag="Recipient" dlg:help-text="&amp;PageWizard2.CommandButton4.HelpText" dlg:value="&amp;PageWizard2.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveAll" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="11" dlg:left="160" dlg:top="45" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label5.HelpText" dlg:value="&amp;PageWizard2.Label5.Label" dlg:valign="center"/>

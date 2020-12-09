@@ -31,82 +31,78 @@ import uno
 import unohelper
 
 from com.sun.star.ui.dialogs import XWizardController
-from com.sun.star.sdb.CommandType import COMMAND
-from com.sun.star.sdb.CommandType import QUERY
-from com.sun.star.sdb.CommandType import TABLE
 
-from com.sun.star.awt import XCallback
-from com.sun.star.lang import IllegalArgumentException
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import PropertySet
 from unolib import createService
-from unolib import getConfiguration
 from unolib import getDialogUrl
-from unolib import getStringResource
-from unolib import getContainerWindow
 
-from .configuration import g_identifier
-from .configuration import g_extension
-from .configuration import g_column_index
-from .configuration import g_column_filters
-from .configuration import g_wizard_paths
-
-from .wizardhandler import WizardHandler
+from .pagemanager import PageManager
+from .pagehandler import PageHandler
 from .wizardpage import WizardPage
+
+from .configuration import g_extension
+
 from .logger import logMessage
 
 import traceback
 
-MOTOBIT = 1024 * 1024
 
 class WizardController(unohelper.Base,
                        XWizardController):
-    def __init__(self, ctx, wizard):
+    def __init__(self, ctx, wizard, model=None):
         self.ctx = ctx
-        self._wizard = wizard
-        self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
-        self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
-        self._configuration = getConfiguration(self.ctx, g_identifier, True)
-        self._handler = WizardHandler(self.ctx, self._wizard)
-        self._maxsize = self._configuration.getByName("MaxSizeMo") * MOTOBIT
+        #self._provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
+        manager = PageManager(self.ctx, wizard, model)
+        self._handler = PageHandler(manager)
 
     # XWizardController
-    def createPage(self, parent, id):
-        msg = "PageId: %s ..." % id
-        url = getDialogUrl(g_extension, 'PageWizard%s' % id)
-        window = self._provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
-        page = WizardPage(self.ctx, id, window, self._handler)
+    def createPage(self, parent, pageid):
+        msg = "PageId: %s ..." % pageid
+        print("WizardController.createPage() 1")
+        url = getDialogUrl(g_extension, 'PageWizard%s' % pageid)
+        print("WizardController.createPage() 2")
+        provider = createService(self.ctx, 'com.sun.star.awt.ContainerWindowProvider')
+        print("WizardController.createPage() 3")
+        try:
+            window = provider.createContainerWindow(url, 'NotUsed', parent, self._handler)
+            print("WizardController.createPage() 4")
+        except Exception as e:
+            msg = "WizardController.createPage() Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+        # TODO: Fixed: When initializing XWizardPage, the handler must be disabled...
+        self._handler.disable()
+        print("WizardController.createPage() 5")
+        page = WizardPage(self.ctx, pageid, window, self._handler.Manager)
+        print("WizardController.createPage() 6")
+        self._handler.enable()
+        print("WizardController.createPage() 7")
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'createPage()')
         return page
 
-    def getPageTitle(self, id):
-        return self._stringResource.resolveString('PageWizard%s.Step' % id)
+    def getPageTitle(self, pageid):
+        return self._handler.Manager.Wizard._manager.getPageStep(pageid)
 
     def canAdvance(self):
-        return self._wizard.getCurrentPage().canAdvance()
+        return True
 
-    def onActivatePage(self, id):
-        msg = "PageId: %s..." % id
-        title = self._stringResource.resolveString('PageWizard%s.Title' % id)
-        self._wizard.setTitle(title)
+    def onActivatePage(self, pageid):
+        msg = "PageId: %s..." % pageid
+        self._handler.Manager.setPageTitle(pageid)
         backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
         forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
         finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        self._wizard.updateTravelUI()
         msg += " Done"
         logMessage(self.ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 
-    def onDeactivatePage(self, id):
-        if id == 1:
+    def onDeactivatePage(self, pageid):
+        if pageid == 1:
             pass
-        elif id == 2:
+        elif pageid == 2:
             pass
-        elif id == 3:
+        elif pageid == 3:
             pass
 
     def confirmFinish(self):

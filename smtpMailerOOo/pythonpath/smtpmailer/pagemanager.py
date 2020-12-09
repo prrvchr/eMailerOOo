@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,19 +27,97 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_logger
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
+import uno
+import unohelper
 
-from .wizard import Wizard
-from .wizardcontroller import WizardController
+from com.sun.star.uno import Exception as UnoException
+
+from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
+from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
+from com.sun.star.ui.dialogs.WizardTravelType import FINISH
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from .pagemodel import PageModel
+from .pageview import PageView
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
+from unolib import createService
+
 from .logger import logMessage
 from .logger import getMessage
+g_message = 'pagemanager'
+
+
+import traceback
+
+
+class PageManager(unohelper.Base):
+    def __init__(self, ctx, wizard, model=None):
+        self.ctx = ctx
+        self._wizard = wizard
+        self._model = PageModel(self.ctx) if model is None else model
+        self._views = {}
+        print("PageManager.__init__() 1")
+
+    @property
+    def View(self):
+        pageid = self.Wizard.getCurrentPage().PageId
+        return self.getView(pageid)
+    @property
+    def Model(self):
+        return self._model
+    @property
+    def Wizard(self):
+        return self._wizard
+
+    def getView(self, pageid):
+        if pageid in self._views:
+            return self._views[pageid]
+        print("PageManager.getView ERROR **************************")
+        return None
+
+    def getWizard(self):
+        return self.Wizard
+
+    def initPage(self, pageid, window):
+        view = PageView(self.ctx, window)
+        self._views[pageid] = view
+        if pageid == 1:
+            if view.initPage1(self.Model):
+                self.Wizard.updateTravelUI()
+
+    def activatePage(self, pageid):
+        if pageid == 1:
+            pass
+
+    def canAdvancePage(self, pageid):
+        advance = False
+        if pageid == 1:
+            pass
+        elif pageid == 2:
+            pass
+        elif pageid == 3:
+            pass
+        elif pageid == 4:
+            pass
+        return advance
+
+    def commitPage(self, pageid, reason):
+        if pageid == 1:
+            pass
+        elif pageid == 2:
+            pass
+        elif pageid == 3:
+            pass
+        elif pageid == 4:
+            pass
+        return True
+
+    def updateTravelUI(self):
+        self.Wizard.updateTravelUI()
+
+    def setPageTitle(self, pageid):
+        title = self.getView(pageid).getPageTitle(self.Model, pageid)
+        self.Wizard.setTitle(title)

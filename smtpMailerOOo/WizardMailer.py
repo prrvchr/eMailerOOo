@@ -31,13 +31,16 @@ import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
 
 from unolib import createService
 from unolib import getStringResource
+from unolib import getParentWindow
 
 from smtpmailer import logMessage
 from smtpmailer import getMessage
@@ -47,6 +50,7 @@ from smtpmailer import g_wizard_paths
 from smtpmailer import g_wizard_page
 from smtpmailer import Wizard
 from smtpmailer import WizardController
+from smtpmailer import PageModel
 
 import traceback
 
@@ -69,21 +73,25 @@ class WizardMailer(unohelper.Base,
             #package = createService(self.ctx, 'com.sun.star.deployment.ui.PackageManagerDialog')
     
             #wizard = createService(self.ctx, 'com.sun.star.ui.dialogs.Wizard')
-            wizard = Wizard(self.ctx, g_wizard_page, True)
+            parent = getParentWindow(self.ctx)
+            wizard = Wizard(self.ctx, g_wizard_page, True, parent)
             print("WizardMailer.__init__() 2")
-            controller = WizardController(self.ctx, wizard)
+            model = PageModel(self.ctx)
+            controller = WizardController(self.ctx, wizard, model)
             #arguments = ((uno.Any('[]short', g_wizard_paths), controller), )
             print("WizardMailer.__init__() 3")
             arguments = (g_wizard_paths, controller)
             #uno.invoke(wizard, 'initialize', arguments)
             wizard.initialize(arguments)
             print("WizardMailer.__init__() 4")
-            self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
             logMessage(self.ctx, INFO, msg, 'WizardMailer', '__init__()')
             print(msg)
             #mri = createService(self.ctx, 'mytools.Mri')
             #mri.inspect(package)
-            wizard.execute()
+            if wizard.execute() == OK:
+                print(" Retrieving SMTP configuration OK...")
+            wizard.DialogWindow.dispose()
+            wizard.DialogWindow = None
         except Exception as e:
             print("WizardMailer.__init__() ERROR: %s - %s" % (e, traceback.print_exc()))
 

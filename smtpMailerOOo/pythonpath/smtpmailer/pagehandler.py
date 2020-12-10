@@ -31,7 +31,7 @@ import uno
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt.grid import XGridSelectionListener
 
 import traceback
 
@@ -39,35 +39,34 @@ import traceback
 class PageHandler(unohelper.Base,
                   XContainerWindowEventHandler):
     def __init__(self, manager):
-        self._enabled = True
         self._manager = manager
+        self._disabled = False
 
     @property
     def Manager(self):
         return self._manager
 
     def disable(self):
-        self._enabled = False
+        self._disabled = True
 
     def enable(self):
-        self._enabled = True
+        self._disabled = False
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
         handled = False
-        # TODO: During ListBox initializing the listener must be disabled...
-        if not self._enabled:
+        # TODO: During WizardPage initialization the listener must be disabled...
+        if self._disabled:
             handled = True
         elif method == 'StateChange':
-            #handled = self._updateUI(window, event)
+            self._manager.updateUI(event.Source)
             handled = True
         elif method == 'SettingChanged':
-            #control = event.Source
-            #handled = self._changeSetting(window, control)
+            self._manager.updateUI(event.Source)
             handled = True
         elif method == 'ColumnChanged':
-            #control = event.Source
-            #handled = self._changeColumn(window, control)
+            print("PageHandler.callHandlerMethod() ColumnChanged ***************")
+            self._manager.updateUI(event.Source)
             handled = True
         elif method == 'OutputChanged':
             #control = event.Source
@@ -80,11 +79,10 @@ class PageHandler(unohelper.Base,
             #self._updateControl(window, control)
         elif method == 'Move':
             #control = event.Source
-            #handled = self._moveItem(window, control)
+            self._manager.moveItem(event.Source)
             handled = True
         elif method == 'Add':
-            #control = event.Source
-            #handled = self._addItem(window, control)
+            self._manager.addItem(event.Source)
             handled = True
         elif method == 'AddAll':
             #self._modified = True
@@ -96,8 +94,7 @@ class PageHandler(unohelper.Base,
             #self._updateControl(window, grid)
             handled = True
         elif method == 'Remove':
-            #control = event.Source
-            #handled = self._removeItem(window, control)
+            self._manager.removeItem(event.Source)
             handled = True
         elif method == 'RemoveAll':
             #self._modified = True
@@ -120,3 +117,16 @@ class PageHandler(unohelper.Base,
                 'SettingChanged',
                 'ColumnChanged',
                 'Move')
+
+
+class GridHandler(unohelper.Base,
+                  XGridSelectionListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XGridSelectionListener
+    def selectionChanged(self, event):
+        self._manager.selectionChanged(event.Source)
+
+    def disposing(self, event):
+        pass

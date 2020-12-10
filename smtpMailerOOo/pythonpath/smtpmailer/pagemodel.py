@@ -41,6 +41,8 @@ from unolib import getConfiguration
 from unolib import getStringResource
 from unolib import getPropertyValueSet
 
+from .wizardtools import getRowSetOrders
+
 from .configuration import g_identifier
 from .configuration import g_extension
 from .configuration import g_fetchsize
@@ -57,12 +59,8 @@ class PageModel(unohelper.Base):
         self._listeners = []
         self._disabled = False
         self._modified = False
-        self._address = createService(self.ctx, 'com.sun.star.sdb.RowSet')
-        self._address.CommandType = TABLE
-        self._address.FetchSize = g_fetchsize
-        self._recipient = createService(self.ctx, 'com.sun.star.sdb.RowSet')
-        self._recipient.CommandType = TABLE
-        self._recipient.FetchSize = g_fetchsize
+        self._address = self._getRowSet()
+        self._recipient = self._getRowSet()
         self._statement = None
         self._table = None
         self._database = None
@@ -121,6 +119,21 @@ class PageModel(unohelper.Base):
                 connection = database.getConnection('', '')
             self._database = database
             self._statement = connection.createStatement()
+            document, form = self._getForm(False)
+            self._table = self.getDefaultTable(document, 'PrimaryTable')
+            view.setTables(self.TableNames, self._table.Name)
+            column = self.getDefaultColumn(self._table)
+            view.setColumns(self.ColumnNames, column)
+            emails = self.getEmailColumn(document, 'EmailColumns')
+            view.setEmailAddress(emails)
+            keys = self.getIndexColumns(document, 'IndexColumns')
+            view.setPrimaryKey(keys)
+            if form is not None:
+                form.close()
+            view.updateControlByTag('Columns')
+            view.updateControlByTag('EmailAddress')
+            view.updateControlByTag('PrimaryKey')
+            #self.refreshControl(self._getDataSource())
             self._query = self._getQueryComposer()
             self._setRowSet(datasource)
             print("PageModel.setDataSource() 2")
@@ -132,27 +145,47 @@ class PageModel(unohelper.Base):
         print("PageModel.setDataSource() 3")
         return initialized
 
+    def setAddressBook(self, view, table):
+        print("PageModel.setAddressBook() 1")
+        old = self._tables.getColumns().getElementNames()
+        self._table = self.Connection.getTables().getByName(table)
+        #self._address.UpdateTableName = table
+        self._address.Command = table
+        self._address.Filter = self._getFilter(True)
+        self._address.ApplyFilter = True
+        self._address.execute()
+        print("PageModel.setAddressBook() 2")
+        new = self._table.getColumns().getElementNames()
+        return old != new
+
     def getEmailColumn(self, document, property):
-        items = self._getDocumentProperty(document, property)
+        items = self._getDocumentList(document, property)
         self._emailcolumns = items
         return items
 
     def getIndexColumns(self, document, property):
-        items = self._getDocumentProperty(document, property)
+        items = self._getDocumentList(document, property)
         self._indexcolumns = items
         return items
 
-    def getDocumentProperty(self, document, property, default=None):
-        value = default
-        print("PageModel.getDocumentProperty() %s" % (property, ))
-        if document is not None:
-            properties = document.DocumentProperties.UserDefinedProperties
-            if properties.PropertySetInfo.hasPropertyByName(property):
-                print("PageModel.getDocumentProperty() getProperty")
-                value = properties.getPropertyValue(property)
-            elif default is not None:
-                self._setDocumentProperty(document, property, default)
-        return value
+    def getDefaultTable(self, document, property):
+        default = self.Connection.getTables().getByIndex(0)
+        name = self._getDocumentValue(document, property, default.Name)
+        if self.Connection.getTables().hasByName(name):
+            default = self.Connection.getTables().getByName(name)
+        return default
+
+    def getDefaultColumn(self, table):
+        return table.getColumns().getByIndex(0).Name
+
+    def initColumns(self, view, name=None):
+        if name is None:
+            table = self.Connection.getTables().getByIndex(0)
+        else:
+            table = self.Connection.getTables().getByName(name)
+        self._recipient.Command = table.Name
+        columns = table.getColumns().getElementNames()
+        view.setColumns(columns, self.getDefaultColumn(table))
 
     def getDocumentDataSource(self):
         datasource = ''
@@ -192,7 +225,7 @@ class PageModel(unohelper.Base):
             query.UpdateTableName = table.Name
         return query
 
-    def getForm(self, create, name='smtpMailerOOo'):
+    def _getForm(self, create, name='smtpMailerOOo'):
         doc, form = None, None
         forms = self._database.DatabaseDocument.getFormDocuments()
         if forms.hasByName(name):
@@ -206,21 +239,33 @@ class PageModel(unohelper.Base):
             doc = forms.loadComponentFromURL(name, '', 0, args)
         return doc, form
 
-    def _getDocumentProperty(self, document, property):
+    def _getDocumentValue(self, document, property, default=None):
+        value = default
+        print("PageModel._getDocumentValue() %s" % (property, ))
+        if document is not None:
+            properties = document.DocumentProperties.UserDefinedProperties
+            if properties.PropertySetInfo.hasPropertyByName(property):
+                print("PageModel._getDocumentValue() getProperty")
+                value = properties.getPropertyValue(property)
+            elif default is not None:
+                self._setDocumentValue(document, property, default)
+        return value
+
+    def _getDocumentList(self, document, property):
         items = ()
-        value = self.getDocumentProperty(document, property)
+        value = self._getDocumentValue(document, property)
         if value is not None:
             items = tuple(value.split(','))
         return items
 
-    def _setDocumentProperty(self, document, property, value):
-        print("PageModel._setDocumentProperty() %s - %s" % (property, value))
+    def _setDocumentValue(self, document, property, value):
+        print("PageModel._setDocumentValue() %s - %s" % (property, value))
         properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(property):
-            print("PageModel._setDocumentProperty() setProperty")
+            print("PageModel._setDocumentValue() setProperty")
             properties.setPropertyValue(property, value)
         else:
-            print("PageModel._setDocumentProperty() addProperty")
+            print("PageModel._setDocumentValue() addProperty")
             properties.addProperty(property,
             uno.getConstantByName('com.sun.star.beans.PropertyAttribute.MAYBEVOID') +
             uno.getConstantByName('com.sun.star.beans.PropertyAttribute.BOUND') +
@@ -244,3 +289,64 @@ class PageModel(unohelper.Base):
         print("PageModel._setRowSet() %s - %s" % (self._query.ElementaryQuery, self._query.getFilter()))
         self._recipient.ApplyFilter = True
         self._recipient.execute()
+
+    def _getFilter(self, any=False):
+        filters = []
+        for column in self._emailcolumns:
+            if column in self.ColumnNames:
+                filters.append('"%s" IS NOT NULL' % column)
+        filter = self._addFilter(filters, any)
+        print("PageModel._getFilter() %s" % filter)
+        return filter
+
+    def _addFilter(self, filters, any=False):
+        separator = ' OR ' if any else ' AND '
+        filter = separator.join(filters)
+        if len(filters) > 1:
+            filter = '(%s)' % filter
+        return filter
+
+    def getOrderIndex(self):
+        index = []
+        orders = getRowSetOrders(self._recipient)
+        columns = self.ColumnNames
+        for order in orders:
+            if order in columns:
+                index.append(columns.index(order))
+        return tuple(index)
+
+    # TODO: XRowset.Order should be treated as a stack where:
+    # TODO: adding is done at the end and removing will keep order.
+    def setOrderColumn(self, view, columns):
+        print("PageModel.setOrderColumn() 1")
+        self._modified = True
+        orders = getRowSetOrders(self._recipient)
+        print("PageModel.setOrderColumn() 2: %s - %s" % (orders, columns))
+        for order in reversed(orders):
+            if order not in columns:
+                orders.remove(order)
+        for column in columns:
+            if column not in orders:
+                orders.append(column)
+        order = '"%s"' % '", "'.join(orders) if len(orders) else ''
+        print("PageModel.setOrderColumn() 3: %s" % order)
+        self._query.setOrder(order)
+        self._setRowSetOrder()
+        view.refreshGridButton()
+        print("PageModel.setOrderColumn() 4")
+
+    def _getRowSet(self):
+        rowset = createService(self.ctx, 'com.sun.star.sdb.RowSet')
+        rowset.CommandType = TABLE
+        print("PageModel._getRowSet() %s" % rowset.FetchSize)
+        #rowset.FetchSize = g_fetchsize
+        return rowset
+
+    def _setRowSetOrder(self):
+        print("PageModel._setRowSetOrder() 1")
+        self._recipient.Order = self._address.Order = self._query.getOrder()
+        print("PageModel._setRowSetOrder() 2")
+        self._address.execute()
+        print("PageModel._setRowSetOrder() 3")
+        self._recipient.execute()
+        print("PageModel._setRowSetOrder() 4")

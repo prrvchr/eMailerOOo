@@ -47,6 +47,7 @@ class WizardPage(unohelper.Base,
         self.PageId = pageid
         self._manager = manager
         self._manager.initPage(pageid, window)
+        print("WizardPage.__init__() 1")
 
     @property
     def Window(self):

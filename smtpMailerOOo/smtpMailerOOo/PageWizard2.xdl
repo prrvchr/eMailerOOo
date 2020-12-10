@@ -12,7 +12,7 @@
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:id="Label3" dlg:tab-index="4" dlg:left="155" dlg:top="25" dlg:width="35" dlg:height="15" dlg:help-text="&amp;PageWizard2.Label3.HelpText" dlg:value="&amp;PageWizard2.Label3.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="5" dlg:left="195" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="Columns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:multiselection="true" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="5" dlg:left="195" dlg:top="25" dlg:width="80" dlg:height="15" dlg:tag="OrderColumns" dlg:help-text="&amp;PageWizard2.ListBox2.HelpText" dlg:multiselection="true" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:StateChange" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="45" dlg:width="100" dlg:height="12" dlg:help-text="&amp;PageWizard2.Label4.HelpText" dlg:value="&amp;PageWizard2.Label4.Label" dlg:valign="center"/>

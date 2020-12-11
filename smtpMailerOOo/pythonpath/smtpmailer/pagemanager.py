@@ -194,8 +194,7 @@ class PageManager(unohelper.Base):
         self.Wizard.setTitle(title)
 
     def executeDispatch(self, tag):
-        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
-        frame = document.CurrentController.Frame
+        frame = self.Model.getCurrentDocument().CurrentController.Frame
         dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
         if tag == 'DataSource':
             dispatcher.executeDispatch(frame, '.uno:AutoPilotAddressDataSource', '', 0, ())
@@ -280,7 +279,7 @@ class PageManager(unohelper.Base):
     def _setDocumentRecord(self, index):
         try:
             dispatch = None
-            document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+            document = self.Model.getCurrentDocument()
             frame = document.getCurrentController().Frame
             flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
             if document.supportsService('com.sun.star.text.TextDocument'):

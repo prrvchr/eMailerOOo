@@ -36,6 +36,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import KeyMap
+from unolib import getUrl
 from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
@@ -73,6 +74,7 @@ class PageModel(unohelper.Base):
         self.index = -1
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
+        self._doc = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
 
     @property
     def Address(self):
@@ -108,6 +110,9 @@ class PageModel(unohelper.Base):
 
     def getAvailableDataSources(self):
         return self._dbcontext.getElementNames()
+
+    def getCurrentDocument(self):
+        return self._doc
 
 
     # XRefreshable
@@ -257,6 +262,10 @@ class PageModel(unohelper.Base):
         return composer
 
     def _getQuery(self, create, name='smtpMailerOOo'):
+        #mri = createService(self.ctx, 'mytools.Mri')
+        #mri.inspect(self._doc)
+        names = self._getQueryNames()
+        print("PageModel._getQuery() '%s'" % (names, ))
         queries = self._database.getQueryDefinitions()
         if queries.hasByName(name):
             query = queries.getByName(name)
@@ -270,6 +279,25 @@ class PageModel(unohelper.Base):
             query.Command = 'SELECT * FROM "%s" WHERE 0=1 ORDER BY "%s"' % (table.Name, column.Name)
             query.UpdateTableName = table.Name
         return query
+
+    def _getQueryNames(self):
+        names = []
+        title = self._doc.DocumentProperties.Title
+        if title != '':
+            names.append(title)
+        template = self._doc.DocumentProperties.TemplateName
+        if template != '':
+            names.append(template)
+        names.append(g_extension)
+        return tuple(names)
+
+    def _getDocumentName(self):
+        url = None
+        location = self._doc.getLocation()
+        print("PageModel._getDocumentName() '%s'" % location)
+        if location:
+            url = getUrl(self.ctx, location)
+        return None if url is None else url.Name
 
     def _getForm(self, create, name='smtpMailerOOo'):
         doc, form = None, None

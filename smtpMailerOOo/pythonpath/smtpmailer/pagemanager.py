@@ -93,14 +93,18 @@ class PageManager(unohelper.Base):
         view = PageView(self.ctx, window)
         self._views[pageid] = view
         if pageid == 1:
-            print("PageManager.initPage() 2")
-            if view.initPage1(self.Model):
-                print("PageManager.initPage() 3")
+            datasource = self.Model.getDocumentDataSource()
+            datasources = self.Model.getAvailableDataSources()
+            view.initPage1(datasources, datasource)
+            if datasource in datasources:
+                if self.Model.setDataSource(datasource):
+                    self._initDataSource(view)
+                    view.selectDataSource(datasource)
                 self.Wizard.updateTravelUI()
         elif pageid == 2:
             print("PageManager.initPage() 4")
             handler = GridHandler(self)
-            view.initPage2(self.Model, handler)
+            view.initPage2(self.Model.Address, self.Model.Recipient, handler)
             print("PageManager.initPage() 5")
             #self._handler.addRefreshListener(self)
             self.Model._recipient.execute()
@@ -108,7 +112,8 @@ class PageManager(unohelper.Base):
             table = view.initAddressBook(self.Model)
             view.initOrderColumn(self.Model)
             print("PageManager.initPage() 7")
-            self.Model.setAddressBook(view, table)
+            emails = self.getView(1).getEmailColumns()
+            self.Model.setAddressBook(emails, table)
             view.refreshGridButton()
         print("PageManager.initPage() 8")
 
@@ -116,17 +121,17 @@ class PageManager(unohelper.Base):
         print("PageManager.getWizard() ERROR ***************************************")
         return self.Wizard
 
-    def selectionChanged(self, control):
-        tag = control.Model.Tag
-        enabled = control.hasSelectedRows()
+    def selectionChanged(self, tag, selected, index):
         if tag == 'Addresses':
-            self.View.updateAddRecipient(enabled)
+            self.View.updateAddRecipient(selected)
         elif tag == 'Recipients':
-            self.View.updateRemoveRecipient(enabled)
-            if enabled:
-                index = control.getSelectedRows()[0]
-                if index != self._index:
-                    self._setDocumentRecord(index)
+            self.View.updateRemoveRecipient(selected)
+            if selected and index != self._index:
+                self._setDocumentRecord(index)
+
+    def updateDataSource(self):
+        print("PageManager.updateDataSource() *********************************")
+        self.View.initDataSource(self.Model)
 
     def activatePage(self, pageid):
         if pageid == 1:
@@ -135,8 +140,7 @@ class PageManager(unohelper.Base):
     def canAdvancePage(self, pageid):
         advance = False
         if pageid == 1:
-            advance = all((self.Model.Connection is not None,
-                           self.View.isPrimaryKeySet()))
+            advance = self.View.canAdvancePage1()
         elif pageid == 2:
             advance = self.Model._recipient.RowCount != 0
         elif pageid == 3:
@@ -156,10 +160,12 @@ class PageManager(unohelper.Base):
         try:
             tag = control.Model.Tag
             if tag == 'DataSource':
-                self.Model.setDataSource(self.View, control.getSelectedItem())
+                self.Model.setDataSource(control.getSelectedItem())
+                self._initDataSource(self.View)
                 self.Wizard.updateTravelUI()
             elif tag == 'AddressBook':
-                if self.Model.setAddressBook(self.View, control.getSelectedItem()):
+                emails = self.getView(1).getEmailColumns()
+                if self.Model.setAddressBook(emails, control.getSelectedItem()):
                     self.View.initOrderColumn(self.Model)
                 self.View.refreshGridButton()
             elif tag == 'Columns':
@@ -187,40 +193,89 @@ class PageManager(unohelper.Base):
         title = self.getView(pageid).getPageTitle(self.Model, pageid)
         self.Wizard.setTitle(title)
 
-    def addItem(self, control):
-        self._modified = True
-        tag = control.Model.Tag
-        if tag == 'EmailAddress':
-            self.View.addEmailAdress()
-        elif tag == 'PrimaryKey':
-            self.View.addPrimaryKey()
-            self.Wizard.updateTravelUI()
-        elif tag == 'Recipient':
-            grid = window.getControl('GridControl2')
-            recipients = self._getRecipientFilters()
-            rows = window.getControl('GridControl1').getSelectedRows()
-            filters = self._getAddressFilters(rows, recipients)
-            handled = self._rowRecipientExecute(recipients + filters)
-            self._updateControl(window, grid)
+    def executeDispatch(self, tag):
+        document = createService(self.ctx, 'com.sun.star.frame.Desktop').CurrentComponent
+        frame = document.CurrentController.Frame
+        dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+        if tag == 'DataSource':
+            dispatcher.executeDispatch(frame, '.uno:AutoPilotAddressDataSource', '', 0, ())
+        elif tag == 'AddressBook':
+            dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
+        self.View.initDataSource(self.Model.getAvailableDataSources())
 
-    def removeItem(self, control):
-        self._modified = True
-        tag = control.Model.Tag
-        if tag == 'EmailAddress':
-            self.View.removeEmailAdress()
-        elif tag == 'PrimaryKey':
-            self.View.removePrimaryKey()
-            self.Wizard.updateTravelUI()
-        elif tag == 'Recipient':
-            grid = window.getControl('GridControl2')
-            filters = self._getRecipientFilters(grid.getSelectedRows())
-            grid.deselectAllRows()
-            handled = self._rowRecipientExecute(filters)
-            self._updateControl(window, grid)
+    def addItem(self, tag):
+        try:
+            self._modified = True
+            if tag == 'EmailAddress':
+                self.View.addEmailAdress()
+            elif tag == 'PrimaryKey':
+                self.View.addPrimaryKey()
+                self.Wizard.updateTravelUI()
+            elif tag == 'Recipient':
+                indexes = self.getView(1).getIndexColumns()
+                recipients = self.Model.getRecipientFilters(indexes)
+                rows = self.View.getSelectedAddress()
+                filters = self.Model.getAddressFilters(indexes, rows, recipients)
+                self.Model.rowRecipientExecute(indexes, recipients + filters)
+                self.View.updateControlByTag('Recipients')
+        except Exception as e:
+            print("PageManager.addItem() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+
+    def addAllItem(self):
+        try:
+            self._modified = True
+            indexes = self.getView(1).getIndexColumns()
+            recipients = self.Model.getRecipientFilters(indexes)
+            rows = self.Model.getAddressRows()
+            filters = self.Model.getAddressFilters(indexes, rows, recipients)
+            self.Model.rowRecipientExecute(indexes, recipients + filters)
+            self.View.updateControlByTag('Recipients')
+        except Exception as e:
+            print("PageManager.addAllItem() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+
+    def removeItem(self, tag):
+        try:
+            self._modified = True
+            if tag == 'EmailAddress':
+                self.View.removeEmailAdress()
+            elif tag == 'PrimaryKey':
+                self.View.removePrimaryKey()
+                self.Wizard.updateTravelUI()
+            elif tag == 'Recipient':
+                rows = self.View.getSelectedRecipients()
+                indexes = self.getView(1).getIndexColumns()
+                filters = self.Model.getRecipientFilters(indexes, rows)
+                self.Model.rowRecipientExecute(indexes, filters)
+                self.View.updateControlByTag('Recipients')
+        except Exception as e:
+            print("PageManager.removeItem() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+
+    def removeAllItem(self):
+        try:
+            self._modified = True
+            self.View.deselectAllRecipients()
+            indexes = self.getView(1).getIndexColumns()
+            self.Model.rowRecipientExecute(indexes)
+            self.View.updateControlByTag('Recipients')
+        except Exception as e:
+            print("PageManager.removeAllItem() ERROR: %s - %s" % (e, traceback.print_exc()))
+
 
     def moveItem(self, control):
         self._modified = True
         self.View.moveEmailAdress(control.Model.Tag)
+
+    def _initDataSource(self, view):
+        view.setTables(self.Model.TableNames, self.Model.TableName)
+        view.setColumns(self.Model.ColumnNames)
+        view.setEmailAddress(self.Model.EmailAddress)
+        view.setPrimaryKey(self.Model.PrimaryKey)
+        view.updateControlByTag('Columns')
+        view.updateControlByTag('EmailAddress')
+        view.updateControlByTag('PrimaryKey')
 
     def _setDocumentRecord(self, index):
         try:
@@ -229,10 +284,10 @@ class PageManager(unohelper.Base):
             frame = document.getCurrentController().Frame
             flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
             if document.supportsService('com.sun.star.text.TextDocument'):
-                url = getUrl('.uno:DataSourceBrowser/InsertContent')
+                url = getUrl(self.ctx, '.uno:DataSourceBrowser/InsertContent')
                 dispatch = frame.queryDispatch(url, '_self', flag)
             elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
-                url = getUrl('.uno:DataSourceBrowser/InsertColumns')
+                url = getUrl(self.ctx, '.uno:DataSourceBrowser/InsertColumns')
                 dispatch = frame.queryDispatch(url, '_self', flag)
             if dispatch is not None:
                 dispatch.dispatch(url, self._getDataDescriptor(index + 1))

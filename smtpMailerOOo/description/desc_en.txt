@@ -1,1 +1,1 @@
-smtpMailerOOo is an extension offering smtp Mailer services at LibreOffice / OpenOffice.
+Mail merge finally possible in LibreOffice / OpenOffice.

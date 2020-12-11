@@ -47,19 +47,26 @@ class PageView(unohelper.Base):
         print("PageView.__init__()")
 
 # PageView setter methods
-    def initPage1(self, model):
-        return self._initDataSources(model)
+    def initPage1(self, datasources, datasource):
+        self._initDataSource(datasources, datasource)
 
-    def initPage2(self, model, handler):
+    def initPage2(self, address, recipient, handler):
         area = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 60, 115, 115)
-        grid1 = self._getGridControl(model._address, 'GridControl1', area, 'Addresses')
-        grid1.addSelectionListener(handler)
+        grid1 = self._getGridControl(address, 'GridControl1', area, 'Addresses')
         area.X = 160
-        grid2 = self._getGridControl(model._recipient, 'GridControl2', area, 'Recipients')
+        grid2 = self._getGridControl(recipient, 'GridControl2', area, 'Recipients')
+        grid1.addSelectionListener(handler)
         grid2.addSelectionListener(handler)
 
+    def initDataSource(self, datasources):
+        datasource = self._initDataSource(datasources)
+        self.selectDataSource(datasource)
+
+    def selectDataSource(self, datasource):
+        self._getDataSourceList().selectItem(datasource, True)
+
     def initAddressBook(self, model):
-        control = self._getAddressBook()
+        control = self._getAddressBookList()
         tables = model.TableNames
         #control.Model.StringItemList = ()
         control.Model.StringItemList = tables
@@ -70,31 +77,31 @@ class PageView(unohelper.Base):
         return table
 
     def initOrderColumn(self, model):
-        control = self._getOrderColumn()
+        control = self._getOrderList()
         control.Model.StringItemList = ()
         control.Model.StringItemList = model.ColumnNames
         columns = model.getOrderIndex()
         control.selectItemsPos(columns, True)
 
     def refreshGridButton(self):
-        self.updateControl(self._getAddress())
-        self.updateControl(self._getRecipient())
+        self.updateControl(self._getAddressGrid())
+        self.updateControl(self._getRecipientGrid())
 
     def setTables(self, tables, table):
-        control = self._getTables()
+        control = self._getTableList()
         control.Model.StringItemList = tables
         control.selectItem(table, True)
 
-    def setColumns(self, columns, column):
-        control = self._getColumns()
+    def setColumns(self, columns):
+        control = self._getColumnList()
         control.Model.StringItemList = columns
-        control.selectItem(column, True)
+        control.selectItemPos(0, True)
 
     def setEmailAddress(self, emails):
-        self._getEmailAddress().Model.StringItemList = emails
+        self._getEmailList().Model.StringItemList = emails
 
     def setPrimaryKey(self, keys):
-        self._getPrimaryKey().Model.StringItemList = keys
+        self._getIndexList().Model.StringItemList = keys
 
     def updateControlByTag(self, tag):
         control = self._getControlByTag(tag)
@@ -104,33 +111,31 @@ class PageView(unohelper.Base):
         try:
             print("PageView.updateControl() 1")
             tag = control.Model.Tag
-            #if tag == 'DataSource':
-            #    control.Model.StringItemList = model.DataSources
             if tag == 'Columns':
-                button = self._getAddEmailAddress()
-                button.Model.Enabled = self._canAddItem(control, self._getEmailAddress())
-                button = self._getAddPrimaryKey()
-                button.Model.Enabled = self._canAddItem(control, self._getPrimaryKey())
+                button = self._getAddEmailButton()
+                button.Model.Enabled = self._canAddItem(control, self._getEmailList())
+                button = self._getAddIndexButton()
+                button.Model.Enabled = self._canAddItem(control, self._getIndexList())
             elif tag == 'EmailAddress':
                 imax = control.ItemCount -1
                 position = control.getSelectedItemPos()
-                self._getRemoveEmailAddress().Model.Enabled = position != -1
-                self._getMoveBefore().Model.Enabled = position > 0
-                self._getMoveAfter().Model.Enabled = -1 < position < imax
+                self._getRemoveEmailButton().Model.Enabled = position != -1
+                self._getBeforeButton().Model.Enabled = position > 0
+                self._getAfterButton().Model.Enabled = -1 < position < imax
             elif tag == 'PrimaryKey':
                 print("PageView.updateControl() PrimaryKey ***************")
                 position = control.getSelectedItemPos()
-                self._getRemovePrimaryKey().Model.Enabled = position != -1
+                self._getRemoveIndexButton().Model.Enabled = position != -1
             elif tag == 'Addresses':
                 selected = control.hasSelectedRows()
                 enabled = control.Model.GridDataModel.RowCount != 0
-                self._getAddAllRecipient().Model.Enabled = enabled
-                self._getAddRecipient().Model.Enabled = selected
+                self._getAddAllButton().Model.Enabled = enabled
+                self._getAddButton().Model.Enabled = selected
             elif tag == 'Recipients':
                 selected = control.hasSelectedRows()
                 enabled = control.Model.GridDataModel.RowCount != 0
-                self._getRemoveRecipient().Model.Enabled = selected
-                self._getRemoveAllRecipient().Model.Enabled = enabled
+                self._getRemoveButton().Model.Enabled = selected
+                self._getRemoveAllButton().Model.Enabled = enabled
             else:
                 print("PageView.updateControl() Error ***************")
             print("PageView.updateControl() 2")
@@ -138,48 +143,48 @@ class PageView(unohelper.Base):
             print("WizardHandler._updateControl() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def updateTables(self, state):
-        self._getTables().Model.Enabled = bool(state)
+        self._getTableList().Model.Enabled = bool(state)
 
     def updateAddRecipient(self, enabled):
-        self._getAddRecipient().Model.Enabled = enabled
+        self._getAddButton().Model.Enabled = enabled
 
     def updateRemoveRecipient(self, enabled):
-        self._getRemoveRecipient().Model.Enabled = enabled
+        self._getRemoveButton().Model.Enabled = enabled
 
     def addEmailAdress(self):
-        self._getAddEmailAddress().Model.Enabled = False
-        self._getRemoveEmailAddress().Model.Enabled = False
-        self._getMoveBefore().Model.Enabled = False
-        self._getMoveAfter().Model.Enabled = False
-        item = self._getColumns().getSelectedItem()
-        self._addItemColumn(self._getEmailAddress(), item)
+        self._getAddEmailButton().Model.Enabled = False
+        self._getRemoveEmailButton().Model.Enabled = False
+        self._getBeforeButton().Model.Enabled = False
+        self._getAfterButton().Model.Enabled = False
+        item = self._getColumnList().getSelectedItem()
+        self._addItemColumn(self._getEmailList(), item)
 
     def addPrimaryKey(self):
-        self._getAddPrimaryKey().Model.Enabled = False
-        self._getRemovePrimaryKey().Model.Enabled = False
-        item = self._getColumns().getSelectedItem()
-        self._addItemColumn(self._getPrimaryKey(), item)
+        self._getAddIndexButton().Model.Enabled = False
+        self._getRemoveIndexButton().Model.Enabled = False
+        item = self._getColumnList().getSelectedItem()
+        self._addItemColumn(self._getIndexList(), item)
 
     def removeEmailAdress(self):
-        self._getRemoveEmailAddress().Model.Enabled = False
-        self._getMoveBefore().Model.Enabled = False
-        self._getMoveAfter().Model.Enabled = False
-        control = self._getEmailAddress()
+        self._getRemoveEmailButton().Model.Enabled = False
+        self._getBeforeButton().Model.Enabled = False
+        self._getAfterButton().Model.Enabled = False
+        control = self._getEmailList()
         item = control.getSelectedItem()
         control.Model.StringItemList = self._removeItem(control, item)
-        enabled = self._canAddItem(self._getColumns(), control)
-        self._getAddEmailAddress().Model.Enabled = enabled
+        enabled = self._canAddItem(self._getColumnList(), control)
+        self._getAddEmailButton().Model.Enabled = enabled
 
     def removePrimaryKey(self):
-        self._getRemovePrimaryKey().Model.Enabled = False
-        control = self._getPrimaryKey()
+        self._getRemoveIndexButton().Model.Enabled = False
+        control = self._getIndexList()
         item = control.getSelectedItem()
         control.Model.StringItemList = self._removeItem(control, item)
-        enabled = self._canAddItem(self._getColumns(), control)
-        self._getAddPrimaryKey().Model.Enabled = enabled
+        enabled = self._canAddItem(self._getColumnList(), control)
+        self._getAddIndexButton().Model.Enabled = enabled
 
     def moveEmailAdress(self, tag):
-        control = self._getEmailAddress()
+        control = self._getEmailList()
         index = control.getSelectedItemPos()
         item = control.getSelectedItem()
         items = self._removeItem(control, item, True)
@@ -191,21 +196,44 @@ class PageView(unohelper.Base):
         control.selectItemPos(index, True)
         return True
 
-    def isPrimaryKeySet(self):
-        return self._getPrimaryKey().ItemCount != 0
+    def canAdvancePage1(self):
+        return all((self._getIndexList().ItemCount != 0,
+                    self._getDataSourceList().getSelectedItemPos() != -1))
 
 # PageView getter methods
     def getPageTitle(self, model, pageid):
         return model.resolveString(self._getPageTitle(pageid))
 
+    def getSelectedRecipients(self):
+        control = self._getRecipientGrid()
+        rows = control.getSelectedRows()
+        control.deselectAllRows()
+        return rows
+
+    def deselectAllRecipients(self):
+        self._getRecipientGrid().deselectAllRows()
+
+    def getSelectedAddress(self):
+        return self._getAddressGrid().getSelectedRows()
+
+    def getEmailColumns(self):
+        return getStringItemList(self._getEmailList())
+
+    def getIndexColumns(self):
+        return getStringItemList(self._getIndexList())
+
 # PageView private methods
     def _getControlByTag(self, tag):
         if tag == 'Columns':
-            control = self._getColumns()
+            control = self._getColumnList()
         elif tag == 'EmailAddress':
-            control = self._getEmailAddress()
+            control = self._getEmailList()
         elif tag == 'PrimaryKey':
-            control = self._getPrimaryKey()
+            control = self._getIndexList()
+        elif tag == 'Addresses':
+            control = self._getAddressBookList()
+        elif tag == 'Recipients':
+            control = self._getRecipientGrid()
         else:
             print("PageView._getControlByTag() Error: '%s' don't exist!!! **************" % tag)
         return control
@@ -239,78 +267,74 @@ class PageView(unohelper.Base):
         return 'PageWizard%s.Title' % pageid
 
 # PageView private getter control methods for Page1
-    def _getDataSource(self):
+    def _getDataSourceList(self):
         return self.Window.getControl('ListBox1')
 
-    def _getColumns(self):
+    def _getColumnList(self):
         return self.Window.getControl('ListBox2')
 
-    def _getTables(self):
+    def _getTableList(self):
         return self.Window.getControl('ListBox3')
 
-    def _getEmailAddress(self):
+    def _getEmailList(self):
         return self.Window.getControl('ListBox4')
 
-    def _getPrimaryKey(self):
+    def _getIndexList(self):
         return self.Window.getControl('ListBox5')
 
-    def _getAddEmailAddress(self):
+    def _getAddEmailButton(self):
         return self.Window.getControl('CommandButton2')
 
-    def _getRemoveEmailAddress(self):
+    def _getRemoveEmailButton(self):
         return self.Window.getControl('CommandButton3')
 
-    def _getMoveBefore(self):
+    def _getBeforeButton(self):
         return self.Window.getControl('CommandButton4')
 
-    def _getMoveAfter(self):
+    def _getAfterButton(self):
         return self.Window.getControl('CommandButton5')
 
-    def _getAddPrimaryKey(self):
+    def _getAddIndexButton(self):
         return self.Window.getControl('CommandButton6')
 
-    def _getRemovePrimaryKey(self):
+    def _getRemoveIndexButton(self):
         return self.Window.getControl('CommandButton7')
 
 
 # PageView private getter control methods for Page2
-    def _getAddressBook(self):
+    def _getAddressBookList(self):
         return self.Window.getControl('ListBox1')
 
-    def _getOrderColumn(self):
+    def _getOrderList(self):
         return self.Window.getControl('ListBox2')
 
-    def _getAddress(self):
+    def _getAddressGrid(self):
         return self.Window.getControl('GridControl1')
 
-    def _getRecipient(self):
+    def _getRecipientGrid(self):
         return self.Window.getControl('GridControl2')
 
-    def _getAddAllRecipient(self):
+    def _getAddAllButton(self):
         return self.Window.getControl('CommandButton1')
 
-    def _getAddRecipient(self):
+    def _getAddButton(self):
         return self.Window.getControl('CommandButton2')
 
-    def _getRemoveRecipient(self):
+    def _getRemoveButton(self):
         return self.Window.getControl('CommandButton3')
 
-    def _getRemoveAllRecipient(self):
+    def _getRemoveAllButton(self):
         return self.Window.getControl('CommandButton4')
 
 
-# PageView private setter control methods
-    def _initDataSources(self, model):
-        initialized = False
-        datasources = model.DataSources
-        control = self._getDataSource()
-        control.Model.StringItemList = datasources
-        datasource = model.getDocumentDataSource()
-        if datasource in datasources:
-            if model.setDataSource(self, datasource):
-                control.selectItem(datasource, True)
-                initialized = True
-        return initialized
+# PageView private control methods
+    def _initDataSource(self, datasources, datasource=None):
+        control = self._getDataSourceList()
+        if datasource is None:
+            datasource = control.getSelectedItem()
+        if getStringItemList(control) != datasources:
+            control.Model.StringItemList = datasources
+        return datasource
 
     def _getGridControl(self, rowset, name, area, tag):
         dialog = self.Window.getModel()

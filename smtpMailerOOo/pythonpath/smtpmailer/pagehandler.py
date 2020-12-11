@@ -73,35 +73,22 @@ class PageHandler(unohelper.Base,
             #handled = self._outputChanged(window, control)
             handled = True
         elif method == 'Dispatch':
-            #control = event.Source
-            #handled = self._executeDispatch(control)
+            self._manager.executeDispatch(event.Source.Model.Tag)
             handled = True
-            #self._updateControl(window, control)
         elif method == 'Move':
-            #control = event.Source
             self._manager.moveItem(event.Source)
             handled = True
         elif method == 'Add':
-            self._manager.addItem(event.Source)
+            self._manager.addItem(event.Source.Model.Tag)
             handled = True
         elif method == 'AddAll':
-            #self._modified = True
-            #grid = window.getControl('GridControl2')
-            #recipients = self._getRecipientFilters()
-            #rows = range(self._address.RowCount)
-            #filters = self._getAddressFilters(rows, recipients)
-            #handled = self._rowRecipientExecute(recipients + filters)
-            #self._updateControl(window, grid)
+            self._manager.addAllItem()
             handled = True
         elif method == 'Remove':
-            self._manager.removeItem(event.Source)
+            self._manager.removeItem(event.Source.Model.Tag)
             handled = True
         elif method == 'RemoveAll':
-            #self._modified = True
-            #grid = window.getControl('GridControl2')
-            #grid.deselectAllRows()
-            #handled = self._rowRecipientExecute()
-            #self._updateControl(window, grid)
+            self._manager.removeAllItem()
             handled = True
         self._manager.updateTravelUI()
         return handled
@@ -126,7 +113,13 @@ class GridHandler(unohelper.Base,
 
     # XGridSelectionListener
     def selectionChanged(self, event):
-        self._manager.selectionChanged(event.Source)
+        index = -1
+        control = event.Source
+        tag = control.Model.Tag
+        selected = control.hasSelectedRows()
+        if tag == 'Recipients' and selected:
+            index = control.getSelectedRows()[0]
+        self._manager.selectionChanged(tag, selected, index)
 
     def disposing(self, event):
         pass

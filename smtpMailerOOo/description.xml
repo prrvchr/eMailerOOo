@@ -13,8 +13,8 @@
         <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo.update.xml"/>
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en-US">Send Email in LibreOffice / OpenOffice</name>
-        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr-FR">Envoyer du courriel dans LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en-US">Mailing email in LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr-FR">Publiposter du courriel dans LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true">

@@ -40,4 +40,4 @@ g_column_index = 0
 #g_column_filters = (0, 1, 4)
 g_column_filters = ('HomeEmail', 'WorkEmail', 'OtherEmail')
 g_table_index = 0
-g_fetchsize = 1000
+g_fetchsize = 500

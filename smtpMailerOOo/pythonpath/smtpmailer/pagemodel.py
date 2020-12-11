@@ -47,6 +47,8 @@ from .configuration import g_identifier
 from .configuration import g_extension
 from .configuration import g_fetchsize
 
+from .dbtools import getValueFromResult
+
 from .logger import logMessage
 from .logger import getMessage
 
@@ -64,16 +66,20 @@ class PageModel(unohelper.Base):
         self._statement = None
         self._table = None
         self._database = None
+        self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
         self._quey = None
-        self._emailcolumns = self._indexcolumns = ()
+        self._emailcolumns = ()
+        self._indexcolumns = ()
         self.index = -1
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(self.ctx, g_identifier, True)
 
     @property
-    def DataSources(self):
-        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        return dbcontext.getElementNames()
+    def Address(self):
+        return self._address
+    @property
+    def Recipient(self):
+        return self._recipient
     @property
     def Connection(self):
         if self._statement is not None:
@@ -89,6 +95,20 @@ class PageModel(unohelper.Base):
         if self._table is not None:
             return self._table.getColumns().getElementNames()
         return ()
+    @property
+    def TableName(self):
+        if self._table is not None:
+            return self._table.Name
+    @property
+    def EmailAddress(self):
+        return self._emailcolumns
+    @property
+    def PrimaryKey(self):
+        return self._indexcolumns
+
+    def getAvailableDataSources(self):
+        return self._dbcontext.getElementNames()
+
 
     # XRefreshable
     def refresh(self):
@@ -107,7 +127,7 @@ class PageModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def setDataSource(self, view, datasource):
+    def setDataSource(self, datasource):
         initialized = False
         print("PageModel.setDataSource() 1")
         database = self._getDatabase(datasource)
@@ -121,18 +141,10 @@ class PageModel(unohelper.Base):
             self._statement = connection.createStatement()
             document, form = self._getForm(False)
             self._table = self.getDefaultTable(document, 'PrimaryTable')
-            view.setTables(self.TableNames, self._table.Name)
-            column = self.getDefaultColumn(self._table)
-            view.setColumns(self.ColumnNames, column)
-            emails = self.getEmailColumn(document, 'EmailColumns')
-            view.setEmailAddress(emails)
-            keys = self.getIndexColumns(document, 'IndexColumns')
-            view.setPrimaryKey(keys)
+            self._emailcolumns = self._getDocumentList(document, 'EmailColumns')
+            self._indexcolumns = self._getDocumentList(document, 'IndexColumns')
             if form is not None:
                 form.close()
-            view.updateControlByTag('Columns')
-            view.updateControlByTag('EmailAddress')
-            view.updateControlByTag('PrimaryKey')
             #self.refreshControl(self._getDataSource())
             self._query = self._getQueryComposer()
             self._setRowSet(datasource)
@@ -145,28 +157,18 @@ class PageModel(unohelper.Base):
         print("PageModel.setDataSource() 3")
         return initialized
 
-    def setAddressBook(self, view, table):
+    def setAddressBook(self, emails, table):
         print("PageModel.setAddressBook() 1")
-        old = self._tables.getColumns().getElementNames()
+        old = self._table.getColumns().getElementNames()
         self._table = self.Connection.getTables().getByName(table)
         #self._address.UpdateTableName = table
         self._address.Command = table
-        self._address.Filter = self._getFilter(True)
+        self._address.Filter = self._getFilter(emails, True)
         self._address.ApplyFilter = True
         self._address.execute()
         print("PageModel.setAddressBook() 2")
         new = self._table.getColumns().getElementNames()
         return old != new
-
-    def getEmailColumn(self, document, property):
-        items = self._getDocumentList(document, property)
-        self._emailcolumns = items
-        return items
-
-    def getIndexColumns(self, document, property):
-        items = self._getDocumentList(document, property)
-        self._indexcolumns = items
-        return items
 
     def getDefaultTable(self, document, property):
         default = self.Connection.getTables().getByIndex(0)
@@ -175,9 +177,6 @@ class PageModel(unohelper.Base):
             default = self.Connection.getTables().getByName(name)
         return default
 
-    def getDefaultColumn(self, table):
-        return table.getColumns().getByIndex(0).Name
-
     def initColumns(self, view, name=None):
         if name is None:
             table = self.Connection.getTables().getByIndex(0)
@@ -185,7 +184,7 @@ class PageModel(unohelper.Base):
             table = self.Connection.getTables().getByName(name)
         self._recipient.Command = table.Name
         columns = table.getColumns().getElementNames()
-        view.setColumns(columns, self.getDefaultColumn(table))
+        view.setColumns(columns)
 
     def getDocumentDataSource(self):
         datasource = ''
@@ -195,11 +194,58 @@ class PageModel(unohelper.Base):
             datasource = document.createInstance(setting).CurrentDatabaseDataSource
         return datasource
 
+    def getAddressFilters(self, indexes, rows, recipients):
+        filters = []
+        for row in rows:
+            self._address.absolute(row + 1)
+            filter = self._getFilters(self._address, indexes)
+            if filter not in recipients:
+                filters.append(filter)
+        print("PageModel.getAddressFilters() %s - %s)" % (self._address.RowCount, filters))
+        return tuple(filters)
+
+    def getAddressRows(self):
+        return range(self._address.RowCount)
+
+    def getRecipientFilters(self, indexes, rows=()):
+        filters = []
+        if self._recipient.RowCount > 0:
+            self._recipient.beforeFirst()
+            while self._recipient.next():
+                row = self._recipient.Row -1
+                if row not in rows:
+                    filters.append(self._getFilters(self._recipient, indexes))
+        print("PageModel.getRecipientFilters() %s - %s)" % (self._recipient.RowCount, filters))
+        return tuple(filters)
+
+    def _getFilters(self, rowset, indexes):
+        filters = []
+        for column in indexes:
+            if column in self.ColumnNames:
+                filter = '"%s"' % column
+                i = rowset.findColumn(column)
+                filter = "%s = '%s'" % (filter, getValueFromResult(rowset, i))
+                filters.append(filter)
+        return self._addFilter(filters)
+
+    def rowRecipientExecute(self, indexes, filters=(), filter=''):
+        if len(filters) != 0:
+            filter = ' OR '.join(filters)
+        else:
+            filter = self._getNullFilter(indexes)
+        self._query.setFilter(filter)
+        self._recipient.ApplyFilter = False
+        self._recipient.Filter = self._query.getFilter()
+        self._recipient.ApplyFilter = True
+        print("PageModel.rowRecipientExecute()1 ************** %s" % self._recipient.ActiveCommand)
+        self._recipient.execute()
+        print("PageModel.rowRecipientExecute()2 ************** %s" % filter)
+
     def _getDatabase(self, datasource):
         database = None
-        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        if dbcontext.hasByName(datasource):
-            database = dbcontext.getByName(datasource)
+        #dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+        if self._dbcontext.hasByName(datasource):
+            database = self._dbcontext.getByName(datasource)
         return database
 
     def _getQueryComposer(self):
@@ -290,9 +336,9 @@ class PageModel(unohelper.Base):
         self._recipient.ApplyFilter = True
         self._recipient.execute()
 
-    def _getFilter(self, any=False):
+    def _getFilter(self, emails, any=False):
         filters = []
-        for column in self._emailcolumns:
+        for column in emails:
             if column in self.ColumnNames:
                 filters.append('"%s" IS NOT NULL' % column)
         filter = self._addFilter(filters, any)
@@ -305,6 +351,14 @@ class PageModel(unohelper.Base):
         if len(filters) > 1:
             filter = '(%s)' % filter
         return filter
+
+    def _getNullFilter(self, indexes):
+        filters = []
+        for column in indexes:
+            if column in self.ColumnNames:
+                filter = '"%s" IS NULL' % column
+                filters.append(filter)
+        return self._addFilter(filters)
 
     def getOrderIndex(self):
         index = []
@@ -338,8 +392,7 @@ class PageModel(unohelper.Base):
     def _getRowSet(self):
         rowset = createService(self.ctx, 'com.sun.star.sdb.RowSet')
         rowset.CommandType = TABLE
-        print("PageModel._getRowSet() %s" % rowset.FetchSize)
-        #rowset.FetchSize = g_fetchsize
+        rowset.FetchSize = g_fetchsize
         return rowset
 
     def _setRowSetOrder(self):

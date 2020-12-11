@@ -13,8 +13,8 @@
         <src xlink:href="https://prrvchr.github.io/smtpServerOOo/smtpServerOOo.update.xml"/>
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en-US">An SMTP server for LibreOffice / OpenOffice</name>
-        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr-FR">Un serveur SMTP pour LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en-US">SMTP finally available in LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr-FR">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true">

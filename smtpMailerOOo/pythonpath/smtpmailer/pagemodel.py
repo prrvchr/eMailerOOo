@@ -41,9 +41,6 @@ from unolib import getUrl
 from unolib import createService
 from unolib import getStringResource
 
-from .wizardtools import getQueryOrders
-from .wizardtools import getOrder
-
 from .configuration import g_identifier
 from .configuration import g_extension
 
@@ -141,38 +138,3 @@ class PageModel(unohelper.Base):
         if location:
             url = getUrl(self.ctx, location)
         return None if url is None else url.Name
-
-    # TODO: XRowset.Order should be treated as a stack where:
-    # TODO: adding is done at the end and removing will keep order.
-    def setOrderColumn(self, address, recipient, columns):
-        print("PageModel.setOrderColumn() 1")
-        self._modified = True
-        orders = getQueryOrders(self._recipient.Order)
-        print("PageModel.setOrderColumn() 2: %s - %s" % (orders, columns))
-        for order in reversed(orders):
-            if order not in columns:
-                orders.remove(order)
-        for column in columns:
-            if column not in orders:
-                orders.append(column)
-        order = getOrder(orders)
-        print("PageModel.setOrderColumn() 3: %s" % order)
-        #self._query.setOrder(order)
-        self._setRowSetCommand(address, recipient, order)
-        self.setRowSetOrder(order)
-        print("PageModel.setOrderColumn() 4")
-
-    def setRowSetOrder(self, order=None):
-        if order is None:
-            order = self._query.getOrder()
-        print("PageModel.setRowSetOrder() 1")
-        self._recipient.Order = self._address.Order = order
-        print("PageModel.setRowSetOrder() 2")
-        self._address.execute()
-        print("PageModel.setRowSetOrder() 3")
-        self._recipient.execute()
-        print("PageModel.setRowSetOrder() 4")
-
-
-
-

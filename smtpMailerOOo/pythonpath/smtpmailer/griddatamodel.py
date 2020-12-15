@@ -38,8 +38,7 @@ from com.sun.star.awt.grid import XMutableGridDataModel
 from unolib import createService
 
 from .dbtools import getValueFromResult
-from .wizardtools import getRowSetOrders
-from .wizardtools import setRowSetOrders
+from .wizardtools import getOrders
 
 import traceback
 
@@ -157,7 +156,7 @@ class GridDataModel(unohelper.Base,
             self._changeRowSetData(0, self.RowCount)
 
     def _setColumnModel(self, rowset, metadata):
-        orders = getRowSetOrders(rowset)
+        orders = getOrders(rowset.Order)
         for i in range(self.ColumnModel.getColumnCount(), 0, -1):
             self.ColumnModel.removeColumn(i -1)
         columns = rowset.getColumns()

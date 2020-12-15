@@ -53,7 +53,8 @@ class GridDataModel(unohelper.Base,
         self._listeners = []
         self._datalisteners = []
         self._order = ''
-        self.RowCount = self.ColumnCount = 0
+        self.RowCount = 0
+        self.ColumnCount = 0
         self.ColumnModel = createService(ctx, 'com.sun.star.awt.grid.DefaultGridColumnModel')
         self._resultset = None
         rowset.addRowSetListener(self)
@@ -158,16 +159,10 @@ class GridDataModel(unohelper.Base,
     def _setColumnModel(self, rowset, metadata):
         orders = getRowSetOrders(rowset)
         for i in range(self.ColumnModel.getColumnCount(), 0, -1):
-            name = self.ColumnModel.getColumn(i -1).Title
-            if name in orders:
-                orders.remove(name)
-            else:
-                self.ColumnModel.removeColumn(i -1)
-        truncated = False
+            self.ColumnModel.removeColumn(i -1)
         columns = rowset.getColumns()
         for name in orders:
             if not columns.hasByName(name):
-                truncated = True
                 continue
             index = rowset.findColumn(name)
             column = self.ColumnModel.createColumn()
@@ -176,11 +171,7 @@ class GridDataModel(unohelper.Base,
             column.MinWidth = size // 2
             column.DataColumnIndex = index -1
             self.ColumnModel.addColumn(column)
-        if truncated:
-            orders = [column.Title for column in self.ColumnModel.getColumns()]
-            self._order = rowset.Order = setRowSetOrders(orders)
-        else:
-            self._order = rowset.Order
+        self._order = rowset.Order
 
     def _updateRowSetData(self, rowcount):
         if self.RowCount < rowcount:
@@ -190,18 +181,27 @@ class GridDataModel(unohelper.Base,
 
     def _removeRowSetData(self, first, last):
         event = self._getGridDataEvent(first, last)
+        previous = None
         for listener in self._datalisteners:
-            listener.rowsRemoved(event)
+            if previous != listener:
+                listener.rowsRemoved(event)
+                previous = listener
 
     def _insertRowSetData(self, first, last):
         event = self._getGridDataEvent(first, last)
+        previous = None
         for listener in self._datalisteners:
-            listener.rowsInserted(event)
+            if previous != listener:
+                listener.rowsInserted(event)
+                previous = listener
 
     def _changeRowSetData(self, first, last):
         event = self._getGridDataEvent(first, last)
+        previous = None
         for listener in self._datalisteners:
-            listener.dataChanged(event)
+            if previous != listener:
+                listener.dataChanged(event)
+                previous = listener
 
     def _getGridDataEvent(self, first, last):
         event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')

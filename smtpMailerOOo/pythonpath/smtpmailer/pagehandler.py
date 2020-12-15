@@ -40,23 +40,19 @@ class PageHandler(unohelper.Base,
                   XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
-        self._disabled = False
 
     @property
     def Manager(self):
         return self._manager
 
     def disable(self):
-        self._disabled = True
-
-    def enable(self):
-        self._disabled = False
+        self._manager.Disabled = True
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
         handled = False
         # TODO: During WizardPage initialization the listener must be disabled...
-        if self._disabled:
+        if self._manager.Disabled:
             handled = True
         elif method == 'StateChange':
             self._manager.updateUI(event.Source)

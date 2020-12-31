@@ -27,8 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from unolib import getInteractionHandler
+
 from .oauth2lib import InteractionRequest
-from .unotools import getInteractionHandler
 
 
 def getOAuth2UserName(ctx, source, url, message=''):

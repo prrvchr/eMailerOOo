@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,40 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_oauth2
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_refresh_overlap
+from .oauth2config import g_oauth2
 
-from .oauth2setting import OAuth2Setting
-from .wizard import Wizard
-from .wizardcontroller import WizardController
 
-from .request import Request
-from .request import Enumeration
-from .request import Enumerator
-from .request import Iterator
-from .request import InputStream
-from .request import Uploader
-from .request import getSessionMode
-from .request import getConnectionMode
-from .request import execute
+def getRequest(ctx, scheme, name):
+    request = createService(ctx, g_oauth2)
+    if request is not None:
+        request.initializeSession(scheme, name)
+    return request
 
-from .oauth2tools import getActivePath
-from .oauth2tools import getRefreshToken
-from .oauth2tools import getAuthorizationStr
-from .oauth2tools import checkUrl
-from .oauth2tools import openUrl
-
-from .dialoghandler import DialogHandler
-
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-
-from . import requests
+def getOAuth2(ctx, url, name):
+    oauth2 = createService(ctx, g_oauth2)
+    if oauth2 is not None:
+        oauth2.initializeSession(url, name)
+    return oauth2

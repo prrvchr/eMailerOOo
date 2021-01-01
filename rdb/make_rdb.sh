@@ -11,6 +11,7 @@ ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XMailServiceProvider2
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/MailServiceProvider2
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XIspDBService
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/IspDBService
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XRestKeyMap
 
 read -p "Press enter to continue"
 

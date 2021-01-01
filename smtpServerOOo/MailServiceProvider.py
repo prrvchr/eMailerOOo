@@ -96,8 +96,9 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate
 from email.utils import parseaddr
 
-from unolib import getOAuth2
-from unolib import getOAuth2Token
+from oauth2lib import getOAuth2
+from oauth2lib import getOAuth2Token
+
 from unolib import getConfiguration
 from unolib import getInterfaceTypes
 from unolib import getExceptionMessage

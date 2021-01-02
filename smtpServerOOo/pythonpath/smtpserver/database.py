@@ -193,8 +193,7 @@ class DataBase(unohelper.Base):
         call.close()
 
     def _mergeDomain(self, provider, domains, timestamp):
-        call = self._getCall('mergeDomain')
-        call.setString(1, provider)
+        call = self._getMergeDomainCall(provider)
         for domain in domains:
             call.setString(2, domain)
             call.setTimestamp(3, timestamp)
@@ -203,6 +202,11 @@ class DataBase(unohelper.Base):
 
     def _getMergeServerCall(self, provider):
         call = self._getCall('mergeServer')
+        call.setString(1, provider)
+        return call
+
+    def _getMergeDomainCall(self, provider):
+        call = self._getCall('mergeDomain')
         call.setString(1, provider)
         return call
 

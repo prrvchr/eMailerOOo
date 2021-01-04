@@ -170,10 +170,15 @@ class PageView(unohelper.Base):
                 position = control.getSelectedItemPos()
                 self._getRemoveIndexButton().Model.Enabled = position != -1
             elif tag == 'Addresses':
+                print("PageView.updateControl() 1")
                 selected = control.hasSelectedRows()
+                print("PageView.updateControl() 2")
                 enabled = control.Model.GridDataModel.RowCount != 0
+                print("PageView.updateControl() 3")
                 self._getAddAllButton().Model.Enabled = enabled
+                print("PageView.updateControl() 4")
                 self._getAddButton().Model.Enabled = selected
+                print("PageView.updateControl() 5")
             elif tag == 'Recipients':
                 selected = control.hasSelectedRows()
                 enabled = control.Model.GridDataModel.RowCount != 0

@@ -1,6 +1,6 @@
 **Ce [document](https://prrvchr.github.io/smtpMailerOOo/README_fr) en français.**
 
-**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
+**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en)
 
 **This extension is under development and is not yet available ... Thank you for your patience.**
 

@@ -100,6 +100,8 @@ class PageManager(unohelper.Base):
                 view.selectDataSource(datasource)
                 self.Disabled = False
                 self.Model.setDataSource(self.progress, datasource, self.callBack1)
+            else:
+                view.enableDatasource(True)
         elif pageid == 2:
             handler = GridHandler(self)
             address = self.Model.DataSource.DataBase.Address

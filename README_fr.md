@@ -1,6 +1,6 @@
 **This [document](https://prrvchr.github.io/smtpMailerOOo) in English.**
 
-**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_fr)
+**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr)
 
 **Cette extension est en cours de développement et n'est pas encore disponible ... Merci de votre patience.**
 

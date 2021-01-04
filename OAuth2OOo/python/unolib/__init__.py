@@ -62,19 +62,8 @@ from .unotools import parseDateTime
 from .unotools import unparseDateTime
 from .unotools import unparseTimeStamp
 from .unotools import getConnectionMode
-from .unotools import getRequest
-from .unotools import getOAuth2
 from .unotools import getParentWindow
 from .unotools import getUrl
 from .unotools import getExceptionMessage
 
 from .unocore import PropertyContainer
-
-from .oauth2config import g_oauth2
-
-from .oauth2lib import InteractionRequest
-from .oauth2lib import NoOAuth2
-from .oauth2lib import OAuth2OOo
-
-from .oauth2core import getOAuth2UserName
-from .oauth2core import getOAuth2Token

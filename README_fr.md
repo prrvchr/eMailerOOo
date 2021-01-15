@@ -14,7 +14,7 @@ Cette extension vous permet d'envoyer du courrier électronique dans LibreOffice
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/smtpMailerOOo).
 - A apporter des modifications, des corrections, des ameliorations.
-- D'ouvrir une [issue](https://github.com/prrvchr/smtpMailerOOo/issues/new) si nécessaire.
+- D'ouvrir un [dysfonctionnement](https://github.com/prrvchr/smtpMailerOOo/issues/new) si nécessaire.
 
 Bref, à participer au developpement de cette extension.
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.

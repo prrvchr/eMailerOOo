@@ -1,0 +1,21 @@
+#ifndef __com_sun_star_mail_XMailServiceSpooler_idl__
+#define __com_sun_star_mail_XMailServiceSpooler_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+
+module com { module sun { module star { module mail {
+
+interface XMailServiceSpooler: com::sun::star::uno::XInterface
+{
+
+    void start();
+    void stop();
+    long add([in] string Recipient,
+             [in] string Url);
+    void remove([in] long Id);
+
+};
+
+}; }; }; };
+
+#endif

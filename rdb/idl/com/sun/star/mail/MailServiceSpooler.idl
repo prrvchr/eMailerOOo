@@ -1,0 +1,17 @@
+#ifndef __com_sun_star_mail_MailServiceSpooler_idl__
+#define __com_sun_star_mail_MailServiceSpooler_idl__
+
+#include <com/sun/star/mail/XMailServiceSpooler.idl>
+
+module com { module sun { module star { module mail {
+
+service MailServiceSpooler: XMailServiceSpooler
+{
+
+    create();
+
+};
+
+}; }; }; };
+
+#endif

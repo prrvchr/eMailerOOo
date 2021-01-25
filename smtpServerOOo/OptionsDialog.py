@@ -76,10 +76,11 @@ class OptionsDialog(unohelper.Base,
                     XDispatchResultListener):
     def __init__(self, ctx):
         try:
-            self.ctx = ctx
-            self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
-            self._model = PageModel(self.ctx)
-            logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
+            self._ctx = ctx
+            self._stringResource = getStringResource(self._ctx, g_identifier, g_extension, 'OptionsDialog')
+            self._spooler = createService(self._ctx, 'com.sun.star.mail.MailServiceSpooler')
+            self._model = PageModel(self._ctx)
+            logMessage(self._ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
@@ -123,14 +124,22 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ShowWizard':
             self._showWizard(dialog)
             handled = True
+        elif method == 'ToggleSpooler':
+            self._toogleSpooler(dialog)
+            handled = True
+        elif method == 'ShowSpooler':
+            self._showSpooler(dialog)
+            handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'LogInfo', 'ChangeTimeout', 'ShowWizard')
+                'ViewLog', 'ClearLog', 'LogInfo', 'ChangeTimeout', 'ShowWizard',
+                'ToggleSpooler', 'ShowSpooler')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
         self._loadSmtpSetting(dialog)
+        self._loadSpooler(dialog)
 
     def _saveSetting(self, dialog):
         self._saveLoggerSetting(dialog)
@@ -148,8 +157,8 @@ class OptionsDialog(unohelper.Base,
         dialog.getControl('CommandButton1').Model.Enabled = enabled
 
     def _viewLog(self, window):
-        dialog = getDialog(self.ctx, g_extension, 'LogDialog', self, window.Peer)
-        url = getLoggerUrl(self.ctx)
+        dialog = getDialog(self._ctx, g_extension, 'LogDialog', self, window.Peer)
+        url = getLoggerUrl(self._ctx)
         dialog.Title = url
         self._setDialogText(dialog, url)
         dialog.execute()
@@ -158,33 +167,33 @@ class OptionsDialog(unohelper.Base,
     def _clearLog(self, dialog):
         try:
             clearLogger()
-            msg = getMessage(self.ctx, g_message, 101)
-            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
-            url = getLoggerUrl(self.ctx)
+            msg = getMessage(self._ctx, g_message, 101)
+            logMessage(self._ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
+            url = getLoggerUrl(self._ctx)
             self._setDialogText(dialog, url)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
+            logMessage(self._ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
 
     def _logInfo(self, dialog):
         version  = ' '.join(sys.version.split())
-        msg = getMessage(self.ctx, g_message, 111, version)
-        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        msg = getMessage(self._ctx, g_message, 111, version)
+        logMessage(self._ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         path = os.pathsep.join(sys.path)
-        msg = getMessage(self.ctx, g_message, 112, path)
-        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
-        url = getLoggerUrl(self.ctx)
+        msg = getMessage(self._ctx, g_message, 112, path)
+        logMessage(self._ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        url = getLoggerUrl(self._ctx)
         self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
         control = dialog.getControl('TextField1')
-        length, sequence = getFileSequence(self.ctx, url)
+        length, sequence = getFileSequence(self._ctx, url)
         control.Text = sequence.value.decode('utf-8')
         selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
         control.setSelection(selection)
 
     def _loadLoggerSetting(self, dialog):
-        enabled, index, handler = getLoggerSetting(self.ctx)
+        enabled, index, handler = getLoggerSetting(self._ctx)
         dialog.getControl('CheckBox1').State = int(enabled)
         dialog.getControl('ListBox1').selectItemPos(index, True)
         dialog.getControl('OptionButton%s' % handler).State = 1
@@ -194,7 +203,7 @@ class OptionsDialog(unohelper.Base,
         enabled = bool(dialog.getControl('CheckBox1').State)
         index = dialog.getControl('ListBox1').getSelectedItemPos()
         handler = dialog.getControl('OptionButton1').State
-        setLoggerSetting(self.ctx, enabled, index, handler)
+        setLoggerSetting(self._ctx, enabled, index, handler)
 
     def _loadSmtpSetting(self, dialog):
         dialog.getControl('NumericField1').Value = self._model.Timeout
@@ -202,26 +211,46 @@ class OptionsDialog(unohelper.Base,
     def _saveSmtpSetting(self, dialog):
         self._model.saveTimeout()
 
+    def _loadSpooler(self, dialog):
+        resource = 'OptionsDialog.Label5.Label.%s' % int(self._spooler.isStarted())
+        dialog.getControl('Label5').Text = self._stringResource.resolveString(resource)
+
     def _changeTimeout(self, control):
         self._model.Timeout = int(control.Value)
 
     def _showWizard(self, dialog):
         try:
             print("_showWizard() 1 Python Version: %s" % (sys.version, ))
-            url = getUrl(self.ctx, 'ispdb://')
-            desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
+            url = getUrl(self._ctx, 'ispdb://')
+            desktop = createService(self._ctx, 'com.sun.star.frame.Desktop')
             dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
-            #dispatcher = createService(self.ctx, 'com.sun.star.frame.DispatchHelper')
+            #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
             #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
             print("_showWizard() 2")
             if dispatcher is not None:
                 #dispatcher.dispatchWithNotification(url, (), self)
                 dispatcher.dispatch(url, ())
                 print("_showWizard() 3")
-            #mri = createService(self.ctx, 'mytools.Mri')
+            #mri = createService(self._ctx, 'mytools.Mri')
             #mri.inspect(desktop)
             msg = "OptionsDialog._showWizard()"
-            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
+            logMessage(self._ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _toogleSpooler(self, dialog):
+        if self._spooler.isStarted():
+            self._spooler.stopSpooler()
+        else:
+            self._spooler.startSpooler()
+        self._loadSpooler(dialog)
+
+    def _showSpooler(self, dialog):
+        try:
+            print("OptionsDialog._showSpooler() 1")
+            self._spooler.viewSpooler(dialog.Peer)
+            print("OptionsDialog._showSpooler() 2")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
@@ -231,7 +260,6 @@ class OptionsDialog(unohelper.Base,
         print("OptionsDialog.dispatchFinished() %s" % (notification.Result.getKeys(), ))
     def disposing(self, source):
         pass
-
 
     # XServiceInfo
     def supportsService(self, service):

@@ -37,6 +37,8 @@ from com.sun.star.sdb.CommandType import QUERY
 from unolib import KeyMap
 from unolib import parseDateTime
 
+from .connection import Connection
+
 from .dbqueries import getSqlQuery
 from .dbconfig import g_role
 from .dbconfig import g_dba
@@ -62,14 +64,14 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, dbname, name='', password='', sync=None):
+    def __init__(self, ctx, dbname, name='SA', password='', sync=None):
         try:
             print("DataBase.__init__() 1")
-            self.ctx = ctx
+            self._ctx = ctx
             self._error = None
-            datasource, url, self._created = getDataSource(self.ctx, dbname, g_identifier, True)
+            datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, True)
             print("DataBase.__init__() 2")
-            connection = datasource.getConnection(name, password)
+            connection = Connection(ctx, datasource, datasource.URL, name, password, sync, True)
             print("DataBase.__init__() 3")
             self._statement = connection.createStatement()
             print("DataBase.__init__() 4")
@@ -93,13 +95,13 @@ class DataBase(unohelper.Base):
         return self.Connection.getParent().DatabaseDocument.DataSource
 
     def addCloseListener(self, listener):
-        self.Connection.Parent.DatabaseDocument.addCloseListener(listener)
+        self.Connection.getParent().DatabaseDocument.addCloseListener(listener)
 
     def shutdownDataBase(self):
         if self._created:
-            query = getSqlQuery(self.ctx, 'shutdownCompact')
+            query = getSqlQuery(self._ctx, 'shutdownCompact')
         else:
-            query = getSqlQuery(self.ctx, 'shutdown')
+            query = getSqlQuery(self._ctx, 'shutdown')
         self._statement.execute(query)
 
     def getConfig(self, email):
@@ -183,6 +185,10 @@ class DataBase(unohelper.Base):
         print("DataBase.mergeUser() %s" % result)
         call.close()
 
+    def getRowSetCommand(self):
+        query = 'SELECT "Id", "Sender", "Recipient", "Document", "Status", "TimeStamp" FROM "Spooler"'
+        return query
+
     def _mergeProvider(self, provider, name, shortname, timestamp):
         call = self._getCall('mergeProvider')
         call.setString(1, provider)
@@ -225,19 +231,19 @@ class DataBase(unohelper.Base):
 
 # Procedures called internally
     def _createDataBase(self):
-        version, error = checkDataBase(self.ctx, self.Connection)
+        version, error = checkDataBase(self._ctx, self.Connection)
         if error is None:
-            createStaticTable(self.ctx, self._statement, getStaticTables(), True)
-            tables, statements = getTablesAndStatements(self.ctx, self._statement, version)
+            createStaticTable(self._ctx, self._statement, getStaticTables(), True)
+            tables, statements = getTablesAndStatements(self._ctx, self._statement, version)
             executeSqlQueries(self._statement, tables)
-            executeQueries(self.ctx, self._statement, getQueries())
+            executeQueries(self._ctx, self._statement, getQueries())
         return error
 
     def _storeDataBase(self, url):
         self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
     def _getCall(self, name, format=None):
-        return getDataSourceCall(self.ctx, self.Connection, name, format)
+        return getDataSourceCall(self._ctx, self.Connection, name, format)
 
     def _getPreparedCall(self, name):
         # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)

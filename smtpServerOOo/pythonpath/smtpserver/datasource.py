@@ -36,6 +36,9 @@ from com.sun.star.datatransfer import XTransferable
 from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.sdb.CommandType import COMMAND
+from com.sun.star.sdb.CommandType import QUERY
+from com.sun.star.sdb.CommandType import TABLE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -50,6 +53,7 @@ from .database import DataBase
 from .dataparser import DataParser
 
 from .configuration import g_identifier
+from .configuration import g_fetchsize
 
 from .logger import setDebugMode
 from .logger import logMessage
@@ -67,34 +71,37 @@ class DataSource(unohelper.Base,
                  XCloseListener):
     def __init__(self, ctx):
         print("DataSource.__init__() 1")
-        self.ctx = ctx
+        self._ctx = ctx
         self._dbname = 'SmtpServer'
         self._config = None
         if not self._isInitialized():
             print("DataSource.__init__() 2")
-            DataSource._Init = Thread(target=self._initDataBase)
-            DataSource._Init.start()
+            DataSource._rowset = self._getRowSet()
+            DataSource._init = Thread(target=self._initDataBase)
+            DataSource._init.start()
         print("DataSource.__init__() 3")
 
-    _Init = None
-    _DataBase = None
+    _init = None
+    _rowset = None
+    _database = None
 
     @property
     def DataBase(self):
-        return DataSource._DataBase
-    @DataBase.setter
-    def DataBase(self, database):
-        DataSource._DataBase = database
+        return DataSource._database
 
-    def _isInitialized(self):
-        return DataSource._Init is not None
+    def isInitialized(self):
+        return self.DataBase is not None
 
-    # XRestReplicator
-    def cancel(self):
-        self.canceled = True
-        self.sync.set()
-        self.join()
+    # XCloseListener
+    def queryClosing(self, source, ownership):
+        self.DataBase.shutdownDataBase()
+        msg = "DataBase  '%s' closing ... Done" % self._dbname
+        logMessage(self._ctx, INFO, msg, 'DataSource', 'queryClosing()')
+        print(msg)
+    def notifyClosing(self, source):
+        pass
 
+# Procedures called by the SmtpServer
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
@@ -106,7 +113,7 @@ class DataSource(unohelper.Base,
             self.DataBase.updateServer(host, port, server)
 
     def waitForDataBase(self):
-        DataSource._Init.join()
+        DataSource._init.join()
 
     def getConfig(self, email):
         self.waitForDataBase()
@@ -117,11 +124,26 @@ class DataSource(unohelper.Base,
         config = Thread(target=self._getSmtpConfig, args=args)
         config.start()
 
+    def smtpConnect(self, *args):
+        setDebugMode(self._ctx, True)
+        connect = Thread(target=self._smtpConnect, args=args)
+        connect.start()
+
+    def smtpSend(self, *args):
+        setDebugMode(self._ctx, True)
+        send = Thread(target=self._smtpSend, args=args)
+        send.start()
+
+# Procedures called by the SpoolerView
+    def getRowSet(self):
+        return DataSource._rowset
+
+# Procedures called internally by the SmtpServer
     def _getSmtpConfig(self, email, url, progress, callback):
         progress(5)
-        url = getUrl(self.ctx, url)
+        url = getUrl(self._ctx, url)
         progress(10)
-        mode = getConnectionMode(self.ctx, url.Server)
+        mode = getConnectionMode(self._ctx, url.Server)
         progress(20)
         self.waitForDataBase()
         progress(40)
@@ -133,7 +155,7 @@ class DataSource(unohelper.Base,
         else:
             progress(60)
             service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
-            request = createService(self.ctx, service)
+            request = createService(self._ctx, service)
             response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
@@ -143,10 +165,14 @@ class DataSource(unohelper.Base,
                 progress(100, 4)
         callback(user, servers, mode)
 
-    def smtpConnect(self, *args):
-        setDebugMode(self.ctx, True)
-        connect = Thread(target=self._smtpConnect, args=args)
-        connect.start()
+    def _getIspdbConfig(self, request, url, domain):
+        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter.Method = 'GET'
+        parameter.Url = '%s%s' % (url, domain)
+        parameter.NoAuth = True
+        #parameter.NoVerify = True
+        response = request.getRequest(parameter, DataParser()).execute()
+        return response
 
     def _smtpConnect(self, context, authenticator, progress, callback):
         progress(0)
@@ -154,7 +180,7 @@ class DataSource(unohelper.Base,
         progress(5)
         service = 'com.sun.star.mail.MailServiceProvider2'
         progress(25)
-        server = createService(self.ctx, service).create(SMTP)
+        server = createService(self._ctx, service).create(SMTP)
         progress(50)
         try:
             server.connect(context, authenticator)
@@ -168,20 +194,15 @@ class DataSource(unohelper.Base,
                 progress(100)
             else:
                 progress(100)
-        setDebugMode(self.ctx, False)
+        setDebugMode(self._ctx, False)
         callback(step)
-
-    def smtpSend(self, *args):
-        setDebugMode(self.ctx, True)
-        send = Thread(target=self._smtpSend, args=args)
-        send.start()
 
     def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, callback):
         step = 3
         progress(5)
         service = 'com.sun.star.mail.MailServiceProvider2'
         progress(25)
-        server = createService(self.ctx, service).create(SMTP)
+        server = createService(self._ctx, service).create(SMTP)
         progress(50)
         try:
             server.connect(context, authenticator)
@@ -191,9 +212,9 @@ class DataSource(unohelper.Base,
             progress(75)
             if server.isConnected():
                 service = 'com.sun.star.mail.MailMessage2'
-                body = MailTransferable(self.ctx, message)
+                body = MailTransferable(self._ctx, message)
                 arguments = (recipient, sender, subject, body)
-                mail = createService(self.ctx, service, *arguments)
+                mail = createService(self._ctx, service, *arguments)
                 print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
                 try:
                     server.sendMailMessage(mail)
@@ -203,37 +224,36 @@ class DataSource(unohelper.Base,
                     step = 5
                 server.disconnect()
         progress(100)
-        setDebugMode(self.ctx, False)
+        setDebugMode(self._ctx, False)
         callback(step)
 
-    def _getIspdbConfig(self, request, url, domain):
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
-        parameter.Method = 'GET'
-        parameter.Url = '%s%s' % (url, domain)
-        parameter.NoAuth = True
-        #parameter.NoVerify = True
-        response = request.getRequest(parameter, DataParser()).execute()
-        return response
+# Private methods
+    def _getRowSet(self):
+        service = 'com.sun.star.sdb.RowSet'
+        rowset = createService(self._ctx, service)
+        rowset.CommandType = COMMAND
+        rowset.FetchSize = g_fetchsize
+        rowset.Order = '"Id", "Sender", "Recipient", "Document", "Status", "TimeStamp"'
+        return rowset
+
+    def _isInitialized(self):
+        return DataSource._init is not None
 
     def _initDataBase(self):
-        self.DataBase = DataBase(self.ctx, self._dbname)
-        self.DataBase.addCloseListener(self)
-
-    # XCloseListener
-    def queryClosing(self, source, ownership):
-        self.DataBase.shutdownDataBase()
-        msg = "DataBase  '%s' closing ... Done" % self._dbname
-        logMessage(self.ctx, INFO, msg, 'DataSource', 'queryClosing()')
-        print(msg)
-    def notifyClosing(self, source):
-        pass
+        database = DataBase(self._ctx, self._dbname)
+        database.addCloseListener(self)
+        rowset = DataSource._rowset
+        rowset.ActiveConnection = database.Connection
+        rowset.Command = database.getRowSetCommand()
+        rowset.execute()
+        DataSource._database = database
 
 
 class MailTransferable(unohelper.Base,
                        XTransferable):
     def __init__(self, ctx, body):
         print("MailTransferable.__init__() 1")
-        self.ctx = ctx
+        self._ctx = ctx
         self._body = body
         self._html = False
         print("MailTransferable.__init__() 2")

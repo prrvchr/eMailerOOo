@@ -340,6 +340,18 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(100),
     elif name == 'mergeUser':
         query = 'CALL "MergeUser"(?,?,?,?,?,?)'
 
+# Get prepareCommand Query
+    elif name == 'prepareCommand':
+        query = 'SELECT * FROM "%s"' % format
+
+# Get Users and Privileges Query
+    elif name == 'getUsers':
+        query = 'SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS'
+    elif name == 'getPrivileges':
+        query = 'SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES'
+    elif name == 'changePassword':
+        query = "SET PASSWORD '%s'" % format
+
 # Queries don't exist!!!
     else:
         query = None

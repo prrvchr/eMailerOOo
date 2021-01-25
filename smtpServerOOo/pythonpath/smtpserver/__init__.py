@@ -37,6 +37,7 @@ from .pagemodel import PageModel
 from .wizardcontroller import WizardController
 from .ispdbdispatch import IspdbDispatch
 from .datasource import DataSource
+from .spooler import SpoolerManager
 
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

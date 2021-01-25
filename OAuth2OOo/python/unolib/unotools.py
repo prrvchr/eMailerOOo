@@ -195,6 +195,18 @@ def getContainerWindow(ctx, parent, handler, library, xdl):
 def getDialogUrl(library, xdl):
     return 'vnd.sun.star.script:%s.%s?location=application' % (library, xdl)
 
+def executeDispatch(ctx, url, listener=None):
+    url = getUrl(ctx, url)
+    desktop = getDesktop(ctx)
+    dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
+    #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
+    #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
+    if dispatcher is not None:
+        if callback is not None:
+            dispatcher.dispatchWithNotification(url, (), listener)
+        else:
+            dispatcher.dispatch(url, ())
+
 def createMessageBox(peer, message, title, box='message', buttons=2):
     boxtypes = {'message': 'MESSAGEBOX',
                 'info': 'INFOBOX',
@@ -203,6 +215,10 @@ def createMessageBox(peer, message, title, box='message', buttons=2):
                 'query': 'QUERYBOX'}
     box = uno.Enum('com.sun.star.awt.MessageBoxType', boxtypes.get(box, 'MESSAGEBOX'))
     return peer.getToolkit().createMessageBox(peer, box, buttons, title, message)
+
+def getDesktop(ctx):
+    service = 'com.sun.star.frame.Desktop'
+    return createService(ctx, service)
 
 def createService(ctx, name, *args, **kwargs):
     if args:

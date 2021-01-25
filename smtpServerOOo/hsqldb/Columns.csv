@@ -12,7 +12,8 @@ Column|Name
 10|LoginName
 11|Password
 12|Id
-13|Recipient
-14|Url
-15|Status
-16|TimeStamp
+13|Sender
+14|Recipient
+15|Document
+16|Status
+17|TimeStamp

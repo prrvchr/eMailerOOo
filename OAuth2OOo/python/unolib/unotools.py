@@ -53,6 +53,9 @@ def getConnectionMode(ctx, host, port=80):
         mode = ONLINE
     return mode
 
+def getDesktop(ctx):
+    return createService(ctx, 'com.sun.star.frame.Desktop')
+
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
 
@@ -194,6 +197,17 @@ def getContainerWindow(ctx, parent, handler, library, xdl):
 
 def getDialogUrl(library, xdl):
     return 'vnd.sun.star.script:%s.%s?location=application' % (library, xdl)
+
+def executeDispatch(ctx, url, listener=None):
+    url = getUrl(ctx, url)
+    dispatcher = getDesktop(ctx).getCurrentFrame().queryDispatch(url, '', 0)
+    #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
+    #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
+    if dispatcher is not None:
+        if listener is not None:
+            dispatcher.dispatchWithNotification(url, (), listener)
+        else:
+            dispatcher.dispatch(url, ())
 
 def createMessageBox(peer, message, title, box='message', buttons=2):
     boxtypes = {'message': 'MESSAGEBOX',

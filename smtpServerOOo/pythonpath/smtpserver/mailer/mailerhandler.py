@@ -31,6 +31,11 @@ import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.frame import XDispatchResultListener
+
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
+from unolib import executeDispatch
 
 import traceback
 
@@ -53,17 +58,27 @@ class DialogHandler(unohelper.Base,
 
 class WindowHandler(unohelper.Base,
                     XContainerWindowEventHandler):
-    def __init__(self, manager):
+    def __init__(self, ctx, manager):
+        self._ctx = ctx
         self._manager = manager
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'AddSender':
-            self._manager.addSender()
+        if method == 'ChangeSender':
+            enabled = event.Source.getSelectedItemPos() != -1
+            self._manager.enableRemoveSender(enabled)
+            handled = True
+        elif method == 'AddSender':
+            listener = DispatchListener(self._manager)
+            executeDispatch(self._ctx, 'smtp://server', listener)
             handled = True
         elif method == 'RemoveSender':
             self._manager.removeSender()
+            handled = True
+        elif method == 'EditRecipient':
+            text = event.Source.getText()
+            self._manager.editRecipient(text)
             handled = True
         elif method == 'ChangeRecipient':
             self._manager.changeRecipient()
@@ -77,4 +92,19 @@ class WindowHandler(unohelper.Base,
         return handled
 
     def getSupportedMethodNames(self):
-        return ('AddSender', 'RemoveSender', 'ChangeRecipient', 'AddRecipient', 'RemoveRecipient')
+        return ('ChangeSender', 'AddSender', 'RemoveSender',
+                'EditRecipient', 'ChangeRecipient', 'AddRecipient', 'RemoveRecipient')
+
+
+class DispatchListener(unohelper.Base,
+                       XDispatchResultListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
+        if notification.State == SUCCESS:
+            self._manager.addSender(notification.Result)
+
+    def disposing(self, source):
+        pass

@@ -31,9 +31,9 @@
   oor:package="org.openoffice.Office"
   oor:name="ProtocolHandler">
     <node oor:name="HandlerSet">
-        <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.IspDBServer" oor:op="replace">
+        <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.SmtpDispatcher" oor:op="replace">
             <prop oor:name="Protocols">
-                <value>ispdb://*</value>
+                <value>smtp://*</value>
             </prop>
         </node>
     </node>

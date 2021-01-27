@@ -3,4 +3,4 @@ Table|Name|Identity|View|Versioned
 1|Domains|||false
 2|Servers|||false
 3|Users|||false
-4|Spooler|||true
+4|Spooler|||false

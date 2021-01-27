@@ -35,7 +35,7 @@ from .configuration import g_wizard_page
 from .wizard import Wizard
 from .pagemodel import PageModel
 from .wizardcontroller import WizardController
-from .ispdbdispatch import IspdbDispatch
+from .smtpdispatch import SmtpDispatch
 from .datasource import DataSource
 from .spooler import SpoolerManager
 

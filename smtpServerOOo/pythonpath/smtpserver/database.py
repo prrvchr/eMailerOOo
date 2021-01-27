@@ -50,6 +50,7 @@ from .dbtools import executeSqlQueries
 from .dbtools import getDataSourceCall
 from .dbtools import executeQueries
 from .dbtools import getKeyMapFromResult
+from .dbtools import getSequenceFromResult
 
 from .dbinit import getStaticTables
 from .dbinit import getQueries
@@ -60,6 +61,7 @@ from .configuration import g_identifier
 from .logger import logMessage
 from .logger import getMessage
 
+import time
 import traceback
 
 
@@ -69,6 +71,7 @@ class DataBase(unohelper.Base):
             print("DataBase.__init__() 1")
             self._ctx = ctx
             self._error = None
+            #time.sleep(10)
             datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, True)
             print("DataBase.__init__() 2")
             connection = Connection(ctx, datasource, datasource.URL, name, password, sync, True)
@@ -104,27 +107,20 @@ class DataBase(unohelper.Base):
             query = getSqlQuery(self._ctx, 'shutdown')
         self._statement.execute(query)
 
-    def getConfig(self, email):
-        config = None
-        call = self._getCall('getUser')
-        call.setString(1, email)
-        result = call.executeQuery()
-        if result.next():
-            config = getKeyMapFromResult(result)
-        call.close()
-        return config
-
+# Procedures called by the SmtpServer
     def getSmtpConfig(self, email):
+        domain = email.partition('@')[2]
         user = KeyMap()
         servers = []
         call = self._getCall('getServers')
         call.setString(1, email)
+        call.setString(2, domain)
         result = call.executeQuery()
-        user.setValue('Server', call.getString(2))
-        user.setValue('Port', call.getShort(3))
-        user.setValue('LoginName', call.getString(4))
-        user.setValue('Password', call.getString(5))
-        user.setValue('Domain', call.getString(6))
+        user.setValue('Server', call.getString(3))
+        user.setValue('Port', call.getShort(4))
+        user.setValue('LoginName', call.getString(5))
+        user.setValue('Password', call.getString(6))
+        user.setValue('Domain', domain)
         while result.next():
             servers.append(getKeyMapFromResult(result))
         call.close()
@@ -185,10 +181,31 @@ class DataBase(unohelper.Base):
         print("DataBase.mergeUser() %s" % result)
         call.close()
 
+# Procedures called by the SmtpSpooler
     def getRowSetCommand(self):
-        query = 'SELECT "Id", "Sender", "Recipient", "Document", "Status", "TimeStamp" FROM "Spooler"'
+        query = 'SELECT %s FROM "Spooler"' % self.getRowSetOrder()
         return query
 
+    def getRowSetOrder(self):
+        return '"Id", "Sender", "Recipient", "Document", "Status", "TimeStamp"'
+
+    def getSenders(self):
+        senders = []
+        call = self._getCall('getSenders')
+        result = call.executeQuery()
+        senders = getSequenceFromResult(result)
+        call.close()
+        return tuple(senders)
+
+    def deleteUser(self, user):
+        call = self._getCall('deleteUser')
+        call.setString(1, user)
+        status = call.executeUpdate()
+        call.close()
+        print("DataBase.deleteUser() %s **************************" % status)
+        return status
+
+# Procedures called internally by the SmtpServer
     def _mergeProvider(self, provider, name, shortname, timestamp):
         call = self._getCall('mergeProvider')
         call.setString(1, provider)
@@ -224,10 +241,6 @@ class DataBase(unohelper.Base):
         call.setByte(6, server.getValue('LoginMode'))
         call.setTimestamp(7, timestamp)
         result = call.executeUpdate()
-
-# Procedures called by the Identifier
-
-# Procedures called by the Replicator
 
 # Procedures called internally
     def _createDataBase(self):

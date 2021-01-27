@@ -89,7 +89,7 @@ class IspDBService(unohelper.Base,
 
     # XDispatchResultListener
     def dispatchFinished(self, result):
-        print("IspDBService.dispatchFinished() %s" % (result.getKeys(), ))
+        print("IspDBService.dispatchFinished() %s" % (result, ))
     def disposing(self, source):
         pass
 

@@ -49,6 +49,10 @@ from unolib import createService
 from .wizard import Wizard
 from .wizardcontroller import WizardController
 
+from .pagemodel import PageModel
+
+from .spooler import SpoolerManager
+
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_wizard_page
@@ -60,78 +64,74 @@ from .logger import getMessage
 import traceback
 
 
-class IspdbDispatch(unohelper.Base,
-                    XNotifyingDispatch):
-    def __init__(self, ctx, model, frame):
-        self.ctx = ctx
-        self._model = model
+class SmtpDispatch(unohelper.Base,
+                   XNotifyingDispatch):
+    def __init__(self, ctx, url, parent):
+        self._ctx = ctx
+        self._parent = parent
         self._listeners = []
-        if frame is not None:
-            self._parent = frame.getContainerWindow()
-            print("IspdbDispatch.__init__()")
-        else:
-            self._parent = None
-            print("IspdbDispatch.__init__() not parent set!!!!!!")
-        logMessage(self.ctx, INFO, "Loading ... Done", 'IspdbDispatch', '__init__()')
+        print("SmtpDispatch.__init__()")
 
     # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
-        state = SUCCESS
-        email = self._getEmail(arguments)
-        config = self._model._datasource.getConfig(email)
-        if config is None:
-            state = self._dispatch(email)
-            if state == SUCCESS:
-                email = self._model.Email
-                config = self._model._datasource.getConfig(email)
+        state = FAILURE
+        result = None
+        print("SmtpDispatch.dispatchWithNotification() 1")
+        if url.Path == '//server':
+            state, result = self._showSmtpServer()
+        elif url.Path == '//spooler':
+            state = SUCCESS
+            self._showSmtpSpooler()
         struct = 'com.sun.star.frame.DispatchResultEvent'
-        notification = uno.createUnoStruct(struct, self, state, config)
+        notification = uno.createUnoStruct(struct, self, state, result)
+        print("SmtpDispatch.dispatchWithNotification() 2")
         listener.dispatchFinished(notification)
 
     def dispatch(self, url, arguments):
-        email = self._getEmail(arguments)
-        self._dispatch(email)
-        print("IspdbDispatch.dispatch() 2")
+        print("SmtpDispatch.dispatch() 1")
+        if url.Path == '//server':
+            self._showSmtpServer()
+        elif url.Path == '//spooler':
+            self._showSmtpSpooler()
+        print("SmtpDispatch.dispatch() 2")
 
     def addStatusListener(self, listener, url):
-        print("IspDBServer.addStatusListener()")
+        print("SmtpDispatch.addStatusListener()")
 
     def removeStatusListener(self, listener, url):
-        print("IspDBServer.removeStatusListener()")
+        print("SmtpDispatch.removeStatusListener()")
 
-    def _dispatch(self, email):
-        if email:
-            self._model.Email = email
-        print("IspdbDispatch.dispatch() 1 %s" % self._model.Email)
-        print("IspdbDispatch.dispatch() 2")
-        return self._showWizard()
-
-    def _getEmail(self, arguments):
-        email = ''
-        for arg in arguments:
-            if arg.Name == 'Email':
-                email = arg.Value
-                break
-        return email
-
-    def _showWizard(self):
+    def _showSmtpServer(self):
         try:
-            print("_showWizard()")
+            print("_showSmtpServer()")
             state = FAILURE
+            email = None
             msg = "Wizard Loading ..."
-            wizard = Wizard(self.ctx, g_wizard_page, True, self._parent)
-            controller = WizardController(self.ctx, wizard, self._model)
+            model = PageModel(self._ctx)
+            wizard = Wizard(self._ctx, g_wizard_page, True, self._parent)
+            controller = WizardController(self._ctx, wizard, model)
             arguments = (g_wizard_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
                 state = SUCCESS
+                email = model.Email
                 msg +=  " Retrieving SMTP configuration OK..."
             wizard.DialogWindow.dispose()
             wizard.DialogWindow = None
             print(msg)
-            logMessage(self.ctx, INFO, msg, 'IspdbDispatch', '_showWizard()')
-            return state
+            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showSmtpServer()')
+            return state, email
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _showSmtpSpooler(self):
+        try:
+            print("SmtpDispatch._showSmtpSpooler() 1")
+            manager = SpoolerManager(self._ctx)
+            manager.viewSpooler(self._parent)
+            print("SmtpDispatch._showSmtpSpooler() 2")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

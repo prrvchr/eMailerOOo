@@ -73,7 +73,6 @@ class DataSource(unohelper.Base,
         print("DataSource.__init__() 1")
         self._ctx = ctx
         self._dbname = 'SmtpServer'
-        self._config = None
         if not self._isInitialized():
             print("DataSource.__init__() 2")
             DataSource._rowset = self._getRowSet()
@@ -115,11 +114,6 @@ class DataSource(unohelper.Base,
     def waitForDataBase(self):
         DataSource._init.join()
 
-    def getConfig(self, email):
-        self.waitForDataBase()
-        config = self.DataBase.getConfig(email)
-        return config
-
     def getSmtpConfig(self, *args):
         config = Thread(target=self._getSmtpConfig, args=args)
         config.start()
@@ -134,9 +128,16 @@ class DataSource(unohelper.Base,
         send = Thread(target=self._smtpSend, args=args)
         send.start()
 
-# Procedures called by the SpoolerView
+# Procedures called by the SmtpSpooler
     def getRowSet(self):
         return DataSource._rowset
+
+    def getSenders(self, *args):
+        senders = Thread(target=self._getSenders, args=args)
+        senders.start()
+
+    def removeSender(self, sender):
+        return self.DataBase.deleteUser(sender)
 
 # Procedures called internally by the SmtpServer
     def _getSmtpConfig(self, email, url, progress, callback):
@@ -227,13 +228,18 @@ class DataSource(unohelper.Base,
         setDebugMode(self._ctx, False)
         callback(step)
 
+# Procedures called internally by the SmtpSpooler
+    def _getSenders(self, callback):
+        self.waitForDataBase()
+        senders = self.DataBase.getSenders()
+        callback(senders)
+
 # Private methods
     def _getRowSet(self):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
         rowset.CommandType = COMMAND
         rowset.FetchSize = g_fetchsize
-        rowset.Order = '"Id", "Sender", "Recipient", "Document", "Status", "TimeStamp"'
         return rowset
 
     def _isInitialized(self):
@@ -245,6 +251,7 @@ class DataSource(unohelper.Base,
         rowset = DataSource._rowset
         rowset.ActiveConnection = database.Connection
         rowset.Command = database.getRowSetCommand()
+        rowset.Order = database.getRowSetOrder()
         rowset.execute()
         DataSource._database = database
 

@@ -243,9 +243,7 @@ def getStaticTables():
     return tables
 
 def getQueries():
-    return (('createGetDomain', None),
-            ('createGetUser', None),
-            ('createGetServers', None),
+    return (('createGetServers', None),
             ('createMergeProvider', None),
             ('createMergeDomain', None),
             ('createMergeServer', None),

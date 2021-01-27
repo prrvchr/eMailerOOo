@@ -161,55 +161,31 @@ def getSqlQuery(ctx, name, format=None):
         p = (','.join(s), ' '.join(f), w)
         query = 'SELECT %s FROM %s WHERE %s;' % p
 
-    elif name == 'getUser1':
-        s1 = '"Servers"."Server"'
-        s2 = '"Servers"."Port"'
-        s3 = '"Servers"."Connection"'
-        s4 = '"Servers"."Authentication"'
-        s5 = '"Users"."LoginName"'
-        s6 = '"Users"."Password"'
-        s = (s1, s2, s3, s4, s5, s6)
-        f1 = '"Users"'
-        f2 = 'JOIN "Servers"'
-        f3 = 'ON "Users"."Server"="Servers"."Server" AND "Users"."Port"="Servers"."Port"'
-        f = (f1, f2, f3)
-        w = '"Users"."User"=?'
-        p = (','.join(s), ' '.join(f), w)
-        query = 'SELECT %s FROM %s WHERE %s;' % p
+    elif name == 'getSenders':
+        query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
+
+# Delete Queries
+    elif name == 'deleteUser':
+        query = 'DELETE FROM "Users" WHERE "User" = ?;'
 
 # Function creation Queries
     elif name == 'createGetDomain':
         query = """\
-CREATE FUNCTION "GetDomain"("User" VARCHAR(100))
+CREATE FUNCTION "GetDomain"("User" VARCHAR(320))
   RETURNS VARCHAR(100)
   SPECIFIC "GetDomain_1"
   RETURN SUBSTRING("User" FROM POSITION('@' IN "User") + 1);
 """
 
 # Select Procedure Queries
-    elif name == 'createGetUser':
-        query = """\
-CREATE PROCEDURE "GetUser"(IN "User" VARCHAR(100))
-  SPECIFIC "GetUser_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
-      "Servers"."Authentication", "Users"."LoginName", "Users"."Password" FROM "Users"
-      JOIN "Servers" ON "Users"."Server"="Servers"."Server" AND "Users"."Port"="Servers"."Port"
-      WHERE "Users"."User"="User"
-      FOR READ ONLY;
-    OPEN "Result";
-  END;"""
     elif name == 'createGetServers':
         query = """\
-CREATE PROCEDURE "GetServers"(IN "User" VARCHAR(100),
-                              OUT "Server" VARCHAR(100),
+CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
+                              IN "DomainName" VARCHAR(255),
+                              OUT "Server" VARCHAR(255),
                               OUT "Port" SMALLINT,
                               OUT "LoginName" VARCHAR(100),
-                              OUT "Password" VARCHAR(100),
-                              OUT "Domain" VARCHAR(100))
+                              OUT "Password" VARCHAR(100))
   SPECIFIC "GetServers_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
@@ -219,11 +195,11 @@ CREATE PROCEDURE "GetServers"(IN "User" VARCHAR(100),
       "Servers"."Authentication", "Servers"."LoginMode" FROM "Servers"
       JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"
       LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
-      WHERE "Providers"."Provider"="GetDomain"("User") OR "Domains"."Domain"="GetDomain"("User")
+      WHERE "Providers"."Provider"="DomainName" OR "Domains"."Domain"="DomainName"
       FOR READ ONLY;
-    SET ("Server", "Port", "LoginName", "Password") = (SELECT "Server", "Port",
-    "LoginName", "Password" FROM "Users" WHERE "Users"."User"="User");
-    SET "Domain" = "GetDomain"("User");
+    SET ("Server", "Port", "LoginName", "Password") = (SELECT "Users"."Server",
+     "Users"."Port", "Users"."LoginName", "Users"."Password" FROM "Users"
+      WHERE "Users"."User"="Email");
     OPEN "Result";
   END;"""
 
@@ -244,10 +220,11 @@ CREATE PROCEDURE "MergeProvider"(IN "Provider" VARCHAR(100),
         WHEN NOT MATCHED THEN INSERT ("Provider","DisplayName","DisplayShortName","TimeStamp")
           VALUES vals.w, vals.x, vals.y, vals.z;
   END"""
+
     elif name == 'createMergeDomain':
         query = """\
 CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
-                               IN "Domain" VARCHAR(100),
+                               IN "Domain" VARCHAR(255),
                                IN "Time" TIMESTAMP(6))
   SPECIFIC "MergeDomain_1"
   MODIFIES SQL DATA
@@ -259,10 +236,11 @@ CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
         WHEN NOT MATCHED THEN INSERT ("Domain","Provider","TimeStamp")
           VALUES vals.x, vals.y, vals.z;
   END"""
+
     elif name == 'createMergeServer':
         query = """\
 CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
-                               IN "Server" VARCHAR(100),
+                               IN "Server" VARCHAR(255),
                                IN "Port" SMALLINT,
                                IN "Connection" TINYINT,
                                IN "Authentication" TINYINT,
@@ -278,11 +256,12 @@ CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
         WHEN NOT MATCHED THEN INSERT ("Server","Port","Provider","Connection","Authentication","LoginMode","TimeStamp")
           VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
+
     elif name == 'createUpdateServer':
         query = """\
-CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(100),
+CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(255),
                                 IN "Port1" SMALLINT,
-                                IN "Server2" VARCHAR(100),
+                                IN "Server2" VARCHAR(255),
                                 IN "Port2" SMALLINT,
                                 IN "Connection" TINYINT,
                                 IN "Authentication" TINYINT,
@@ -295,10 +274,11 @@ CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(100),
       "TimeStamp"="Time"
       WHERE "Server" = "Server1" AND "Port" = "Port1";
   END"""
+
     elif name == 'createMergeUser':
         query = """\
-CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(100),
-                             IN "Server" VARCHAR(100),
+CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
+                             IN "Server" VARCHAR(255),
                              IN "Port" SMALLINT,
                              IN "LoginName" VARCHAR(100),
                              IN "Password" VARCHAR(100),

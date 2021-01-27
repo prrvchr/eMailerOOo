@@ -112,7 +112,13 @@ class SpoolerManager(unohelper.Base):
             url = transformer.getPresentation(url, False)
             parent = self._view.getParent()
             mailer = MailerManager(self._ctx, self.Model.DataSource, url, parent)
-            mailer.show()
+            if mailer.show() == OK:
+                self._addDocument(mailer, url)
+            mailer.dispose()
+
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    def _addDocument(self, mailer, url):
+        print("SpoolerManager._addDocument: %s" % url.Name)

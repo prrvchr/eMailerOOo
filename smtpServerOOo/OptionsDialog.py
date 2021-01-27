@@ -45,6 +45,7 @@ from unolib import getUrl
 from unolib import getDialog
 from unolib import createService
 from unolib import getPropertyValueSet
+from unolib import executeDispatch
 
 from smtpserver import PageModel
 
@@ -122,13 +123,13 @@ class OptionsDialog(unohelper.Base,
             self._changeTimeout(event.Source)
             handled = True
         elif method == 'ShowWizard':
-            self._showWizard(dialog)
+            self._showSmtpServer(dialog)
             handled = True
         elif method == 'ToggleSpooler':
             self._toogleSpooler(dialog)
             handled = True
         elif method == 'ShowSpooler':
-            self._showSpooler(dialog)
+            self._showSmtpSpooler(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
@@ -218,23 +219,9 @@ class OptionsDialog(unohelper.Base,
     def _changeTimeout(self, control):
         self._model.Timeout = int(control.Value)
 
-    def _showWizard(self, dialog):
+    def _showSmtpServer(self, dialog):
         try:
-            print("_showWizard() 1 Python Version: %s" % (sys.version, ))
-            url = getUrl(self._ctx, 'ispdb://')
-            desktop = createService(self._ctx, 'com.sun.star.frame.Desktop')
-            dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
-            #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
-            #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
-            print("_showWizard() 2")
-            if dispatcher is not None:
-                #dispatcher.dispatchWithNotification(url, (), self)
-                dispatcher.dispatch(url, ())
-                print("_showWizard() 3")
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(desktop)
-            msg = "OptionsDialog._showWizard()"
-            logMessage(self._ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
+            executeDispatch(self._ctx, 'smtp://server')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
@@ -246,10 +233,11 @@ class OptionsDialog(unohelper.Base,
             self._spooler.startSpooler()
         self._loadSpooler(dialog)
 
-    def _showSpooler(self, dialog):
+    def _showSmtpSpooler(self, dialog):
         try:
             print("OptionsDialog._showSpooler() 1")
-            self._spooler.viewSpooler(dialog.Peer)
+            #self._spooler.viewSpooler(dialog.Peer)
+            executeDispatch(self._ctx, 'smtp://spooler')
             print("OptionsDialog._showSpooler() 2")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())

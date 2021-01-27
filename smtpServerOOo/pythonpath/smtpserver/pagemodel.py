@@ -52,15 +52,14 @@ import traceback
 
 
 class PageModel(unohelper.Base):
-    def __init__(self, ctx, email=None):
+    def __init__(self, ctx, email=''):
         self.ctx = ctx
         self._User = None
         self._Servers = ()
         self._metadata = ()
         self._index = self._count = self._offline = 0
         self._isnew = False
-        if email is not None:
-            self.Email = email
+        self._email = email
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
         self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
@@ -78,10 +77,10 @@ class PageModel(unohelper.Base):
 
     @property
     def Email(self):
-        return PageModel._Email
+        return self._email
     @Email.setter
     def Email(self, email):
-        PageModel._Email = email
+        self._email = email
 
     @property
     def User(self):

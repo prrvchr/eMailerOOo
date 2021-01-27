@@ -33,9 +33,6 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
-from unolib import getUrl
-
 from .mailermodel import MailerModel
 from .mailerview import MailerView
 
@@ -60,38 +57,36 @@ class MailerManager(unohelper.Base):
     def show(self):
         return self._view.execute()
 
-    def addSender(self):
-        print("MailerManager.addSender()")
-        try:
-            print("MailerManager.addSender() 1")
-            url = getUrl(self._ctx, 'ispdb://')
-            desktop = createService(self._ctx, 'com.sun.star.frame.Desktop')
-            dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
-            #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
-            #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
-            print("MailerManager.addSender() 2")
-            if dispatcher is not None:
-                #dispatcher.dispatchWithNotification(url, (), self)
-                dispatcher.dispatch(url, ())
-                print("MailerManager.addSender() 3")
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(desktop)
-            #msg = "OptionsDialog._showWizard()"
-            #logMessage(self._ctx, INFO, msg, 'OptionsDialog', '_showWizard()')
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+    def dispose(self):
+        self._view.dispose()
 
+    def enableRemoveSender(self, enabled):
+        self._view.enableRemoveSender(enabled)
 
+    def addSender(self, sender):
+        self._view.addSender(sender)
 
     def removeSender(self):
-        print("MailerManager.removeSender()")
+        # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
+        self._view.enableRemoveSender(False)
+        sender, position = self._view.getSender()
+        status = self.Model.removeSender(sender)
+        if status == 1:
+            self._view.removeSender(position)
 
-    def changeRecipient(self):
-        print("MailerManager.changeRecipient()")
+    def editRecipient(self, email):
+        print("MailerManager.editRecipient() %s" % email)
+        enabled = self.Model.isEmailValid(email)
+        self._view.enableAddRecipient(enabled)
 
     def addRecipient(self):
         print("MailerManager.addRecipient()")
+        self._view.addRecipient()
+
+    def changeRecipient(self):
+        print("MailerManager.changeRecipient()")
+        self._view.enableRemoveRecipient(True)
 
     def removeRecipient(self):
         print("MailerManager.removeRecipient()")
+        self._view.removeRecipient()

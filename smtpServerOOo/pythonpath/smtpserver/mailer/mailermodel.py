@@ -42,6 +42,7 @@ from ..configuration import g_extension
 from ..logger import logMessage
 from ..logger import getMessage
 
+import validators
 import traceback
 
 
@@ -51,8 +52,23 @@ class MailerModel(unohelper.Base):
         self._url = url
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
+    @property
+    def DataSource(self):
+        return self._datasource
+
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
     def getUrl(self):
         return self._url
+
+    def getSenders(self, *args):
+        self.DataSource.getSenders(*args)
+
+    def removeSender(self, sender):
+        return self.DataSource.removeSender(sender)
+
+    def isEmailValid(self, email):
+        if validators.email(email):
+            return True
+        return False

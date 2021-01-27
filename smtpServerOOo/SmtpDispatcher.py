@@ -38,7 +38,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import PageModel
-from smtpserver import IspdbDispatch
+from smtpserver import SmtpDispatch
 
 from smtpserver import logMessage
 from smtpserver import getMessage
@@ -49,37 +49,41 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.IspDBServer' % g_identifier
+g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
 
 
-class IspDBServer(unohelper.Base,
-                  XServiceInfo,
-                  XInitialization,
-                  XDispatchProvider):
+class SmtpDispatcher(unohelper.Base,
+                     XServiceInfo,
+                     XInitialization,
+                     XDispatchProvider):
     def __init__(self, ctx):
-        self.ctx = ctx
+        self._ctx = ctx
         self._frame = None
-        self._model = PageModel(self.ctx)
-        logMessage(self.ctx, INFO, "Loading ... Done", 'IspDBServer', '__init__()')
+        #self._model = PageModel(ctx)
+        logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
 
     # XInitialization
     def initialize(self, args):
         if len(args) > 0:
-            print("IspDBServer.initialize()")
+            print("SmtpDispatcher.initialize() *************************")
             self._frame = args[0]
 
     # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
-        if url.Protocol != 'ispdb:':
-            print("IspDBServer.queryDispatch() 1 %s" % url.Protocol)
-            return None
-        print("IspDBServer.queryDispatch()2")
-        dispatch = IspdbDispatch(self.ctx, self._model, self._frame)
+        dispatch = None
+        print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
+        if url.Path in ('//server', '//spooler'):
+            print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
+            parent = self._frame.getContainerWindow()
+            dispatch = SmtpDispatch(self._ctx, url, parent)
+            print("SmtpDispatcher.queryDispatch()3")
         return dispatch
+
     def queryDispatches(self, requests):
         dispatches = []
-        for r in requests:
-            dispatches.append(self.queryDispatch(r.FeatureURL, r.FrameName, r.SearchFlags))
+        for request in requests:
+            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
+            dispatches.append(dispatch)
         return tuple(dispatches)
 
     # XServiceInfo
@@ -91,6 +95,6 @@ class IspDBServer(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(IspDBServer,                               # UNO object class
+g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class
                                          g_ImplementationName,                      # Implementation name
                                         (g_ImplementationName,))                    # List of implemented services

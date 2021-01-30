@@ -71,7 +71,7 @@ class DataBase(unohelper.Base):
             print("DataBase.__init__() 1")
             self._ctx = ctx
             self._error = None
-            #time.sleep(10)
+            time.sleep(0.5)
             datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, True)
             print("DataBase.__init__() 2")
             connection = Connection(ctx, datasource, datasource.URL, name, password, sync, True)

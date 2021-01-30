@@ -62,6 +62,9 @@ class MailerModel(unohelper.Base):
     def getUrl(self):
         return self._url
 
+    def getDocumentName(self):
+        return self._url.rpartition('/')[2]
+
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 

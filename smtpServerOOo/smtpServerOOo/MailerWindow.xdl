@@ -31,27 +31,32 @@
   </dlg:styles>
   <dlg:bulletinboard>
     <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="280" dlg:height="5" dlg:help-text="&amp;MailerWindow.FixedLine1.HelpText" dlg:value="&amp;MailerWindow.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="120" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label1.HelpText" dlg:value="&amp;MailerWindow.Label1.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label2.HelpText" dlg:value="&amp;MailerWindow.Label2.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="13" dlg:left="60" dlg:top="25" dlg:width="100" dlg:height="14" dlg:page="-3" dlg:help-text="&amp;MailerWindow.ListBox1.HelpText" dlg:value="&amp;MailerWindow.ListBox1.Text" dlg:spin="true">
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="6" dlg:top="5" dlg:width="120" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label1.HelpText" dlg:value="&amp;MailerWindow.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="23" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label2.HelpText" dlg:value="&amp;MailerWindow.Label2.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="13" dlg:left="70" dlg:top="23" dlg:width="110" dlg:height="14" dlg:help-text="&amp;MailerWindow.ListBox1.HelpText" dlg:value="&amp;MailerWindow.ListBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeSender" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="14" dlg:disabled="false" dlg:left="185" dlg:top="25" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton1.HelpText" dlg:value="&amp;MailerWindow.CommandButton1.Label">
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="14" dlg:disabled="false" dlg:left="185" dlg:top="23" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton1.HelpText" dlg:value="&amp;MailerWindow.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddSender" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="15" dlg:disabled="true" dlg:left="235" dlg:top="25" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton2.HelpText" dlg:value="&amp;MailerWindow.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="15" dlg:disabled="true" dlg:left="235" dlg:top="23" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton2.HelpText" dlg:value="&amp;MailerWindow.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveSender" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:id="Label3" dlg:tab-index="16" dlg:left="10" dlg:top="45" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label3.HelpText" dlg:value="&amp;MailerWindow.Label3.Label" dlg:valign="center"/>
-    <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="17" dlg:left="60" dlg:top="45" dlg:width="100" dlg:height="14" dlg:help-text="&amp;MailerWindow.ComboBox1.HelpText" dlg:value="&amp;MailerWindow.ComboBox1.Text" dlg:spin="true">
+    <dlg:text dlg:id="Label3" dlg:tab-index="16" dlg:left="10" dlg:top="43" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label3.HelpText" dlg:value="&amp;MailerWindow.Label3.Label" dlg:valign="center"/>
+    <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="17" dlg:left="70" dlg:top="43" dlg:width="110" dlg:height="14" dlg:help-text="&amp;MailerWindow.ComboBox1.HelpText" dlg:value="&amp;MailerWindow.ComboBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EditRecipient" script:language="UNO"/>
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeRecipient" script:language="UNO"/>
+      <script:event script:event-name="on-keydown" script:macro-name="vnd.sun.star.UNO:KeyPressed" script:language="UNO"/>
     </dlg:combobox>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="18" dlg:disabled="true" dlg:left="185" dlg:top="45" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton3.HelpText" dlg:value="&amp;MailerWindow.CommandButton3.Label">
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="18" dlg:disabled="true" dlg:left="185" dlg:top="43" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton3.HelpText" dlg:value="&amp;MailerWindow.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddRecipient" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton4" dlg:tab-index="19" dlg:disabled="true" dlg:left="235" dlg:top="45" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton4.HelpText" dlg:value="&amp;MailerWindow.CommandButton4.Label">
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="19" dlg:disabled="true" dlg:left="235" dlg:top="43" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton4.HelpText" dlg:value="&amp;MailerWindow.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveRecipient" script:language="UNO"/>
     </dlg:button>
+    <dlg:fixedline dlg:id="FixedLine2" dlg:tab-index="20" dlg:left="0" dlg:top="60" dlg:width="280" dlg:height="5" dlg:help-text="&amp;MailerWindow.FixedLine2.HelpText" dlg:value="&amp;MailerWindow.FixedLine2.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="21" dlg:left="5" dlg:top="62" dlg:width="120" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label4.HelpText" dlg:value="&amp;MailerWindow.Label4.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label5" dlg:tab-index="22" dlg:left="10" dlg:top="80" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailerWindow.Label5.HelpText" dlg:value="&amp;MailerWindow.Label5.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="23" dlg:left="70" dlg:top="80" dlg:width="210" dlg:height="14" dlg:help-text="&amp;MailerWindow.TextField1.HelpText" dlg:value="&amp;MailerWindow.TextField1.Text"/>
   </dlg:bulletinboard>
 </dlg:window>

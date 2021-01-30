@@ -33,6 +33,8 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from unolib import createService
+
 from .mailermodel import MailerModel
 from .mailerview import MailerView
 
@@ -74,19 +76,34 @@ class MailerManager(unohelper.Base):
         if status == 1:
             self._view.removeSender(position)
 
-    def editRecipient(self, email):
-        print("MailerManager.editRecipient() %s" % email)
-        enabled = self.Model.isEmailValid(email)
+    def editRecipient(self, email, exist):
+        enabled = self._validateRecipient(email, exist)
         self._view.enableAddRecipient(enabled)
+        self._view.enableRemoveRecipient(exist)
 
     def addRecipient(self):
-        print("MailerManager.addRecipient()")
-        self._view.addRecipient()
+        self._view.addToRecipient()
 
     def changeRecipient(self):
-        print("MailerManager.changeRecipient()")
         self._view.enableRemoveRecipient(True)
 
     def removeRecipient(self):
-        print("MailerManager.removeRecipient()")
         self._view.removeRecipient()
+
+    def enterRecipient(self, control, email, exist):
+        if self._validateRecipient(email, exist):
+            self._view.addRecipient(control, email)
+
+    def sendAsHtml(self):
+        print("MailerManager.sendAsHtml()")
+        self._view.setStep(1)
+
+    def sendAsAttachment(self):
+        print("MailerManager.sendAsAttachment()")
+        self._view.setStep(2)
+
+    def viewHtmlDocument(self):
+        print("MailerManager.viewHtmlDocument()")
+
+    def _validateRecipient(self, email, exist):
+        return all((self.Model.isEmailValid(email), not exist))

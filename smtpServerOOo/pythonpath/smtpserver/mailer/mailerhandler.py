@@ -34,6 +34,7 @@ from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
+from com.sun.star.awt.Key import RETURN
 
 from unolib import executeDispatch
 
@@ -77,11 +78,20 @@ class WindowHandler(unohelper.Base,
             self._manager.removeSender()
             handled = True
         elif method == 'EditRecipient':
-            text = event.Source.getText()
-            self._manager.editRecipient(text)
+            control = event.Source
+            email = control.getText()
+            exist = email in control.getItems()
+            self._manager.editRecipient(email, exist)
             handled = True
         elif method == 'ChangeRecipient':
             self._manager.changeRecipient()
+            handled = True
+        elif method == 'KeyPressed':
+            if event.KeyCode == RETURN:
+                control = event.Source
+                email = control.getText()
+                exist = email in control.getItems()
+                self._manager.enterRecipient(control, email, exist)
             handled = True
         elif method == 'AddRecipient':
             self._manager.addRecipient()
@@ -92,8 +102,39 @@ class WindowHandler(unohelper.Base,
         return handled
 
     def getSupportedMethodNames(self):
-        return ('ChangeSender', 'AddSender', 'RemoveSender',
-                'EditRecipient', 'ChangeRecipient', 'AddRecipient', 'RemoveRecipient')
+        return ('ChangeSender',
+                'AddSender',
+                'RemoveSender',
+                'EditRecipient',
+                'ChangeRecipient',
+                'KeyPressed',
+                'AddRecipient',
+                'RemoveRecipient')
+
+
+class Page1Handler(unohelper.Base,
+                 XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        handled = False
+        if method == 'SendAsHtml':
+            self._manager.sendAsHtml()
+            handled = True
+        elif method == 'SendAsAttachment':
+            self._manager.sendAsAttachment()
+            handled = True
+        elif method == 'ViewHtmlDocument':
+            self._manager.viewHtmlDocument()
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('SendAsHtml',
+                'SendAsAttachment',
+                'ViewHtmlDocument')
 
 
 class DispatchListener(unohelper.Base,

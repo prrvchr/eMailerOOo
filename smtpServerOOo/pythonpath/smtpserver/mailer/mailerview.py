@@ -33,10 +33,15 @@ import unohelper
 from unolib import getDialog
 from unolib import getContainerWindow
 
+from com.sun.star.beans import NamedValue
+
+from unolib import createService
+
 from .mailerhandler import DialogHandler
 from .mailerhandler import WindowHandler
+from .mailerhandler import Page1Handler
 
-from ..configuration import g_extension
+from smtpserver import g_extension
 
 import traceback
 
@@ -48,7 +53,23 @@ class MailerView(unohelper.Base):
         parent = self._dialog.getPeer()
         handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailerWindow')
+        self._window.setVisible(True)
+        point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 100)
+        size = uno.createUnoStruct('com.sun.star.awt.Size', 285, 85)
+        title1 = self._getTabPageTitle(manager.Model, 1)
+        title2 = self._getTabPageTitle(manager.Model, 2)
+        page1, page2 = self._getTabPages('Tab1', point, size, title1, title2, 1)
+        parent = page1.getPeer()
+        handler = Page1Handler(manager)
+        self._page1 = getContainerWindow(ctx, parent, handler, g_extension, 'MailerPage1')
+        self._page1.setVisible(True)
+        parent = page2.getPeer()
+        self._page2 = getContainerWindow(ctx, parent, None, g_extension, 'MailerPage2')
+        self._page2.setVisible(True)
         self._setTitle(manager.Model)
+        label = manager.Model.resolveString(self._getDocumentResource())
+        name = manager.Model.getDocumentName()
+        self._setDocumentName(manager.Model)
         manager.Model.getSenders(self.setSenders)
 
 # MailerView setter methods
@@ -81,10 +102,12 @@ class MailerView(unohelper.Base):
     def enableRemoveRecipient(self, enabled):
         self._getButtonRemoveRecipient().Model.Enabled = enabled
 
-    def addRecipient(self):
-        #self._getButtonAddRecipient().Model.Enabled = False
+    def addToRecipient(self):
         control = self._getRecipientsList()
         email = control.getText()
+        self.addRecipient(control, email)
+
+    def addRecipient(self, control, email):
         control.setText('')
         count = control.getItemCount()
         control.addItem(email, count)
@@ -103,15 +126,19 @@ class MailerView(unohelper.Base):
     def enableButtonSend(self, enabled):
         self._getButtonSend().Model.Enabled = enabled
 
+    def setStep(self, step):
+        self._page1.Model.Step = step
+
     def dispose(self):
         self._dialog.dispose()
         self._dialog = None
         self._window.dispose()
         self._window = None
+        #self._page.dispose()
+        #self._page = None
 
 # MailerView getter methods
     def execute(self):
-        self._window.setVisible(True)
         return self._dialog.execute()
 
     def getSender(self):
@@ -125,7 +152,21 @@ class MailerView(unohelper.Base):
         title = model.resolveString('MailerDialog.Title')
         self._dialog.setTitle(title % model.getUrl())
 
+    def _setDocumentName(self, model):
+        label = model.resolveString(self._getDocumentResource())
+        name = model.getDocumentName()
+        self._getDocumentLabel().setText(label % name)
+
 # MailerView private control methods
+    def _getDocumentLabel(self):
+        return self._page1.getControl('Label2')
+
+    def _getDocumentResource(self):
+        return 'MailerPage1.Label2.Label'
+
+    def _getTabPageTitle(self, model, id):
+        return model.resolveString('MailerWindow.Tab1.Page%s.Title' % id)
+
     def _getSendersList(self):
         return self._window.getControl('ListBox1')
 
@@ -143,3 +184,24 @@ class MailerView(unohelper.Base):
 
     def _getButtonSend(self):
         return self._dialog.getControl('CommandButton2')
+
+    def _getTabPages(self, name, point, size, title1, title2, id):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = self._window.Model.createInstance(service)
+        model.PositionX = point.X
+        model.PositionY = point.Y
+        model.Width = size.Width
+        model.Height = size.Height
+        self._window.Model.insertByName(name, model)
+        tab = self._window.getControl(name)
+        page1 = self._getTabPage(tab, model, title1, 0)
+        page2 = self._getTabPage(tab, model, title2, 1)
+        tab.ActiveTabPageID = id
+        return page1, page2
+
+    def _getTabPage(self, tab, model, title, id):
+        page = model.createTabPage(id + 1)
+        page.Title = title
+        index = model.getCount()
+        model.insertByIndex(index, page)
+        return tab.getControls()[id]

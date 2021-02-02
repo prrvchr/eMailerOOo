@@ -30,26 +30,32 @@
 import uno
 import unohelper
 
+from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import getUrl
 from unolib import getStringResource
+from unolib import getPropertyValueSet
+from unolib import getDesktop
 
-from ..configuration import g_identifier
-from ..configuration import g_extension
+from smtpserver import g_identifier
+from smtpserver import g_extension
 
-from ..logger import logMessage
-from ..logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 
+from threading import Thread
 import validators
 import traceback
 
 
 class MailerModel(unohelper.Base):
-    def __init__(self, ctx, datasource, url):
+    def __init__(self, ctx, datasource):
+        self._ctx = ctx
         self._datasource = datasource
-        self._url = url
+        self._document = None
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
     @property
@@ -60,13 +66,47 @@ class MailerModel(unohelper.Base):
         return self._stringResource.resolveString(resource)
 
     def getUrl(self):
-        return self._url
-
-    def getDocumentName(self):
-        return self._url.rpartition('/')[2]
+        return self._document.URL
 
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
+
+    def getDocument(self, *args):
+        thread = Thread(target=self._getDocument, args=args)
+        thread.start()
+
+    def setDocument(self, document):
+        self._document = document
+
+    def getDocumentTitle(self, resource):
+        title = self.resolveString(resource)
+        return title + self._document.URL
+
+    def getDocumentLabel(self, resource):
+        label = self.resolveString(resource)
+        return label + self._document.Title
+
+    def getDocumentSubject(self):
+        return self._document.DocumentProperties.Subject
+
+    def getDocumentDescription(self):
+        return self._document.DocumentProperties.Description
+
+    def getDocumentAttachments(self, resource, default=''):
+        values = self.getDocumentUserProperty(resource, default)
+        attachments = values.split('|')
+        return tuple(attachments)
+        
+    def getDocumentUserProperty(self, resource, default=True):
+        name = self.resolveString(resource)
+        properties = self._document.DocumentProperties.UserDefinedProperties
+        if properties.PropertySetInfo.hasPropertyByName(name):
+            value = properties.getPropertyValue(name)
+        else:
+            value = default
+        #elif default is not None:
+        #    self._setDocumentUserProperty(name, default)
+        return value
 
     def removeSender(self, sender):
         return self.DataSource.removeSender(sender)
@@ -75,3 +115,40 @@ class MailerModel(unohelper.Base):
         if validators.email(email):
             return True
         return False
+
+    def _getDocument(self, document, url, callback):
+        if document is None:
+            properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+            descriptor = getPropertyValueSet(properties)
+            document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        callback(document)
+
+    def saveDocumentAs(self, format):
+        url = self._getBaseUrl(type) if url is None else url
+        args = []
+        value = uno.Enum("com.sun.star.beans.PropertyState", "DIRECT_VALUE")
+        args.append(PropertyValue("FilterName", -1, self._getDocumentFilter(type), value))
+        args.append(PropertyValue("Overwrite", -1, True, value))
+        self.document.storeToURL(url, args)
+        return url
+
+    def _getTempUrl(self, extension):
+        url = self._getUrl(self._getPath().Temp).Main
+        template = self.document.DocumentProperties.TemplateName
+        name = template if template else self.document.Title
+        url = "%s/%s.%s" % (url, name, extension)
+        return self._getUrl(url).Complete
+
+    def getDocumentFilter(self, extension, format):
+        if extension == 'odt':
+            filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
+        elif extension == 'ods':
+            filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
+        elif extension == 'odp':
+            filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
+        elif extension == 'odg':
+            filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
+        else:
+            filters = {}
+        filter = filters.get(format, None)
+        return filter

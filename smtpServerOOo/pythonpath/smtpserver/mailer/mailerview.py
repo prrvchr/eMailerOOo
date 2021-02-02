@@ -33,13 +33,10 @@ import unohelper
 from unolib import getDialog
 from unolib import getContainerWindow
 
-from com.sun.star.beans import NamedValue
-
-from unolib import createService
-
 from .mailerhandler import DialogHandler
 from .mailerhandler import WindowHandler
 from .mailerhandler import Page1Handler
+from .mailerhandler import Page2Handler
 
 from smtpserver import g_extension
 
@@ -47,7 +44,7 @@ import traceback
 
 
 class MailerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
+    def __init__(self, ctx, parent, manager):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'MailerDialog', handler, parent)
         parent = self._dialog.getPeer()
@@ -64,21 +61,63 @@ class MailerView(unohelper.Base):
         self._page1 = getContainerWindow(ctx, parent, handler, g_extension, 'MailerPage1')
         self._page1.setVisible(True)
         parent = page2.getPeer()
-        self._page2 = getContainerWindow(ctx, parent, None, g_extension, 'MailerPage2')
+        handler = Page2Handler(manager)
+        self._page2 = getContainerWindow(ctx, parent, handler, g_extension, 'MailerPage2')
         self._page2.setVisible(True)
-        self._setTitle(manager.Model)
-        label = manager.Model.resolveString(self._getDocumentResource())
-        name = manager.Model.getDocumentName()
-        self._setDocumentName(manager.Model)
-        manager.Model.getSenders(self.setSenders)
 
 # MailerView setter methods
+    def setRecipient(self, recipients):
+        if len(recipients) > 0:
+            control = self._getRecipientsList()
+            control.Model.StringItemList = recipients
+            control.setText(recipients[0])
+
     def setSenders(self, senders):
-        if self._window is not None:
+        if len(senders) > 0:
             control = self._getSendersList()
             control.Model.StringItemList = senders
-            if len(senders) > 0:
-                control.selectItemPos(0, True)
+            control.selectItemPos(0, True)
+
+    def setTitle(self, title):
+        self._dialog.setTitle(title)
+
+    def setSaveSubject(self, state):
+        self._getSaveSubject().Model.State = state
+
+    def setSubject(self, subject):
+        self._getSubject().Text = subject
+
+    def setSendMode(self, state):
+        if state:
+            self._getSendAsHtml().Model.State = 1
+        else:
+            self._getSendAsAttachment().Model.State = 1
+            self.setStep(2)
+
+    def setDocumentLabel(self, label):
+        self._getDocumentLabel().setText(label)
+
+    def setSaveMessage(self, state):
+        self._getSaveMessage().Model.State = state
+
+    def setMessage(self, message):
+        self._getMessage().Text = message
+
+    def setAttachMode(self, state):
+        try:
+            self._getAttachMode().Model.State = state
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def setSaveAttachments(self, state):
+        self._getSaveAttachments().Model.State = state
+
+    def setAttachments(self, attachments):
+        self._getAttachments().Model.StringItemList = attachments
+
+    def enableButtonViewHtml(self):
+        self._getButtonViewHtml().Model.Enabled = True
 
     def addSender(self, sender):
         control = self._getSendersList()
@@ -129,13 +168,18 @@ class MailerView(unohelper.Base):
     def setStep(self, step):
         self._page1.Model.Step = step
 
+    def isDisposed(self):
+        return self._window is None
+
     def dispose(self):
         self._dialog.dispose()
-        self._dialog = None
         self._window.dispose()
+        self._page1.dispose()
+        self._page2.dispose()
+        self._dialog = None
         self._window = None
-        #self._page.dispose()
-        #self._page = None
+        self._page1 = None
+        self._page2 = None
 
 # MailerView getter methods
     def execute(self):
@@ -148,25 +192,27 @@ class MailerView(unohelper.Base):
         return sender, position
 
 # MailerView private setter methods
-    def _setTitle(self, model):
-        title = model.resolveString('MailerDialog.Title')
-        self._dialog.setTitle(title % model.getUrl())
 
-    def _setDocumentName(self, model):
-        label = model.resolveString(self._getDocumentResource())
-        name = model.getDocumentName()
-        self._getDocumentLabel().setText(label % name)
 
-# MailerView private control methods
-    def _getDocumentLabel(self):
-        return self._page1.getControl('Label2')
+# MailerView private getter methods
+    def _getTabPageTitle(self, model, id):
+        resource = self._getTabResource(id)
+        return model.resolveString(resource)
 
-    def _getDocumentResource(self):
+# MailerView StringRessoure methods
+    def getTitleRessource(self):
+        return 'MailerDialog.Title'
+
+    def getPropertyResource(self, name):
+        return 'Mailer.Document.Property.%s' % name
+
+    def getDocumentResource(self):
         return 'MailerPage1.Label2.Label'
 
-    def _getTabPageTitle(self, model, id):
-        return model.resolveString('MailerWindow.Tab1.Page%s.Title' % id)
+    def _getTabResource(self, id):
+        return 'MailerWindow.Tab1.Page%s.Title' % id
 
+# MailerView private control methods
     def _getSendersList(self):
         return self._window.getControl('ListBox1')
 
@@ -182,9 +228,43 @@ class MailerView(unohelper.Base):
     def _getRecipientsList(self):
         return self._window.getControl('ComboBox1')
 
+    def _getSaveSubject(self):
+        return self._window.getControl('CheckBox1')
+
+    def _getSubject(self):
+        return self._window.getControl('TextField1')
+
+    def _getSendAsHtml(self):
+        return self._page1.getControl('OptionButton1')
+
+    def _getSendAsAttachment(self):
+        return self._page1.getControl('OptionButton2')
+
+    def _getDocumentLabel(self):
+        return self._page1.getControl('Label2')
+
+    def _getButtonViewHtml(self):
+        return self._page1.getControl('CommandButton1')
+
+    def _getSaveMessage(self):
+        return self._page1.getControl('CheckBox1')
+
+    def _getAttachMode(self):
+        return self._page1.getControl('CheckBox2')
+
+    def _getMessage(self):
+        return self._page1.getControl('TextField1')
+
+    def _getSaveAttachments(self):
+        return self._page2.getControl('CheckBox2')
+
+    def _getAttachments(self):
+        return self._page2.getControl('ListBox1')
+
     def _getButtonSend(self):
         return self._dialog.getControl('CommandButton2')
 
+# MailerView private methods
     def _getTabPages(self, name, point, size, title1, title2, id):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
         model = self._window.Model.createInstance(service)

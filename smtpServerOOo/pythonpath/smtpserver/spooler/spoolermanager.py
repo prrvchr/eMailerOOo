@@ -111,7 +111,7 @@ class SpoolerManager(unohelper.Base):
         try:
             url = transformer.getPresentation(url, False)
             parent = self._view.getParent()
-            mailer = MailerManager(self._ctx, self.Model.DataSource, url, parent)
+            mailer = MailerManager(self._ctx, self.Model.DataSource, parent, url)
             if mailer.show() == OK:
                 self._addDocument(mailer, url)
             mailer.dispose()

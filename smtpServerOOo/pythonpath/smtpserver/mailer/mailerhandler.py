@@ -57,6 +57,7 @@ class DialogHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('Send', )
 
+
 class WindowHandler(unohelper.Base,
                     XContainerWindowEventHandler):
     def __init__(self, ctx, manager):
@@ -113,6 +114,31 @@ class WindowHandler(unohelper.Base,
 
 
 class Page1Handler(unohelper.Base,
+                 XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        handled = False
+        if method == 'SendAsHtml':
+            self._manager.sendAsHtml()
+            handled = True
+        elif method == 'SendAsAttachment':
+            self._manager.sendAsAttachment()
+            handled = True
+        elif method == 'ViewHtmlDocument':
+            self._manager.viewHtmlDocument()
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('SendAsHtml',
+                'SendAsAttachment',
+                'ViewHtmlDocument')
+
+
+class Page2Handler(unohelper.Base,
                  XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager

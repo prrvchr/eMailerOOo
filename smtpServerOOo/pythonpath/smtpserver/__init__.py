@@ -32,13 +32,6 @@ from .configuration import g_identifier
 from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
 
-from .wizard import Wizard
-from .pagemodel import PageModel
-from .wizardcontroller import WizardController
-from .smtpdispatch import SmtpDispatch
-from .datasource import DataSource
-from .spooler import SpoolerManager
-
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl
 from .logger import setLoggerSetting
@@ -47,5 +40,12 @@ from .logger import logMessage
 from .logger import getMessage
 from .logger import setDebugMode
 from .logger import isDebugMode
+
+from .wizard import Wizard
+from .pagemodel import PageModel
+from .wizardcontroller import WizardController
+from .smtpdispatch import SmtpDispatch
+from .datasource import DataSource
+from .spooler import SpoolerManager
 
 from . import smtplib

@@ -74,25 +74,25 @@ class SmtpDispatch(unohelper.Base,
 
     # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
-        state = FAILURE
-        result = None
         print("SmtpDispatch.dispatchWithNotification() 1")
-        if url.Path == '//server':
-            state, result = self._showSmtpServer()
-        elif url.Path == '//spooler':
-            state = SUCCESS
-            self._showSmtpSpooler()
+        state, result = self.dispatch(url, arguments)
         struct = 'com.sun.star.frame.DispatchResultEvent'
         notification = uno.createUnoStruct(struct, self, state, result)
         print("SmtpDispatch.dispatchWithNotification() 2")
         listener.dispatchFinished(notification)
+        print("SmtpDispatch.dispatchWithNotification() 3")
 
     def dispatch(self, url, arguments):
         print("SmtpDispatch.dispatch() 1")
+        state = SUCCESS
+        result = None
         if url.Path == '//server':
-            self._showSmtpServer()
+            state, result = self._showSmtpServer()
         elif url.Path == '//spooler':
             self._showSmtpSpooler()
+        elif url.Path == '//mailer':
+            state, result = self._showSmtpMailer()
+        return state, result
         print("SmtpDispatch.dispatch() 2")
 
     def addStatusListener(self, listener, url):
@@ -132,6 +132,15 @@ class SmtpDispatch(unohelper.Base,
             manager = SpoolerManager(self._ctx)
             manager.viewSpooler(self._parent)
             print("SmtpDispatch._showSmtpSpooler() 2")
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _showSmtpMailer(self):
+        try:
+            print("SmtpDispatch._showSmtpMailer() 1")
+
+            print("SmtpDispatch._showSmtpMailer() 2")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

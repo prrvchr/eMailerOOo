@@ -38,23 +38,69 @@ from unolib import createService
 from .mailermodel import MailerModel
 from .mailerview import MailerView
 
-from ..logger import logMessage
-from ..logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 g_message = 'mailermanager'
 
 import traceback
 
 
 class MailerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, url, parent):
+    def __init__(self, ctx, datasource, parent, url, document=None, recipients=('prrvchr@gmail.com', )):
         self._ctx = ctx
-        self._model = MailerModel(ctx, datasource, url)
-        self._view = MailerView(ctx, self, parent)
+        self._model = MailerModel(ctx, datasource)
+        self._view = MailerView(ctx, parent, self)
+        self._model.getSenders(self.setSenders)
+        self._model.getDocument(document, url, self.setDocument)
+        self._view.setRecipient(recipients)
         print("MailerManager.__init__()")
 
     @property
     def Model(self):
         return self._model
+
+    def setSenders(self, senders):
+        if self._view.isDisposed():
+            return
+        # Set the Senders ListBox
+        self._view.setSenders(senders)
+
+    def setDocument(self, document):
+        if self._view.isDisposed():
+            return
+        self._model.setDocument(document)
+        # Set the dialog Title
+        title = self._getTitle()
+        self._view.setTitle(title)
+        # Set the Save Subject CheckBox and if needed the Subject TextField
+        state = self._getDocumentUserProperty('SaveSubject')
+        self._view.setSaveSubject(int(state))
+        if state:
+            subject = self._model.getDocumentSubject()
+            self._view.setSubject(subject)
+        # Set the Send As HTML / Send As Attachment OptionButton
+        state = self._getDocumentUserProperty('SendAsHtml')
+        self._view.setSendMode(state)
+        # Set the document Name Label
+        label = self._getDocumentLabel()
+        self._view.setDocumentLabel(label)
+        # Set the Save Message CheckBox and if needed the Message TextField
+        state = self._getDocumentUserProperty('SaveMessage')
+        self._view.setSaveMessage(int(state))
+        if state:
+            message = self._model.getDocumentDescription()
+            self._view.setMessage(message)
+        # Set the Attach As PDF CheckBox
+        state = self._getDocumentUserProperty('AttachAsPdf')
+        self._view.setAttachMode(int(state))
+        # Set the Save Attachments CheckBox and if needed the Attachments ListBox
+        state = self._getDocumentUserProperty('SaveAttachments')
+        self._view.setSaveAttachments(int(state))
+        if state:
+            attachments = self._getDocumentAttachemnts('Attachments')
+            self._view.setAttachments(attachments)
+        # Set the View Document in HTML CommandButton
+        self._view.enableButtonViewHtml()
 
     def show(self):
         return self._view.execute()
@@ -95,15 +141,33 @@ class MailerManager(unohelper.Base):
             self._view.addRecipient(control, email)
 
     def sendAsHtml(self):
-        print("MailerManager.sendAsHtml()")
         self._view.setStep(1)
 
     def sendAsAttachment(self):
-        print("MailerManager.sendAsAttachment()")
         self._view.setStep(2)
 
     def viewHtmlDocument(self):
         print("MailerManager.viewHtmlDocument()")
+
+    def _getTitle(self):
+        resource = self._view.getTitleRessource()
+        title = self._model.getDocumentTitle(resource)
+        return title
+
+    def _getDocumentUserProperty(self, name):
+        resource = self._view.getPropertyResource(name)
+        state = self._model.getDocumentUserProperty(resource)
+        return state
+
+    def _getDocumentLabel(self):
+        resource = self._view.getDocumentResource()
+        label = self._model.getDocumentLabel(resource)
+        return label
+
+    def _getDocumentAttachemnts(self, name):
+        resource = self._view.getPropertyResource(name)
+        attachments = self._model.getDocumentAttachments(resource)
+        return attachments
 
     def _validateRecipient(self, email, exist):
         return all((self.Model.isEmailValid(email), not exist))

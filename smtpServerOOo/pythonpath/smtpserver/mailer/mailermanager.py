@@ -156,7 +156,8 @@ class MailerManager(unohelper.Base):
     def addAttachment(self):
         resource = self._view.getFilePickerTitleResource()
         documents = self._model.getAttachments(resource)
-        print("MailerManager.addAttachment() 1 %s" % (documents, ))
+        msg = "MailerManager.addAttachment(): %s" % (documents, )
+        logMessage(self._ctx, INFO, msg, 'MailerManager', 'addAttachment()')
         for document in documents:
             print("MailerManager.addAttachment() 2 %s" % document)
 

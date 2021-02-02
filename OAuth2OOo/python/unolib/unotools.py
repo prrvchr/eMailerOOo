@@ -62,6 +62,9 @@ def getSimpleFile(ctx):
 def getUrlTransformer(ctx):
     return createService(ctx, 'com.sun.star.util.URLTransformer')
 
+def getPathSettings(ctx):
+    return createService(ctx, 'com.sun.star.util.PathSettings')
+
 def getUrl(ctx, location, protocol=None):
     transformer = getUrlTransformer(ctx)
     return parseUrl(transformer, location, protocol)

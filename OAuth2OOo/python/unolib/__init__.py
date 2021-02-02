@@ -54,6 +54,7 @@ from .unotools import getNamedValueSet
 from .unotools import getDesktop
 from .unotools import getSimpleFile
 from .unotools import getUrlTransformer
+from .unotools import getPathSettings
 from .unotools import getInteractionHandler
 from .unotools import getDialog
 from .unotools import getDialogUrl

@@ -39,6 +39,7 @@ from unolib import getUrl
 from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
+from unolib import getPathSettings
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -124,22 +125,30 @@ class MailerModel(unohelper.Base):
         callback(document)
 
     def saveDocumentAs(self, format):
-        url = self._getBaseUrl(type) if url is None else url
-        args = []
-        value = uno.Enum("com.sun.star.beans.PropertyState", "DIRECT_VALUE")
-        args.append(PropertyValue("FilterName", -1, self._getDocumentFilter(type), value))
-        args.append(PropertyValue("Overwrite", -1, True, value))
-        self.document.storeToURL(url, args)
+        url = None
+        name, extension = self._getNameAndExtension(self._document.Title)
+        filter = self._getDocumentFilter(extension, format)
+        if filter is not None:
+            temp = getPathSettings(self._ctx).Temp
+            url = '%s/%s.%s' % (temp, name, format)
+            print("MailerModel.saveDocumentAs() %s" % url)
+            descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True)
+            self._document.storeToURL(url, descriptor)
         return url
 
     def _getTempUrl(self, extension):
+        
         url = self._getUrl(self._getPath().Temp).Main
         template = self.document.DocumentProperties.TemplateName
         name = template if template else self.document.Title
         url = "%s/%s.%s" % (url, name, extension)
         return self._getUrl(url).Complete
 
-    def getDocumentFilter(self, extension, format):
+    def _getNameAndExtension(self, filename):
+        name, sep, extension = filename.rpartition('.')
+        return name, extension
+
+    def _getDocumentFilter(self, extension, format):
         if extension == 'odt':
             filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
         elif extension == 'ods':

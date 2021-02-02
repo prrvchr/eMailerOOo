@@ -147,6 +147,7 @@ class MailerManager(unohelper.Base):
         self._view.setStep(2)
 
     def viewHtmlDocument(self):
+        self._model.saveDocumentAs('html')
         print("MailerManager.viewHtmlDocument()")
 
     def _getTitle(self):

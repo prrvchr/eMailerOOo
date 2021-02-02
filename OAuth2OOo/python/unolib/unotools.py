@@ -201,11 +201,15 @@ def getContainerWindow(ctx, parent, handler, library, xdl):
 def getDialogUrl(library, xdl):
     return 'vnd.sun.star.script:%s.%s?location=application' % (library, xdl)
 
+def executeShell(ctx, url, option=''):
+    shell = createService(ctx, 'com.sun.star.system.SystemShellExecute')
+    shell.execute(url, option, 0)
+
 def executeDispatch(ctx, url, listener=None):
     url = getUrl(ctx, url)
     dispatcher = getDesktop(ctx).getCurrentFrame().queryDispatch(url, '', 0)
-    #dispatcher = createService(self._ctx, 'com.sun.star.frame.DispatchHelper')
-    #dispatcher.executeDispatch(desktop.getCurrentFrame(), 'ispdb://', '', 0, ())
+    #dispatcher = createService(ctx, 'com.sun.star.frame.DispatchHelper')
+    #dispatcher.executeDispatch(getDesktop(ctx).getCurrentFrame(), url, '', 0, ())
     if dispatcher is not None:
         if listener is not None:
             dispatcher.dispatchWithNotification(url, (), listener)

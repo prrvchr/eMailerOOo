@@ -61,6 +61,7 @@ from .unotools import getDialogUrl
 from .unotools import getDateTime
 from .unotools import getInterfaceTypes
 from .unotools import hasInterface
+from .unotools import executeShell
 from .unotools import executeDispatch
 from .unotools import parseDateTime
 from .unotools import unparseDateTime

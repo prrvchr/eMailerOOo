@@ -209,6 +209,9 @@ class MailerView(unohelper.Base):
     def getDocumentResource(self):
         return 'MailerPage1.Label2.Label'
 
+    def getFilePickerTitleResource(self):
+        return 'Mailer.FilePicker.Title'
+
     def _getTabResource(self, id):
         return 'MailerWindow.Tab1.Page%s.Title' % id
 

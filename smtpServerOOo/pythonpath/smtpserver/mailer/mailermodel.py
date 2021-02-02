@@ -31,6 +31,7 @@ import uno
 import unohelper
 
 from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -40,6 +41,7 @@ from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
 from unolib import getPathSettings
+from unolib import createService
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -62,6 +64,9 @@ class MailerModel(unohelper.Base):
     @property
     def DataSource(self):
         return self._datasource
+    @property
+    def Document(self):
+        return self._document
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
@@ -119,30 +124,43 @@ class MailerModel(unohelper.Base):
 
     def _getDocument(self, document, url, callback):
         if document is None:
-            properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-            descriptor = getPropertyValueSet(properties)
-            document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+            document = self.loadDocument(url)
         callback(document)
 
-    def saveDocumentAs(self, format):
+    def loadDocument(self, url):
+        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+        descriptor = getPropertyValueSet(properties)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        return document
+
+    def saveDocumentAs(self, document, format):
         url = None
-        name, extension = self._getNameAndExtension(self._document.Title)
+        name, extension = self._getNameAndExtension(document.Title)
         filter = self._getDocumentFilter(extension, format)
         if filter is not None:
             temp = getPathSettings(self._ctx).Temp
             url = '%s/%s.%s' % (temp, name, format)
+            descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True})
+            document.storeToURL(url, descriptor)
+            url = getUrl(self._ctx, url)
+            if url is not None:
+                url = url.Main
             print("MailerModel.saveDocumentAs() %s" % url)
-            descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True)
-            self._document.storeToURL(url, descriptor)
         return url
 
-    def _getTempUrl(self, extension):
-        
-        url = self._getUrl(self._getPath().Temp).Main
-        template = self.document.DocumentProperties.TemplateName
-        name = template if template else self.document.Title
-        url = "%s/%s.%s" % (url, name, extension)
-        return self._getUrl(url).Complete
+    def getAttachments(self, resource):
+        documents = ()
+        directory = getPathSettings(self._ctx).Work
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        filepicker = createService(self._ctx, service)
+        filepicker.setDisplayDirectory(directory)
+        title = self.resolveString(resource)
+        filepicker.setTitle(title)
+        filepicker.setMultiSelectionMode(True)
+        if filepicker.execute() == OK:
+            documents = filepicker.getFiles()
+        filepicker.dispose()
+        return documents
 
     def _getNameAndExtension(self, filename):
         name, sep, extension = filename.rpartition('.')

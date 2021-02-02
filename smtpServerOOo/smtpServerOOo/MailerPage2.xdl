@@ -28,8 +28,12 @@
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerPage2" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="85" dlg:help-text="&amp;MailerPage2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerPage2.Title" dlg:withtitlebar="false">
   <dlg:bulletinboard>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="0" dlg:left="9" dlg:top="10" dlg:width="180" dlg:height="52" dlg:help-text="&amp;MailerPage2.ListBox1.HelpText" dlg:multiselection="true"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="1" dlg:left="194" dlg:top="10" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailerPage2.CommandButton1.HelpText" dlg:value="&amp;MailerPage2.CommandButton1.Label"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="2" dlg:disabled="true" dlg:left="239" dlg:top="10" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailerPage2.CommandButton2.HelpText" dlg:value="&amp;MailerPage2.CommandButton2.Label"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="1" dlg:left="194" dlg:top="10" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailerPage2.CommandButton1.HelpText" dlg:value="&amp;MailerPage2.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddAttachment" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="2" dlg:disabled="true" dlg:left="239" dlg:top="10" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailerPage2.CommandButton2.HelpText" dlg:value="&amp;MailerPage2.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveAttachment" script:language="UNO"/>
+    </dlg:button>
     <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="3" dlg:left="193" dlg:top="34" dlg:width="95" dlg:height="8" dlg:help-text="&amp;MailerPage2.CheckBox1.HelpText" dlg:value="&amp;MailerPage2.CheckBox1.Label" dlg:checked="false"/>
     <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="4" dlg:left="193" dlg:top="54" dlg:width="95" dlg:height="8" dlg:help-text="&amp;MailerPage2.CheckBox2.HelpText" dlg:value="&amp;MailerPage2.CheckBox2.Label" dlg:checked="false"/>
   </dlg:bulletinboard>

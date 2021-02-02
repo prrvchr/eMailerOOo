@@ -37,6 +37,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
 from unolib import getUrlTransformer
+from unolib import getPathSettings
 from unolib import parseUrl
 
 from .spoolermodel import SpoolerModel
@@ -92,19 +93,19 @@ class SpoolerManager(unohelper.Base):
 
     def _getDocumentUrl(self, transformer):
         url = None
-        service = 'com.sun.star.util.PathSubstitution'
-        directory = createService(self._ctx, service).substituteVariables('$(work)', True)
+        directory = getPathSettings(self._ctx).Work
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
         filepicker.setDisplayDirectory(directory)
-        writer = self.Model.resolveString('FilePicker.Filter.Writer')
+        writer = self.Model.resolveString('Spooler.FilePicker.Filter.Writer')
         filepicker.appendFilter(writer, '*.odt')
         filepicker.setCurrentFilter(writer)
-        title = self.Model.resolveString('FilePicker.Title')
+        title = self.Model.resolveString('Spooler.FilePicker.Title')
         filepicker.setTitle(title)
         if filepicker.execute() == OK:
             document = filepicker.getFiles()[0]
             url = parseUrl(transformer, document)
+        filepicker.dispose()
         return url
 
     def _showMailer(self, transformer, url):

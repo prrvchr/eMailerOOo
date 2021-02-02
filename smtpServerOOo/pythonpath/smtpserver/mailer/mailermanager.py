@@ -34,6 +34,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
+from unolib import executeShell
 
 from .mailermodel import MailerModel
 from .mailerview import MailerView
@@ -147,8 +148,20 @@ class MailerManager(unohelper.Base):
         self._view.setStep(2)
 
     def viewHtmlDocument(self):
-        self._model.saveDocumentAs('html')
-        print("MailerManager.viewHtmlDocument()")
+        document = self._model.Document
+        url = self._model.saveDocumentAs(document, 'html')
+        if url is not None:
+            executeShell(self._ctx, url)
+
+    def addAttachment(self):
+        resource = self._view.getFilePickerTitleResource()
+        documents = self._model.getAttachments(resource)
+        print("MailerManager.addAttachment() 1 %s" % (documents, ))
+        for document in documents:
+            print("MailerManager.addAttachment() 2 %s" % document)
+
+    def removeAttachment(self):
+        pass
 
     def _getTitle(self):
         resource = self._view.getTitleRessource()

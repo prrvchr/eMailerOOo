@@ -146,21 +146,17 @@ class Page2Handler(unohelper.Base,
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'SendAsHtml':
-            self._manager.sendAsHtml()
+        if method == 'AddAttachment':
+            self._manager.addAttachment()
             handled = True
-        elif method == 'SendAsAttachment':
-            self._manager.sendAsAttachment()
-            handled = True
-        elif method == 'ViewHtmlDocument':
-            self._manager.viewHtmlDocument()
+        elif method == 'RemoveAttachment':
+            self._manager.removeAttachment()
             handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('SendAsHtml',
-                'SendAsAttachment',
-                'ViewHtmlDocument')
+        return ('AddAttachment',
+                'RemoveAttachment')
 
 
 class DispatchListener(unohelper.Base,

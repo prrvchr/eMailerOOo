@@ -205,16 +205,16 @@ def executeShell(ctx, url, option=''):
     shell = createService(ctx, 'com.sun.star.system.SystemShellExecute')
     shell.execute(url, option, 0)
 
-def executeDispatch(ctx, url, listener=None):
+def executeDispatch(ctx, url, arguments=(), listener=None):
     url = getUrl(ctx, url)
     dispatcher = getDesktop(ctx).getCurrentFrame().queryDispatch(url, '', 0)
     #dispatcher = createService(ctx, 'com.sun.star.frame.DispatchHelper')
     #dispatcher.executeDispatch(getDesktop(ctx).getCurrentFrame(), url, '', 0, ())
     if dispatcher is not None:
         if listener is not None:
-            dispatcher.dispatchWithNotification(url, (), listener)
+            dispatcher.dispatchWithNotification(url, arguments, listener)
         else:
-            dispatcher.dispatch(url, ())
+            dispatcher.dispatch(url, arguments)
 
 def createMessageBox(peer, message, title, box='message', buttons=2):
     boxtypes = {'message': 'MESSAGEBOX',

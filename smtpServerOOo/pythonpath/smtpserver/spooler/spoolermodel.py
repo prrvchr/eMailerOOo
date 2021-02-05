@@ -33,6 +33,7 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from unolib import getPathSettings
 from unolib import getStringResource
 
 from ..datasource import DataSource
@@ -50,12 +51,20 @@ import traceback
 class SpoolerModel(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
+        self._path = getPathSettings(ctx).Work
         self._datasource = DataSource(ctx)
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
     @property
     def DataSource(self):
         return self._datasource
+
+    @property
+    def Path(self):
+        return self._path
+    @Path.setter
+    def Path(self, path):
+        self._path = path
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)

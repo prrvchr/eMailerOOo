@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,13 +25,6 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerDialog" dlg:left="0" dlg:top="10" dlg:width="285" dlg:height="230" dlg:help-text="&amp;MailerDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerDialog.Title">
-  <dlg:bulletinboard>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="185" dlg:top="186" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerDialog.CommandButton1.HelpText" dlg:value="&amp;MailerDialog.CommandButton1.Label" dlg:button-type="cancel"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="235" dlg:top="186" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;MailerDialog.CommandButton2.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Send" script:language="UNO"/>
-    </dlg:button>
-  </dlg:bulletinboard>
-</dlg:window>
+"""
+
+from .sendermanager import SenderManager

@@ -35,6 +35,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
 from unolib import executeShell
+from unolib import getUrlTransformer
+from unolib import parseUrl
 
 from .mailermodel import MailerModel
 from .mailerview import MailerView
@@ -47,12 +49,11 @@ import traceback
 
 
 class MailerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, parent, url, document=None, recipients=('prrvchr@gmail.com', )):
+    def __init__(self, ctx, datasource, parent, path, recipients=('prrvchr@gmail.com', )):
         self._ctx = ctx
-        self._model = MailerModel(ctx, datasource)
+        self._model = MailerModel(ctx, datasource, path)
         self._view = MailerView(ctx, parent, self)
-        self._model.getSenders(self.setSenders)
-        self._model.getDocument(document, url, self.setDocument)
+        self._model.getSenders(self.initSenders)
         self._view.setRecipient(recipients)
         print("MailerManager.__init__()")
 
@@ -60,19 +61,16 @@ class MailerManager(unohelper.Base):
     def Model(self):
         return self._model
 
-    def setSenders(self, senders):
+    def initSenders(self, senders):
         if self._view.isDisposed():
             return
         # Set the Senders ListBox
         self._view.setSenders(senders)
 
-    def setDocument(self, document):
+    def initView(self, document):
         if self._view.isDisposed():
             return
         self._model.setDocument(document)
-        # Set the dialog Title
-        title = self._getTitle()
-        self._view.setTitle(title)
         # Set the Save Subject CheckBox and if needed the Subject TextField
         state = self._getDocumentUserProperty('SaveSubject')
         self._view.setSaveSubject(int(state))
@@ -93,12 +91,16 @@ class MailerManager(unohelper.Base):
             self._view.setMessage(message)
         # Set the Attach As PDF CheckBox
         state = self._getDocumentUserProperty('AttachAsPdf')
-        self._view.setAttachMode(int(state))
+        self._view.setAttachAsPdf(int(state))
+        # Set the Attachment As PDF CheckBox
+        state = self._getDocumentUserProperty('AttachmentAsPdf')
+        self._view.setAttachmentAsPdf(int(state))
         # Set the Save Attachments CheckBox and if needed the Attachments ListBox
         state = self._getDocumentUserProperty('SaveAttachments')
         self._view.setSaveAttachments(int(state))
         if state:
             attachments = self._getDocumentAttachemnts('Attachments')
+            print("MailerManager.initView() %s" % (attachments,))
             self._view.setAttachments(attachments)
         # Set the View Document in HTML CommandButton
         self._view.enableButtonViewHtml()
@@ -153,16 +155,43 @@ class MailerManager(unohelper.Base):
         if url is not None:
             executeShell(self._ctx, url)
 
-    def addAttachment(self):
-        resource = self._view.getFilePickerTitleResource()
-        documents = self._model.getAttachments(resource)
-        msg = "MailerManager.addAttachment(): %s" % (documents, )
-        logMessage(self._ctx, INFO, msg, 'MailerManager', 'addAttachment()')
-        for document in documents:
-            print("MailerManager.addAttachment() 2 %s" % document)
+    def addAttachments(self):
+        try:
+            resource = self._view.getFilePickerTitleResource()
+            attachments = self._model.getAttachments(resource)
+            if len(attachments) > 0:
+                urls = self._parseAttachments(attachments)
+                self._view.addAttachments(urls)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
-    def removeAttachment(self):
-        pass
+    def enableRemoveAttachments(self, enabled):
+        self._view.enableRemoveAttachments(enabled)
+
+    def removeAttachments(self):
+        self._view.removeAttachments()
+
+    def _parseAttachments(self, attachments):
+        urls = []
+        transformer = getUrlTransformer(self._ctx)
+        pdf = self._view.getAttachmentAsPdf()
+        for attachment in attachments:
+            url = self._parseAttachment(transformer, attachment, pdf)
+            urls.append(url)
+        return tuple(urls)
+
+    def _parseAttachment(self, transformer, attachment, pdf):
+        url = parseUrl(transformer, attachment)
+        if pdf:
+            self._addPdfMark(url)
+        return transformer.getPresentation(url, False)
+
+    def _addPdfMark(self, url):
+        name, extension = self._model.getNameAndExtension(url.Name)
+        print("MailerManager._addPdfMark() '%s' - '%s'" % (name, extension))
+        if self._model.hasPdfFilter(extension):
+            url.Complete = '%s#pdf' % url.Complete
 
     def _getTitle(self):
         resource = self._view.getTitleRessource()

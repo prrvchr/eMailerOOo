@@ -30,71 +30,49 @@
 import uno
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
-from com.sun.star.lang import XInitialization
-from com.sun.star.frame import XDispatchProvider
+from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import PageModel
-from smtpserver import SmtpDispatch
+from unolib import getPathSettings
+from unolib import getStringResource
+from unolib import getPropertyValueSet
+from unolib import getDesktop
+
+from smtpserver import g_identifier
+from smtpserver import g_extension
 
 from smtpserver import logMessage
 from smtpserver import getMessage
 
-from smtpserver import g_identifier
-
+from threading import Thread
 import traceback
 
-# pythonloader looks for a static g_ImplementationHelper variable
-g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
 
-
-class SmtpDispatcher(unohelper.Base,
-                     XServiceInfo,
-                     XInitialization,
-                     XDispatchProvider):
-    def __init__(self, ctx):
+class SenderModel(unohelper.Base):
+    def __init__(self, ctx, path):
         self._ctx = ctx
-        self._frame = None
-        #self._model = PageModel(ctx)
-        logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
+        self._path = path
+        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
-    # XInitialization
-    def initialize(self, args):
-        if len(args) > 0:
-            print("SmtpDispatcher.initialize() *************************")
-            self._frame = args[0]
+    @property
+    def Path(self):
+        return self._path
 
-    # XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
-        dispatch = None
-        print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
-        if url.Path in ('server', 'spooler', 'mailer'):
-            print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
-            parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, url, parent)
-            print("SmtpDispatcher.queryDispatch()3")
-        return dispatch
+    def resolveString(self, resource):
+        return self._stringResource.resolveString(resource)
 
-    def queryDispatches(self, requests):
-        dispatches = []
-        for request in requests:
-            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
-            dispatches.append(dispatch)
-        return tuple(dispatches)
+    def getDocument(self, *args):
+        thread = Thread(target=self._getDocument, args=args)
+        thread.start()
 
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+    def getDocumentTitle(self, url, resource):
+        title = self.resolveString(resource)
+        return title + url
 
-
-g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+    def _getDocument(self, url, callback):
+        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+        descriptor = getPropertyValueSet(properties)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        callback(document)

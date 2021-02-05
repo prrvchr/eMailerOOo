@@ -35,7 +35,7 @@
   <library:element library:name="PageWizard4"/>
   <library:element library:name="SendDialog"/>
   <library:element library:name="SpoolerDialog"/>
-  <library:element library:name="MailerDialog"/>
+  <library:element library:name="SenderDialog"/>
   <library:element library:name="MailerWindow"/>
   <library:element library:name="MailerPage1"/>
   <library:element library:name="MailerPage2"/>

@@ -25,7 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerPage1" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="85" dlg:page="1" dlg:help-text="&amp;MailerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerPage1.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerPage1" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="110" dlg:page="1" dlg:help-text="&amp;MailerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerPage1.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
@@ -44,7 +44,7 @@
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewHtmlDocument" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label3" dlg:tab-index="5" dlg:left="14" dlg:top="20" dlg:width="50" dlg:height="14" dlg:page="2" dlg:help-text="&amp;MailerPage1.Label3.HelpText" dlg:value="&amp;MailerPage1.Label3.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="6" dlg:left="68" dlg:top="23" dlg:width="210" dlg:height="40" dlg:page="2" dlg:help-text="&amp;MailerPage1.TextField1.HelpText" dlg:hscroll="true" dlg:vscroll="true" dlg:multiline="true" dlg:value="&amp;MailerPage1.TextField1.Text"/>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="6" dlg:left="68" dlg:top="23" dlg:width="210" dlg:height="65" dlg:page="2" dlg:help-text="&amp;MailerPage1.TextField1.HelpText" dlg:hscroll="true" dlg:vscroll="true" dlg:multiline="true" dlg:value="&amp;MailerPage1.TextField1.Text"/>
     <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="7" dlg:left="12" dlg:top="38" dlg:width="55" dlg:height="8" dlg:page="2" dlg:help-text="&amp;MailerPage1.CheckBox1.HelpText" dlg:value="&amp;MailerPage1.CheckBox1.Label" dlg:valign="top" dlg:checked="false"/>
     <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="8" dlg:left="12" dlg:top="54" dlg:width="55" dlg:height="8" dlg:page="2" dlg:help-text="&amp;MailerPage1.CheckBox2.HelpText" dlg:value="&amp;MailerPage1.CheckBox2.Label" dlg:valign="top" dlg:checked="false"/>
   </dlg:bulletinboard>

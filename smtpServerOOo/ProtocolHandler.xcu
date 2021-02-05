@@ -33,7 +33,7 @@
     <node oor:name="HandlerSet">
         <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.SmtpDispatcher" oor:op="replace">
             <prop oor:name="Protocols">
-                <value>smtp://*</value>
+                <value>smtp:*</value>
             </prop>
         </node>
     </node>

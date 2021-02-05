@@ -33,7 +33,6 @@ import unohelper
 from unolib import getDialog
 from unolib import getContainerWindow
 
-from .mailerhandler import DialogHandler
 from .mailerhandler import WindowHandler
 from .mailerhandler import Page1Handler
 from .mailerhandler import Page2Handler
@@ -45,9 +44,6 @@ import traceback
 
 class MailerView(unohelper.Base):
     def __init__(self, ctx, parent, manager):
-        handler = DialogHandler(manager)
-        self._dialog = getDialog(ctx, g_extension, 'MailerDialog', handler, parent)
-        parent = self._dialog.getPeer()
         handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailerWindow')
         self._window.setVisible(True)
@@ -78,9 +74,6 @@ class MailerView(unohelper.Base):
             control.Model.StringItemList = senders
             control.selectItemPos(0, True)
 
-    def setTitle(self, title):
-        self._dialog.setTitle(title)
-
     def setSaveSubject(self, state):
         self._getSaveSubject().Model.State = state
 
@@ -103,18 +96,18 @@ class MailerView(unohelper.Base):
     def setMessage(self, message):
         self._getMessage().Text = message
 
-    def setAttachMode(self, state):
-        try:
-            self._getAttachMode().Model.State = state
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+    def setAttachAsPdf(self, state):
+        self._getAttachAsPdf().Model.State = state
+
+    def setAttachmentAsPdf(self, state):
+        self._getAttachmentAsPdf().Model.State = state
 
     def setSaveAttachments(self, state):
         self._getSaveAttachments().Model.State = state
 
     def setAttachments(self, attachments):
-        self._getAttachments().Model.StringItemList = attachments
+        if len(attachments):
+            self._getAttachments().Model.StringItemList = attachments
 
     def enableButtonViewHtml(self):
         self._getButtonViewHtml().Model.Enabled = True
@@ -168,28 +161,41 @@ class MailerView(unohelper.Base):
     def setStep(self, step):
         self._page1.Model.Step = step
 
+    def addAttachments(self, attachments):
+        control = self._getAttachments()
+        count = control.getItemCount()
+        control.addItems(attachments, count)
+
+    def enableRemoveAttachments(self, enabled):
+        self._getButtonRemoveAttachments().Model.Enabled = enabled
+
+    def removeAttachments(self):
+        self._getButtonRemoveAttachments().Model.Enabled = False
+        control = self._getAttachments()
+        for position in reversed(control.getSelectedItemsPos()):
+            control.removeItems(position, 1)
+
     def isDisposed(self):
         return self._window is None
 
     def dispose(self):
-        self._dialog.dispose()
         self._window.dispose()
         self._page1.dispose()
         self._page2.dispose()
-        self._dialog = None
         self._window = None
         self._page1 = None
         self._page2 = None
 
 # MailerView getter methods
-    def execute(self):
-        return self._dialog.execute()
-
     def getSender(self):
         control = self._getSendersList()
         sender = control.getSelectedItem()
         position = control.getSelectedItemPos()
         return sender, position
+
+    def getAttachmentAsPdf(self):
+        state = self._getAttachmentAsPdf().Model.State
+        return bool(state)
 
 # MailerView private setter methods
 
@@ -252,11 +258,14 @@ class MailerView(unohelper.Base):
     def _getSaveMessage(self):
         return self._page1.getControl('CheckBox1')
 
-    def _getAttachMode(self):
+    def _getAttachAsPdf(self):
         return self._page1.getControl('CheckBox2')
 
     def _getMessage(self):
         return self._page1.getControl('TextField1')
+
+    def _getAttachmentAsPdf(self):
+        return self._page2.getControl('CheckBox1')
 
     def _getSaveAttachments(self):
         return self._page2.getControl('CheckBox2')
@@ -264,8 +273,8 @@ class MailerView(unohelper.Base):
     def _getAttachments(self):
         return self._page2.getControl('ListBox1')
 
-    def _getButtonSend(self):
-        return self._dialog.getControl('CommandButton2')
+    def _getButtonRemoveAttachments(self):
+        return self._page2.getControl('CommandButton2')
 
 # MailerView private methods
     def _getTabPages(self, name, point, size, title1, title2, id):

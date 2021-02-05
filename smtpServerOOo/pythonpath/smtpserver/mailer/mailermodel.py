@@ -49,21 +49,27 @@ from smtpserver import g_extension
 from smtpserver import logMessage
 from smtpserver import getMessage
 
-from threading import Thread
 import validators
 import traceback
 
 
 class MailerModel(unohelper.Base):
-    def __init__(self, ctx, datasource):
+    def __init__(self, ctx, datasource, path):
         self._ctx = ctx
         self._datasource = datasource
+        self._path = path
         self._document = None
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
     @property
     def DataSource(self):
         return self._datasource
+    @property
+    def Path(self):
+        return self._path
+    @Path.setter
+    def Path(self, path):
+        self._path = path
     @property
     def Document(self):
         return self._document
@@ -77,16 +83,8 @@ class MailerModel(unohelper.Base):
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
-    def getDocument(self, *args):
-        thread = Thread(target=self._getDocument, args=args)
-        thread.start()
-
     def setDocument(self, document):
         self._document = document
-
-    def getDocumentTitle(self, resource):
-        title = self.resolveString(resource)
-        return title + self._document.URL
 
     def getDocumentLabel(self, resource):
         label = self.resolveString(resource)
@@ -99,9 +97,12 @@ class MailerModel(unohelper.Base):
         return self._document.DocumentProperties.Description
 
     def getDocumentAttachments(self, resource, default=''):
+        attachments = ()
         values = self.getDocumentUserProperty(resource, default)
-        attachments = values.split('|')
-        return tuple(attachments)
+        print("MailerModel.getDocumentAttachments() '%s'" % values)
+        if len(values):
+            attachments = tuple(values.split('|'))
+        return attachments
         
     def getDocumentUserProperty(self, resource, default=True):
         name = self.resolveString(resource)
@@ -122,20 +123,9 @@ class MailerModel(unohelper.Base):
             return True
         return False
 
-    def _getDocument(self, document, url, callback):
-        if document is None:
-            document = self.loadDocument(url)
-        callback(document)
-
-    def loadDocument(self, url):
-        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-        descriptor = getPropertyValueSet(properties)
-        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
-        return document
-
     def saveDocumentAs(self, document, format):
         url = None
-        name, extension = self._getNameAndExtension(document.Title)
+        name, extension = self.getNameAndExtension(document.Title)
         filter = self._getDocumentFilter(extension, format)
         if filter is not None:
             temp = getPathSettings(self._ctx).Temp
@@ -149,22 +139,30 @@ class MailerModel(unohelper.Base):
         return url
 
     def getAttachments(self, resource):
-        documents = ()
-        directory = getPathSettings(self._ctx).Work
+        attachments = ()
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(directory)
+        filepicker.setDisplayDirectory(self._path)
         title = self.resolveString(resource)
         filepicker.setTitle(title)
         filepicker.setMultiSelectionMode(True)
         if filepicker.execute() == OK:
-            documents = filepicker.getFiles()
+            attachments = filepicker.getSelectedFiles()
+            self._path = filepicker.getDisplayDirectory()
         filepicker.dispose()
-        return documents
+        return attachments
 
-    def _getNameAndExtension(self, filename):
-        name, sep, extension = filename.rpartition('.')
+    def getNameAndExtension(self, filename):
+        part1, sep, part2 = filename.rpartition('.')
+        if sep:
+            name, extension = part1, part2
+        else:
+            name, extension = part2, part1
         return name, extension
+
+    def hasPdfFilter(self, extension):
+        filter = self._getDocumentFilter(extension, 'pdf')
+        return filter is not None
 
     def _getDocumentFilter(self, extension, format):
         if extension == 'odt':

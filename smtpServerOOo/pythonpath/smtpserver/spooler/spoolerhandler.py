@@ -31,6 +31,9 @@ import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt.grid import XGridSelectionListener
+from com.sun.star.frame import XDispatchResultListener
+
+from com.sun.star.frame.DispatchResultState import SUCCESS
 
 import traceback
 
@@ -65,5 +68,19 @@ class GridHandler(unohelper.Base,
         enabled = event.Source.hasSelectedRows()
         self._manager.toogleRemove(enabled)
 
-    def disposing(self, event):
+    def disposing(self, source):
+        pass
+
+
+class DispatchListener(unohelper.Base,
+                       XDispatchResultListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
+        if notification.State == SUCCESS:
+            self._manager.Model.Path = notification.Result
+
+    def disposing(self, source):
         pass

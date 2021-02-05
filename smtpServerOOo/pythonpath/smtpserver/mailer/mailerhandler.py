@@ -29,7 +29,6 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.frame import XDispatchResultListener
 
@@ -39,23 +38,6 @@ from com.sun.star.awt.Key import RETURN
 from unolib import executeDispatch
 
 import traceback
-
-
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'Send':
-            self._manager.sendDocument()
-            handled = True
-        return handled
-
-    def getSupportedMethodNames(self):
-        return ('Send', )
 
 
 class WindowHandler(unohelper.Base,
@@ -73,7 +55,7 @@ class WindowHandler(unohelper.Base,
             handled = True
         elif method == 'AddSender':
             listener = DispatchListener(self._manager)
-            executeDispatch(self._ctx, 'smtp://server', listener)
+            executeDispatch(self._ctx, 'smtp:server', (), listener)
             handled = True
         elif method == 'RemoveSender':
             self._manager.removeSender()
@@ -147,16 +129,21 @@ class Page2Handler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         handled = False
         if method == 'AddAttachment':
-            self._manager.addAttachment()
+            self._manager.addAttachments()
             handled = True
         elif method == 'RemoveAttachment':
-            self._manager.removeAttachment()
+            self._manager.removeAttachments()
+            handled = True
+        elif method == 'ChangeAttachments':
+            enabled = event.Source.getSelectedItemPos() != -1
+            self._manager.enableRemoveAttachments(enabled)
             handled = True
         return handled
 
     def getSupportedMethodNames(self):
         return ('AddAttachment',
-                'RemoveAttachment')
+                'RemoveAttachment',
+                'ChangeAttachments')
 
 
 class DispatchListener(unohelper.Base,

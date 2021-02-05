@@ -40,11 +40,9 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getFileSequence
-from unolib import getStringResource
-from unolib import getResourceLocation
-from unolib import getDialog
-from unolib import createService
+from unolib import getPathSettings
+
+from .datasource import DataSource
 
 from .wizard import Wizard
 from .wizardcontroller import WizardController
@@ -52,6 +50,8 @@ from .wizardcontroller import WizardController
 from .pagemodel import PageModel
 
 from .spooler import SpoolerManager
+
+from .sender import SenderManager
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -86,12 +86,12 @@ class SmtpDispatch(unohelper.Base,
         print("SmtpDispatch.dispatch() 1")
         state = SUCCESS
         result = None
-        if url.Path == '//server':
+        if url.Path == 'server':
             state, result = self._showSmtpServer()
-        elif url.Path == '//spooler':
+        elif url.Path == 'spooler':
             self._showSmtpSpooler()
-        elif url.Path == '//mailer':
-            state, result = self._showSmtpMailer()
+        elif url.Path == 'mailer':
+            self._showSmtpMailer(arguments)
         return state, result
         print("SmtpDispatch.dispatch() 2")
 
@@ -136,11 +136,25 @@ class SmtpDispatch(unohelper.Base,
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def _showSmtpMailer(self):
+    def _showSmtpMailer(self, arguments):
         try:
-            print("SmtpDispatch._showSmtpMailer() 1")
-
-            print("SmtpDispatch._showSmtpMailer() 2")
+            state = FAILURE
+            for argument in arguments:
+                if argument.Name == 'Path':
+                    path = argument.Value
+                    break
+            else:
+                path = getPathSettings(self._ctx).Work
+            sender = SenderManager(self._ctx, path)
+            url, path = sender.getDocumentUrlAndPath()
+            if url is not None:
+                datasource = DataSource(self._ctx)
+                if sender.showDialog(datasource, self._parent, url, path) == OK:
+                    state = SUCCESS
+                    path = sender.getPath()
+                    print("SmtpDispatch._showSmtpMailer: %s *******************" % url)
+                sender.dispose()
+            return state, path
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

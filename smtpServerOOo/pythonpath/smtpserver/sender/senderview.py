@@ -30,71 +30,75 @@
 import uno
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
-from com.sun.star.lang import XInitialization
-from com.sun.star.frame import XDispatchProvider
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
+from unolib import getDialog
+from unolib import createService
 
-from smtpserver import PageModel
-from smtpserver import SmtpDispatch
+from .senderhandler import DialogHandler
 
-from smtpserver import logMessage
-from smtpserver import getMessage
-
-from smtpserver import g_identifier
+from smtpserver import g_extension
 
 import traceback
 
-# pythonloader looks for a static g_ImplementationHelper variable
-g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
 
-
-class SmtpDispatcher(unohelper.Base,
-                     XServiceInfo,
-                     XInitialization,
-                     XDispatchProvider):
+class SenderView(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._frame = None
-        #self._model = PageModel(ctx)
-        logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
+        self._dialog = None
 
-    # XInitialization
-    def initialize(self, args):
-        if len(args) > 0:
-            print("SmtpDispatcher.initialize() *************************")
-            self._frame = args[0]
+# SenderView setter methods
+    def setDialog(self, manager, parent):
+        handler = DialogHandler(manager)
+        self._dialog = getDialog(self._ctx, g_extension, 'SenderDialog', handler, parent)
 
-    # XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
-        dispatch = None
-        print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
-        if url.Path in ('server', 'spooler', 'mailer'):
-            print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
-            parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, url, parent)
-            print("SmtpDispatcher.queryDispatch()3")
-        return dispatch
+    def setTitle(self, title):
+        self._dialog.setTitle(title)
 
-    def queryDispatches(self, requests):
-        dispatches = []
-        for request in requests:
-            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
-            dispatches.append(dispatch)
-        return tuple(dispatches)
+    def isDisposed(self):
+        return self._dialog is None
 
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+    def dispose(self):
+        self._dialog.dispose()
+        self._dialog = None
+
+# SenderView getter methods
+    def getDocumentUrlAndPath(self, path, title, filter):
+        url = None
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        filepicker = createService(self._ctx, service)
+        filepicker.setTitle(title)
+        filepicker.setDisplayDirectory(path)
+        filepicker.appendFilter(*filter)
+        filepicker.setCurrentFilter(filter[0])
+        if filepicker.execute() == OK:
+            url = filepicker.getSelectedFiles()[0]
+            path = filepicker.getDisplayDirectory()
+        filepicker.dispose()
+        return url, path
+
+    def getParent(self):
+        return self._dialog.getPeer()
+
+    def execute(self):
+        return self._dialog.execute()
+
+# SenderView private setter methods
 
 
-g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+# SenderView private getter methods
+
+
+# SenderView StringRessoure methods
+    def getTitleRessource(self):
+        return 'SenderDialog.Title'
+
+    def getFilePickerTitleResource(self):
+        return 'Sender.FilePicker.Title'
+
+    def getFilePickerFilterResource(self):
+        return 'Sender.FilePicker.Filter.Writer'
+
+# SenderView private control methods
+    def _getButtonSend(self):
+        return self._dialog.getControl('CommandButton2')

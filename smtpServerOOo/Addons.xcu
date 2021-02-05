@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:component-data
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office"
+  oor:name="Addons">
+  <node oor:name="AddonUI">
+    <node oor:name="AddonMenu">
+      <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo" oor:op="replace">
+        <prop oor:name="Title" oor:type="xs:string">
+          <value xml:lang="en-US">smtpServerOOo</value>
+          <value xml:lang="fr-FR">smtpServerOOo</value>
+        </prop>
+        <node oor:name="Submenu">
+          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Server" oor:op="replace">
+            <prop oor:name="Title">
+              <value xml:lang="en-US">SMTP Server</value>
+              <value xml:lang="fr-FR">Serveur SMTP</value>
+            </prop>
+            <prop oor:name="URL">
+              <value>smtp:server</value>
+            </prop>
+          </node>
+          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Spooler" oor:op="replace">
+            <prop oor:name="Title">
+              <value xml:lang="en-US">SMTP Spooler</value>
+              <value xml:lang="fr-FR">Spouleur SMTP</value>
+            </prop>
+            <prop oor:name="URL">
+              <value>smtp:spooler</value>
+            </prop>
+          </node>
+          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Mailer" oor:op="replace">
+            <prop oor:name="Title">
+              <value xml:lang="en-US">Send an email</value>
+              <value xml:lang="fr-FR">Envoyer un courriel</value>
+            </prop>
+            <prop oor:name="URL">
+              <value>smtp:mailer</value>
+            </prop>
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+</oor:component-data>

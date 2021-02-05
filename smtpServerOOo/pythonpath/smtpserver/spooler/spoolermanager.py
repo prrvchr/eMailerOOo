@@ -39,11 +39,15 @@ from unolib import createService
 from unolib import getUrlTransformer
 from unolib import getPathSettings
 from unolib import parseUrl
+from unolib import executeDispatch
+from unolib import getPropertyValueSet
 
 from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
+from .spoolerhandler import DispatchListener
 
-from ..mailer import MailerManager
+from ..sender import SenderManager
+#from ..mailer import MailerManager
 
 from ..logger import logMessage
 from ..logger import getMessage
@@ -57,6 +61,7 @@ class SpoolerManager(unohelper.Base):
         self._ctx = ctx
         self._model = SpoolerModel(ctx)
         self._view = None
+        self._path = getPathSettings(ctx).Work
         print("SpoolerManager.__init__()")
 
     @property
@@ -77,6 +82,15 @@ class SpoolerManager(unohelper.Base):
         print("SpoolerManager.viewSpooler() 1")
 
     def addDocument(self):
+        try:
+            arguments = getPropertyValueSet({'Path': self._path})
+            listener = DispatchListener(self)
+            executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def addDocument1(self):
         transformer = getUrlTransformer(self._ctx)
         url = self._getDocumentUrl(transformer)
         if url is None:
@@ -91,19 +105,38 @@ class SpoolerManager(unohelper.Base):
     def toogleRemove(self, enabled):
         self._view.enableButtonRemove(enabled)
 
-    def _getDocumentUrl(self, transformer):
+    def _getDocumentUrlAndPath(self, transformer):
         url = None
         directory = getPathSettings(self._ctx).Work
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(directory)
+        filepicker.setDisplayDirectory(self.Model.Path)
         writer = self.Model.resolveString('Spooler.FilePicker.Filter.Writer')
         filepicker.appendFilter(writer, '*.odt')
         filepicker.setCurrentFilter(writer)
         title = self.Model.resolveString('Spooler.FilePicker.Title')
         filepicker.setTitle(title)
         if filepicker.execute() == OK:
-            document = filepicker.getFiles()[0]
+            document = filepicker.getSelectedFiles()[0]
+            self.Model.Path = filepicker.getDisplayDirectory()
+            url = parseUrl(transformer, document)
+        filepicker.dispose()
+        return url
+
+    def _getDocumentUrl(self, transformer):
+        url = None
+        directory = getPathSettings(self._ctx).Work
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        filepicker = createService(self._ctx, service)
+        filepicker.setDisplayDirectory(self.Model.Path)
+        writer = self.Model.resolveString('Spooler.FilePicker.Filter.Writer')
+        filepicker.appendFilter(writer, '*.odt')
+        filepicker.setCurrentFilter(writer)
+        title = self.Model.resolveString('Spooler.FilePicker.Title')
+        filepicker.setTitle(title)
+        if filepicker.execute() == OK:
+            document = filepicker.getSelectedFiles()[0]
+            self.Model.Path = filepicker.getDisplayDirectory()
             url = parseUrl(transformer, document)
         filepicker.dispose()
         return url
@@ -112,7 +145,7 @@ class SpoolerManager(unohelper.Base):
         try:
             url = transformer.getPresentation(url, False)
             parent = self._view.getParent()
-            mailer = MailerManager(self._ctx, self.Model.DataSource, parent, url)
+            mailer = MailerManager(self._ctx, self.Model.DataSource, parent, url, self.Model.Path)
             if mailer.show() == OK:
                 self._addDocument(mailer, url)
             mailer.dispose()
@@ -122,4 +155,5 @@ class SpoolerManager(unohelper.Base):
             print(msg)
 
     def _addDocument(self, mailer, url):
+        self.Model.Path = mailer.Model.Path
         print("SpoolerManager._addDocument: %s" % url.Name)

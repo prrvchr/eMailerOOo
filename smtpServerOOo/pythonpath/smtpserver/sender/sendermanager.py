@@ -30,71 +30,55 @@
 import uno
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
-from com.sun.star.lang import XInitialization
-from com.sun.star.frame import XDispatchProvider
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import PageModel
-from smtpserver import SmtpDispatch
+from .sendermodel import SenderModel
+from .senderview import SenderView
+
+from smtpserver.mailer import MailerManager
 
 from smtpserver import logMessage
 from smtpserver import getMessage
-
-from smtpserver import g_identifier
+g_message = 'sendermanager'
 
 import traceback
 
-# pythonloader looks for a static g_ImplementationHelper variable
-g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
 
-
-class SmtpDispatcher(unohelper.Base,
-                     XServiceInfo,
-                     XInitialization,
-                     XDispatchProvider):
-    def __init__(self, ctx):
+class SenderManager(unohelper.Base):
+    def __init__(self, ctx, path):
         self._ctx = ctx
-        self._frame = None
-        #self._model = PageModel(ctx)
-        logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
+        self._model = SenderModel(ctx, path)
+        self._view = SenderView(ctx)
+        self._mailer = None
+        print("SenderManager.__init__()")
 
-    # XInitialization
-    def initialize(self, args):
-        if len(args) > 0:
-            print("SmtpDispatcher.initialize() *************************")
-            self._frame = args[0]
+    def getPath(self):
+        return self._model.Path if self._mailer is None else self._mailer.Model.Path
 
-    # XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
-        dispatch = None
-        print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
-        if url.Path in ('server', 'spooler', 'mailer'):
-            print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
-            parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, url, parent)
-            print("SmtpDispatcher.queryDispatch()3")
-        return dispatch
+    def getDocumentUrlAndPath(self):
+        resource = self._view.getFilePickerTitleResource()
+        title = self._model.resolveString(resource)
+        resource = self._view.getFilePickerFilterResource()
+        writer = self._model.resolveString(resource)
+        filter = (writer, '*.odt')
+        url, path = self._view.getDocumentUrlAndPath(self._model.Path, title, filter)
+        return url, path
 
-    def queryDispatches(self, requests):
-        dispatches = []
-        for request in requests:
-            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
-            dispatches.append(dispatch)
-        return tuple(dispatches)
+    def showDialog(self, datasource, parent, url, path):
+        self._view.setDialog(self, parent)
+        parent = self._view.getParent()
+        self._mailer = MailerManager(self._ctx, datasource, parent, path)
+        self._model.getDocument(url, self.initMailer)
+        return self._view.execute()
 
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+    def initMailer(self, document):
+        if not self._view.isDisposed():
+            resource = self._view.getTitleRessource()
+            title = self._model.getDocumentTitle(document.URL, resource)
+            self._view.setTitle(title)
+            self._mailer.initView(document)
 
-
-g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+    def dispose(self):
+        self._view.dispose()
+        self._mailer.dispose()

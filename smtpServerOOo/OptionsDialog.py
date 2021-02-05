@@ -221,7 +221,7 @@ class OptionsDialog(unohelper.Base,
 
     def _showSmtpServer(self, dialog):
         try:
-            executeDispatch(self._ctx, 'smtp://server')
+            executeDispatch(self._ctx, 'smtp:server')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
@@ -237,7 +237,7 @@ class OptionsDialog(unohelper.Base,
         try:
             print("OptionsDialog._showSpooler() 1")
             #self._spooler.viewSpooler(dialog.Peer)
-            executeDispatch(self._ctx, 'smtp://spooler')
+            executeDispatch(self._ctx, 'smtp:spooler')
             print("OptionsDialog._showSpooler() 2")
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())

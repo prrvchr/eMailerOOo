@@ -54,6 +54,7 @@ class SpoolerModel(unohelper.Base):
         self._path = getPathSettings(ctx).Work
         self._datasource = DataSource(ctx)
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
+        self._started = False
 
     @property
     def DataSource(self):

@@ -39,6 +39,7 @@ from unolib import getPathSettings
 from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
+from unolib import getUrlTransformer
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -68,6 +69,8 @@ class SenderModel(unohelper.Base):
         thread.start()
 
     def getDocumentTitle(self, url, resource):
+        url = uno.createUnoStruct('com.sun.star.util.URL', Complete=url)
+        url = getUrlTransformer(self._ctx).getPresentation(url, False)
         title = self.resolveString(resource)
         return title + url
 

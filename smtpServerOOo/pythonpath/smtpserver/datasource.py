@@ -268,6 +268,9 @@ class DataSource(unohelper.Base,
         document.DocumentProperties.Description = message
 
 # Private methods
+    def _isInitialized(self):
+        return DataSource._init is not None
+
     def _getRowSet(self):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
@@ -275,19 +278,19 @@ class DataSource(unohelper.Base,
         rowset.FetchSize = g_fetchsize
         return rowset
 
-    def _isInitialized(self):
-        return DataSource._init is not None
-
     def _initDataBase(self):
+        time.sleep(0.5)
         database = DataBase(self._ctx, self._dbname)
         database.addCloseListener(self)
+        self._initRowSet(database)
+        DataSource._database = database
+
+    def _initRowSet(self, database):
         rowset = DataSource._rowset
         rowset.ActiveConnection = database.Connection
         rowset.Command = database.getRowSetCommand()
         rowset.Order = database.getRowSetOrder()
         rowset.execute()
-        DataSource._database = database
-
 
 class MailTransferable(unohelper.Base,
                        XTransferable):

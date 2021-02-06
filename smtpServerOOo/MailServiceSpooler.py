@@ -37,8 +37,9 @@ from com.sun.star.mail import XMailServiceSpooler
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from unolib import executeDispatch
+
 from smtpserver import DataSource
-from smtpserver import SpoolerManager
 
 from smtpserver import logMessage
 from smtpserver import getMessage
@@ -61,24 +62,24 @@ class MailServiceSpooler(unohelper.Base,
         msg = getMessage(ctx, g_service, 101)
         logMessage(ctx, INFO, msg, g_service, '__init__()')
         self._ctx = ctx
-        self._started = False
-        self._manager = SpoolerManager(ctx)
         msg = getMessage(ctx, g_service, 102)
         logMessage(ctx, INFO, msg, g_service, '__init__()')
 
+    _started = False
+
     # XMailServiceSpooler
     def startSpooler(self):
-        self._started = True
+        MailServiceSpooler._started = True
     def stopSpooler(self):
-        self._started = False
+        MailServiceSpooler._started = False
     def isStarted(self):
-        return self._started
+        return MailServiceSpooler._started
     def addEntry(self):
         pass
     def removeEntry(self):
         pass
     def viewSpooler(self, parent):
-        self._manager.viewSpooler(parent)
+        executeDispatch(self._ctx, 'smtp:spooler')
 
     # XServiceInfo
     def supportsService(self, service):

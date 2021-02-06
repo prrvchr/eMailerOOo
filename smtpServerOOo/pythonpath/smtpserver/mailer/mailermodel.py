@@ -86,20 +86,12 @@ class MailerModel(unohelper.Base):
     def setDocument(self, document):
         self._document = document
 
-    def getDocumentLabel(self, resource):
-        label = self.resolveString(resource)
-        return label + self._document.Title
-
     def getDocumentSubject(self):
         return self._document.DocumentProperties.Subject
-
-    def getDocumentDescription(self):
-        return self._document.DocumentProperties.Description
 
     def getDocumentAttachments(self, resource, default=''):
         attachments = ()
         values = self.getDocumentUserProperty(resource, default)
-        print("MailerModel.getDocumentAttachments() '%s'" % values)
         if len(values):
             attachments = tuple(values.split('|'))
         return attachments
@@ -177,3 +169,9 @@ class MailerModel(unohelper.Base):
             filters = {}
         filter = filters.get(format, None)
         return filter
+
+    def getDocument(self, url):
+        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+        descriptor = getPropertyValueSet(properties)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        return document

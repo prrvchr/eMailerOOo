@@ -75,7 +75,7 @@
    <dlg:title dlg:value="&amp;OptionsDialog.FrameControl3.Label"/>
   </dlg:titledbox>
   <dlg:text dlg:id="Label4" dlg:tab-index="13" dlg:left="10" dlg:top="107" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label4.HelpText" dlg:value="&amp;OptionsDialog.Label4.Label" dlg:valign="center" dlg:tabstop="false"/>
-  <dlg:text dlg:id="Label5" dlg:tab-index="14" dlg:left="85" dlg:top="107" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label.1" dlg:valign="center" dlg:tabstop="false"/>
+  <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="14" dlg:left="85" dlg:top="107" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label.1" dlg:valign="center" dlg:tabstop="false"/>
   <dlg:button dlg:id="CommandButton3" dlg:tab-index="15" dlg:left="155" dlg:top="107" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton3.HelpText" dlg:value="&amp;OptionsDialog.CommandButton3.Label">
    <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ToggleSpooler" script:language="UNO"/>
   </dlg:button>

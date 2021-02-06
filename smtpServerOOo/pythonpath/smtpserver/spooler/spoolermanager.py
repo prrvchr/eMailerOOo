@@ -57,11 +57,14 @@ import traceback
 
 
 class SpoolerManager(unohelper.Base):
-    def __init__(self, ctx):
+    def __init__(self, ctx, parent):
         self._ctx = ctx
         self._model = SpoolerModel(ctx)
-        self._view = None
+        self._view = SpoolerView(ctx, self, parent)
         self._path = getPathSettings(ctx).Work
+        service = 'com.sun.star.mail.MailServiceSpooler'
+        self._spooler = createService(ctx, service)
+        self.refreshSpoolerState()
         print("SpoolerManager.__init__()")
 
     @property
@@ -74,12 +77,11 @@ class SpoolerManager(unohelper.Base):
     def executeRowSet(self, rowset):
         self._model.executeRowSet(rowset)
 
-    def viewSpooler(self, parent):
-        self._view = SpoolerView(self._ctx, self, parent)
-        self._view.execute()
+    def execute(self):
+        return self._view.execute()
+
+    def dispose(self):
         self._view.dispose()
-        self._view = None
-        print("SpoolerManager.viewSpooler() 1")
 
     def addDocument(self):
         try:
@@ -90,70 +92,21 @@ class SpoolerManager(unohelper.Base):
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def addDocument1(self):
-        transformer = getUrlTransformer(self._ctx)
-        url = self._getDocumentUrl(transformer)
-        if url is None:
-            print("SpoolerManager.addDocument: %s" % 'No document')
-            return
-        print("SpoolerManager.addDocument: %s" % url.Name)
-        self._showMailer(transformer, url)
-
     def removeDocument(self):
         pass
 
     def toogleRemove(self, enabled):
         self._view.enableButtonRemove(enabled)
 
-    def _getDocumentUrlAndPath(self, transformer):
-        url = None
-        directory = getPathSettings(self._ctx).Work
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(self.Model.Path)
-        writer = self.Model.resolveString('Spooler.FilePicker.Filter.Writer')
-        filepicker.appendFilter(writer, '*.odt')
-        filepicker.setCurrentFilter(writer)
-        title = self.Model.resolveString('Spooler.FilePicker.Title')
-        filepicker.setTitle(title)
-        if filepicker.execute() == OK:
-            document = filepicker.getSelectedFiles()[0]
-            self.Model.Path = filepicker.getDisplayDirectory()
-            url = parseUrl(transformer, document)
-        filepicker.dispose()
-        return url
+    def toogleSpooler(self):
+        if self._spooler.isStarted():
+            self._spooler.stopSpooler()
+        else:
+            self._spooler.startSpooler()
+        self.refreshSpoolerState()
 
-    def _getDocumentUrl(self, transformer):
-        url = None
-        directory = getPathSettings(self._ctx).Work
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(self.Model.Path)
-        writer = self.Model.resolveString('Spooler.FilePicker.Filter.Writer')
-        filepicker.appendFilter(writer, '*.odt')
-        filepicker.setCurrentFilter(writer)
-        title = self.Model.resolveString('Spooler.FilePicker.Title')
-        filepicker.setTitle(title)
-        if filepicker.execute() == OK:
-            document = filepicker.getSelectedFiles()[0]
-            self.Model.Path = filepicker.getDisplayDirectory()
-            url = parseUrl(transformer, document)
-        filepicker.dispose()
-        return url
-
-    def _showMailer(self, transformer, url):
-        try:
-            url = transformer.getPresentation(url, False)
-            parent = self._view.getParent()
-            mailer = MailerManager(self._ctx, self.Model.DataSource, parent, url, self.Model.Path)
-            if mailer.show() == OK:
-                self._addDocument(mailer, url)
-            mailer.dispose()
-
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
-
-    def _addDocument(self, mailer, url):
-        self.Model.Path = mailer.Model.Path
-        print("SpoolerManager._addDocument: %s" % url.Name)
+    def refreshSpoolerState(self):
+        state = int(self._spooler.isStarted())
+        resource = self._view.getStateResource(state)
+        label = self._model.resolveString(resource)
+        self._view.setSpoolerState(label)

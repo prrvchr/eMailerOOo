@@ -49,8 +49,9 @@ import traceback
 
 
 class MailerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, parent, path, recipients=('prrvchr@gmail.com', )):
+    def __init__(self, ctx, manager, datasource, parent, path, recipients=('prrvchr@gmail.com', )):
         self._ctx = ctx
+        self._manager = manager
         self._model = MailerModel(ctx, datasource, path)
         self._view = MailerView(ctx, parent, self)
         self._model.getSenders(self.initSenders)
@@ -77,21 +78,6 @@ class MailerManager(unohelper.Base):
         if state:
             subject = self._model.getDocumentSubject()
             self._view.setSubject(subject)
-        # Set the Send As HTML / Send As Attachment OptionButton
-        state = self._getDocumentUserProperty('SendAsHtml')
-        self._view.setSendMode(state)
-        # Set the document Name Label
-        label = self._getDocumentLabel()
-        self._view.setDocumentLabel(label)
-        # Set the Save Message CheckBox and if needed the Message TextField
-        state = self._getDocumentUserProperty('SaveMessage')
-        self._view.setSaveMessage(int(state))
-        if state:
-            message = self._model.getDocumentDescription()
-            self._view.setMessage(message)
-        # Set the Attach As PDF CheckBox
-        state = self._getDocumentUserProperty('AttachAsPdf')
-        self._view.setAttachAsPdf(int(state))
         # Set the Attachment As PDF CheckBox
         state = self._getDocumentUserProperty('AttachmentAsPdf')
         self._view.setAttachmentAsPdf(int(state))
@@ -100,7 +86,6 @@ class MailerManager(unohelper.Base):
         self._view.setSaveAttachments(int(state))
         if state:
             attachments = self._getDocumentAttachemnts('Attachments')
-            print("MailerManager.initView() %s" % (attachments,))
             self._view.setAttachments(attachments)
         # Set the View Document in HTML CommandButton
         self._view.enableButtonViewHtml()
@@ -111,11 +96,9 @@ class MailerManager(unohelper.Base):
     def dispose(self):
         self._view.dispose()
 
-    def enableRemoveSender(self, enabled):
-        self._view.enableRemoveSender(enabled)
-
     def addSender(self, sender):
         self._view.addSender(sender)
+        self._canSend()
 
     def removeSender(self):
         # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
@@ -124,6 +107,7 @@ class MailerManager(unohelper.Base):
         status = self.Model.removeSender(sender)
         if status == 1:
             self._view.removeSender(position)
+            self._canSend()
 
     def editRecipient(self, email, exist):
         enabled = self._validateRecipient(email, exist)
@@ -131,17 +115,17 @@ class MailerManager(unohelper.Base):
         self._view.enableRemoveRecipient(exist)
 
     def addRecipient(self):
-        self._view.addToRecipient()
-
-    def changeRecipient(self):
-        self._view.enableRemoveRecipient(True)
+        self._view.addRecipient()
+        self._canSend()
 
     def removeRecipient(self):
         self._view.removeRecipient()
+        self._canSend()
 
-    def enterRecipient(self, control, email, exist):
+    def enterRecipient(self, email, exist):
         if self._validateRecipient(email, exist):
-            self._view.addRecipient(control, email)
+            self._view.addToRecipient(email)
+            self._canSend()
 
     def sendAsHtml(self):
         self._view.setStep(1)
@@ -155,6 +139,17 @@ class MailerManager(unohelper.Base):
         if url is not None:
             executeShell(self._ctx, url)
 
+    def viewPdfAttachment(self):
+        try:
+            attachment = self._view.getSelectedAttachment()
+            document= self._model.getDocument(attachment)
+            url = self._model.saveDocumentAs(document, 'pdf')
+            if url is not None:
+                executeShell(self._ctx, url)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
     def addAttachments(self):
         try:
             resource = self._view.getFilePickerTitleResource()
@@ -166,11 +161,31 @@ class MailerManager(unohelper.Base):
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def enableRemoveAttachments(self, enabled):
+    def changeAttachments(self, enabled, attachment):
         self._view.enableRemoveAttachments(enabled)
+        enabled &= attachment.endswith('#pdf')
+        self._view.enableButtonViewPdf(enabled)
 
     def removeAttachments(self):
         self._view.removeAttachments()
+
+    def changeSender(self, enabled):
+        self._view.enableRemoveSender(enabled)
+
+    def changeRecipient(self):
+        self._view.enableRemoveRecipient(True)
+
+    def changeSubject(self):
+        self._canSend()
+
+    def sendDocument(self):
+        print("MailerManager.sendDocument()")
+
+    def _canSend(self):
+        enabled = all((self._view.isSenderValid(),
+                       self._view.isRecipientsValid(),
+                       self._view.isSubjectValid()))
+        self._manager.updateUI(enabled)
 
     def _parseAttachments(self, attachments):
         urls = []
@@ -189,7 +204,6 @@ class MailerManager(unohelper.Base):
 
     def _addPdfMark(self, url):
         name, extension = self._model.getNameAndExtension(url.Name)
-        print("MailerManager._addPdfMark() '%s' - '%s'" % (name, extension))
         if self._model.hasPdfFilter(extension):
             url.Complete = '%s#pdf' % url.Complete
 

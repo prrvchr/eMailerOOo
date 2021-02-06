@@ -129,9 +129,10 @@ class SmtpDispatch(unohelper.Base,
     def _showSmtpSpooler(self):
         try:
             print("SmtpDispatch._showSmtpSpooler() 1")
-            manager = SpoolerManager(self._ctx)
-            manager.viewSpooler(self._parent)
-            print("SmtpDispatch._showSmtpSpooler() 2")
+            manager = SpoolerManager(self._ctx, self._parent)
+            if manager.execute() == OK:
+                print("SmtpDispatch._showSmtpSpooler() 2")
+            manager.dispose()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

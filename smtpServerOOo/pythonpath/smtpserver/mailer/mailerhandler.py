@@ -51,7 +51,7 @@ class WindowHandler(unohelper.Base,
         handled = False
         if method == 'ChangeSender':
             enabled = event.Source.getSelectedItemPos() != -1
-            self._manager.enableRemoveSender(enabled)
+            self._manager.changeSender(enabled)
             handled = True
         elif method == 'AddSender':
             listener = DispatchListener(self._manager)
@@ -74,13 +74,34 @@ class WindowHandler(unohelper.Base,
                 control = event.Source
                 email = control.getText()
                 exist = email in control.getItems()
-                self._manager.enterRecipient(control, email, exist)
+                self._manager.enterRecipient(email, exist)
             handled = True
         elif method == 'AddRecipient':
             self._manager.addRecipient()
             handled = True
         elif method == 'RemoveRecipient':
             self._manager.removeRecipient()
+            handled = True
+        elif method == 'ChangeSubject':
+            self._manager.changeSubject()
+            handled = True
+        elif method == 'ViewHtmlDocument':
+            self._manager.viewHtmlDocument()
+            handled = True
+        elif method == 'AddAttachment':
+            self._manager.addAttachments()
+            handled = True
+        elif method == 'RemoveAttachment':
+            self._manager.removeAttachments()
+            handled = True
+        elif method == 'ChangeAttachments':
+            control = event.Source
+            enabled = control.getSelectedItemPos() != -1
+            attachment = control.getSelectedItem()
+            self._manager.changeAttachments(enabled, attachment)
+            handled = True
+        elif method == 'ViewPdfAttachment':
+            self._manager.viewPdfAttachment()
             handled = True
         return handled
 
@@ -92,58 +113,13 @@ class WindowHandler(unohelper.Base,
                 'ChangeRecipient',
                 'KeyPressed',
                 'AddRecipient',
-                'RemoveRecipient')
-
-
-class Page1Handler(unohelper.Base,
-                 XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'SendAsHtml':
-            self._manager.sendAsHtml()
-            handled = True
-        elif method == 'SendAsAttachment':
-            self._manager.sendAsAttachment()
-            handled = True
-        elif method == 'ViewHtmlDocument':
-            self._manager.viewHtmlDocument()
-            handled = True
-        return handled
-
-    def getSupportedMethodNames(self):
-        return ('SendAsHtml',
-                'SendAsAttachment',
-                'ViewHtmlDocument')
-
-
-class Page2Handler(unohelper.Base,
-                 XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'AddAttachment':
-            self._manager.addAttachments()
-            handled = True
-        elif method == 'RemoveAttachment':
-            self._manager.removeAttachments()
-            handled = True
-        elif method == 'ChangeAttachments':
-            enabled = event.Source.getSelectedItemPos() != -1
-            self._manager.enableRemoveAttachments(enabled)
-            handled = True
-        return handled
-
-    def getSupportedMethodNames(self):
-        return ('AddAttachment',
+                'RemoveRecipient',
+                'ChangeSubject',
+                'ViewHtmlDocument'
+                'AddAttachment',
                 'RemoveAttachment',
-                'ChangeAttachments')
+                'ChangeAttachments'
+                'ViewPdfAttachment')
 
 
 class DispatchListener(unohelper.Base,

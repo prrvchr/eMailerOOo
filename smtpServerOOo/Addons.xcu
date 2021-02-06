@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
 <oor:component-data
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -8,14 +33,14 @@
     <node oor:name="AddonMenu">
       <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo" oor:op="replace">
         <prop oor:name="Title" oor:type="xs:string">
-          <value xml:lang="en-US">smtpServerOOo</value>
-          <value xml:lang="fr-FR">smtpServerOOo</value>
+          <value xml:lang="en-US">Mail server</value>
+          <value xml:lang="fr-FR">Serveur de courriel</value>
         </prop>
         <node oor:name="Submenu">
           <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Server" oor:op="replace">
             <prop oor:name="Title">
-              <value xml:lang="en-US">SMTP Server</value>
-              <value xml:lang="fr-FR">Serveur SMTP</value>
+              <value xml:lang="en-US">Configure connection</value>
+              <value xml:lang="fr-FR">Configurer la connexion</value>
             </prop>
             <prop oor:name="URL">
               <value>smtp:server</value>
@@ -23,8 +48,8 @@
           </node>
           <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Spooler" oor:op="replace">
             <prop oor:name="Title">
-              <value xml:lang="en-US">SMTP Spooler</value>
-              <value xml:lang="fr-FR">Spouleur SMTP</value>
+              <value xml:lang="en-US">Outgoing emails</value>
+              <value xml:lang="fr-FR">Courriels sortants</value>
             </prop>
             <prop oor:name="URL">
               <value>smtp:spooler</value>
@@ -32,8 +57,8 @@
           </node>
           <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Mailer" oor:op="replace">
             <prop oor:name="Title">
-              <value xml:lang="en-US">Send an email</value>
-              <value xml:lang="fr-FR">Envoyer un courriel</value>
+              <value xml:lang="en-US">Send a document</value>
+              <value xml:lang="fr-FR">Envoyer un document</value>
             </prop>
             <prop oor:name="URL">
               <value>smtp:mailer</value>

@@ -68,7 +68,7 @@ class SenderManager(unohelper.Base):
     def showDialog(self, datasource, parent, url, path):
         self._view.setDialog(self, parent)
         parent = self._view.getParent()
-        self._mailer = MailerManager(self._ctx, datasource, parent, path)
+        self._mailer = MailerManager(self._ctx, self, datasource, parent, path)
         self._model.getDocument(url, self.initMailer)
         return self._view.execute()
 
@@ -78,6 +78,12 @@ class SenderManager(unohelper.Base):
             title = self._model.getDocumentTitle(document.URL, resource)
             self._view.setTitle(title)
             self._mailer.initView(document)
+
+    def updateUI(self, enabled):
+        self._view.enableButtonSend(enabled)
+
+    def sendDocument(self):
+        self._mailer.sendDocument()
 
     def dispose(self):
         self._view.dispose()

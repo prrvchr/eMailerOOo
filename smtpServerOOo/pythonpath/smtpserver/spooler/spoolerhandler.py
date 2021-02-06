@@ -30,6 +30,7 @@
 import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.frame import XDispatchResultListener
 
@@ -46,6 +47,23 @@ class DialogHandler(unohelper.Base,
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
+        if method == 'ToogleSpooler':
+            self._manager.toogleSpooler()
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('ToogleSpooler',)
+
+
+class Page1Handler(unohelper.Base,
+                   XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        handled = False
         if method == 'Add':
             self._manager.addDocument()
             handled = True
@@ -55,7 +73,34 @@ class DialogHandler(unohelper.Base,
         return handled
 
     def getSupportedMethodNames(self):
-        return ('Add', 'Remove')
+        return ('Add',
+                'Remove')
+
+
+class Page2Handler(unohelper.Base,
+                   XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        handled = False
+        if method == 'AddAttachment':
+            self._manager.addAttachments()
+            handled = True
+        elif method == 'RemoveAttachment':
+            self._manager.removeAttachments()
+            handled = True
+        elif method == 'ChangeAttachments':
+            enabled = event.Source.getSelectedItemPos() != -1
+            self._manager.enableRemoveAttachments(enabled)
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('AddAttachment',
+                'RemoveAttachment',
+                'ChangeAttachments')
 
 
 class GridHandler(unohelper.Base,

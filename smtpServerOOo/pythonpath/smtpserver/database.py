@@ -107,7 +107,7 @@ class DataBase(unohelper.Base):
             query = getSqlQuery(self._ctx, 'shutdown')
         self._statement.execute(query)
 
-# Procedures called by the SmtpServer
+# Procedures called by the Server
     def getSmtpConfig(self, email):
         domain = email.partition('@')[2]
         user = KeyMap()
@@ -181,13 +181,27 @@ class DataBase(unohelper.Base):
         print("DataBase.mergeUser() %s" % result)
         call.close()
 
-# Procedures called by the SmtpSpooler
+# Procedures called by the Spooler
     def getRowSetCommand(self):
-        return getSqlQuery(self._ctx, 'getSpoolerRowSet')
+        return getSqlQuery(self._ctx, 'getRowSetCommand')
 
     def getRowSetOrder(self):
-        return getSqlQuery(self._ctx, 'getSpoolerOrder')
+        return getSqlQuery(self._ctx, 'getRowSetOrder')
 
+    def insertJob(self, sender, subject, document, recipient, attachment, separator):
+        call = self._getCall('insertJob')
+        call.setString(1, sender)
+        call.setString(2, subject)
+        call.setString(3, document)
+        call.setString(4, recipient)
+        call.setString(5, attachment)
+        call.setString(6, separator)
+        status = call.executeUpdate()
+        id = call.getInt(7)
+        call.close()
+        return id
+
+# Procedures called by the Mailer
     def getSenders(self):
         senders = []
         call = self._getCall('getSenders')
@@ -203,20 +217,7 @@ class DataBase(unohelper.Base):
         call.close()
         return status
 
-    def insertJob(self, sender, subject, document, recipient, attachment, separator):
-        call = self._getCall('insertJob')
-        call.setString(1, sender)
-        call.setString(2, subject)
-        call.setString(3, document)
-        call.setString(4, recipient)
-        call.setString(5, attachment)
-        call.setString(6, separator)
-        status = call.executeUpdate()
-        id = call.getInt(7)
-        call.close()
-        return status, id
-
-# Procedures called internally by the SmtpServer
+# Procedures called internally by the Server
     def _mergeProvider(self, provider, name, shortname, timestamp):
         call = self._getCall('mergeProvider')
         call.setString(1, provider)
@@ -272,6 +273,4 @@ class DataBase(unohelper.Base):
     def _getPreparedCall(self, name):
         # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        #query = self.Connection.getQueries().getByName(name).Command
-        #self._CallsPool[name] = self.Connection.prepareCall(query)
         return self.Connection.prepareCommand(name, QUERY)

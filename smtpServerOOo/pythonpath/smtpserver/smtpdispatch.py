@@ -70,6 +70,7 @@ class SmtpDispatch(unohelper.Base,
         self._ctx = ctx
         self._parent = parent
         self._listeners = []
+        self._datasource = DataSource(ctx)
         print("SmtpDispatch.__init__()")
 
     # XNotifyingDispatch
@@ -107,7 +108,7 @@ class SmtpDispatch(unohelper.Base,
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
-            model = PageModel(self._ctx)
+            model = PageModel(self._ctx, self._datasource)
             wizard = Wizard(self._ctx, g_wizard_page, True, self._parent)
             controller = WizardController(self._ctx, wizard, model)
             arguments = (g_wizard_paths, controller)
@@ -129,7 +130,7 @@ class SmtpDispatch(unohelper.Base,
     def _showSmtpSpooler(self):
         try:
             print("SmtpDispatch._showSmtpSpooler() 1")
-            manager = SpoolerManager(self._ctx, self._parent)
+            manager = SpoolerManager(self._ctx, self._datasource, self._parent)
             if manager.execute() == OK:
                 print("SmtpDispatch._showSmtpSpooler() 2")
             manager.dispose()
@@ -149,8 +150,7 @@ class SmtpDispatch(unohelper.Base,
             sender = SenderManager(self._ctx, path)
             url, path = sender.getDocumentUrlAndPath()
             if url is not None:
-                datasource = DataSource(self._ctx)
-                if sender.showDialog(datasource, self._parent, url, path) == OK:
+                if sender.showDialog(self._datasource, self._parent, url, path) == OK:
                     state = SUCCESS
                     path = sender.getPath()
                     print("SmtpDispatch._showSmtpMailer: %s *******************" % url)

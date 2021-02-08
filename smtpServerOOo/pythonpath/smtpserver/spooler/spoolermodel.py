@@ -32,29 +32,30 @@ import unohelper
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+from com.sun.star.sdb.CommandType import COMMAND
 
+from unolib import createService
 from unolib import getPathSettings
 from unolib import getStringResource
 
-from ..datasource import DataSource
+from smtpserver.configuration import g_identifier
+from smtpserver.configuration import g_extension
+from smtpserver.configuration import g_fetchsize
 
-from ..configuration import g_identifier
-from ..configuration import g_extension
-
-from ..logger import logMessage
-from ..logger import getMessage
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
 
 import validators
 import traceback
 
 
 class SpoolerModel(unohelper.Base):
-    def __init__(self, ctx):
+    def __init__(self, ctx, datasource):
         self._ctx = ctx
         self._path = getPathSettings(ctx).Work
-        self._datasource = DataSource(ctx)
+        self._datasource = datasource
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
-        self._started = False
+        self._rowset = self._getRowSet(ctx)
 
     @property
     def DataSource(self):
@@ -70,9 +71,29 @@ class SpoolerModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def getRowSet(self):
-        return self._datasource.getRowSet()
+    def initRowSet(self):
+        self._datasource.initRowSet(self.setRowSet)
 
-    def executeRowSet(self, rowset):
-        if self._datasource.isInitialized():
-            rowset.execute()
+    def setRowSet(self):
+        database = self._datasource.DataBase
+        self._rowset.ActiveConnection = database.Connection
+        self._rowset.Command = database.getRowSetCommand()
+        self._rowset.Order = database.getRowSetOrder()
+        self._rowset.Filter = '1=0'
+        print("SpoolerModel.executeRowSet() *********************************************")
+        self._rowset.execute()
+
+    def getRowSet(self):
+        return self._rowset
+
+    def executeRowSet(self):
+        self._rowset.ApplyFilter = True
+        self._rowset.ApplyFilter = False
+        self._rowset.execute()
+
+    def _getRowSet(self, ctx):
+        service = 'com.sun.star.sdb.RowSet'
+        rowset = createService(ctx, service)
+        rowset.CommandType = COMMAND
+        rowset.FetchSize = g_fetchsize
+        return rowset

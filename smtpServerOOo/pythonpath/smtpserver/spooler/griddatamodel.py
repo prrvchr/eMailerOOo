@@ -147,6 +147,7 @@ class GridDataModel(unohelper.Base,
     def _setRowSetData(self, rowset):
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
+        print("GridDataModel._setRowSetData() RowSet.RowCount=%s" % rowset.RowCount)
         metadata = rowset.getMetaData()
         self.ColumnCount = metadata.getColumnCount()
         if rowset.Order != self._order:
@@ -168,7 +169,7 @@ class GridDataModel(unohelper.Base,
             column = self.ColumnModel.createColumn()
             column.Title = name
             size = metadata.getColumnDisplaySize(index)
-            column.MinWidth = size // 2
+            #column.MinWidth = size // 2
             column.DataColumnIndex = index -1
             self.ColumnModel.addColumn(column)
         self._order = rowset.Order

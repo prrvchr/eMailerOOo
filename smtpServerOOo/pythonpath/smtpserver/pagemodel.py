@@ -52,7 +52,7 @@ import traceback
 
 
 class PageModel(unohelper.Base):
-    def __init__(self, ctx, email=''):
+    def __init__(self, ctx, datasource, email=''):
         self.ctx = ctx
         self._User = None
         self._Servers = ()
@@ -68,7 +68,7 @@ class PageModel(unohelper.Base):
         try:
             msg = "PageModel.__init__()"
             print(msg)
-            self._datasource = DataSource(self.ctx)
+            self._datasource = datasource
         except Exception as e:
             msg = "PageModel.__init__(): Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

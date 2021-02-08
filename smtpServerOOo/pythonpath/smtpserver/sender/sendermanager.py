@@ -76,8 +76,8 @@ class SenderManager(unohelper.Base):
         if not self._view.isDisposed():
             resource = self._view.getTitleRessource()
             title = self._model.getDocumentTitle(document.URL, resource)
-            self._view.setTitle(title)
             self._mailer.initView(document)
+            self._view.setTitle(title)
 
     def updateUI(self, enabled):
         self._view.enableButtonSend(enabled)

@@ -40,6 +40,7 @@ from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
 from unolib import getUrlTransformer
+from unolib import getUrlPresentation
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -73,8 +74,7 @@ class SenderModel(unohelper.Base):
         return title + url
 
     def _getDocument(self, url, callback):
-        url = uno.createUnoStruct('com.sun.star.util.URL', Complete=url)
-        url = getUrlTransformer(self._ctx).getPresentation(url, False)
+        url = getUrlPresentation(self._ctx, url)
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)

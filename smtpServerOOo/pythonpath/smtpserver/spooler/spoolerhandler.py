@@ -125,7 +125,7 @@ class DispatchListener(unohelper.Base,
     # XDispatchResultListener
     def dispatchFinished(self, notification):
         if notification.State == SUCCESS:
-            self._manager.Model.Path = notification.Result
+            self._manager.addJob(notification.Result)
 
     def disposing(self, source):
         pass

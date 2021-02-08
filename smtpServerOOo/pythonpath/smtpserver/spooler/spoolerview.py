@@ -46,7 +46,7 @@ from ..configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
+    def __init__(self, ctx, manager, rowset, parent):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
@@ -64,12 +64,10 @@ class SpoolerView(unohelper.Base):
         self._page2.setVisible(True)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 5, 5)
         size = uno.createUnoStruct('com.sun.star.awt.Size', 340, 150)
-        rowset = manager.getRowSet()
         grid = self._getGridControl(ctx, rowset, 'GridControl1', point, size, 'SpoolerGrid')
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)
         self._setTitle(manager.Model)
-        manager.executeRowSet(rowset)
 
 # SpoolerView setter methods
     def enableButtonRemove(self, enabled):

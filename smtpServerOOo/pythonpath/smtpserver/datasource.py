@@ -36,9 +36,6 @@ from com.sun.star.datatransfer import XTransferable
 from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail.MailServiceType import SMTP
-from com.sun.star.sdb.CommandType import COMMAND
-from com.sun.star.sdb.CommandType import QUERY
-from com.sun.star.sdb.CommandType import TABLE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -53,7 +50,6 @@ from .database import DataBase
 from .dataparser import DataParser
 
 from .configuration import g_identifier
-from .configuration import g_fetchsize
 
 from .logger import setDebugMode
 from .logger import logMessage
@@ -75,21 +71,16 @@ class DataSource(unohelper.Base,
         self._dbname = 'SmtpServer'
         if not self._isInitialized():
             print("DataSource.__init__() 2")
-            DataSource._rowset = self._getRowSet()
             DataSource._init = Thread(target=self._initDataBase)
             DataSource._init.start()
         print("DataSource.__init__() 3")
 
     _init = None
-    _rowset = None
     _database = None
 
     @property
     def DataBase(self):
         return DataSource._database
-
-    def isInitialized(self):
-        return self.DataBase is not None
 
     # XCloseListener
     def queryClosing(self, source, ownership):
@@ -100,7 +91,7 @@ class DataSource(unohelper.Base,
     def notifyClosing(self, source):
         pass
 
-# Procedures called by the SmtpServer
+# Procedures called by the Server
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
@@ -115,42 +106,36 @@ class DataSource(unohelper.Base,
         DataSource._init.join()
 
     def getSmtpConfig(self, *args):
-        config = Thread(target=self._getSmtpConfig, args=args)
-        config.start()
+        Thread(target=self._getSmtpConfig, args=args).start()
 
     def smtpConnect(self, *args):
         setDebugMode(self._ctx, True)
-        connect = Thread(target=self._smtpConnect, args=args)
-        connect.start()
+        Thread(target=self._smtpConnect, args=args).start()
 
     def smtpSend(self, *args):
         setDebugMode(self._ctx, True)
-        send = Thread(target=self._smtpSend, args=args)
-        send.start()
+        Thread(target=self._smtpSend, args=args).start()
 
-# Procedures called by the SmtpSpooler
-    def getRowSet(self):
-        return DataSource._rowset
-
+# Procedures called by the Mailer
     def getSenders(self, *args):
-        thread = Thread(target=self._getSenders, args=args)
-        thread.start()
+        Thread(target=self._getSenders, args=args).start()
 
     def removeSender(self, sender):
         return self.DataBase.deleteUser(sender)
 
+# Procedures called by the Spooler
+    def initRowSet(self, *args):
+        Thread(target=self._initRowSet, args=args).start()
+
+# Procedures called by the MailServiceSpooler
     def insertJob(self, sender, subject, document, recipients, attachments):
         separator = '|'
         recipient = separator.join(recipients)
         attachment = separator.join(attachments)
-        status, id = self.DataBase.insertJob(sender, subject, document, recipient, attachment, separator)
-        print("DataSource.insertJob() %s" % status)
-        if status == 1:
-            DataSource._rowset.execute()
+        id = self.DataBase.insertJob(sender, subject, document, recipient, attachment, separator)
         return id
 
-
-# Procedures called internally by the SmtpServer
+# Procedures called internally by the Server
     def _getSmtpConfig(self, email, url, progress, callback):
         progress(5)
         url = getUrl(self._ctx, url)
@@ -245,30 +230,21 @@ class DataSource(unohelper.Base,
         senders = self.DataBase.getSenders()
         callback(senders)
 
+# Procedures called internally by the Spooler
+    def _initRowSet(self, callback):
+        self.waitForDataBase()
+        callback()
+
 # Private methods
     def _isInitialized(self):
         return DataSource._init is not None
-
-    def _getRowSet(self):
-        service = 'com.sun.star.sdb.RowSet'
-        rowset = createService(self._ctx, service)
-        rowset.CommandType = COMMAND
-        rowset.FetchSize = g_fetchsize
-        return rowset
 
     def _initDataBase(self):
         time.sleep(0.5)
         database = DataBase(self._ctx, self._dbname)
         database.addCloseListener(self)
-        self._initRowSet(database)
         DataSource._database = database
 
-    def _initRowSet(self, database):
-        rowset = DataSource._rowset
-        rowset.ActiveConnection = database.Connection
-        rowset.Command = database.getRowSetCommand()
-        rowset.Order = database.getRowSetOrder()
-        rowset.execute()
 
 class MailTransferable(unohelper.Base,
                        XTransferable):

@@ -26,7 +26,7 @@ Table|Column|TypeName|TypeLenght|Default|Options|Primary|Unique|ForeignTable|For
 4|19|TIMESTAMP|6|CURRENT_TIMESTAMP|NOT NULL|false|false||
 5|12|INTEGER|||NOT NULL|false|false|4|12
 5|16|VARCHAR|320||NOT NULL|false|false||
-5|17|TINYINT||0|NOT NULL|false|false||
+5|17|SMALLINT||0|NOT NULL|false|false||
 5|19|TIMESTAMP|6|CURRENT_TIMESTAMP|NOT NULL|false|false||
 6|12|INTEGER|||NOT NULL|false|false|4|12
 6|18|VARCHAR|512||NOT NULL|false|false||

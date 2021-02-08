@@ -37,7 +37,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
 from unolib import getUrlTransformer
-from unolib import getPathSettings
 from unolib import parseUrl
 from unolib import executeDispatch
 from unolib import getPropertyValueSet
@@ -53,29 +52,25 @@ from ..logger import logMessage
 from ..logger import getMessage
 g_message = 'spoolermanager'
 
+import time
 import traceback
 
 
 class SpoolerManager(unohelper.Base):
-    def __init__(self, ctx, parent):
+    def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
-        self._model = SpoolerModel(ctx)
-        self._view = SpoolerView(ctx, self, parent)
-        self._path = getPathSettings(ctx).Work
+        self._model = SpoolerModel(ctx, datasource)
+        rowset = self._model.getRowSet()
+        self._view = SpoolerView(ctx, self, rowset, parent)
         service = 'com.sun.star.mail.MailServiceSpooler'
         self._spooler = createService(ctx, service)
         self.refreshSpoolerState()
+        self._model.initRowSet()
         print("SpoolerManager.__init__()")
 
     @property
     def Model(self):
         return self._model
-
-    def getRowSet(self):
-        return self._model.getRowSet()
-
-    def executeRowSet(self, rowset):
-        self._model.executeRowSet(rowset)
 
     def execute(self):
         return self._view.execute()
@@ -83,13 +78,31 @@ class SpoolerManager(unohelper.Base):
     def dispose(self):
         self._view.dispose()
 
+    def addDocument1(self):
+        try:
+            sender = SenderManager(self._ctx, self._model.Path)
+            url, self._model.Path = sender.getDocumentUrlAndPath()
+            if url is not None:
+                if sender.showDialog(self._model.DataSource, self._view.getParent(), url, self._model.Path) == OK:
+                    self._model.Path = sender.getPath()
+                    self._model.executeRowSet()
+                sender.dispose()
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
     def addDocument(self):
-        arguments = getPropertyValueSet({'Path': self._path})
+        arguments = getPropertyValueSet({'Path': self._model.Path})
         listener = DispatchListener(self)
         executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
 
+    def addJob(self, path):
+        self._model.Path = path
+        time.sleep(5)
+        self._model.executeRowSet()
+
     def removeDocument(self):
-        pass
+        self._model.executeRowSet()
 
     def toogleRemove(self, enabled):
         self._view.enableButtonRemove(enabled)

@@ -30,7 +30,7 @@
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="350" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerPage1.CommandButton1.HelpText" dlg:value="&amp;SpoolerPage1.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Add" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="350" dlg:top="25" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerPage1.CommandButton2.HelpText" dlg:value="&amp;SpoolerPage1.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="false" dlg:left="350" dlg:top="25" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerPage1.CommandButton2.HelpText" dlg:value="&amp;SpoolerPage1.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

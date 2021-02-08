@@ -59,19 +59,22 @@ def getDesktop(ctx):
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
 
+def getPathSettings(ctx):
+    return createService(ctx, 'com.sun.star.util.PathSettings')
+
 def getUrlTransformer(ctx):
     return createService(ctx, 'com.sun.star.util.URLTransformer')
 
-def getPathSettings(ctx):
-    return createService(ctx, 'com.sun.star.util.PathSettings')
+def getUrlPresentation(ctx, location, password=False):
+    url = uno.createUnoStruct('com.sun.star.util.URL', Complete=location)
+    return getUrlTransformer(ctx).getPresentation(url, password)
 
 def getUrl(ctx, location, protocol=None):
     transformer = getUrlTransformer(ctx)
     return parseUrl(transformer, location, protocol)
 
 def parseUrl(transformer, location, protocol=None):
-    url = uno.createUnoStruct('com.sun.star.util.URL')
-    url.Complete = location
+    url = uno.createUnoStruct('com.sun.star.util.URL', Complete=location)
     if protocol is None:
         success, url = transformer.parseStrict(url)
     else:
@@ -112,13 +115,20 @@ def _getSequence(inputstream, length):
     return length, sequence
 
 def hasInterface(component, interface):
-    for t in _getComponentTypes(component):
+    for t in getComponentTypes(component):
         if t.typeName == interface:
             return True
     return False
 
+def getComponentTypes(component):
+    try:
+        types = component.getTypes()
+    except:
+        types = ()
+    return types
+
 def getInterfaceTypes(component):
-    return _getComponentTypes(component)
+    return getComponentTypes(component)
 
 def getProperty(name, type=None, attributes=None, handle=-1):
     property = uno.createUnoStruct('com.sun.star.beans.Property')
@@ -339,10 +349,3 @@ def _getDateTime(microsecond=0, second=0, minute=0, hour=0, day=1, month=1, year
     if hasattr(t, 'IsUTC'):
         t.IsUTC = utc
     return t
-
-def _getComponentTypes(component):
-    try:
-        types = component.getTypes()
-    except:
-        types = ()
-    return types

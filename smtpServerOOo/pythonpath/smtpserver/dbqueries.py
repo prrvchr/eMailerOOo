@@ -164,6 +164,24 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getSenders':
         query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
 
+    elif name == 'getSpoolerRowSet':
+        s1 = '"Senders"."Id"'
+        s2 = '"Senders"."Sender"'
+        s3 = '"Senders"."Subject"'
+        s4 = '"Senders"."Document"'
+        s5 = '"Recipients"."Recipient"'
+        s6 = '"Recipients"."State"'
+        s7 = '"Recipients"."TimeStamp"'
+        s = (s1,s2,s3,s4,s5,s6,s7)
+        f1 = '"Senders"'
+        f2 = 'JOIN "Recipients" ON "Senders"."Id"="Recipients"."Id"'
+        f = (f1, f2)
+        p = (','.join(s), ' '.join(f))
+        query = 'SELECT %s FROM %s' % p
+
+    elif name == 'getSpoolerOrder':
+        query = '"Id", "Sender", "Recipient", "State", "Document", "Subject", "TimeStamp"'
+
 # Delete Queries
     elif name == 'deleteUser':
         query = 'DELETE FROM "Users" WHERE "User" = ?;'
@@ -294,6 +312,40 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
           VALUES vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
 
+    elif name == 'createInsertJob':
+        query = """\
+CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
+                             IN "Subject" VARCHAR(78),
+                             IN "Document" VARCHAR(512),
+                             IN "Recipient" VARCHAR(32000),
+                             IN "Attachment" VARCHAR(5120),
+                             IN "Separator" VARCHAR(1),
+                             OUT "Id" INTEGER)
+  SPECIFIC "InsertJob_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE "JobId" INTEGER DEFAULT 0;
+    DECLARE "Index" INTEGER DEFAULT 1;
+    DECLARE "Pattern" VARCHAR(5) DEFAULT '[^$]+';
+    DECLARE "Recipients" VARCHAR(320) ARRAY[500];
+    DECLARE "Attachments" VARCHAR(512) ARRAY[50];
+    SET "Pattern" = REPLACE("Pattern", '$', "Separator");
+    SET "Recipients" = REGEXP_SUBSTRING_ARRAY("Recipient", "Pattern");
+    SET "Attachments" = REGEXP_SUBSTRING_ARRAY("Attachment", "Pattern");
+    INSERT INTO "Senders" ("Sender","Subject","Document") VALUES ("Sender","Subject","Document");
+    SET "JobId" = IDENTITY();
+    WHILE "Index" <= CARDINALITY("Recipients") DO
+      INSERT INTO "Recipients" ("Id","Recipient") VALUES ("JobId","Recipients"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Index" = 1;
+    WHILE "Index" <= CARDINALITY("Attachments") DO
+      INSERT INTO "Attachments" ("Id","Attachment") VALUES ("JobId","Attachments"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Id" = "JobId";
+  END;"""
+
 # Get DataBase Version Query
     elif name == 'getVersion':
         query = 'SELECT DISTINCT DATABASE_VERSION() AS "HSQL Version" FROM INFORMATION_SCHEMA.SYSTEM_TABLES'
@@ -319,6 +371,8 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
         query = 'CALL "MergeUser"(?,?,?,?,?,?)'
+    elif name == 'insertJob':
+        query = 'CALL "InsertJob"(?,?,?,?,?,?,?)'
 
 # Get prepareCommand Query
     elif name == 'prepareCommand':

@@ -101,6 +101,7 @@ from oauth2lib import getOAuth2Token
 
 from unolib import getConfiguration
 from unolib import getInterfaceTypes
+from unolib import hasInterface
 from unolib import getExceptionMessage
 
 from smtpserver import isDebugMode
@@ -163,11 +164,9 @@ class SmtpService(unohelper.Base,
             logMessage(self.ctx, INFO, msg, 'SmtpService', 'connect()')
         if self.isConnected():
             raise AlreadyConnectedException()
-        unotype = uno.getTypeByName('com.sun.star.uno.XCurrentContext')
-        if unotype not in getInterfaceTypes(context):
+        if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
             raise IllegalArgumentException()
-        unotype = uno.getTypeByName('com.sun.star.mail.XAuthenticator')
-        if unotype not in getInterfaceTypes(authenticator):
+        if not hasInterface(authenticator, 'com.sun.star.mail.XAuthenticator'):
             raise IllegalArgumentException()
         server = context.getValueByName('ServerName')
         error = self._setServer(context, server)

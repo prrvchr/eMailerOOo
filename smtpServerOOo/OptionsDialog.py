@@ -228,9 +228,9 @@ class OptionsDialog(unohelper.Base,
 
     def _toogleSpooler(self, dialog):
         if self._spooler.isStarted():
-            self._spooler.stopSpooler()
+            self._spooler.stop()
         else:
-            self._spooler.startSpooler()
+            self._spooler.start()
         self._loadSpooler(dialog)
 
     def _showSmtpSpooler(self, dialog):

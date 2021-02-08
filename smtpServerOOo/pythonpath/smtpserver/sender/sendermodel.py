@@ -69,12 +69,12 @@ class SenderModel(unohelper.Base):
         thread.start()
 
     def getDocumentTitle(self, url, resource):
-        url = uno.createUnoStruct('com.sun.star.util.URL', Complete=url)
-        url = getUrlTransformer(self._ctx).getPresentation(url, False)
         title = self.resolveString(resource)
         return title + url
 
     def _getDocument(self, url, callback):
+        url = uno.createUnoStruct('com.sun.star.util.URL', Complete=url)
+        url = getUrlTransformer(self._ctx).getPresentation(url, False)
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)

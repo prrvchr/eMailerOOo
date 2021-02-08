@@ -58,7 +58,7 @@ class MailerModel(unohelper.Base):
         self._ctx = ctx
         self._datasource = datasource
         self._path = path
-        self._document = None
+        self._url = None
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
 
     @property
@@ -70,35 +70,34 @@ class MailerModel(unohelper.Base):
     @Path.setter
     def Path(self, path):
         self._path = path
-    @property
-    def Document(self):
-        return self._document
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
     def getUrl(self):
-        return self._document.URL
+        return self._url
+
+    def setUrl(self, url):
+        self._url = url
 
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
-    def setDocument(self, document):
-        self._document = document
+    def getDocumentSubject(self, document):
+        return document.DocumentProperties.Subject
 
-    def getDocumentSubject(self):
-        return self._document.DocumentProperties.Subject
-
-    def getDocumentAttachments(self, resource, default=''):
+    def getDocumentAttachments(self, document, resource, default=''):
         attachments = ()
-        values = self.getDocumentUserProperty(resource, default)
-        if len(values):
-            attachments = tuple(values.split('|'))
+        value = self.getDocumentUserProperty(document, resource, default)
+        print("MailerModel.getDocumentAttachments() 1 %s" % value)
+        if len(value):
+            attachments = tuple(value.split('|'))
+        print("MailerModel.getDocumentAttachments() 2 %s" % (attachments, ))
         return attachments
         
-    def getDocumentUserProperty(self, resource, default=True):
+    def getDocumentUserProperty(self, document, resource, default=True):
         name = self.resolveString(resource)
-        properties = self._document.DocumentProperties.UserDefinedProperties
+        properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(name):
             value = properties.getPropertyValue(name)
         else:
@@ -106,6 +105,26 @@ class MailerModel(unohelper.Base):
         #elif default is not None:
         #    self._setDocumentUserProperty(name, default)
         return value
+
+    def setDocumentSubject(self, document, subject):
+        document.DocumentProperties.Subject = subject
+
+    def setDocumentAttachments(self, document, resource, values):
+        value = '|'.join(values)
+        self.setDocumentUserProperty(document, resource, value)
+
+    def setDocumentUserProperty(self, document, resource, value):
+        name = self.resolveString(resource)
+        properties = document.DocumentProperties.UserDefinedProperties
+        if properties.PropertySetInfo.hasPropertyByName(name):
+            properties.setPropertyValue(name, value)
+        else:
+            properties.addProperty(name,
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEVOID") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.BOUND") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.REMOVABLE") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
+            value)
 
     def removeSender(self, sender):
         return self.DataSource.removeSender(sender)
@@ -170,7 +189,9 @@ class MailerModel(unohelper.Base):
         filter = filters.get(format, None)
         return filter
 
-    def getDocument(self, url):
+    def getDocument(self, url=None):
+        if url is None:
+            url = self._url
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)

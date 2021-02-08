@@ -58,6 +58,9 @@ class SenderView(unohelper.Base):
     def enableButtonSend(self, enabled):
         self._getButtonSend().Model.Enabled = enabled
 
+    def endDialog(self):
+        self._dialog.endDialog(OK)
+
     def dispose(self):
         self._dialog.dispose()
         self._dialog = None

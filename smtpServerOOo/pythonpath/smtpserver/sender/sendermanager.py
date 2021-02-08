@@ -84,6 +84,7 @@ class SenderManager(unohelper.Base):
 
     def sendDocument(self):
         self._mailer.sendDocument()
+        self._view.endDialog()
 
     def dispose(self):
         self._view.dispose()

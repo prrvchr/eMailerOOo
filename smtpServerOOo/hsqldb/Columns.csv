@@ -13,7 +13,9 @@ Column|Name
 11|Password
 12|Id
 13|Sender
-14|Recipient
+14|Subject
 15|Document
-16|Status
-17|TimeStamp
+16|Recipient
+17|State
+18|Attachment
+19|TimeStamp

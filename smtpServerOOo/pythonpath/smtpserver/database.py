@@ -183,11 +183,10 @@ class DataBase(unohelper.Base):
 
 # Procedures called by the SmtpSpooler
     def getRowSetCommand(self):
-        query = 'SELECT %s FROM "Spooler"' % self.getRowSetOrder()
-        return query
+        return getSqlQuery(self._ctx, 'getSpoolerRowSet')
 
     def getRowSetOrder(self):
-        return '"Id", "Sender", "Recipient", "Document", "Status", "TimeStamp"'
+        return getSqlQuery(self._ctx, 'getSpoolerOrder')
 
     def getSenders(self):
         senders = []
@@ -202,8 +201,20 @@ class DataBase(unohelper.Base):
         call.setString(1, user)
         status = call.executeUpdate()
         call.close()
-        print("DataBase.deleteUser() %s **************************" % status)
         return status
+
+    def insertJob(self, sender, subject, document, recipient, attachment, separator):
+        call = self._getCall('insertJob')
+        call.setString(1, sender)
+        call.setString(2, subject)
+        call.setString(3, document)
+        call.setString(4, recipient)
+        call.setString(5, attachment)
+        call.setString(6, separator)
+        status = call.executeUpdate()
+        id = call.getInt(7)
+        call.close()
+        return status, id
 
 # Procedures called internally by the SmtpServer
     def _mergeProvider(self, provider, name, shortname, timestamp):

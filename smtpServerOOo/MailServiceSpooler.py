@@ -62,24 +62,33 @@ class MailServiceSpooler(unohelper.Base,
         msg = getMessage(ctx, g_service, 101)
         logMessage(ctx, INFO, msg, g_service, '__init__()')
         self._ctx = ctx
+        self._datasource = DataSource(ctx)
         msg = getMessage(ctx, g_service, 102)
         logMessage(ctx, INFO, msg, g_service, '__init__()')
 
     _started = False
 
     # XMailServiceSpooler
-    def startSpooler(self):
+    def start(self):
         MailServiceSpooler._started = True
-    def stopSpooler(self):
+
+    def stop(self):
         MailServiceSpooler._started = False
+
     def isStarted(self):
         return MailServiceSpooler._started
-    def addEntry(self):
+
+    def addJob(self, sender, subject, document, recipients, attachments):
+        print("MailServiceSpooler.addJob() %s - %s - %s - %s -%s" % (sender, subject, document, recipients, attachments))
+        id = self._datasource.insertJob(sender, subject, document, recipients, attachments)
+        print("MailServiceSpooler.addJob() %s" % id)
+        return id
+
+    def removeJob(self, id):
         pass
-    def removeEntry(self):
+ 
+    def getJobState(self, id):
         pass
-    def viewSpooler(self, parent):
-        executeDispatch(self._ctx, 'smtp:spooler')
 
     # XServiceInfo
     def supportsService(self, service):

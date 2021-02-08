@@ -84,13 +84,9 @@ class SpoolerManager(unohelper.Base):
         self._view.dispose()
 
     def addDocument(self):
-        try:
-            arguments = getPropertyValueSet({'Path': self._path})
-            listener = DispatchListener(self)
-            executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+        arguments = getPropertyValueSet({'Path': self._path})
+        listener = DispatchListener(self)
+        executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
 
     def removeDocument(self):
         pass
@@ -100,9 +96,9 @@ class SpoolerManager(unohelper.Base):
 
     def toogleSpooler(self):
         if self._spooler.isStarted():
-            self._spooler.stopSpooler()
+            self._spooler.stop()
         else:
-            self._spooler.startSpooler()
+            self._spooler.start()
         self.refreshSpoolerState()
 
     def refreshSpoolerState(self):

@@ -67,28 +67,32 @@ class MailerManager(unohelper.Base):
             return
         # Set the Senders ListBox
         self._view.setSenders(senders)
+        self._canSend()
 
     def initView(self, document):
-        if self._view.isDisposed():
-            return
-        self._model.setDocument(document)
-        # Set the Save Subject CheckBox and if needed the Subject TextField
-        state = self._getDocumentUserProperty('SaveSubject')
-        self._view.setSaveSubject(int(state))
-        if state:
-            subject = self._model.getDocumentSubject()
-            self._view.setSubject(subject)
-        # Set the Attachment As PDF CheckBox
-        state = self._getDocumentUserProperty('AttachmentAsPdf')
-        self._view.setAttachmentAsPdf(int(state))
-        # Set the Save Attachments CheckBox and if needed the Attachments ListBox
-        state = self._getDocumentUserProperty('SaveAttachments')
-        self._view.setSaveAttachments(int(state))
-        if state:
-            attachments = self._getDocumentAttachemnts('Attachments')
-            self._view.setAttachments(attachments)
-        # Set the View Document in HTML CommandButton
-        self._view.enableButtonViewHtml()
+        if not self._view.isDisposed():
+            #mri = createService(self._ctx, 'mytools.Mri')
+            #mri.inspect(document)
+            self._model.setUrl(document.URL)
+            # Set the Save Subject CheckBox and if needed the Subject TextField
+            state = self._getDocumentUserProperty(document, 'SaveSubject')
+            self._view.setSaveSubject(int(state))
+            if state:
+                subject = self._model.getDocumentSubject(document)
+                self._view.setSubject(subject)
+            # Set the Save Attachments CheckBox and if needed the Attachments ListBox
+            state = self._getDocumentUserProperty(document, 'SaveAttachments')
+            self._view.setSaveAttachments(int(state))
+            if state:
+                attachments = self._getDocumentAttachemnts(document, 'Attachments')
+                self._view.setAttachments(attachments)
+            # Set the Attachment As PDF CheckBox
+            state = self._getDocumentUserProperty(document, 'AttachmentAsPdf')
+            self._view.setAttachmentAsPdf(int(state))
+            # Set the View Document in HTML CommandButton
+            self._view.enableButtonViewHtml()
+            self._canSend()
+        document.close(True)
 
     def show(self):
         return self._view.execute()
@@ -103,7 +107,7 @@ class MailerManager(unohelper.Base):
     def removeSender(self):
         # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
         self._view.enableRemoveSender(False)
-        sender, position = self._view.getSender()
+        sender, position = self._view.getSelectedSender()
         status = self.Model.removeSender(sender)
         if status == 1:
             self._view.removeSender(position)
@@ -127,15 +131,10 @@ class MailerManager(unohelper.Base):
             self._view.addToRecipient(email)
             self._canSend()
 
-    def sendAsHtml(self):
-        self._view.setStep(1)
-
-    def sendAsAttachment(self):
-        self._view.setStep(2)
-
     def viewHtmlDocument(self):
-        document = self._model.Document
+        document = self._model.getDocument()
         url = self._model.saveDocumentAs(document, 'html')
+        document.close(True)
         if url is not None:
             executeShell(self._ctx, url)
 
@@ -179,7 +178,21 @@ class MailerManager(unohelper.Base):
         self._canSend()
 
     def sendDocument(self):
-        print("MailerManager.sendDocument()")
+        try:
+            subject = self._view.getSubject()
+            attachments = self._view.getAttachments()
+            self._saveDocumentProperty(subject, attachments)
+            sender = self._view.getSender()
+            recipients = self._view.getRecipients()
+            url = self._model.getUrl()
+            print("MailManager.sendDocument() %s - %s - %s - %s -%s" % (sender, recipients, subject, url, attachments))
+            service = 'com.sun.star.mail.MailServiceSpooler'
+            spooler = createService(self._ctx, service)
+            id = spooler.addJob(sender, subject, url, recipients, attachments)
+            print("MailerManager.sendDocument() %s" % id)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def _canSend(self):
         enabled = all((self._view.isSenderValid(),
@@ -212,20 +225,42 @@ class MailerManager(unohelper.Base):
         title = self._model.getDocumentTitle(resource)
         return title
 
-    def _getDocumentUserProperty(self, name):
+    def _getDocumentUserProperty(self, document, name):
         resource = self._view.getPropertyResource(name)
-        state = self._model.getDocumentUserProperty(resource)
+        state = self._model.getDocumentUserProperty(document, resource)
         return state
 
-    def _getDocumentLabel(self):
-        resource = self._view.getDocumentResource()
-        label = self._model.getDocumentLabel(resource)
-        return label
-
-    def _getDocumentAttachemnts(self, name):
+    def _getDocumentAttachemnts(self, document, name):
         resource = self._view.getPropertyResource(name)
-        attachments = self._model.getDocumentAttachments(resource)
+        attachments = self._model.getDocumentAttachments(document, resource)
         return attachments
 
     def _validateRecipient(self, email, exist):
         return all((self.Model.isEmailValid(email), not exist))
+
+    def _saveDocumentProperty(self, subject, attachments):
+        try:
+            document = self._model.getDocument()
+            state = self._view.getSaveSubject()
+            self._setDocumentUserProperty(document, 'SaveSubject', state)
+            if state:
+                self._model.setDocumentSubject(document, subject)
+            state = self._view.getSaveAttachments()
+            self._setDocumentUserProperty(document, 'SaveAttachments', state)
+            if state:
+                self._setDocumentAttachments(document, 'Attachments', attachments)
+            state = self._view.getAttachmentAsPdf()
+            self._setDocumentUserProperty(document, 'AttachmentAsPdf', state)
+            document.store()
+            document.close(True)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _setDocumentUserProperty(self, document, name, value):
+        resource = self._view.getPropertyResource(name)
+        self._model.setDocumentUserProperty(document, resource, value)
+
+    def _setDocumentAttachments(self, document, name, value):
+        resource = self._view.getPropertyResource(name)
+        self._model.setDocumentAttachments(document, resource, value)

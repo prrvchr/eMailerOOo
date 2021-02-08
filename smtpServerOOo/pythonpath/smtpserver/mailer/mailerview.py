@@ -147,12 +147,26 @@ class MailerView(unohelper.Base):
     def getSender(self):
         control = self._getSendersList()
         sender = control.getSelectedItem()
+        return sender
+
+    def getRecipients(self):
+        control = self._getRecipientsList()
+        recipients = control.getItems()
+        return recipients
+
+    def getSelectedSender(self):
+        control = self._getSendersList()
+        sender = control.getSelectedItem()
         position = control.getSelectedItemPos()
         return sender, position
 
     def getAttachmentAsPdf(self):
         state = self._getAttachmentAsPdf().Model.State
         return bool(state)
+
+    def getAttachments(self):
+        attachments = self._getAttachments().getItems()
+        return attachments
 
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
@@ -165,6 +179,18 @@ class MailerView(unohelper.Base):
 
     def isSubjectValid(self):
         return self._getSubject().getText() != ''
+
+    def getSubject(self):
+        subject = self._getSubject().Text
+        return subject
+
+    def getSaveSubject(self):
+        state = self._getSaveSubject().Model.State
+        return bool(state)
+
+    def getSaveAttachments(self):
+        state = self._getSaveAttachments().Model.State
+        return bool(state)
 
 # MailerView private setter methods
     def _addRecipient(self, control, email):
@@ -184,6 +210,24 @@ class MailerView(unohelper.Base):
     def _getSendersList(self):
         return self._window.getControl('ListBox1')
 
+    def _getAttachments(self):
+        return self._window.getControl('ListBox2')
+
+    def _getRecipientsList(self):
+        return self._window.getControl('ComboBox1')
+
+    def _getSubject(self):
+        return self._window.getControl('TextField1')
+
+    def _getSaveSubject(self):
+        return self._window.getControl('CheckBox1')
+
+    def _getSaveAttachments(self):
+        return self._window.getControl('CheckBox2')
+
+    def _getAttachmentAsPdf(self):
+        return self._window.getControl('CheckBox3')
+
     def _getButtonRemoveSender(self):
         return self._window.getControl('CommandButton2')
 
@@ -193,29 +237,8 @@ class MailerView(unohelper.Base):
     def _getButtonRemoveRecipient(self):
         return self._window.getControl('CommandButton4')
 
-    def _getRecipientsList(self):
-        return self._window.getControl('ComboBox1')
-
-    def _getSaveSubject(self):
-        return self._window.getControl('CheckBox1')
-
-    def _getSubject(self):
-        return self._window.getControl('TextField1')
-
     def _getButtonViewHtml(self):
         return self._window.getControl('CommandButton5')
-
-    def _getSaveMessage(self):
-        return self._window.getControl('CheckBox1')
-
-    def _getSaveAttachments(self):
-        return self._window.getControl('CheckBox2')
-
-    def _getAttachmentAsPdf(self):
-        return self._window.getControl('CheckBox3')
-
-    def _getAttachments(self):
-        return self._window.getControl('ListBox2')
 
     def _getButtonRemoveAttachments(self):
         return self._window.getControl('CommandButton7')

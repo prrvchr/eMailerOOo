@@ -136,12 +136,19 @@ class DataSource(unohelper.Base,
         thread = Thread(target=self._getSenders, args=args)
         thread.start()
 
-    def getDocumentProperties(self, *args):
-        thread = Thread(target=self._getDocumentProperties, args=args)
-        thread.start()
-
     def removeSender(self, sender):
         return self.DataBase.deleteUser(sender)
+
+    def insertJob(self, sender, subject, document, recipients, attachments):
+        separator = '|'
+        recipient = separator.join(recipients)
+        attachment = separator.join(attachments)
+        status, id = self.DataBase.insertJob(sender, subject, document, recipient, attachment, separator)
+        print("DataSource.insertJob() %s" % status)
+        if status == 1:
+            DataSource._rowset.execute()
+        return id
+
 
 # Procedures called internally by the SmtpServer
     def _getSmtpConfig(self, email, url, progress, callback):
@@ -237,35 +244,6 @@ class DataSource(unohelper.Base,
         self.waitForDataBase()
         senders = self.DataBase.getSenders()
         callback(senders)
-
-    def _getDocumentUserProperty(self, document, name, default=None):
-        properties = document.DocumentProperties.UserDefinedProperties
-        if properties.PropertySetInfo.hasPropertyByName(name):
-            property = properties.getPropertyValue(name)
-        elif default is not None:
-            self._setDocumentUserProperty(name, default)
-        return property
-
-    def getDocumentProperties(self, document):
-        subject = document.DocumentProperties.Subject
-        message = document.DocumentProperties.Description
-        return subject, message
-
-    def _setDocumentUserProperty(self, document, name, value):
-        properties = document.DocumentProperties.UserDefinedProperties
-        if properties.PropertySetInfo.hasPropertyByName(name):
-            properties.setPropertyValue(name, value)
-        else:
-            properties.addProperty(name,
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEVOID") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.BOUND") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.REMOVABLE") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
-            value)
-
-    def setDocumentProperties(self, document, subject, message):
-        document.DocumentProperties.Subject = subject
-        document.DocumentProperties.Description = message
 
 # Private methods
     def _isInitialized(self):

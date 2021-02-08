@@ -28,21 +28,22 @@
 #define __com_sun_star_mail_XMailServiceSpooler_idl__
 
 #include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/awt/XWindowPeer.idl>
 
 module com { module sun { module star { module mail {
 
 interface XMailServiceSpooler: com::sun::star::uno::XInterface
 {
 
-    void startSpooler();
-    void stopSpooler();
+    void start();
+    void stop();
     boolean isStarted();
-    long addEntry([in] string Sender,
-                  [in] string Recipient,
-                  [in] string Document);
-    void removeEntry([in] long Id);
-    void viewSpooler([in] com::sun::star::awt::XWindowPeer Parent);
+    long addJob([in] string Sender,
+                [in] string Subject,
+                [in] string Document,
+                [in] sequence<string> Recipients,
+                [in] sequence<string> Attachments);
+    boolean removeJob([in] long Id);
+    long getJobState([in] long Id);
 
 };
 

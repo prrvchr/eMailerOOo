@@ -69,6 +69,7 @@ from .unotools import unparseTimeStamp
 from .unotools import getConnectionMode
 from .unotools import getParentWindow
 from .unotools import getUrl
+from .unotools import getUrlPresentation
 from .unotools import parseUrl
 from .unotools import getExceptionMessage
 

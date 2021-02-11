@@ -31,7 +31,6 @@ import uno
 import unohelper
 
 from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -41,7 +40,8 @@ from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
 from unolib import getPathSettings
-from unolib import createService
+from unolib import getUrlTransformer
+from unolib import parseUrl
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -82,6 +82,14 @@ class MailerModel(unohelper.Base):
 
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
+
+    def getDocument(self, url=None):
+        if url is None:
+            url = self._url
+        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+        descriptor = getPropertyValueSet(properties)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        return document
 
     def getDocumentSubject(self, document):
         return document.DocumentProperties.Subject
@@ -136,7 +144,7 @@ class MailerModel(unohelper.Base):
 
     def saveDocumentAs(self, document, format):
         url = None
-        name, extension = self.getNameAndExtension(document.Title)
+        name, extension = self._getNameAndExtension(document.Title)
         filter = self._getDocumentFilter(extension, format)
         if filter is not None:
             temp = getPathSettings(self._ctx).Temp
@@ -149,21 +157,26 @@ class MailerModel(unohelper.Base):
             print("MailerModel.saveDocumentAs() %s" % url)
         return url
 
-    def getAttachments(self, resource):
-        attachments = ()
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(self._path)
-        title = self.resolveString(resource)
-        filepicker.setTitle(title)
-        filepicker.setMultiSelectionMode(True)
-        if filepicker.execute() == OK:
-            attachments = filepicker.getSelectedFiles()
-            self._path = filepicker.getDisplayDirectory()
-        filepicker.dispose()
-        return attachments
+    def parseAttachments(self, attachments, pdf):
+        urls = []
+        transformer = getUrlTransformer(self._ctx)
+        for attachment in attachments:
+            url = self._parseAttachment(transformer, attachment, pdf)
+            urls.append(url)
+        return tuple(urls)
 
-    def getNameAndExtension(self, filename):
+    def _parseAttachment(self, transformer, attachment, pdf):
+        url = parseUrl(transformer, attachment)
+        if pdf:
+            self._addPdfMark(url)
+        return transformer.getPresentation(url, False)
+
+    def _addPdfMark(self, url):
+        name, extension = self._getNameAndExtension(url.Name)
+        if self._hasPdfFilter(extension):
+            url.Complete += '#pdf'
+
+    def _getNameAndExtension(self, filename):
         part1, sep, part2 = filename.rpartition('.')
         if sep:
             name, extension = part1, part2
@@ -171,7 +184,7 @@ class MailerModel(unohelper.Base):
             name, extension = part2, part1
         return name, extension
 
-    def hasPdfFilter(self, extension):
+    def _hasPdfFilter(self, extension):
         filter = self._getDocumentFilter(extension, 'pdf')
         return filter is not None
 
@@ -188,11 +201,3 @@ class MailerModel(unohelper.Base):
             filters = {}
         filter = filters.get(format, None)
         return filter
-
-    def getDocument(self, url=None):
-        if url is None:
-            url = self._url
-        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-        descriptor = getPropertyValueSet(properties)
-        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
-        return document

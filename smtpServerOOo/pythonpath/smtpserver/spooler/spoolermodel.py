@@ -38,12 +38,14 @@ from unolib import createService
 from unolib import getPathSettings
 from unolib import getStringResource
 
-from smtpserver.configuration import g_identifier
-from smtpserver.configuration import g_extension
-from smtpserver.configuration import g_fetchsize
+from .griddatamodel import GridDataModel
 
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
+from smtpserver import g_identifier
+from smtpserver import g_extension
+from smtpserver import g_fetchsize
+
+from smtpserver import logMessage
+from smtpserver import getMessage
 
 import validators
 import traceback
@@ -54,8 +56,10 @@ class SpoolerModel(unohelper.Base):
         self._ctx = ctx
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
+        self._ratio = {'Id': 4, 'State': 5, 'Subject': 15, 'Sender': 20,
+                       'Recipient': 20, 'Document': 25, 'TimeStamp': 11}
+        self._rowset = self._getRowSet()
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
-        self._rowset = self._getRowSet(ctx)
 
     @property
     def DataSource(self):
@@ -71,17 +75,30 @@ class SpoolerModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def initRowSet(self):
-        self._datasource.initRowSet(self.setRowSet)
+    def getGridDataModel(self, width):
+        titles = self._getGridTitles()
+        return GridDataModel(self._ctx, self._rowset, self._ratio, titles, width)
+
+    def initRowSet(self, callback):
+        self._datasource.initRowSet(callback)
 
     def setRowSet(self):
         database = self._datasource.DataBase
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(database.Connection)
+        #self._rowset.DataSourceName = database.getDataSource().Name
         self._rowset.ActiveConnection = database.Connection
+        #self._rowset.Command = query.Command
         self._rowset.Command = database.getRowSetCommand()
-        self._rowset.Order = database.getRowSetOrder()
-        self._rowset.Filter = '1=0'
-        print("SpoolerModel.executeRowSet() *********************************************")
+        #self._rowset.Order = query.Order
+        # TODO: if RowSet.Filter is not assigned then RowSet.RowCount is 1 anyway
+        #self._rowset.Filter = '1=0'
+        print("SpoolerModel.setRowSet() RowSet.Command: %s" % self._rowset.Command)
         self._rowset.execute()
+
+    def getTableColumns(self, name):
+        columns = self._datasource.DataBase.Connection.getTables().getByName(name).getColumns().getElementNames()
+        return columns
 
     def getRowSet(self):
         return self._rowset
@@ -91,9 +108,66 @@ class SpoolerModel(unohelper.Base):
         self._rowset.ApplyFilter = False
         self._rowset.execute()
 
-    def _getRowSet(self, ctx):
+    def getQueryComposer(self, query):
+        database = self.DataSource.DataBase
+        service = 'com.sun.star.sdb.SingleSelectQueryComposer'
+        composer = database.Connection.createInstance(service)
+        composer.setQuery(query.Command)
+        print("SpoolerModel._getQueryComposer() %s" % (query.Command))
+        return composer
+
+    def getQuery(self, name='Spooler'):
+        database = self.DataSource.DataBase
+        print("SpoolerModel._getQuery() '%s'" % name)
+        queries = database.getDataSource().getQueryDefinitions()
+        if queries.hasByName(name):
+            query = queries.getByName(name)
+            print("SpoolerModel._getQuery() %s exist" % name)
+        else:
+            service = 'com.sun.star.sdb.QueryDefinition'
+            query = createService(self._ctx, service)
+            query.Command = database.getQueryCommand()
+            queries.insertByName(name, query)
+            print("SpoolerModel._getQuery() %s don't exist" % name)
+        return query
+
+# SpoolerModel StringRessoure methods
+    def getDialogTitle(self):
+        resource = self._getDialogTitleResource()
+        return self.resolveString(resource)
+
+    def getTabPageTitle(self, id):
+        resource = self._getTabPageResource(id)
+        return self.resolveString(resource)
+
+    def getSpoolerState(self, state):
+        resource = self._getSpoolerStateResource(state)
+        return self.resolveString(resource)
+
+# SpoolerModel StringRessoure private methods
+    def _getDialogTitleResource(self):
+        return 'SpoolerDialog.Title'
+
+    def _getTabPageResource(self, id):
+        return 'SpoolerDialog.Tab1.Page%s.Title' % id
+
+    def _getGridColumnResource(self, column):
+        return 'SpoolerDialog.Grid1.Column.%s' % column
+
+    def _getSpoolerStateResource(self, state):
+        return 'SpoolerDialog.Label2.Label.%s' % state
+
+# SpoolerModel private methods
+    def _getRowSet(self):
         service = 'com.sun.star.sdb.RowSet'
-        rowset = createService(ctx, service)
+        rowset = createService(self._ctx, service)
         rowset.CommandType = COMMAND
         rowset.FetchSize = g_fetchsize
         return rowset
+
+    def _getGridTitles(self):
+        titles = {}
+        for column in self._ratio:
+            resource = self._getGridColumnResource(column)
+            titles[column] = self.resolveString(resource)
+        return titles

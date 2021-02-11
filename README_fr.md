@@ -67,6 +67,10 @@ Si nécessaire, renommez-le avant de l'installer.
 
 Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
+- Installer l'extension [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) version 0.0.4.
+
+Cette extension est nécessaire pour utiliser HsqlDB version 2.5.1 avec toutes ses fonctionnalités.
+
 - Installer l'extension [smtpServerOOo.oxt](https://github.com/prrvchr/smtpServerOOo/raw/main/smtpServerOOo.oxt) version 0.0.1.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.

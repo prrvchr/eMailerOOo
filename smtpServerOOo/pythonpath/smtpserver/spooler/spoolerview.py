@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from .griddatamodel import GridDataModel
-
 from com.sun.star.view.SelectionType import MULTI
 
 from unolib import getDialog
@@ -42,17 +40,17 @@ from .spoolerhandler import Page1Handler
 from .spoolerhandler import Page2Handler
 from .spoolerhandler import GridHandler
 
-from ..configuration import g_extension
+from smtpserver import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, manager, rowset, parent):
+    def __init__(self, ctx, manager, parent):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
         size = uno.createUnoStruct('com.sun.star.awt.Size', 400, 180)
-        title1 = self._getTabPageTitle(manager.Model, 1)
-        title2 = self._getTabPageTitle(manager.Model, 2)
+        title1 = manager.Model.getTabPageTitle(1)
+        title2 = manager.Model.getTabPageTitle(2)
         page1, page2 = self._getTabPages('Tab1', point, size, title1, title2, 1)
         parent = page1.getPeer()
         handler = Page1Handler(manager)
@@ -62,9 +60,10 @@ class SpoolerView(unohelper.Base):
         handler = Page2Handler(manager)
         self._page2 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerPage2')
         self._page2.setVisible(True)
-        point = uno.createUnoStruct('com.sun.star.awt.Point', 5, 5)
-        size = uno.createUnoStruct('com.sun.star.awt.Size', 340, 150)
-        grid = self._getGridControl(ctx, rowset, 'GridControl1', point, size, 'SpoolerGrid')
+        point = uno.createUnoStruct('com.sun.star.awt.Point', 4, 25)
+        size = uno.createUnoStruct('com.sun.star.awt.Size', 390, 130)
+        model = manager.Model.getGridDataModel(size.Width)
+        grid = self._getGrid(model, 'Grid1', point, size)
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)
         self._setTitle(manager.Model)
@@ -75,6 +74,22 @@ class SpoolerView(unohelper.Base):
 
     def setSpoolerState(self, label):
         self._getLabelState().Text = label
+
+    def setColumnsList(self, columns, enumeration):
+        control = self.getColumnsList()
+        control.Model.StringItemList = columns
+        while enumeration.hasMoreElements():
+            column = enumeration.nextElement()
+            index = columns.index(column.Name)
+            control.selectItemPos(index, True)
+
+    def setOrdersList(self, columns, enumeration):
+        control = self.getOrdersList()
+        control.Model.StringItemList = columns
+        while enumeration.hasMoreElements():
+            column = enumeration.nextElement()
+            index = columns.index(column.Name)
+            control.selectItemPos(index, True)
 
     def dispose(self):
         self._dialog.dispose()
@@ -93,21 +108,18 @@ class SpoolerView(unohelper.Base):
 
 # SpoolerView private setter methods
     def _setTitle(self, model):
-        resource = self._getTitleResource()
-        title = model.resolveString(resource)
+        title = model.getDialogTitle()
         self._dialog.setTitle(title)
 
 # SpoolerView private getter methods
     def _getTabPageTitle(self, model, id):
-        resource = self._getTabResource(id)
-        return model.resolveString(resource)
+        return model.getTabPageTitle(id)
 
 # SpoolerView StringRessoure methods
-    def _getTabResource(self, id):
-        return 'SpoolerDialog.Tab1.Page%s.Title' % id
+    def _getGridColumnResource(self, column):
+        return 'SpoolerDialog.Grid1.Column.%s' % column
 
-    def _getTitleResource(self):
-        return 'SpoolerDialog.Title'
+
 
     def getStateResource(self, state):
         return 'SpoolerDialog.Label2.Label.%s' % state
@@ -118,6 +130,12 @@ class SpoolerView(unohelper.Base):
 
     def _getLabelState(self):
         return self._dialog.getControl('Label2')
+
+    def getColumnsList(self):
+        return self._page1.getControl('ListBox1')
+
+    def getOrdersList(self):
+        return self._page1.getControl('ListBox2')
 
 # SpoolerView private methods
     def _getTabPages(self, name, point, size, title1, title2, id):
@@ -141,25 +159,22 @@ class SpoolerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[id]
 
-    def _getGridControl(self, ctx, rowset, name, point, size, tag):
-        model = self._getGridModel(ctx, rowset, name, point, size, tag)
-        self._page1.Model.insertByName(name, model)
+    def _getGrid(self, model, name, point, size):
+        grid = self._getGridModel(model, name, point, size)
+        self._page1.Model.insertByName(name, grid)
         return self._page1.getControl(name)
 
-    def _getGridModel(self, ctx, rowset, name, point, size, tag):
-        data = GridDataModel(ctx, rowset)
+    def _getGridModel(self, model, name, point, size):
         service = 'com.sun.star.awt.grid.UnoControlGridModel'
-        model = self._page1.Model.createInstance(service)
-        model.Name = name
-        model.PositionX = point.X
-        model.PositionY = point.Y
-        model.Height = size.Height
-        model.Width = size.Width
-        model.Tag = tag
-        model.GridDataModel = data
-        model.ColumnModel = data.ColumnModel
-        model.SelectionModel = MULTI
-        #model.ShowRowHeader = True
-        model.BackgroundColor = 16777215
-        return model
-
+        grid = self._page1.Model.createInstance(service)
+        grid.Name = name
+        grid.PositionX = point.X
+        grid.PositionY = point.Y
+        grid.Height = size.Height
+        grid.Width = size.Width
+        grid.GridDataModel = model
+        grid.ColumnModel = model.ColumnModel
+        grid.SelectionModel = MULTI
+        #grid.ShowRowHeader = True
+        grid.BackgroundColor = 16777215
+        return grid

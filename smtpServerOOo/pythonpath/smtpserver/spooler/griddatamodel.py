@@ -48,10 +48,15 @@ class GridDataModel(unohelper.Base,
                     XAdapter,
                     XRowSetListener,
                     XMutableGridDataModel):
-    def __init__(self, ctx, rowset):
+    def __init__(self, ctx, rowset, ratio, titles, width):
         self._listeners = []
         self._datalisteners = []
         self._order = ''
+        self._columns = ()
+        self._ratio = ratio
+        self._titles = titles
+        # TODO: To display a Grid without a scroll bar, 1 must be subtracted
+        self._width = width -1
         self.RowCount = 0
         self.ColumnCount = 0
         service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
@@ -77,17 +82,17 @@ class GridDataModel(unohelper.Base,
 
     # XGridDataModel
     def getCellData(self, column, row):
-        self._resultset.absolute(row + 1)
-        return getValueFromResult(self._resultset, column + 1)
+        self._resultset.absolute(row +1)
+        return getValueFromResult(self._resultset, column +1)
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
     def getRowHeading(self, row):
         return row
     def getRowData(self, row):
         data = []
-        self._resultset.absolute(row + 1)
+        self._resultset.absolute(row +1)
         for index in range(self.ColumnCount):
-            data.append(getValueFromResult(self._resultset, index + 1))
+            data.append(getValueFromResult(self._resultset, index +1))
         return tuple(data)
 
     # XMutableGridDataModel
@@ -148,33 +153,60 @@ class GridDataModel(unohelper.Base,
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
         print("GridDataModel._setRowSetData() RowSet.RowCount=%s" % rowset.RowCount)
-        metadata = rowset.getMetaData()
-        self.ColumnCount = metadata.getColumnCount()
-        if rowset.Order != self._order:
-            self._setColumnModel(rowset, metadata)
-        if rowcount != self.RowCount:
-            self._updateRowSetData(rowcount)
-        if rowcount != 0 and self.RowCount != 0:
-            self._changeRowSetData(0, self.RowCount)
+        self.ColumnCount = rowset.getMetaData().getColumnCount()
+        columns = rowset.getColumns().getElementNames()
+        if self._columns != columns:
+            self._columns = columns
+            self._setColumnModel()
 
-    def _setColumnModel(self, rowset, metadata):
-        orders = getOrders(rowset.Order)
-        for i in range(self.ColumnModel.getColumnCount(), 0, -1):
-            self.ColumnModel.removeColumn(i -1)
-        columns = rowset.getColumns()
-        for name in orders:
-            if not columns.hasByName(name):
-                continue
-            index = rowset.findColumn(name)
+        self._updateRowSetData(rowcount)
+
+        #if rowcount != self.RowCount:
+        #    self._updateRowSetData(rowcount)
+        #if rowcount != 0 and self.RowCount != 0:
+        #    self._changeRowSetData(0, self.RowCount)
+
+    def _setColumnModel(self):
+        for i in range(self.ColumnModel.getColumnCount() -1, -1, -1):
+            self.ColumnModel.removeColumn(i)
+        ratio = 0
+        for name in self._columns:
+            ratio += self._ratio[name]
             column = self.ColumnModel.createColumn()
-            column.Title = name
-            size = metadata.getColumnDisplaySize(index)
-            #column.MinWidth = size // 2
-            column.DataColumnIndex = index -1
+            column.Identifier = name
+            column.Title = self._titles[name]
+            column.DataColumnIndex = self._columns.index(name)
             self.ColumnModel.addColumn(column)
-        self._order = rowset.Order
+        # TODO: ColumnWidth should be assigned after all columns have been added to the ColumnModel 
+        self._setColumnWidth(ratio)
+
+    def _setColumnWidth(self, ratio):
+        i = 0
+        width = 0
+        last = self.ColumnModel.getColumnCount() -1
+        for column in self.ColumnModel.getColumns():
+            flex = self._ratio[column.Identifier]
+            column.Flexibility = flex
+            if i == last:
+                column.ColumnWidth = self._width - width
+            else:
+                column.ColumnWidth = self._width * flex // ratio
+            i += 1
+            width += column.ColumnWidth
 
     def _updateRowSetData(self, rowcount):
+        if self.RowCount < rowcount:
+            self._removeRowSetData(self.RowCount, rowcount -1)
+            if self.RowCount > 0:
+                self._changeRowSetData(0, self.RowCount -1)
+        elif self.RowCount > rowcount:
+            self._insertRowSetData(rowcount, self.RowCount -1)
+            if rowcount > 0:
+                self._changeRowSetData(0, rowcount -1)
+        elif rowcount > 0:
+            self._changeRowSetData(0, rowcount -1)
+
+    def _updateRowSetData1(self, rowcount):
         if self.RowCount < rowcount:
             self._removeRowSetData(self.RowCount, rowcount -1)
         else:

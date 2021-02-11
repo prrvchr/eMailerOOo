@@ -66,19 +66,23 @@ class SenderView(unohelper.Base):
         self._dialog = None
 
 # SenderView getter methods
-    def getDocumentUrlAndPath(self, path, title, filter):
+    def getDocumentUrl(self, manager):
         url = None
+        resource = self._getFilePickerTitleResource()
+        title = manager.Model.resolveString(resource)
+        resource = self._getFilePickerFilterResource()
+        writer = manager.Model.resolveString(resource)
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
         filepicker.setTitle(title)
-        filepicker.setDisplayDirectory(path)
-        filepicker.appendFilter(*filter)
-        filepicker.setCurrentFilter(filter[0])
+        filepicker.setDisplayDirectory(manager.Model.Path)
+        filepicker.appendFilter(writer, '*.odt')
+        filepicker.setCurrentFilter(writer)
         if filepicker.execute() == OK:
             url = filepicker.getSelectedFiles()[0]
-            path = filepicker.getDisplayDirectory()
+            manager.Model.Path = filepicker.getDisplayDirectory()
         filepicker.dispose()
-        return url, path
+        return url
 
     def getParent(self):
         return self._dialog.getPeer()
@@ -93,10 +97,10 @@ class SenderView(unohelper.Base):
     def getTitleRessource(self):
         return 'SenderDialog.Title'
 
-    def getFilePickerTitleResource(self):
+    def _getFilePickerTitleResource(self):
         return 'Sender.FilePicker.Title'
 
-    def getFilePickerFilterResource(self):
+    def _getFilePickerFilterResource(self):
         return 'Sender.FilePicker.Filter.Writer'
 
 # SenderView private control methods

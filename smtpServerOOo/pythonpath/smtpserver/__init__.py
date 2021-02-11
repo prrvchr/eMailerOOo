@@ -31,6 +31,7 @@ from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_wizard_paths
 from .configuration import g_wizard_page
+from .configuration import g_fetchsize
 
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

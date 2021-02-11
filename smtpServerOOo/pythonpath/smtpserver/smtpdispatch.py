@@ -92,15 +92,15 @@ class SmtpDispatch(unohelper.Base,
         elif url.Path == 'spooler':
             self._showSmtpSpooler()
         elif url.Path == 'mailer':
-            self._showSmtpMailer(arguments)
+            state, result = self._showSmtpMailer(arguments)
         return state, result
         print("SmtpDispatch.dispatch() 2")
 
     def addStatusListener(self, listener, url):
-        print("SmtpDispatch.addStatusListener()")
+        pass
 
     def removeStatusListener(self, listener, url):
-        print("SmtpDispatch.removeStatusListener()")
+        pass
 
     def _showSmtpServer(self):
         try:
@@ -148,12 +148,11 @@ class SmtpDispatch(unohelper.Base,
             else:
                 path = getPathSettings(self._ctx).Work
             sender = SenderManager(self._ctx, path)
-            url, path = sender.getDocumentUrlAndPath()
+            url = sender.getDocumentUrl()
             if url is not None:
-                if sender.showDialog(self._datasource, self._parent, url, path) == OK:
+                if sender.showDialog(self._datasource, self._parent, url) == OK:
                     state = SUCCESS
-                    path = sender.getPath()
-                    print("SmtpDispatch._showSmtpMailer: %s *******************" % url)
+                    path = sender.Mailer.Model.Path
                 sender.dispose()
             return state, path
         except Exception as e:

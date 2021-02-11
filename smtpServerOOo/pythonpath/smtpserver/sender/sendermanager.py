@@ -53,21 +53,21 @@ class SenderManager(unohelper.Base):
         self._mailer = None
         print("SenderManager.__init__()")
 
-    def getPath(self):
-        return self._model.Path if self._mailer is None else self._mailer.Model.Path
+    @property
+    def Model(self):
+        return self._model
+    @property
+    def Mailer(self):
+        return self._mailer
 
-    def getDocumentUrlAndPath(self):
-        resource = self._view.getFilePickerTitleResource()
-        title = self._model.resolveString(resource)
-        resource = self._view.getFilePickerFilterResource()
-        writer = self._model.resolveString(resource)
-        filter = (writer, '*.odt')
-        url, path = self._view.getDocumentUrlAndPath(self._model.Path, title, filter)
-        return url, path
+    def getDocumentUrl(self):
+        url = self._view.getDocumentUrl(self)
+        return url
 
-    def showDialog(self, datasource, parent, url, path):
+    def showDialog(self, datasource, parent, url):
         self._view.setDialog(self, parent)
         parent = self._view.getParent()
+        path = self.Model.Path
         self._mailer = MailerManager(self._ctx, self, datasource, parent, path)
         self._model.getDocument(url, self.initMailer)
         return self._view.execute()

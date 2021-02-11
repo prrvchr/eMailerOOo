@@ -35,6 +35,7 @@
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:left="115" dlg:top="180" dlg:width="60" dlg:height="14" dlg:help-text="&amp;SpoolerDialog.CommandButton1.HelpText" dlg:value="&amp;SpoolerDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ToogleSpooler" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="3" dlg:left="350" dlg:top="180" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;SpoolerDialog.CommandButton2.Label" dlg:button-type="ok"/>
+  <dlg:button dlg:id="CommandButton2" dlg:tab-index="3" dlg:left="300" dlg:top="180" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerDialog.CommandButton2.HelpText" dlg:value="&amp;SpoolerDialog.CommandButton2.Label" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="4" dlg:left="350" dlg:top="180" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerDialog.CommandButton3.HelpText" dlg:default="true" dlg:value="&amp;SpoolerDialog.CommandButton3.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>

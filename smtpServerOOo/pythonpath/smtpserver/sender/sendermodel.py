@@ -35,11 +35,9 @@ from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getPathSettings
 from unolib import getStringResource
 from unolib import getPropertyValueSet
 from unolib import getDesktop
-from unolib import getUrlTransformer
 from unolib import getUrlPresentation
 
 from smtpserver import g_identifier
@@ -61,21 +59,23 @@ class SenderModel(unohelper.Base):
     @property
     def Path(self):
         return self._path
+    @Path.setter
+    def Path(self, path):
+        self._path = path
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
     def getDocument(self, *args):
-        thread = Thread(target=self._getDocument, args=args)
-        thread.start()
+        Thread(target=self._getDocument, args=args).start()
 
     def getDocumentTitle(self, url, resource):
         title = self.resolveString(resource)
         return title + url
 
     def _getDocument(self, url, callback):
-        url = getUrlPresentation(self._ctx, url)
+        location = getUrlPresentation(self._ctx, url)
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
-        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
         callback(document)

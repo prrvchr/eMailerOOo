@@ -30,14 +30,10 @@
 import uno
 import unohelper
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
-from unolib import getUrlTransformer
-from unolib import parseUrl
 from unolib import executeDispatch
 from unolib import getPropertyValueSet
 
@@ -45,14 +41,10 @@ from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
 
-from ..sender import SenderManager
-#from ..mailer import MailerManager
-
-from ..logger import logMessage
-from ..logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 g_message = 'spoolermanager'
 
-import time
 import traceback
 
 
@@ -60,12 +52,11 @@ class SpoolerManager(unohelper.Base):
     def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
         self._model = SpoolerModel(ctx, datasource)
-        rowset = self._model.getRowSet()
-        self._view = SpoolerView(ctx, self, rowset, parent)
+        self._view = SpoolerView(ctx, self, parent)
         service = 'com.sun.star.mail.MailServiceSpooler'
         self._spooler = createService(ctx, service)
-        self.refreshSpoolerState()
-        self._model.initRowSet()
+        self._refreshSpoolerState()
+        self._model.initRowSet(self.initView)
         print("SpoolerManager.__init__()")
 
     @property
@@ -78,18 +69,27 @@ class SpoolerManager(unohelper.Base):
     def dispose(self):
         self._view.dispose()
 
-    def addDocument1(self):
+    def initView(self):
         try:
-            sender = SenderManager(self._ctx, self._model.Path)
-            url, self._model.Path = sender.getDocumentUrlAndPath()
-            if url is not None:
-                if sender.showDialog(self._model.DataSource, self._view.getParent(), url, self._model.Path) == OK:
-                    self._model.Path = sender.getPath()
-                    self._model.executeRowSet()
-                sender.dispose()
+            #query = self.Model.getQuery()
+            self.Model.setRowSet()
+            #composer = self.Model.getQueryComposer(query)
+            #columns = composer.getTables().getByName('Spooler').getColumns().getElementNames()
+            #enumeration = composer.getColumns().createEnumeration()
+            #self._view.setColumnsList(columns, enumeration)
+            #enumeration = composer.getOrderColumns().createEnumeration()
+            #self._view.setOrdersList(columns, enumeration)
+            #mri = createService(self._ctx, 'mytools.Mri')
+            #mri.inspect(composer)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    def changeColumn(self, columns):
+        print("SpoolerManager.changeColumn() %s" % (columns, ))
+
+    def changeOrder(self, orders):
+        print("SpoolerManager.changeOrder() %s" % (orders, ))
 
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path})
@@ -98,7 +98,6 @@ class SpoolerManager(unohelper.Base):
 
     def addJob(self, path):
         self._model.Path = path
-        time.sleep(5)
         self._model.executeRowSet()
 
     def removeDocument(self):
@@ -112,10 +111,10 @@ class SpoolerManager(unohelper.Base):
             self._spooler.stop()
         else:
             self._spooler.start()
-        self.refreshSpoolerState()
+        self._refreshSpoolerState()
 
-    def refreshSpoolerState(self):
+# SpoolerManager private methods
+    def _refreshSpoolerState(self):
         state = int(self._spooler.isStarted())
-        resource = self._view.getStateResource(state)
-        label = self._model.resolveString(resource)
+        label = self._model.getSpoolerState(state)
         self._view.setSpoolerState(label)

@@ -66,7 +66,7 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, dbname, name='SA', password='', sync=None):
+    def __init__(self, ctx, dbname, user='SA', password='', sync=None):
         try:
             print("DataBase.__init__() 1")
             self._ctx = ctx
@@ -74,7 +74,8 @@ class DataBase(unohelper.Base):
             time.sleep(0.5)
             datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, True)
             print("DataBase.__init__() 2")
-            connection = Connection(ctx, datasource, datasource.URL, name, password, sync, True)
+            #connection = Connection(ctx, datasource, datasource.URL, user, password, sync, True)
+            connection = datasource.getConnection(user, password)
             print("DataBase.__init__() 3")
             self._statement = connection.createStatement()
             print("DataBase.__init__() 4")
@@ -95,10 +96,10 @@ class DataBase(unohelper.Base):
 
 # Procedures called by the DataSource
     def getDataSource(self):
-        return self.Connection.getParent().DatabaseDocument.DataSource
+        return self.Connection.getParent()
 
     def addCloseListener(self, listener):
-        self.Connection.getParent().DatabaseDocument.addCloseListener(listener)
+        self.getDataSource().DatabaseDocument.addCloseListener(listener)
 
     def shutdownDataBase(self):
         if self._created:
@@ -184,6 +185,9 @@ class DataBase(unohelper.Base):
 # Procedures called by the Spooler
     def getRowSetCommand(self):
         return getSqlQuery(self._ctx, 'getRowSetCommand')
+
+    def getQueryCommand(self):
+        return getSqlQuery(self._ctx, 'getQueryCommand')
 
     def getRowSetOrder(self):
         return getSqlQuery(self._ctx, 'getRowSetOrder')

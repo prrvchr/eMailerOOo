@@ -35,8 +35,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
 from unolib import executeShell
-from unolib import getUrlTransformer
-from unolib import parseUrl
 
 from .mailermodel import MailerModel
 from .mailerview import MailerView
@@ -151,10 +149,10 @@ class MailerManager(unohelper.Base):
 
     def addAttachments(self):
         try:
-            resource = self._view.getFilePickerTitleResource()
-            attachments = self._model.getAttachments(resource)
+            attachments = self._view.getAttachmentUrls(self)
             if len(attachments) > 0:
-                urls = self._parseAttachments(attachments)
+                pdf = self._view.getAttachmentAsPdf()
+                urls = self._model.parseAttachments(attachments, pdf)
                 self._view.addAttachments(urls)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -199,31 +197,6 @@ class MailerManager(unohelper.Base):
                        self._view.isRecipientsValid(),
                        self._view.isSubjectValid()))
         self._manager.updateUI(enabled)
-
-    def _parseAttachments(self, attachments):
-        urls = []
-        transformer = getUrlTransformer(self._ctx)
-        pdf = self._view.getAttachmentAsPdf()
-        for attachment in attachments:
-            url = self._parseAttachment(transformer, attachment, pdf)
-            urls.append(url)
-        return tuple(urls)
-
-    def _parseAttachment(self, transformer, attachment, pdf):
-        url = parseUrl(transformer, attachment)
-        if pdf:
-            self._addPdfMark(url)
-        return transformer.getPresentation(url, False)
-
-    def _addPdfMark(self, url):
-        name, extension = self._model.getNameAndExtension(url.Name)
-        if self._model.hasPdfFilter(extension):
-            url.Complete = '%s#pdf' % url.Complete
-
-    def _getTitle(self):
-        resource = self._view.getTitleRessource()
-        title = self._model.getDocumentTitle(resource)
-        return title
 
     def _getDocumentUserProperty(self, document, name):
         resource = self._view.getPropertyResource(name)

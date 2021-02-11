@@ -30,6 +30,9 @@
 import uno
 import unohelper
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
+from unolib import createService
 from unolib import getDialog
 from unolib import getContainerWindow
 
@@ -42,6 +45,7 @@ import traceback
 
 class MailerView(unohelper.Base):
     def __init__(self, ctx, parent, manager):
+        self._ctx = ctx
         handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailerWindow')
         self._window.setVisible(True)
@@ -168,6 +172,21 @@ class MailerView(unohelper.Base):
         attachments = self._getAttachments().getItems()
         return attachments
 
+    def getAttachmentUrls(self, manager):
+        urls = ()
+        resource = self._getFilePickerTitleResource()
+        title = manager.Model.resolveString(resource)
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        filepicker = createService(self._ctx, service)
+        filepicker.setDisplayDirectory(manager.Model.Path)
+        filepicker.setTitle(title)
+        filepicker.setMultiSelectionMode(True)
+        if filepicker.execute() == OK:
+            urls = filepicker.getSelectedFiles()
+            manager.Model.Path = filepicker.getDisplayDirectory()
+        filepicker.dispose()
+        return urls
+
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
 
@@ -203,7 +222,7 @@ class MailerView(unohelper.Base):
     def getPropertyResource(self, name):
         return 'Mailer.Document.Property.%s' % name
 
-    def getFilePickerTitleResource(self):
+    def _getFilePickerTitleResource(self):
         return 'Mailer.FilePicker.Title'
 
 # MailerView private control methods

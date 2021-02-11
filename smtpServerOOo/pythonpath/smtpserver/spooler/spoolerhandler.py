@@ -64,7 +64,15 @@ class Page1Handler(unohelper.Base,
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'Add':
+        if method == 'ChangeColumn':
+            columns = event.Source.getItems()
+            self._manager.changeColumn(columns)
+            handled = True
+        elif method == 'ChangeOrder':
+            orders = event.Source.getItems()
+            self._manager.changeOrder(orders)
+            handled = True
+        elif method == 'Add':
             self._manager.addDocument()
             handled = True
         elif method == 'Remove':
@@ -73,7 +81,9 @@ class Page1Handler(unohelper.Base,
         return handled
 
     def getSupportedMethodNames(self):
-        return ('Add',
+        return ('ChangeColumn',
+                'ChangeOrder',
+                'Add',
                 'Remove')
 
 

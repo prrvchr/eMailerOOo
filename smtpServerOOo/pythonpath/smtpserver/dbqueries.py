@@ -201,6 +201,19 @@ def getSqlQuery(ctx, name, format=None):
         p = (','.join(c), f)
         query = 'SELECT %s FROM %s' % p
 
+    elif name == 'getQueryCommand':
+        c1 = '"Id"'
+        c2 = '"State"'
+        c3 = '"Subject"'
+        c4 = '"Sender"'
+        c5 = '"Recipient"'
+        c6 = '"Document"'
+        c7 = '"TimeStamp"'
+        c = (c1,c2,c3,c4,c5,c6,c7)
+        f = '"Spooler"'
+        p = (','.join(c), f)
+        query = 'SELECT %s FROM %s' % p
+
     elif name == 'getRowSetCommand1':
         query = 'Spooler'
 

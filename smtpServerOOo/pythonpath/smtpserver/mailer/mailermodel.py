@@ -94,53 +94,11 @@ class MailerModel(unohelper.Base):
     def getDocumentSubject(self, document):
         return document.DocumentProperties.Subject
 
-    def getDocumentAttachments(self, document, resource, default=''):
-        attachments = ()
-        value = self.getDocumentUserProperty(document, resource, default)
-        print("MailerModel.getDocumentAttachments() 1 %s" % value)
-        if len(value):
-            attachments = tuple(value.split('|'))
-        print("MailerModel.getDocumentAttachments() 2 %s" % (attachments, ))
-        return attachments
-        
-    def getDocumentUserProperty(self, document, resource, default=True):
-        name = self.resolveString(resource)
-        properties = document.DocumentProperties.UserDefinedProperties
-        if properties.PropertySetInfo.hasPropertyByName(name):
-            value = properties.getPropertyValue(name)
-        else:
-            value = default
-        #elif default is not None:
-        #    self._setDocumentUserProperty(name, default)
-        return value
-
     def setDocumentSubject(self, document, subject):
         document.DocumentProperties.Subject = subject
 
-    def setDocumentAttachments(self, document, resource, values):
-        value = '|'.join(values)
-        self.setDocumentUserProperty(document, resource, value)
-
-    def setDocumentUserProperty(self, document, resource, value):
-        name = self.resolveString(resource)
-        properties = document.DocumentProperties.UserDefinedProperties
-        if properties.PropertySetInfo.hasPropertyByName(name):
-            properties.setPropertyValue(name, value)
-        else:
-            properties.addProperty(name,
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEVOID") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.BOUND") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.REMOVABLE") +
-            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
-            value)
-
     def removeSender(self, sender):
         return self.DataSource.removeSender(sender)
-
-    def isEmailValid(self, email):
-        if validators.email(email):
-            return True
-        return False
 
     def saveDocumentAs(self, document, format):
         url = None
@@ -154,7 +112,6 @@ class MailerModel(unohelper.Base):
             url = getUrl(self._ctx, url)
             if url is not None:
                 url = url.Main
-            print("MailerModel.saveDocumentAs() %s" % url)
         return url
 
     def parseAttachments(self, attachments, pdf):
@@ -164,6 +121,79 @@ class MailerModel(unohelper.Base):
             url = self._parseAttachment(transformer, attachment, pdf)
             urls.append(url)
         return tuple(urls)
+
+    def validateRecipient(self, email, exist):
+        return all((self._isEmailValid(email), not exist))
+
+# MailerModel StringRessoure methods
+    def getFilePickerTitle(self):
+        resource = self._getFilePickerTitleResource()
+        title = self.resolveString(resource)
+        return title
+
+    def getDocumentUserProperty(self, document, name):
+        resource = self._getPropertyResource(name)
+        state = self._getDocumentUserProperty(document, resource)
+        return state
+
+    def getDocumentAttachemnts(self, document, name):
+        resource = self._getPropertyResource(name)
+        attachments = self._getDocumentAttachments(document, resource)
+        return attachments
+
+    def setDocumentUserProperty(self, document, name, value):
+        resource = self._getPropertyResource(name)
+        self._setDocumentUserProperty(document, resource, value)
+
+    def setDocumentAttachments(self, document, name, value):
+        resource = self._getPropertyResource(name)
+        self._setDocumentAttachments(document, resource, value)
+
+# MailerModel StringRessoure private methods
+    def _getFilePickerTitleResource(self):
+        return 'Mailer.FilePicker.Title'
+
+    def _getPropertyResource(self, name):
+        return 'Mailer.Document.Property.%s' % name
+
+# MailerModel private methods
+    def _getDocumentUserProperty(self, document, resource, default=True):
+        name = self.resolveString(resource)
+        properties = document.DocumentProperties.UserDefinedProperties
+        if properties.PropertySetInfo.hasPropertyByName(name):
+            value = properties.getPropertyValue(name)
+        else:
+            value = default
+        return value
+
+    def _getDocumentAttachments(self, document, resource, default=''):
+        attachments = ()
+        value = self._getDocumentUserProperty(document, resource, default)
+        if len(value):
+            attachments = tuple(value.split('|'))
+        return attachments
+
+    def _setDocumentAttachments(self, document, resource, values):
+        value = '|'.join(values)
+        self._setDocumentUserProperty(document, resource, value)
+
+    def _setDocumentUserProperty(self, document, resource, value):
+        name = self.resolveString(resource)
+        properties = document.DocumentProperties.UserDefinedProperties
+        if properties.PropertySetInfo.hasPropertyByName(name):
+            properties.setPropertyValue(name, value)
+        else:
+            properties.addProperty(name,
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEVOID") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.BOUND") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.REMOVABLE") +
+            uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
+            value)
+
+    def _isEmailValid(self, email):
+        if validators.email(email):
+            return True
+        return False
 
     def _parseAttachment(self, transformer, attachment, pdf):
         url = parseUrl(transformer, attachment)

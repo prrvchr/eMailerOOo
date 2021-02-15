@@ -35,9 +35,7 @@
     <dlg:menulist dlg:id="ListBox2" dlg:tab-index="3" dlg:left="139" dlg:top="5" dlg:width="60" dlg:height="14" dlg:help-text="&amp;SpoolerPage1.ListBox2.HelpText" dlg:value="&amp;SpoolerPage1.ListBox2.Text" dlg:multiselection="true" dlg:spin="true">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeOrder" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="4" dlg:left="204" dlg:top="7" dlg:width="35" dlg:height="8" dlg:help-text="&amp;SpoolerPage1.CheckBox1.HelpText" dlg:value="&amp;SpoolerPage1.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeDirection" script:language="UNO"/>
-    </dlg:checkbox>
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="4" dlg:left="204" dlg:top="7" dlg:width="35" dlg:height="8" dlg:help-text="&amp;SpoolerPage1.CheckBox1.HelpText" dlg:value="&amp;SpoolerPage1.CheckBox1.Label" dlg:valign="center" dlg:checked="false"/>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="5" dlg:disabled="false" dlg:left="299" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerPage1.CommandButton1.HelpText" dlg:value="&amp;SpoolerPage1.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Add" script:language="UNO"/>
     </dlg:button>

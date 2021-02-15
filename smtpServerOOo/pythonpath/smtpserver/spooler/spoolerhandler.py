@@ -88,7 +88,6 @@ class Page1Handler(unohelper.Base,
             self._manager.setGridColumnModel(titles, reset)
             handled = True
         elif method == 'ChangeOrder':
-            print("SpoolerHandler.callHandlerMethod() %s" % method)
             if self._manager.HandlerEnabled:
                 orders = []
                 control = event.Source
@@ -98,15 +97,8 @@ class Page1Handler(unohelper.Base,
                     orders.append(order)
                 self._manager.changeOrder(orders)
             handled = True
-        elif method == 'ChangeDirection':
-            state = event.Source.Model.State
-            self._manager.changeDirection(state)
-            handled = True
         elif method == 'Add':
             self._manager.addDocument()
-            handled = True
-        elif method == 'Edit':
-            self._manager.editDocument()
             handled = True
         elif method == 'Remove':
             self._manager.removeDocument()
@@ -116,9 +108,7 @@ class Page1Handler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('ChangeColumn',
                 'ChangeOrder',
-                'ChangeDirection',
                 'Add',
-                'Edit'
                 'Remove')
 
 

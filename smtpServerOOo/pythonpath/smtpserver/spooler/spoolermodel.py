@@ -119,7 +119,7 @@ class SpoolerModel(unohelper.Base):
 
     def executeRowSet(self):
         # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
-        #self._rowset.ApplyFilter = True
+        self._rowset.ApplyFilter = True
         self._rowset.ApplyFilter = False
         self._rowset.execute()
 

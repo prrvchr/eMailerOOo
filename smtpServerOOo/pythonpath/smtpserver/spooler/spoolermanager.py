@@ -60,7 +60,6 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
         self._model.DataSource.initSpooler(self.initView)
         self._enabled = True
-        print("SpoolerManager.__init__()")
 
     @property
     def Model(self):
@@ -77,40 +76,28 @@ class SpoolerManager(unohelper.Base):
         self._view.dispose()
 
     def initView(self):
-        try:
-            with self._lock:
-                if not self._view.isDisposed():
-                    # TODO: Attention: order is very important here
-                    # TODO: to have fonctionnal columns in the GridColumnModel
-                    self._model.initQueryComposer()
-                    titles = self._model.getQueryColumnTitles()
-                    self._model.initGridColumnModel(titles)
-                    self._view.showGridColumnHeader(True)
-                    self._model.executeRowSet()
-                    self._view.initColumnsList(titles)
-                    orders = self._model.getQueryOrder()
-                    self._enabled = False
-                    self._view.initOrdersList(titles, orders)
-                    self._enabled = True
-                    self._view.initButtons()
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+        with self._lock:
+            if not self._view.isDisposed():
+                # TODO: Attention: order is very important here
+                # TODO: to have fonctionnal columns in the GridColumnModel
+                self._model.initQueryComposer()
+                titles = self._model.getQueryColumnTitles()
+                self._model.initGridColumnModel(titles)
+                self._view.showGridColumnHeader(True)
+                self._model.executeRowSet()
+                self._view.initColumnsList(titles)
+                orders = self._model.getQueryOrder()
+                self._enabled = False
+                self._view.initOrdersList(titles, orders)
+                self._enabled = True
+                self._view.initButtons()
 
     def setGridColumnModel(self, titles, reset):
         self._model.setGridColumnModel(titles, reset)
 
     def changeOrder(self, orders):
-        try:
-            print("SpoolerManager.changeOrder() %s" % (orders, ))
-            ascending = self._view.getSortDirection()
-            self._model.setRowSetOrder(orders, ascending)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
-
-    def changeDirection(self, state):
-        print("SpoolerManager.changeDirection() %s" % (state, ))
+        ascending = self._view.getSortDirection()
+        self._model.setRowSetOrder(orders, ascending)
 
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path})
@@ -120,9 +107,6 @@ class SpoolerManager(unohelper.Base):
     def addJob(self, path):
         self._model.Path = path
         self._model.executeRowSet()
-
-    def editDocument(self):
-        print("SpoolerManager.editDocument")
 
     def removeDocument(self):
         self._model.executeRowSet()
@@ -138,13 +122,9 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
 
     def closeSpooler(self):
-        try:
-            self._model.saveGridColumn()
-            self._model.saveQuery()
-            self._view.endDialog()
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+        self._model.saveGridColumn()
+        self._model.saveQuery()
+        self._view.endDialog()
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

@@ -172,20 +172,18 @@ class MailerView(unohelper.Base):
         attachments = self._getAttachments().getItems()
         return attachments
 
-    def getAttachmentUrls(self, manager):
+    def getAttachmentUrls(self, title, path):
         urls = ()
-        resource = self._getFilePickerTitleResource()
-        title = manager.Model.resolveString(resource)
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
-        filepicker.setDisplayDirectory(manager.Model.Path)
         filepicker.setTitle(title)
+        filepicker.setDisplayDirectory(path)
         filepicker.setMultiSelectionMode(True)
         if filepicker.execute() == OK:
             urls = filepicker.getSelectedFiles()
-            manager.Model.Path = filepicker.getDisplayDirectory()
+            path = filepicker.getDisplayDirectory()
         filepicker.dispose()
-        return urls
+        return urls, path
 
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
@@ -217,13 +215,6 @@ class MailerView(unohelper.Base):
         count = control.getItemCount()
         control.addItem(email, count)
         self._getButtonRemoveRecipient().Model.Enabled = False
-
-# MailerView StringRessoure methods
-    def getPropertyResource(self, name):
-        return 'Mailer.Document.Property.%s' % name
-
-    def _getFilePickerTitleResource(self):
-        return 'Mailer.FilePicker.Title'
 
 # MailerView private control methods
     def _getSendersList(self):

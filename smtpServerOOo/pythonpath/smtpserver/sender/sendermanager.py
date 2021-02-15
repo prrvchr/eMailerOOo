@@ -63,7 +63,11 @@ class SenderManager(unohelper.Base):
         return self._mailer
 
     def getDocumentUrl(self):
-        url = self._view.getDocumentUrl(self)
+        title = self._model.getFilePickerTitle()
+        filter = self._model.getFilePickerFilter()
+        path = self._model.Path
+        url, path = self._view.getDocumentUrl(title, filter, path)
+        self._model.Path = path
         return url
 
     def showDialog(self, datasource, parent, url):
@@ -77,8 +81,7 @@ class SenderManager(unohelper.Base):
     def initMailer(self, document):
         with self._lock:
             if not self._view.isDisposed():
-                resource = self._view.getTitleRessource()
-                title = self._model.getDocumentTitle(document.URL, resource)
+                title = self._model.getDocumentTitle(document.URL)
                 self._mailer.initView(document)
                 self._view.setTitle(title)
 

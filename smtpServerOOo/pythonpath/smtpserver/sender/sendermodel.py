@@ -69,10 +69,33 @@ class SenderModel(unohelper.Base):
     def getDocument(self, *args):
         Thread(target=self._getDocument, args=args).start()
 
-    def getDocumentTitle(self, url, resource):
+# SenderModel StringRessoure methods
+    def getDocumentTitle(self, url):
+        resource = self._getTitleRessource()
         title = self.resolveString(resource)
         return title + url
 
+    def getFilePickerTitle(self):
+        resource = self._getFilePickerTitleResource()
+        title = self.resolveString(resource)
+        return title
+
+    def getFilePickerFilter(self):
+        resource = self._getFilePickerFilterResource()
+        filter = self.resolveString(resource)
+        return filter
+
+# SenderModel StringRessoure private methods
+    def _getTitleRessource(self):
+        return 'SenderDialog.Title'
+
+    def _getFilePickerTitleResource(self):
+        return 'Sender.FilePicker.Title'
+
+    def _getFilePickerFilterResource(self):
+        return 'Sender.FilePicker.Filter.Writer'
+
+# SenderModel private methods
     def _getDocument(self, url, callback):
         location = getUrlPresentation(self._ctx, url)
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}

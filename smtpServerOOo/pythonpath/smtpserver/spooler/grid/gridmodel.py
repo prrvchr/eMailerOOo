@@ -32,37 +32,27 @@ import unohelper
 
 from com.sun.star.uno import XWeak
 from com.sun.star.uno import XAdapter
-from com.sun.star.sdbc import XRowSetListener
 from com.sun.star.awt.grid import XMutableGridDataModel
 
-from unolib import createService
+from smtpserver.dbtools import getValueFromResult
 
-from ..dbtools import getValueFromResult
-from ..wizardtools import getOrders
+from .gridhandler import GridHandler
 
 import traceback
 
 
-class GridDataModel(unohelper.Base,
-                    XWeak,
-                    XAdapter,
-                    XRowSetListener,
-                    XMutableGridDataModel):
-    def __init__(self, ctx, rowset, ratio, titles, width):
+class GridModel(unohelper.Base,
+                XWeak,
+                XAdapter,
+                XMutableGridDataModel):
+    def __init__(self, ctx, rowset):
         self._listeners = []
         self._datalisteners = []
-        self._order = ''
-        self._columns = ()
-        self._ratio = ratio
-        self._titles = titles
-        # TODO: To display a Grid without a scroll bar, 1 must be subtracted
-        self._width = width -1
+        self._resultset = None
         self.RowCount = 0
         self.ColumnCount = 0
-        service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
-        self.ColumnModel = createService(ctx, service)
-        self._resultset = None
-        rowset.addRowSetListener(self)
+        handler = GridHandler(self)
+        rowset.addRowSetListener(handler)
 
     # XWeak
     def queryAdapter(self):
@@ -136,112 +126,56 @@ class GridDataModel(unohelper.Base,
         if listener in self._listeners:
             self._listeners.remove(listener)
 
-    # XRowSetListener
-    def disposing(self, event):
-        pass
-    def cursorMoved(self, event):
-        pass
-    def rowChanged(self, event):
-        pass
-    def rowSetChanged(self, event):
-        rowset = event.Source
+# GridModel setter methods
+    def setRowSetData(self, rowset):
         self._resultset = rowset.createResultSet()
-        self._setRowSetData(rowset)
-
-    # Private methods
-    def _setRowSetData(self, rowset):
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
-        print("GridDataModel._setRowSetData() RowSet.RowCount=%s" % rowset.RowCount)
         self.ColumnCount = rowset.getMetaData().getColumnCount()
-        columns = rowset.getColumns().getElementNames()
-        if self._columns != columns:
-            self._columns = columns
-            self._setColumnModel()
+        self._updateRow(rowcount)
 
-        self._updateRowSetData(rowcount)
-
-        #if rowcount != self.RowCount:
-        #    self._updateRowSetData(rowcount)
-        #if rowcount != 0 and self.RowCount != 0:
-        #    self._changeRowSetData(0, self.RowCount)
-
-    def _setColumnModel(self):
-        for i in range(self.ColumnModel.getColumnCount() -1, -1, -1):
-            self.ColumnModel.removeColumn(i)
-        ratio = 0
-        for name in self._columns:
-            ratio += self._ratio[name]
-            column = self.ColumnModel.createColumn()
-            column.Identifier = name
-            column.Title = self._titles[name]
-            column.DataColumnIndex = self._columns.index(name)
-            self.ColumnModel.addColumn(column)
-        # TODO: ColumnWidth should be assigned after all columns have been added to the ColumnModel 
-        self._setColumnWidth(ratio)
-
-    def _setColumnWidth(self, ratio):
-        i = 0
-        width = 0
-        last = self.ColumnModel.getColumnCount() -1
-        for column in self.ColumnModel.getColumns():
-            flex = self._ratio[column.Identifier]
-            column.Flexibility = flex
-            if i == last:
-                column.ColumnWidth = self._width - width
-            else:
-                column.ColumnWidth = self._width * flex // ratio
-            i += 1
-            width += column.ColumnWidth
-
-    def _updateRowSetData(self, rowcount):
+# GridModel private methods
+    def _updateRow(self, rowcount):
         if self.RowCount < rowcount:
-            self._removeRowSetData(self.RowCount, rowcount -1)
+            self._removeRow(self.RowCount, rowcount -1)
             if self.RowCount > 0:
-                self._changeRowSetData(0, self.RowCount -1)
+                self._changeData(0, self.RowCount -1)
         elif self.RowCount > rowcount:
-            self._insertRowSetData(rowcount, self.RowCount -1)
+            self._insertRow(rowcount, self.RowCount -1)
             if rowcount > 0:
-                self._changeRowSetData(0, rowcount -1)
-        elif rowcount > 0:
-            self._changeRowSetData(0, rowcount -1)
+                self._changeData(0, rowcount -1)
+        elif self.RowCount > 0:
+            self._changeData(0, rowcount -1)
 
-    def _updateRowSetData1(self, rowcount):
-        if self.RowCount < rowcount:
-            self._removeRowSetData(self.RowCount, rowcount -1)
-        else:
-            self._insertRowSetData(rowcount, self.RowCount -1)
-
-    def _removeRowSetData(self, first, last):
-        event = self._getGridDataEvent(first, last)
+    def _removeRow(self, firstrow, lastrow):
+        event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
         for listener in self._datalisteners:
             if previous != listener:
                 listener.rowsRemoved(event)
                 previous = listener
 
-    def _insertRowSetData(self, first, last):
-        event = self._getGridDataEvent(first, last)
+    def _insertRow(self, firstrow, lastrow):
+        event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
         for listener in self._datalisteners:
             if previous != listener:
                 listener.rowsInserted(event)
                 previous = listener
 
-    def _changeRowSetData(self, first, last):
-        event = self._getGridDataEvent(first, last)
+    def _changeData(self, firstrow, lastrow):
+        event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
         for listener in self._datalisteners:
             if previous != listener:
                 listener.dataChanged(event)
                 previous = listener
 
-    def _getGridDataEvent(self, first, last):
+    def _getGridDataEvent(self, firstrow, lastrow):
         event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
         event.Source = self
         event.FirstColumn = 0
         event.LastColumn = self.ColumnCount -1
-        event.FirstRow = first
-        if first != -1:
-           event.LastRow = last
+        event.FirstRow = firstrow
+        event.LastRow = lastrow
         return event

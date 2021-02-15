@@ -42,12 +42,14 @@ from smtpserver import logMessage
 from smtpserver import getMessage
 g_message = 'sendermanager'
 
+from threading import Condition
 import traceback
 
 
 class SenderManager(unohelper.Base):
     def __init__(self, ctx, path):
         self._ctx = ctx
+        self._lock = Condition()
         self._model = SenderModel(ctx, path)
         self._view = SenderView(ctx)
         self._mailer = None
@@ -73,11 +75,12 @@ class SenderManager(unohelper.Base):
         return self._view.execute()
 
     def initMailer(self, document):
-        if not self._view.isDisposed():
-            resource = self._view.getTitleRessource()
-            title = self._model.getDocumentTitle(document.URL, resource)
-            self._mailer.initView(document)
-            self._view.setTitle(title)
+        with self._lock:
+            if not self._view.isDisposed():
+                resource = self._view.getTitleRessource()
+                title = self._model.getDocumentTitle(document.URL, resource)
+                self._mailer.initView(document)
+                self._view.setTitle(title)
 
     def updateUI(self, enabled):
         self._view.enableButtonSend(enabled)
@@ -87,5 +90,6 @@ class SenderManager(unohelper.Base):
         self._view.endDialog()
 
     def dispose(self):
-        self._view.dispose()
-        self._mailer.dispose()
+        with self._lock:
+            self._view.dispose()
+            self._mailer.dispose()

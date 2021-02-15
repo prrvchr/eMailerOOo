@@ -36,6 +36,7 @@ from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
+from collections import OrderedDict
 import traceback
 
 
@@ -50,10 +51,14 @@ class DialogHandler(unohelper.Base,
         if method == 'ToogleSpooler':
             self._manager.toogleSpooler()
             handled = True
+        elif method == 'Close':
+            self._manager.closeSpooler()
+            handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('ToogleSpooler',)
+        return ('ToogleSpooler',
+                'Close')
 
 
 class Page1Handler(unohelper.Base,
@@ -65,15 +70,43 @@ class Page1Handler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         handled = False
         if method == 'ChangeColumn':
-            columns = event.Source.getItems()
-            self._manager.changeColumn(columns)
+            titles = OrderedDict()
+            control = event.Source
+            positions = control.getSelectedItemsPos()
+            if positions:
+                reset = False
+                for position in positions:
+                    name = control.Model.getItemData(position)
+                    title = control.Model.getItemText(position)
+                    titles[name] = title
+            else:
+                reset = True
+                for position in range(control.getItemCount()):
+                    name = control.Model.getItemData(position)
+                    title = control.Model.getItemText(position)
+                    titles[name] = title
+            self._manager.setGridColumnModel(titles, reset)
             handled = True
         elif method == 'ChangeOrder':
-            orders = event.Source.getItems()
-            self._manager.changeOrder(orders)
+            print("SpoolerHandler.callHandlerMethod() %s" % method)
+            if self._manager.HandlerEnabled:
+                orders = []
+                control = event.Source
+                positions = control.getSelectedItemsPos()
+                for position in positions:
+                    order = control.Model.getItemData(position)
+                    orders.append(order)
+                self._manager.changeOrder(orders)
+            handled = True
+        elif method == 'ChangeDirection':
+            state = event.Source.Model.State
+            self._manager.changeDirection(state)
             handled = True
         elif method == 'Add':
             self._manager.addDocument()
+            handled = True
+        elif method == 'Edit':
+            self._manager.editDocument()
             handled = True
         elif method == 'Remove':
             self._manager.removeDocument()
@@ -83,7 +116,9 @@ class Page1Handler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('ChangeColumn',
                 'ChangeOrder',
+                'ChangeDirection',
                 'Add',
+                'Edit'
                 'Remove')
 
 

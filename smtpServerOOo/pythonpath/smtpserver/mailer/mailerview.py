@@ -44,7 +44,7 @@ import traceback
 
 
 class MailerView(unohelper.Base):
-    def __init__(self, ctx, parent, manager):
+    def __init__(self, ctx, manager, parent):
         self._ctx = ctx
         handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailerWindow')

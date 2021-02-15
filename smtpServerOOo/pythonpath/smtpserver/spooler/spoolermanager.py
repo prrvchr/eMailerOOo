@@ -45,23 +45,30 @@ from smtpserver import logMessage
 from smtpserver import getMessage
 g_message = 'spoolermanager'
 
+from threading import Condition
 import traceback
 
 
 class SpoolerManager(unohelper.Base):
     def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
+        self._lock = Condition()
         self._model = SpoolerModel(ctx, datasource)
-        self._view = SpoolerView(ctx, self, parent)
+        self._view = SpoolerView(ctx, self, parent, self._lock)
         service = 'com.sun.star.mail.MailServiceSpooler'
         self._spooler = createService(ctx, service)
         self._refreshSpoolerState()
-        self._model.initRowSet(self.initView)
+        self._model.DataSource.initSpooler(self.initView)
+        self._enabled = True
         print("SpoolerManager.__init__()")
 
     @property
     def Model(self):
         return self._model
+
+    @property
+    def HandlerEnabled(self):
+        return self._enabled
 
     def execute(self):
         return self._view.execute()
@@ -71,25 +78,39 @@ class SpoolerManager(unohelper.Base):
 
     def initView(self):
         try:
-            #query = self.Model.getQuery()
-            self.Model.setRowSet()
-            #composer = self.Model.getQueryComposer(query)
-            #columns = composer.getTables().getByName('Spooler').getColumns().getElementNames()
-            #enumeration = composer.getColumns().createEnumeration()
-            #self._view.setColumnsList(columns, enumeration)
-            #enumeration = composer.getOrderColumns().createEnumeration()
-            #self._view.setOrdersList(columns, enumeration)
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(composer)
+            with self._lock:
+                if not self._view.isDisposed():
+                    # TODO: Attention: order is very important here
+                    # TODO: to have fonctionnal columns in the GridColumnModel
+                    self._model.initQueryComposer()
+                    titles = self._model.getQueryColumnTitles()
+                    self._model.initGridColumnModel(titles)
+                    self._view.showGridColumnHeader(True)
+                    self._model.executeRowSet()
+                    self._view.initColumnsList(titles)
+                    orders = self._model.getQueryOrder()
+                    self._enabled = False
+                    self._view.initOrdersList(titles, orders)
+                    self._enabled = True
+                    self._view.initButtons()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def changeColumn(self, columns):
-        print("SpoolerManager.changeColumn() %s" % (columns, ))
+    def setGridColumnModel(self, titles, reset):
+        self._model.setGridColumnModel(titles, reset)
 
     def changeOrder(self, orders):
-        print("SpoolerManager.changeOrder() %s" % (orders, ))
+        try:
+            print("SpoolerManager.changeOrder() %s" % (orders, ))
+            ascending = self._view.getSortDirection()
+            self._model.setRowSetOrder(orders, ascending)
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def changeDirection(self, state):
+        print("SpoolerManager.changeDirection() %s" % (state, ))
 
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path})
@@ -99,6 +120,9 @@ class SpoolerManager(unohelper.Base):
     def addJob(self, path):
         self._model.Path = path
         self._model.executeRowSet()
+
+    def editDocument(self):
+        print("SpoolerManager.editDocument")
 
     def removeDocument(self):
         self._model.executeRowSet()
@@ -112,6 +136,15 @@ class SpoolerManager(unohelper.Base):
         else:
             self._spooler.start()
         self._refreshSpoolerState()
+
+    def closeSpooler(self):
+        try:
+            self._model.saveGridColumn()
+            self._model.saveQuery()
+            self._view.endDialog()
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

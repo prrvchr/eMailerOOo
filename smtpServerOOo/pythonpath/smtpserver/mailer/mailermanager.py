@@ -43,15 +43,18 @@ from smtpserver import logMessage
 from smtpserver import getMessage
 g_message = 'mailermanager'
 
+import time
+from threading import Condition
 import traceback
 
 
 class MailerManager(unohelper.Base):
     def __init__(self, ctx, manager, datasource, parent, path, recipients=('prrvchr@gmail.com', )):
         self._ctx = ctx
+        self._lock = Condition()
         self._manager = manager
         self._model = MailerModel(ctx, datasource, path)
-        self._view = MailerView(ctx, parent, self)
+        self._view = MailerView(ctx, self, parent)
         self._model.getSenders(self.initSenders)
         self._view.setRecipient(recipients)
         print("MailerManager.__init__()")
@@ -68,35 +71,35 @@ class MailerManager(unohelper.Base):
         self._canSend()
 
     def initView(self, document):
-        if not self._view.isDisposed():
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(document)
-            self._model.setUrl(document.URL)
-            # Set the Save Subject CheckBox and if needed the Subject TextField
-            state = self._getDocumentUserProperty(document, 'SaveSubject')
-            self._view.setSaveSubject(int(state))
-            if state:
-                subject = self._model.getDocumentSubject(document)
-                self._view.setSubject(subject)
-            # Set the Save Attachments CheckBox and if needed the Attachments ListBox
-            state = self._getDocumentUserProperty(document, 'SaveAttachments')
-            self._view.setSaveAttachments(int(state))
-            if state:
-                attachments = self._getDocumentAttachemnts(document, 'Attachments')
-                self._view.setAttachments(attachments)
-            # Set the Attachment As PDF CheckBox
-            state = self._getDocumentUserProperty(document, 'AttachmentAsPdf')
-            self._view.setAttachmentAsPdf(int(state))
-            # Set the View Document in HTML CommandButton
-            self._view.enableButtonViewHtml()
-            self._canSend()
-        document.close(True)
+        with self._lock:
+            if not self._view.isDisposed():
+                self._model.setUrl(document.URL)
+                # Set the Save Subject CheckBox and if needed the Subject TextField
+                state = self._getDocumentUserProperty(document, 'SaveSubject')
+                self._view.setSaveSubject(int(state))
+                if state:
+                    subject = self._model.getDocumentSubject(document)
+                    self._view.setSubject(subject)
+                # Set the Save Attachments CheckBox and if needed the Attachments ListBox
+                state = self._getDocumentUserProperty(document, 'SaveAttachments')
+                self._view.setSaveAttachments(int(state))
+                if state:
+                    attachments = self._getDocumentAttachemnts(document, 'Attachments')
+                    self._view.setAttachments(attachments)
+                # Set the Attachment As PDF CheckBox
+                state = self._getDocumentUserProperty(document, 'AttachmentAsPdf')
+                self._view.setAttachmentAsPdf(int(state))
+                # Set the View Document in HTML CommandButton
+                self._view.enableButtonViewHtml()
+                self._canSend()
+            document.close(True)
 
     def show(self):
         return self._view.execute()
 
     def dispose(self):
-        self._view.dispose()
+        with self._lock:
+            self._view.dispose()
 
     def addSender(self, sender):
         self._view.addSender(sender)

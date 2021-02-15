@@ -124,8 +124,8 @@ class DataSource(unohelper.Base,
         return self.DataBase.deleteUser(sender)
 
 # Procedures called by the Spooler
-    def initRowSet(self, *args):
-        Thread(target=self._initRowSet, args=args).start()
+    def initSpooler(self, *args):
+        Thread(target=self._initSpooler, args=args).start()
 
 # Procedures called by the MailServiceSpooler
     def insertJob(self, sender, subject, document, recipients, attachments):
@@ -231,7 +231,7 @@ class DataSource(unohelper.Base,
         callback(senders)
 
 # Procedures called internally by the Spooler
-    def _initRowSet(self, callback):
+    def _initSpooler(self, callback):
         self.waitForDataBase()
         callback()
 

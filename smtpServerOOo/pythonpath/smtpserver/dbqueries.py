@@ -188,37 +188,26 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getSenders':
         query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
 
-    elif name == 'getRowSetCommand':
-        c1 = '"Id"'
-        c2 = '"State"'
-        c3 = '"Subject"'
-        c4 = '"Sender"'
-        c5 = '"Recipient"'
-        c6 = '"Document"'
-        c7 = '"TimeStamp"'
-        c = (c1,c2,c3,c4,c5,c6,c7)
-        f = '"Spooler"'
-        p = (','.join(c), f)
-        query = 'SELECT %s FROM %s' % p
+    elif name == 'getSpoolerQuery1':
+        s1 = '"Senders"."Id"'
+        s2 = '"Recipients"."State"'
+        s3 = '"Senders"."Subject"'
+        s4 = '"Senders"."Sender"'
+        s5 = '"Recipients"."Recipient"'
+        s6 = '"Senders"."Document"'
+        s7 = '"Recipients"."TimeStamp"'
+        s = (s1,s2,s3,s4,s5,s6,s7)
+        f1 = '"Senders"'
+        f2 = 'JOIN "Recipients" ON "Senders"."Id"="Recipients"."Id"'
+        f = (f1,f2)
+        p = (','.join(s), ' '.join(f))
+        query = 'SELECT %s FROM %s;' % p
 
-    elif name == 'getQueryCommand':
-        c1 = '"Id"'
-        c2 = '"State"'
-        c3 = '"Subject"'
-        c4 = '"Sender"'
-        c5 = '"Recipient"'
-        c6 = '"Document"'
-        c7 = '"TimeStamp"'
-        c = (c1,c2,c3,c4,c5,c6,c7)
-        f = '"Spooler"'
-        p = (','.join(c), f)
-        query = 'SELECT %s FROM %s' % p
+    elif name == 'getViewQuery':
+        query = 'SELECT * FROM "Spooler";'
 
-    elif name == 'getRowSetCommand1':
-        query = 'Spooler'
-
-    elif name == 'getRowSetOrder':
-        query = '"Id", "State", "Subject", "Sender", "Recipient", "Document", "TimeStamp"'
+    elif name == 'getSpoolerViewQuery':
+        query = 'SELECT * FROM "View";'
 
 # Delete Queries
     elif name == 'deleteUser':

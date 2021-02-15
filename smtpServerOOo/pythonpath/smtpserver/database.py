@@ -72,9 +72,8 @@ class DataBase(unohelper.Base):
             self._ctx = ctx
             self._error = None
             time.sleep(0.5)
-            datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, True)
+            datasource, self._url, self._created = getDataSource(ctx, dbname, g_identifier, True)
             print("DataBase.__init__() 2")
-            #connection = Connection(ctx, datasource, datasource.URL, user, password, sync, True)
             connection = datasource.getConnection(user, password)
             print("DataBase.__init__() 3")
             self._statement = connection.createStatement()
@@ -83,7 +82,7 @@ class DataBase(unohelper.Base):
                 print("DataBase.__init__() 5")
                 self._error = self._createDataBase()
                 if self._error is None:
-                    self._storeDataBase(url)
+                    self.storeDataBase()
             print("DataBase.__init__() 6")
             self.sync = sync
         except Exception as e:
@@ -93,6 +92,9 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         return self._statement.getConnection()
+
+    def storeDataBase(self):
+        self.Connection.getParent().DatabaseDocument.storeAsURL(self._url, ())
 
 # Procedures called by the DataSource
     def getDataSource(self):
@@ -183,14 +185,11 @@ class DataBase(unohelper.Base):
         call.close()
 
 # Procedures called by the Spooler
-    def getRowSetCommand(self):
-        return getSqlQuery(self._ctx, 'getRowSetCommand')
+    def getSpoolerViewQuery(self):
+        return getSqlQuery(self._ctx, 'getSpoolerViewQuery')
 
-    def getQueryCommand(self):
-        return getSqlQuery(self._ctx, 'getQueryCommand')
-
-    def getRowSetOrder(self):
-        return getSqlQuery(self._ctx, 'getRowSetOrder')
+    def getViewQuery(self):
+        return getSqlQuery(self._ctx, 'getViewQuery')
 
     def insertJob(self, sender, subject, document, recipient, attachment, separator):
         call = self._getCall('insertJob')
@@ -267,9 +266,6 @@ class DataBase(unohelper.Base):
             executeSqlQueries(self._statement, tables)
             executeQueries(self._ctx, self._statement, getQueries())
         return error
-
-    def _storeDataBase(self, url):
-        self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
     def _getCall(self, name, format=None):
         return getDataSourceCall(self._ctx, self.Connection, name, format)

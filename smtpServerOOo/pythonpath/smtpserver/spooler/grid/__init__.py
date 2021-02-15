@@ -1,5 +1,7 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!--
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,17 +25,7 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<oor:component-schema
-  xml:lang="en-US"
-  xmlns:oor="http://openoffice.org/2001/registry"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  oor:package="com.gmail.prrvchr.extensions"
-  oor:name="smtpServerOOo">
-    <component>
-        <prop oor:name="ConnectTimeout" oor:type="xs:short" />
-        <prop oor:name="IspDBUrl" oor:type="xs:string" />
-        <prop oor:name="SpoolerGridColumns" oor:type="xs:string" />
-    </component>
-</oor:component-schema>
+"""
+
+from .gridmodel import GridModel
+from .columnmodel import ColumnModel

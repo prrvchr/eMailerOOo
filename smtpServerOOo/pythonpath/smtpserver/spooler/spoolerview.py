@@ -31,6 +31,8 @@ import uno
 import unohelper
 
 from com.sun.star.view.SelectionType import MULTI
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 
 from unolib import getDialog
 from unolib import getContainerWindow
@@ -44,7 +46,8 @@ from smtpserver import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
+    def __init__(self, ctx, manager, parent, lock):
+        self._lock = lock
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
@@ -62,42 +65,52 @@ class SpoolerView(unohelper.Base):
         self._page2.setVisible(True)
         point = uno.createUnoStruct('com.sun.star.awt.Point', 4, 25)
         size = uno.createUnoStruct('com.sun.star.awt.Size', 390, 130)
-        model = manager.Model.getGridDataModel(size.Width)
-        grid = self._getGrid(model, 'Grid1', point, size)
+        grid = self._createGrid(manager.Model, 'Grid1', point, size)
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)
-        self._setTitle(manager.Model)
+        title = manager.Model.getDialogTitle()
+        self._dialog.setTitle(title)
 
 # SpoolerView setter methods
+    def initColumnsList(self, columns):
+        control = self.getColumnsList()
+        self._initListBox(control, columns)
+
+    def initOrdersList(self, columns, orders):
+        control = self.getOrdersList()
+        self._initListBox(control, columns)
+        items = control.Model.StringItemList
+        while orders.hasMoreElements():
+            column = orders.nextElement()
+            index = items.index(columns[column.Name])
+            control.selectItemPos(index, True)
+
+    def initButtons(self):
+        self._enableButtonStartSpooler(True)
+        self._enableButtonCancel(True)
+        self._enableButtonClose(True)
+        self._enableButtonAdd(True)
+
     def enableButtonRemove(self, enabled):
         self._getButtonRemove().Model.Enabled = enabled
 
     def setSpoolerState(self, label):
         self._getLabelState().Text = label
 
-    def setColumnsList(self, columns, enumeration):
-        control = self.getColumnsList()
-        control.Model.StringItemList = columns
-        while enumeration.hasMoreElements():
-            column = enumeration.nextElement()
-            index = columns.index(column.Name)
-            control.selectItemPos(index, True)
+    def endDialog(self):
+        self._dialog.endDialog(OK)
 
-    def setOrdersList(self, columns, enumeration):
-        control = self.getOrdersList()
-        control.Model.StringItemList = columns
-        while enumeration.hasMoreElements():
-            column = enumeration.nextElement()
-            index = columns.index(column.Name)
-            control.selectItemPos(index, True)
+    def isDisposed(self):
+        return self._dialog is None
 
     def dispose(self):
-        self._dialog.dispose()
-        self._page1.dispose()
-        self._page2.dispose()
-        self._dialog = None
-        self._page1 = None
-        self._page2 = None
+        with self._lock:
+            self._dialog.dispose()
+            self._page1.dispose()
+            self._page2.dispose()
+            self._dialog = None
+            self._page1 = None
+            self._page2 = None
 
 # SpoolerView getter methods
     def execute(self):
@@ -106,27 +119,54 @@ class SpoolerView(unohelper.Base):
     def getParent(self):
         return self._dialog.getPeer()
 
+    def getSortDirection(self):
+        ascending = not bool(self._getSortDirection().Model.State)
+        return ascending
+
 # SpoolerView private setter methods
-    def _setTitle(self, model):
-        title = model.getDialogTitle()
-        self._dialog.setTitle(title)
+    def showGridColumnHeader(self, enabled):
+        self._getGrid().Model.ShowColumnHeader = enabled
 
-# SpoolerView private getter methods
-    def _getTabPageTitle(self, model, id):
-        return model.getTabPageTitle(id)
+    def _initListBox(self, control, columns):
+        index = 0
+        for column, name in columns.items():
+            control.Model.insertItemText(index, name)
+            control.Model.setItemData(index, column)
+            index += 1
 
-# SpoolerView StringRessoure methods
-    def _getGridColumnResource(self, column):
-        return 'SpoolerDialog.Grid1.Column.%s' % column
+    def _enableButtonStartSpooler(self, enabled):
+        self._getButtonStartSpooler().Model.Enabled = enabled
 
+    def _enableButtonCancel(self, enabled):
+        self._getButtonCancel().Model.Enabled = enabled
 
+    def _enableButtonClose(self, enabled):
+        self._getButtonClose().Model.Enabled = enabled
 
-    def getStateResource(self, state):
-        return 'SpoolerDialog.Label2.Label.%s' % state
+    def _enableButtonAdd(self, enabled):
+        self._getButtonAdd().Model.Enabled = enabled
 
 # SpoolerView private control methods
-    def _getButtonRemove(self):
+    def _getButtonStartSpooler(self):
+        return self._dialog.getControl('CommandButton1')
+
+    def _getButtonCancel(self):
         return self._dialog.getControl('CommandButton2')
+
+    def _getButtonClose(self):
+        return self._dialog.getControl('CommandButton3')
+
+    def _getGrid(self):
+        return self._page1.getControl('Grid1')
+
+    def _getSortDirection(self):
+        return self._page1.getControl('CheckBox1')
+
+    def _getButtonAdd(self):
+        return self._page1.getControl('CommandButton1')
+
+    def _getButtonRemove(self):
+        return self._page1.getControl('CommandButton2')
 
     def _getLabelState(self):
         return self._dialog.getControl('Label2')
@@ -159,7 +199,7 @@ class SpoolerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[id]
 
-    def _getGrid(self, model, name, point, size):
+    def _createGrid(self, model, name, point, size):
         grid = self._getGridModel(model, name, point, size)
         self._page1.Model.insertByName(name, grid)
         return self._page1.getControl(name)
@@ -172,9 +212,10 @@ class SpoolerView(unohelper.Base):
         grid.PositionY = point.Y
         grid.Height = size.Height
         grid.Width = size.Width
-        grid.GridDataModel = model
-        grid.ColumnModel = model.ColumnModel
+        grid.GridDataModel = model.getGridDataModel()
+        grid.ColumnModel = model.getGridColumnModel(size.Width)
         grid.SelectionModel = MULTI
+        grid.ShowColumnHeader = False
         #grid.ShowRowHeader = True
         grid.BackgroundColor = 16777215
         return grid

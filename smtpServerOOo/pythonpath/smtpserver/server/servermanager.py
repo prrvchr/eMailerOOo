@@ -40,35 +40,35 @@ from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .pagemodel import PageModel
-from .pageview import PageView
-from .dialogview import DialogView
-from .pagehandler import DialogHandler
+from .servermodel import ServerModel
+from .serverview import ServerView
+from .send import SendView
 
 from unolib import createService
 from unolib import getDialog
 
-from .logger import logMessage
-from .logger import getMessage
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
 g_message = 'pagemanager'
 
 
 import traceback
 
 
-class PageManager(unohelper.Base):
-    def __init__(self, ctx, wizard, model=None):
+class ServerManager(unohelper.Base):
+    def __init__(self, ctx, wizard, datasource, email=''):
         self.ctx = ctx
         self._search = True
         self._loaded = False
         self._connected = False
         self._wizard = wizard
-        self._model = PageModel(self.ctx) if model is None else model
+        self._model = ServerModel(ctx, datasource, email)
         self._views = {}
         self._dialog = None
         self._refresh = False
         self._new = False
         self._updated = False
+        self._enabled = True
         print("PageManager.__init__() %s" % self._model.Email)
 
     @property
@@ -82,6 +82,16 @@ class PageManager(unohelper.Base):
     def Wizard(self):
         return self._wizard
 
+    @property
+    def HandlerEnabled(self):
+        return self._enabled
+
+    def disableHandler(self):
+        self._enabled = False
+
+    def enableHandler(self):
+        self._enabled = True
+
     def getView(self, pageid):
         if pageid in self._views:
             return self._views[pageid]
@@ -92,7 +102,7 @@ class PageManager(unohelper.Base):
         return self.Wizard
 
     def initPage(self, pageid, window):
-        view = PageView(self.ctx, window)
+        view = ServerView(self.ctx, window)
         self._views[pageid] = view
         if pageid == 1:
             view.initPage1(self.Model)
@@ -213,9 +223,8 @@ class PageManager(unohelper.Base):
         self.View.updatePage3(self.Model)
 
     def sendMail(self):
-        handler = DialogHandler(self)
         parent = self.Wizard.DialogWindow.getPeer()
-        self._dialog = DialogView(self.ctx, 'SendDialog', handler, parent, self.Model)
+        self._dialog = SendView(self.ctx, self, parent)
         if self._dialog.execute() == OK:
             self.updatePage4(0)
             self.getView(4).setPage4Step(1)

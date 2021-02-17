@@ -54,7 +54,7 @@ class SpoolerManager(unohelper.Base):
         self._ctx = ctx
         self._lock = Condition()
         self._model = SpoolerModel(ctx, datasource)
-        self._view = SpoolerView(ctx, self, parent, self._lock)
+        self._view = SpoolerView(ctx, self, parent)
         service = 'com.sun.star.mail.MailServiceSpooler'
         self._spooler = createService(ctx, service)
         self._refreshSpoolerState()
@@ -73,7 +73,8 @@ class SpoolerManager(unohelper.Base):
         return self._view.execute()
 
     def dispose(self):
-        self._view.dispose()
+        with self._lock:
+            self._view.dispose()
 
     def initView(self):
         with self._lock:

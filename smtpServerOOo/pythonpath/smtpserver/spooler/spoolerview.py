@@ -46,15 +46,13 @@ from smtpserver import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, lock):
-        self._lock = lock
+    def __init__(self, ctx, manager, parent):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
-        point = uno.createUnoStruct('com.sun.star.awt.Point', 0, 0)
-        size = uno.createUnoStruct('com.sun.star.awt.Size', 400, 180)
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 180)
         title1 = manager.Model.getTabPageTitle(1)
         title2 = manager.Model.getTabPageTitle(2)
-        page1, page2 = self._getTabPages('Tab1', point, size, title1, title2, 1)
+        page1, page2 = self._getTabPages('Tab1', title1, title2, rectangle, 1)
         parent = page1.getPeer()
         handler = Page1Handler(manager)
         self._page1 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerPage1')
@@ -63,9 +61,10 @@ class SpoolerView(unohelper.Base):
         handler = Page2Handler(manager)
         self._page2 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerPage2')
         self._page2.setVisible(True)
-        point = uno.createUnoStruct('com.sun.star.awt.Point', 4, 25)
-        size = uno.createUnoStruct('com.sun.star.awt.Size', 390, 130)
-        grid = self._createGrid(manager.Model, 'Grid1', point, size)
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
+        data = manager.Model.getGridDataModel()
+        column = manager.Model.getGridColumnModel(rectangle.Width)
+        grid = self._createGrid(data, column, 'Grid1', rectangle)
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)
         title = manager.Model.getDialogTitle()
@@ -104,13 +103,12 @@ class SpoolerView(unohelper.Base):
         return self._dialog is None
 
     def dispose(self):
-        with self._lock:
-            self._dialog.dispose()
-            self._page1.dispose()
-            self._page2.dispose()
-            self._dialog = None
-            self._page1 = None
-            self._page2 = None
+        self._dialog.dispose()
+        self._page1.dispose()
+        self._page2.dispose()
+        self._dialog = None
+        self._page1 = None
+        self._page2 = None
 
 # SpoolerView getter methods
     def execute(self):
@@ -178,13 +176,8 @@ class SpoolerView(unohelper.Base):
         return self._page1.getControl('ListBox2')
 
 # SpoolerView private methods
-    def _getTabPages(self, name, point, size, title1, title2, id):
-        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
-        model = self._dialog.Model.createInstance(service)
-        model.PositionX = point.X
-        model.PositionY = point.Y
-        model.Width = size.Width
-        model.Height = size.Height
+    def _getTabPages(self, name, title1, title2, rectangle, id):
+        model = self._getTabModel(rectangle)
         self._dialog.Model.insertByName(name, model)
         tab = self._dialog.getControl(name)
         page1 = self._getTabPage(tab, model, title1, 0)
@@ -192,30 +185,39 @@ class SpoolerView(unohelper.Base):
         tab.ActiveTabPageID = id
         return page1, page2
 
+    def _getTabModel(self, rectangle):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = self._dialog.Model.createInstance(service)
+        model.PositionX = rectangle.X
+        model.PositionY = rectangle.Y
+        model.Width = rectangle.Width
+        model.Height = rectangle.Height
+        return model
+
     def _getTabPage(self, tab, model, title, id):
-        page = model.createTabPage(id + 1)
+        page = model.createTabPage(id +1)
         page.Title = title
         index = model.getCount()
         model.insertByIndex(index, page)
         return tab.getControls()[id]
 
-    def _createGrid(self, model, name, point, size):
-        grid = self._getGridModel(model, name, point, size)
-        self._page1.Model.insertByName(name, grid)
+    def _createGrid(self, data, column, name, rectangle):
+        model = self._getGridModel(data, column, name, rectangle)
+        self._page1.Model.insertByName(name, model)
         return self._page1.getControl(name)
 
-    def _getGridModel(self, model, name, point, size):
+    def _getGridModel(self, data, column, name, rectangle):
         service = 'com.sun.star.awt.grid.UnoControlGridModel'
-        grid = self._page1.Model.createInstance(service)
-        grid.Name = name
-        grid.PositionX = point.X
-        grid.PositionY = point.Y
-        grid.Height = size.Height
-        grid.Width = size.Width
-        grid.GridDataModel = model.getGridDataModel()
-        grid.ColumnModel = model.getGridColumnModel(size.Width)
-        grid.SelectionModel = MULTI
-        grid.ShowColumnHeader = False
-        #grid.ShowRowHeader = True
-        grid.BackgroundColor = 16777215
-        return grid
+        model = self._page1.Model.createInstance(service)
+        model.Name = name
+        model.PositionX = rectangle.X
+        model.PositionY = rectangle.Y
+        model.Height = rectangle.Height
+        model.Width = rectangle.Width
+        model.GridDataModel = data
+        model.ColumnModel = column
+        model.SelectionModel = MULTI
+        model.ShowColumnHeader = False
+        #model.ShowRowHeader = True
+        model.BackgroundColor = 16777215
+        return model

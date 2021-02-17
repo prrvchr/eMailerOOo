@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,68 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import uno
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from .smtpdispatch import SmtpDispatch
+from unolib import getDialog
+from unolib import createService
 
-from .datasource import DataSource
+from .senderhandler import DialogHandler
 
-from .server import ServerModel
+from smtpserver import g_extension
 
-from . import smtplib
+import traceback
+
+
+class SenderView(unohelper.Base):
+    def __init__(self, ctx):
+        self._ctx = ctx
+        self._dialog = None
+
+# SenderView setter methods
+    def setDialog(self, manager, parent):
+        handler = DialogHandler(manager)
+        self._dialog = getDialog(self._ctx, g_extension, 'SenderDialog', handler, parent)
+
+    def setTitle(self, title):
+        self._dialog.setTitle(title)
+
+    def enableButtonSend(self, enabled):
+        self._getButtonSend().Model.Enabled = enabled
+
+    def endDialog(self):
+        self._dialog.endDialog(OK)
+
+    def dispose(self):
+        self._dialog.dispose()
+        self._dialog = None
+
+# SenderView getter methods
+    def getDocumentUrl(self, title, filter, path):
+        url = None
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        filepicker = createService(self._ctx, service)
+        filepicker.setTitle(title)
+        filepicker.setDisplayDirectory(path)
+        filepicker.appendFilter(filter, '*.odt')
+        filepicker.setCurrentFilter(filter)
+        if filepicker.execute() == OK:
+            url = filepicker.getSelectedFiles()[0]
+            path = filepicker.getDisplayDirectory()
+        filepicker.dispose()
+        return url, path
+
+    def getParent(self):
+        return self._dialog.getPeer()
+
+    def execute(self):
+        return self._dialog.execute()
+
+    def isDisposed(self):
+        return self._dialog is None
+
+# SenderView private control methods
+    def _getButtonSend(self):
+        return self._dialog.getControl('CommandButton2')

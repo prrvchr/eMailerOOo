@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,70 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import uno
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
-from .smtpdispatch import SmtpDispatch
+from .mergermodel import MergerModel
+from .mergerview import MergerView
 
-from .datasource import DataSource
+from smtpserver import logMessage
+from smtpserver import getMessage
+g_message = 'sendermanager'
 
-from .server import ServerModel
+from threading import Condition
+import traceback
 
-from . import smtplib
+
+class MergerManager(unohelper.Base):
+    def __init__(self, ctx, path):
+        self._ctx = ctx
+        self._lock = Condition()
+        self._model = MergerModel(ctx, path)
+        self._view = MergerView(ctx)
+        self._mailer = None
+        print("MergerManager.__init__()")
+
+    @property
+    def Model(self):
+        return self._model
+    @property
+    def Mailer(self):
+        return self._mailer
+
+    def getDocumentUrl(self):
+        title = self._model.getFilePickerTitle()
+        filter = self._model.getFilePickerFilter()
+        path = self._model.Path
+        url, path = self._view.getDocumentUrl(title, filter, path)
+        self._model.Path = path
+        return url
+
+    def showDialog(self, datasource, parent, url):
+        self._view.setDialog(self, parent)
+        parent = self._view.getParent()
+        path = self.Model.Path
+        self._mailer = MailerManager(self._ctx, self, datasource, parent, path)
+        self._model.getDocument(url, self.initMailer)
+        return self._view.execute()
+
+    def initMailer(self, document):
+        with self._lock:
+            if not self._view.isDisposed():
+                title = self._model.getDocumentTitle(document.URL)
+                self._mailer.initView(document)
+                self._view.setTitle(title)
+
+    def updateUI(self, enabled):
+        self._view.enableButtonSend(enabled)
+
+    def sendDocument(self):
+        self._mailer.sendDocument()
+        self._view.endDialog()
+
+    def dispose(self):
+        with self._lock:
+            self._view.dispose()
+            self._mailer.dispose()

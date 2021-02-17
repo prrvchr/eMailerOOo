@@ -37,8 +37,6 @@ from com.sun.star.sdb.CommandType import QUERY
 from unolib import KeyMap
 from unolib import parseDateTime
 
-from .connection import Connection
-
 from .dbqueries import getSqlQuery
 from .dbconfig import g_role
 from .dbconfig import g_dba

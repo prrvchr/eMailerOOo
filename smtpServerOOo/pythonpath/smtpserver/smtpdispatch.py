@@ -45,9 +45,9 @@ from unolib import getPathSettings
 from .datasource import DataSource
 
 from .wizard import Wizard
-from .wizardcontroller import WizardController
 
-from .pagemodel import PageModel
+from .server import ServerWizard
+from .server import ServerManager
 
 from .spooler import SpoolerManager
 
@@ -108,15 +108,15 @@ class SmtpDispatch(unohelper.Base,
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
-            model = PageModel(self._ctx, self._datasource)
             wizard = Wizard(self._ctx, g_wizard_page, True, self._parent)
-            controller = WizardController(self._ctx, wizard, model)
+            manager = ServerManager(self._ctx, wizard, self._datasource)
+            controller = ServerWizard(self._ctx, wizard, manager)
             arguments = (g_wizard_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
                 state = SUCCESS
-                email = model.Email
+                email = manager.Model.Email
                 msg +=  " Retrieving SMTP configuration OK..."
             wizard.DialogWindow.dispose()
             wizard.DialogWindow = None

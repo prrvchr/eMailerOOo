@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,48 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import uno
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt import XItemListener
 
-from .smtpdispatch import SmtpDispatch
+import traceback
 
-from .datasource import DataSource
 
-from .server import ServerModel
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
 
-from . import smtplib
+    # XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        handled = False
+        if method == 'Help':
+            handled = True
+        elif method == 'Previous':
+            self._manager.travelPrevious()
+            handled = True
+        elif method == 'Next':
+            self._manager.travelNext()
+            handled = True
+        elif method == 'Finish':
+            self._manager.doFinish(dialog)
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('Help', 'Previous', 'Next', 'Finish')
+
+
+class ItemHandler(unohelper.Base,
+                  XItemListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XItemListener
+    def itemStateChanged(self, event):
+        self._manager.changeRoadmapStep(event.ItemId)
+
+    def disposing(self, event):
+        pass

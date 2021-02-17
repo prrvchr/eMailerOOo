@@ -27,60 +27,69 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
-from unolib import getDialog
+from com.sun.star.ui.dialogs import XWizardController
+
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
+from unolib import getContainerWindow
+
+from .pagemanager import PageManager
+from .pagehandler import PageHandler
+from .wizardpage import WizardPage
 
 from .configuration import g_extension
 
+from .logger import logMessage
 
-class DialogView(unohelper.Base):
-    def __init__(self, ctx, xdl, handler, parent, model):
-        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
-        self._setTitle(model)
-        self._getRecipient().Text = model.Email
-        self._getSubject().Text = model.resolveString('SendDialog.TextField2.Text')
-        self._getMessage().Text = model.resolveString('SendDialog.TextField3.Text')
-        self.enableButtonSend(model)
+import traceback
 
-# DialogView setter methods
-    def enableButtonSend(self, model):
-        enabled = all((model.isEmailValid(self.getRecipient()),
-                       model.isStringValid(self.getSubject()),
-                       model.isStringValid(self.getMessage())))
-        self._getButtonSend().Model.Enabled = enabled
 
-    def dispose(self):
-        self._dialog.dispose()
-        self._dialog = None
+class WizardController(unohelper.Base,
+                       XWizardController):
+    def __init__(self, ctx, wizard, model=None):
+        self._ctx = ctx
+        self._manager = PageManager(ctx, wizard, model)
+        self._handler = PageHandler(self._manager)
 
-# DialogView getter methods
-    def execute(self):
-        return self._dialog.execute()
+    # XWizardController
+    def createPage(self, parent, pageid):
+        msg = "PageId: %s ..." % pageid
+        xdl = 'PageWizard%s' % pageid
+        window = getContainerWindow(self._ctx, parent, self._handler, g_extension, xdl)
+        # TODO: Fixed: When initializing XWizardPage, the handler must be disabled...
+        self._manager.disableHandler()
+        page = WizardPage(self._ctx, pageid, window, self._manager)
+        self._manager.enableHandler()
+        msg += " Done"
+        logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
+        return page
 
-    def getRecipient(self):
-        return self._dialog.getControl('TextField1').Text
+    def getPageTitle(self, pageid):
+        return self._manager.Wizard._manager.getPageStep(pageid)
 
-    def getSubject(self):
-        return self._dialog.getControl('TextField2').Text
+    def canAdvance(self):
+        return True
 
-    def getMessage(self):
-        return self._dialog.getControl('TextField3').Text
+    def onActivatePage(self, pageid):
+        msg = "PageId: %s..." % pageid
+        self._manager.setPageTitle(pageid)
+        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
+        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
+        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
+        msg += " Done"
+        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 
-# DialogView private setter methods
-    def _setTitle(self, model):
-        title = model.resolveString('SendDialog.Title')
-        self._dialog.setTitle(title % model.Email)
+    def onDeactivatePage(self, pageid):
+        if pageid == 1:
+            pass
+        elif pageid == 2:
+            pass
+        elif pageid == 3:
+            pass
 
-# DialogView private control methods
-    def _getButtonSend(self):
-        return self._dialog.getControl('CommandButton2')
-
-    def _getRecipient(self):
-        return self._dialog.getControl('TextField1')
-
-    def _getSubject(self):
-        return self._dialog.getControl('TextField2')
-
-    def _getMessage(self):
-        return self._dialog.getControl('TextField3')
+    def confirmFinish(self):
+        return True

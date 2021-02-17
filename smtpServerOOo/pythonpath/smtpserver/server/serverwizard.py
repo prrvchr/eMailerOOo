@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,69 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import uno
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from com.sun.star.ui.dialogs import XWizardController
 
-from .smtpdispatch import SmtpDispatch
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
-from .datasource import DataSource
+from unolib import getContainerWindow
 
-from .server import ServerModel
+from .servermanager import ServerManager
+from .serverhandler import ServerHandler
+from .wizardpage import WizardPage
 
-from . import smtplib
+from smtpserver.configuration import g_extension
+
+from smtpserver.logger import logMessage
+
+import traceback
+
+
+class ServerWizard(unohelper.Base,
+                   XWizardController):
+    def __init__(self, ctx, wizard, manager):
+        self._ctx = ctx
+        self._manager = manager
+        self._handler = ServerHandler(self._manager)
+
+    # XWizardController
+    def createPage(self, parent, pageid):
+        msg = "PageId: %s ..." % pageid
+        xdl = 'PageWizard%s' % pageid
+        window = getContainerWindow(self._ctx, parent, self._handler, g_extension, xdl)
+        # TODO: Fixed: When initializing XWizardPage, the handler must be disabled...
+        self._manager.disableHandler()
+        page = WizardPage(self._ctx, pageid, window, self._manager)
+        self._manager.enableHandler()
+        msg += " Done"
+        logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
+        return page
+
+    def getPageTitle(self, pageid):
+        return self._manager.Wizard._manager.getPageStep(pageid)
+
+    def canAdvance(self):
+        return True
+
+    def onActivatePage(self, pageid):
+        msg = "PageId: %s..." % pageid
+        self._manager.setPageTitle(pageid)
+        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
+        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
+        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
+        msg += " Done"
+        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
+
+    def onDeactivatePage(self, pageid):
+        if pageid == 1:
+            pass
+        elif pageid == 2:
+            pass
+        elif pageid == 3:
+            pass
+
+    def confirmFinish(self):
+        return True

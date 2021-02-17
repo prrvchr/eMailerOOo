@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,42 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from com.sun.star.awt import XContainerWindowEventHandler
 
-from .smtpdispatch import SmtpDispatch
+import traceback
 
-from .datasource import DataSource
 
-from .server import ServerModel
+class ServerHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
 
-from . import smtplib
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
+        handled = False
+        if method == 'TextChange':
+            if self._manager.HandlerEnabled:
+                self._manager.updateTravelUI()
+            handled = True
+        elif method == 'ChangeConnection':
+            self._manager.changeConnection(event.Source)
+            handled = True
+        elif method == 'ChangeAuthentication':
+            self._manager.changeAuthentication(event.Source)
+            handled = True
+        elif method == 'Previous':
+            self._manager.previousServerPage()
+            handled = True
+        elif method == 'Next':
+            self._manager.nextServerPage()
+            handled = True
+        elif method == 'SendMail':
+            self._manager.sendMail()
+            handled = True
+        return handled
+
+    def getSupportedMethodNames(self):
+        return ('TextChange', 'ChangeConnection', 'ChangeAuthentication',
+                'Previous', 'Next', 'SendMail')

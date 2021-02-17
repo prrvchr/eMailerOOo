@@ -155,10 +155,10 @@ class SpoolerModel(unohelper.Base):
         return 'SpoolerDialog.Title'
 
     def _getTabPageResource(self, id):
-        return 'SpoolerDialog.Tab1.Page%s.Title' % id
+        return 'SpoolerPage%s.Title' % id
 
     def _getGridColumnResource(self, column):
-        return 'SpoolerDialog.Grid1.Column.%s' % column
+        return 'SpoolerPage1.Grid1.Column.%s' % column
 
     def _getSpoolerStateResource(self, state):
         return 'SpoolerDialog.Label2.Label.%s' % state

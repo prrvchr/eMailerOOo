@@ -37,7 +37,6 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import PageModel
 from smtpserver import SmtpDispatch
 
 from smtpserver import logMessage
@@ -59,7 +58,6 @@ class SmtpDispatcher(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
-        #self._model = PageModel(ctx)
         logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
 
     # XInitialization

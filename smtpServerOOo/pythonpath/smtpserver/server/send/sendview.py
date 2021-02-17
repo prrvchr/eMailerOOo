@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,25 +27,63 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
-from .configuration import g_fetchsize
+import unohelper
 
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import setLoggerSetting
-from .logger import clearLogger
-from .logger import logMessage
-from .logger import getMessage
-from .logger import setDebugMode
-from .logger import isDebugMode
+from unolib import getDialog
 
-from .smtpdispatch import SmtpDispatch
+from .sendhandler import DialogHandler
 
-from .datasource import DataSource
+from smtpserver.configuration import g_extension
 
-from .server import ServerModel
 
-from . import smtplib
+class SendView(unohelper.Base):
+    def __init__(self, ctx, manager, parent):
+        handler = DialogHandler(manager)
+        self._dialog = getDialog(ctx, g_extension, 'SendDialog', handler, parent)
+        self._setTitle(manager.Model)
+        self._getRecipient().Text = manager.Model.Email
+        self._getSubject().Text = manager.Model.resolveString('SendDialog.TextField2.Text')
+        self._getMessage().Text = manager.Model.resolveString('SendDialog.TextField3.Text')
+        self.enableButtonSend(manager.Model)
+
+# DialogView setter methods
+    def enableButtonSend(self, model):
+        enabled = all((model.isEmailValid(self.getRecipient()),
+                       model.isStringValid(self.getSubject()),
+                       model.isStringValid(self.getMessage())))
+        self._getButtonSend().Model.Enabled = enabled
+
+    def dispose(self):
+        self._dialog.dispose()
+        self._dialog = None
+
+# DialogView getter methods
+    def execute(self):
+        return self._dialog.execute()
+
+    def getRecipient(self):
+        return self._dialog.getControl('TextField1').Text
+
+    def getSubject(self):
+        return self._dialog.getControl('TextField2').Text
+
+    def getMessage(self):
+        return self._dialog.getControl('TextField3').Text
+
+# DialogView private setter methods
+    def _setTitle(self, model):
+        title = model.resolveString('SendDialog.Title')
+        self._dialog.setTitle(title % model.Email)
+
+# DialogView private control methods
+    def _getButtonSend(self):
+        return self._dialog.getControl('CommandButton2')
+
+    def _getRecipient(self):
+        return self._dialog.getControl('TextField1')
+
+    def _getSubject(self):
+        return self._dialog.getControl('TextField2')
+
+    def _getMessage(self):
+        return self._dialog.getControl('TextField3')

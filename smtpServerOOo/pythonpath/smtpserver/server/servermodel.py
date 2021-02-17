@@ -38,21 +38,21 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
 
-from .datasource import DataSource
+from smtpserver.datasource import DataSource
 
-from .configuration import g_identifier
-from .configuration import g_extension
+from smtpserver.configuration import g_identifier
+from smtpserver.configuration import g_extension
 
-from .logger import logMessage
-from .logger import getMessage
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
 
 import validators
 import json
 import traceback
 
 
-class PageModel(unohelper.Base):
-    def __init__(self, ctx, datasource, email=''):
+class ServerModel(unohelper.Base):
+    def __init__(self, ctx, datasource=None, email=''):
         self.ctx = ctx
         self._User = None
         self._Servers = ()

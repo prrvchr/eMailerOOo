@@ -39,14 +39,14 @@ from com.sun.star.awt.FontWeight import NORMAL
 from unolib import KeyMap
 from unolib import getFileSequence
 
-from .logger import clearLogger
-from .logger import getLoggerUrl
-from .logger import logMessage
+from smtpserver.logger import clearLogger
+from smtpserver.logger import getLoggerUrl
+from smtpserver.logger import logMessage
 
 import traceback
 
 
-class PageView(unohelper.Base):
+class ServerView(unohelper.Base):
     def __init__(self, ctx, window):
         self.ctx = ctx
         self.Window = window

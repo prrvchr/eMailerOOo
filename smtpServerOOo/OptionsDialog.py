@@ -47,7 +47,7 @@ from unolib import createService
 from unolib import getPropertyValueSet
 from unolib import executeDispatch
 
-from smtpserver import PageModel
+from smtpserver import ServerModel
 
 from smtpserver import getLoggerUrl
 from smtpserver import getLoggerSetting
@@ -80,7 +80,7 @@ class OptionsDialog(unohelper.Base,
             self._ctx = ctx
             self._stringResource = getStringResource(self._ctx, g_identifier, g_extension, 'OptionsDialog')
             self._spooler = createService(self._ctx, 'com.sun.star.mail.MailServiceSpooler')
-            self._model = PageModel(self._ctx)
+            self._model = ServerModel(self._ctx)
             logMessage(self._ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())

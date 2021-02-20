@@ -59,9 +59,6 @@ class WizardManager(unohelper.Base):
     def Model(self):
         return self._model
 
-    def getPageStep(self, pageid):
-        return self._model.getPageStep(pageid)
-
     def getCurrentPage(self):
         return self._model.getCurrentPage()
 

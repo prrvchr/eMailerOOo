@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,18 +25,28 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="PageWizard1" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;PageWizard1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;PageWizard1.Title" dlg:withtitlebar="false">
-  <dlg:styles>
-    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
-  </dlg:styles>
-  <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;PageWizard1.FixedLine1.HelpText" dlg:value="&amp;PageWizard1.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="120" dlg:height="15" dlg:help-text="&amp;PageWizard1.Label1.HelpText" dlg:value="&amp;PageWizard1.Label1.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="80" dlg:height="15" dlg:help-text="&amp;PageWizard1.Label2.HelpText" dlg:value="&amp;PageWizard1.Label2.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="13" dlg:left="95" dlg:top="25" dlg:width="205" dlg:height="15" dlg:default="true" dlg:help-text="&amp;PageWizard1.TextField1.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
-    </dlg:textfield>
-  </dlg:bulletinboard>
-</dlg:window>
+"""
+
+import uno
+import unohelper
+
+
+def getOrder(orders):
+    order = ''
+    if len(orders) > 0:
+        order = '"%s"' % '", "'.join(orders)
+    return order
+
+def getOrders(query):
+    orders = [order.strip('"') for order in query.replace(' ', '').split(',')]
+    return orders
+
+# TODO: On OpenOffice listbox.getSelectedItems() return a "ByteSequence instance" on empty selection
+def getSelectedItems(control):
+    items = control.getSelectedItems() if control.getSelectedItemPos() != -1 else ()
+    return items
+
+# TODO: On OpenOffice listbox.Model.StringItemList return a "ByteSequence instance" on empty listbox
+def getStringItemList(control):
+    items = control.Model.StringItemList if control.ItemCount > 0 else ()
+    return items

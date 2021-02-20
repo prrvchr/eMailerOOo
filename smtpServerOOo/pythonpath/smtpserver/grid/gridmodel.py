@@ -45,7 +45,7 @@ class GridModel(unohelper.Base,
                 XWeak,
                 XAdapter,
                 XMutableGridDataModel):
-    def __init__(self, ctx, rowset):
+    def __init__(self, rowset):
         self._listeners = []
         self._datalisteners = []
         self._resultset = None

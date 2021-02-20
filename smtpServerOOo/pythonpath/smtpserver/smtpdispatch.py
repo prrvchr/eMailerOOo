@@ -49,14 +49,18 @@ from .wizard import Wizard
 from .server import ServerWizard
 from .server import ServerManager
 
+from .merger import MergerWizard
+
 from .spooler import SpoolerManager
 
 from .sender import SenderManager
 
 from .configuration import g_extension
 from .configuration import g_identifier
-from .configuration import g_wizard_page
-from .configuration import g_wizard_paths
+from .configuration import g_server_page
+from .configuration import g_server_paths
+from .configuration import g_merger_page
+from .configuration import g_merger_paths
 
 from .logger import logMessage
 from .logger import getMessage
@@ -93,6 +97,8 @@ class SmtpDispatch(unohelper.Base,
             self._showSmtpSpooler()
         elif url.Path == 'mailer':
             state, result = self._showSmtpMailer(arguments)
+        elif url.Path == 'merger':
+            self._showSmtpMerger()
         return state, result
         print("SmtpDispatch.dispatch() 2")
 
@@ -108,10 +114,10 @@ class SmtpDispatch(unohelper.Base,
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
-            wizard = Wizard(self._ctx, g_wizard_page, True, self._parent)
+            wizard = Wizard(self._ctx, g_server_page, True, self._parent)
             manager = ServerManager(self._ctx, wizard, self._datasource)
-            controller = ServerWizard(self._ctx, wizard, manager)
-            arguments = (g_wizard_paths, controller)
+            controller = ServerWizard(self._ctx, manager)
+            arguments = (g_server_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
@@ -155,6 +161,25 @@ class SmtpDispatch(unohelper.Base,
                     path = sender.Mailer.Model.Path
                 sender.dispose()
             return state, path
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
+
+    def _showSmtpMerger(self):
+        try:
+            print("_showSmtpMerger()")
+            msg = "Wizard Loading ..."
+            wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
+            controller = MergerWizard(self._ctx, wizard)
+            arguments = (g_merger_paths, controller)
+            wizard.initialize(arguments)
+            msg += " Done ..."
+            if wizard.execute() == OK:
+                msg +=  " Merging SMTP email OK..."
+            wizard.DialogWindow.dispose()
+            wizard.DialogWindow = None
+            print(msg)
+            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showSmtpMerger()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

@@ -41,7 +41,7 @@ class DialogHandler(unohelper.Base,
     def __init__(self, manager):
         self._manager = manager
 
-    # XDialogEventHandler
+# XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
         if method == 'Help':
@@ -66,7 +66,7 @@ class ItemHandler(unohelper.Base,
     def __init__(self, manager):
         self._manager = manager
 
-    # XItemListener
+# XItemListener
     def itemStateChanged(self, event):
         self._manager.changeRoadmapStep(event.ItemId)
 

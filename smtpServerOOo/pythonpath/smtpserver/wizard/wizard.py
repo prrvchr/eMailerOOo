@@ -74,7 +74,7 @@ class Wizard(unohelper.Base,
     def DialogWindow(self, dialog):
         self._manager._view.DialogWindow = dialog
 
-    # XInitialization
+# XInitialization
     def initialize(self, arguments):
         if not isinstance(arguments, tuple) or len(arguments) != 2:
             raise self._getIllegalArgumentException(0, 101)
@@ -87,7 +87,7 @@ class Wizard(unohelper.Base,
         self._manager.setPaths(paths)
         self._manager._controller = controller
 
-    # XWizard
+# XWizard
     def getCurrentPage(self):
         return self._manager.getCurrentPage()
 
@@ -133,14 +133,14 @@ class Wizard(unohelper.Base,
             raise self._getInvalidStateException(123)
         self._manager.activatePath(index, final)
 
-    # XExecutableDialog -> XWizard
+# XExecutableDialog -> XWizard
     def setTitle(self, title):
         self.DialogWindow.setTitle(title)
 
     def execute(self):
         return self._manager.executeWizard(self.DialogWindow)
 
-    # Private methods
+# Private Exception getter methods
     def _getIllegalArgumentException(self, position, code):
         e = IllegalArgumentException()
         e.ArgumentPosition = position

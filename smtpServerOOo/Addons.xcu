@@ -36,32 +36,83 @@
           <value xml:lang="en-US">Mail server</value>
           <value xml:lang="fr-FR">Serveur de courriel</value>
         </prop>
+        <prop oor:name="Target" oor:type="xs:string">
+          <value>_self</value>
+        </prop>
+        <prop oor:name="ImageIdentifier" oor:type="xs:string">
+          <value/>
+        </prop>
         <node oor:name="Submenu">
-          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Server" oor:op="replace">
-            <prop oor:name="Title">
-              <value xml:lang="en-US">Configure connection</value>
-              <value xml:lang="fr-FR">Configurer la connexion</value>
-            </prop>
-            <prop oor:name="URL">
-              <value>smtp:server</value>
-            </prop>
-          </node>
-          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Spooler" oor:op="replace">
-            <prop oor:name="Title">
-              <value xml:lang="en-US">Outgoing emails</value>
-              <value xml:lang="fr-FR">Courriels sortants</value>
-            </prop>
-            <prop oor:name="URL">
-              <value>smtp:spooler</value>
-            </prop>
-          </node>
-          <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo.Mailer" oor:op="replace">
-            <prop oor:name="Title">
+          <node oor:name="Menu1" oor:op="replace">
+            <prop oor:name="Title" oor:type="xs:string">
               <value xml:lang="en-US">Send a document</value>
               <value xml:lang="fr-FR">Envoyer un document</value>
             </prop>
-            <prop oor:name="URL">
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:mailer</value>
+            </prop>
+          </node>
+          <node oor:name="Menu2" oor:op="replace">
+            <prop oor:name="Title" oor:type="xs:string">
+              <value xml:lang="en-US">Merge a document</value>
+              <value xml:lang="fr-FR">Fusionner un document</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.text.TextDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+            </prop>
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>smtp:merger</value>
+            </prop>
+          </node>
+          <node oor:name="Menu3" oor:op="replace">
+            <prop oor:name="Title" oor:type="xs:string">
+              <value xml:lang="en-US">Configure connection</value>
+              <value xml:lang="fr-FR">Configurer la connexion</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>smtp:server</value>
+            </prop>
+          </node>
+          <node oor:name="Menu4" oor:op="replace">
+            <prop oor:name="Title" oor:type="xs:string">
+              <value xml:lang="en-US">Outgoing emails</value>
+              <value xml:lang="fr-FR">Courriels sortants</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="ImageIdentifier" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value/>
+            </prop>
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>smtp:spooler</value>
             </prop>
           </node>
         </node>

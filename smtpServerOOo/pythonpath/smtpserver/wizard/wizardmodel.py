@@ -168,16 +168,9 @@ class WizardModel(unohelper.Base):
         title = self.resolveString(resource)
         return title
 
-    def getPageStep(self, pageid):
-        resource = self._getRoadmapStepResource(pageid)
-        return self.resolveString(resource)
-
 # WizardModel StringRessoure private methods
     def _getRoadmapTitleResource(self):
         return 'Wizard.Roadmap.Text'
-
-    def _getRoadmapStepResource(self, pageid):
-        return 'PageWizard%s.Step' % pageid
 
 # WizardModel private methods
     def _isPageEnabled(self, page):

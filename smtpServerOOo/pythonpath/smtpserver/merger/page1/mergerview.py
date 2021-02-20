@@ -30,11 +30,13 @@
 import uno
 import unohelper
 
-from com.sun.star.view.SelectionType import MULTI
+from unolib import getContainerWindow
 
 from smtpserver.wizard import getStringItemList
 
-from .mergerhandler import GridHandler
+from .mergerhandler import WindowHandler
+
+from smtpserver import g_extension
 
 from smtpserver import logMessage
 
@@ -42,67 +44,31 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, window):
+    def __init__(self, ctx, manager, parent, datasources):
         self._ctx = ctx
-        self.Window = window
-        print("PageView.__init__()")
-
-# PageView setter methods
-    def initPage1(self, datasources):
+        handler = WindowHandler(manager)
+        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MergerPage1')
         self._initDataSource(datasources)
         self.setPageStep(3)
 
-    def setPageStep(self, step):
-        self.Window.Model.Step = step
+# PageView getter methods
+    def getWindow(self):
+        return self._window
 
-    def updatePage(self, value):
-        control = self._getProgressBar()
-        if control is not None:
-            control.Value = value
-        else:
-            print("PageView.updatePage() *********************")
+    def hasIndex(self):
+        return self._getIndexList().ItemCount != 0
+        
+    def isDataSourceSelected(self):
+        return self._getDataSourceList().getSelectedItemPos() != -1
 
-    def setMessageText(self, text):
-        self._getColumnList().Model.StringItemList = ()
-        self._getTableList().Model.StringItemList = ()
-        self._getEmailList().Model.StringItemList = ()
-        self._getIndexList().Model.StringItemList = ()
-        self.enableDatasource(True)
-        self.enableButton(False)
-        self._getMessageLabel().Text = text
-
-    def initGrid(self, manager, data1, data2):
-        handler = GridHandler(manager)
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 60, 124, 122)
-        column1 = manager.Model.getColumnModel(rectangle.Width)
-        grid1 = self._getGrid(data1, column1, 'Grid1', rectangle, 'Addresses')
-        rectangle.X = 156
-        column2 = manager.Model.getColumnModel(rectangle.Width)
-        grid2 = self._getGrid(data2, column2, 'Grid2', rectangle, 'Recipients')
-        grid1.addSelectionListener(handler)
-        grid2.addSelectionListener(handler)
-
-    def initDataSource(self, datasources):
-        # TODO: Update the list of data sources and keep the selection if possible
-        datasource = self._getSelectedDataSource()
-        self._initDataSource(datasources)
-        if datasource in datasources:
-            self.selectDataSource(datasource)
-
-    def selectDataSource(self, datasource):
-        self._getDataSourceList().selectItem(datasource, True)
-
+# PageView setter methods
     def enablePage(self, enabled):
         self.enableDatasource(enabled)
         self._getColumnList().Model.Enabled = enabled
         self._getTableList().Model.Enabled = enabled
         self._getEmailList().Model.Enabled = enabled
         self._getIndexList().Model.Enabled = enabled
-        self._getGeneralOption().Model.Enabled = enabled
-        self._getDataSourceOption().Model.Enabled = enabled
-        self._getTemplateOption().Model.Enabled = enabled
-        self._getTitleOption().Model.Enabled = enabled
-        self._getTitleField().Model.Enabled = enabled
+        self._getQueryList().Model.Enabled = enabled
 
     def enableDatasource(self, enabled):
         self._getDataSourceList().Model.Enabled = enabled
@@ -115,6 +81,184 @@ class MergerView(unohelper.Base):
         self._getAfterButton().Model.Enabled = enabled
         self._getAddIndexButton().Model.Enabled = enabled
         self._getRemoveIndexButton().Model.Enabled = enabled
+        self._getAddQueryButton().Model.Enabled = enabled
+        self._getRemoveQueryButton().Model.Enabled = enabled
+
+    def setPageStep(self, step):
+        self._window.Model.Step = step
+
+    def updatePage(self, value):
+        control = self._getProgressBar()
+        if control is not None:
+            control.Value = value
+        else:
+            print("MergerView.updatePage() ERROR *********************")
+
+    def setMessageText(self, text):
+        self._getColumnList().Model.StringItemList = ()
+        self._getTableList().Model.StringItemList = ()
+        self._getEmailList().Model.StringItemList = ()
+        self._getIndexList().Model.StringItemList = ()
+        self._getQueryList().Model.StringItemList = ()
+        self.enableDatasource(True)
+        self.enableButton(False)
+        self._getMessageLabel().Text = text
+
+    def initDataSource(self, datasources):
+        # TODO: Update the list of data sources and keep the selection if possible
+        datasource = self._getSelectedDataSource()
+        self._initDataSource(datasources)
+        if datasource in datasources:
+            self.selectDataSource(datasource)
+
+    def selectDataSource(self, datasource):
+        self._getDataSourceList().selectItem(datasource, True)
+
+    def initTables(self, tables):
+        control = self._getTableList()
+        print("MergerView.initTables() 1")
+        control.Model.StringItemList = tables
+        print("MergerView.initTables() 2")
+        table = control.getItem(0)
+        control.selectItem(table, True)
+        print("MergerView.initTables() 3")
+
+    def initColumns(self, columns):
+        control= self._getColumnList()
+        print("MergerView.initColumns() 1")
+        control.Model.StringItemList = columns
+        print("MergerView.initColumns() 2")
+        column = control.getItem(0)
+        control.selectItem(column, True)
+        print("MergerView.initColumns() 3")
+        self._updateColumns(control)
+        print("MergerView.initColumns() 4")
+
+    def initQuery(self, queries):
+        control = self._getQueryList()
+        control.Model.StringItemList = queries
+
+    def setTables(self, table):
+        self._getTableList().selectItem(table, True)
+
+    def setEmail(self, emails):
+        self._getEmailList().Model.StringItemList = emails
+
+    def setIndex(self, keys):
+        self._getIndexList().Model.StringItemList = keys
+
+    def setColumns(self, index):
+        self._getColumnList().selectItemPos(index, True)
+
+    def updateColumns(self):
+        control = self._getColumnList()
+        self._updateColumns(control)
+
+    def updateButtonAdd(self, enabled, column):
+        button = self._getAddEmailButton()
+        email = self._getEmailList()
+        button.Model.Enabled = self._canAddItem(enabled, column, email)
+        button = self._getAddIndexButton()
+        index = self._getIndexList()
+        button.Model.Enabled = self._canAddItem(enabled, column, index)
+
+    def enabledRemoveEmailButton(self, enabled):
+        self._getRemoveEmailButton().Model.Enabled = enabled
+
+    def enabledBeforeButton(self, enabled):
+        self._getBeforeButton().Model.Enabled = enabled
+
+    def enabledAfterButton(self, enabled):
+        self._getAfterButton().Model.Enabled = enabled
+
+    def addEmail(self):
+        self._getAddEmailButton().Model.Enabled = False
+        self._getRemoveEmailButton().Model.Enabled = False
+        self._getBeforeButton().Model.Enabled = False
+        self._getAfterButton().Model.Enabled = False
+        control = self._getEmailList()
+        column = self._getColumnList().getSelectedItem()
+        self._addItem(control, column)
+
+    def removeEmail(self):
+        self._getRemoveEmailButton().Model.Enabled = False
+        self._getBeforeButton().Model.Enabled = False
+        self._getAfterButton().Model.Enabled = False
+        control = self._getEmailList()
+        column = control.getSelectedItem()
+        position = control.getSelectedItemPos()
+        control.Model.removeItem(position)
+        selected = self._getColumnList().getSelectedItemPos() != -1
+        enabled = self._canAddItem(selected, column, control)
+        self._getAddEmailButton().Model.Enabled = enabled
+
+    def moveBefore(self):
+        control = self._getEmailList()
+        column = control.getSelectedItem()
+        position = control.getSelectedItemPos()
+        control.Model.removeItem(position)
+        position -= 1
+        self._addItem(control, column, position)
+        control.selectItemPos(position, True)
+
+    def moveAfter(self):
+        control = self._getEmailList()
+        column = control.getSelectedItem()
+        position = control.getSelectedItemPos()
+        control.Model.removeItem(position)
+        position += 1
+        self._addItem(control, column, position)
+        control.selectItemPos(position, True)
+
+    def addIndex(self):
+        self._getAddIndexButton().Model.Enabled = False
+        self._getRemoveIndexButton().Model.Enabled = False
+        control = self._getIndexList()
+        column = self._getColumnList().getSelectedItem()
+        self._addItem(control, column)
+
+    def removeIndex(self):
+        self._getRemoveIndexButton().Model.Enabled = False
+        control = self._getIndexList()
+        column = control.getSelectedItem()
+        position = control.getSelectedItemPos()
+        control.Model.removeItem(position)
+        selected = self._getColumnList().getSelectedItemPos() != -1
+        enabled = self._canAddItem(selected, column, control)
+        self._getAddIndexButton().Model.Enabled = enabled
+
+    def enabledRemoveIndexButton(self, enabled):
+        self._getRemoveIndexButton().Model.Enabled = enabled
+
+    def enabledRemoveQueryButton(self, enabled):
+        self._getRemoveQueryButton().Model.Enabled = enabled
+
+# MergerView private methods
+    def _updateColumns(self, control):
+        enabled = control.getSelectedItemPos() != -1
+        column = control.getSelectedItem()
+        self.updateButtonAdd(enabled, column)
+
+    def _canAddItem(self, enabled, column, listbox):
+        if enabled and listbox.ItemCount != 0:
+            columns = listbox.Model.StringItemList
+            return column not in columns
+        return enabled
+
+    def _addItem(self, control, column, position=-1):
+        if position != -1:
+            control.Model.insertItemText(position, column)
+        else:
+            position = control.getItemCount()
+            control.Model.insertItemText(position, column)
+
+
+
+
+
+
+
+
 
     def initPage2(self, tables, columns):
         self._getAddressBookList().Model.StringItemList = tables
@@ -132,23 +276,9 @@ class MergerView(unohelper.Base):
         self.updateControl(self._getAddressGrid())
         self.updateControl(self._getRecipientGrid())
 
-    def initTables(self, tables):
-        self._getTableList().Model.StringItemList = tables
 
-    def setTables(self, table):
-        self._getTableList().selectItem(table, True)
 
-    def initColumns(self, columns):
-        self._getColumnList().Model.StringItemList = columns
 
-    def setColumns(self, index):
-        self._getColumnList().selectItemPos(index, True)
-
-    def setEmailAddress(self, emails):
-        self._getEmailList().Model.StringItemList = emails
-
-    def setPrimaryKey(self, keys):
-        self._getIndexList().Model.StringItemList = keys
 
     def updateControlByTag(self, tag):
         control = self._getControlByTag(tag)
@@ -211,11 +341,7 @@ class MergerView(unohelper.Base):
         item = self._getColumnList().getSelectedItem()
         self._addItemColumn(self._getEmailList(), item)
 
-    def addPrimaryKey(self):
-        self._getAddIndexButton().Model.Enabled = False
-        self._getRemoveIndexButton().Model.Enabled = False
-        item = self._getColumnList().getSelectedItem()
-        self._addItemColumn(self._getIndexList(), item)
+
 
     def removeEmailAdress(self):
         self._getRemoveEmailButton().Model.Enabled = False
@@ -227,18 +353,10 @@ class MergerView(unohelper.Base):
         enabled = self._canAddItem(self._getColumnList(), control)
         self._getAddEmailButton().Model.Enabled = enabled
 
-    def removePrimaryKey(self):
-        self._getRemoveIndexButton().Model.Enabled = False
-        control = self._getIndexList()
-        item = control.getSelectedItem()
-        control.Model.StringItemList = self._removeItem(control, item)
-        enabled = self._canAddItem(self._getColumnList(), control)
-        self._getAddIndexButton().Model.Enabled = enabled
-
     def moveEmailAdress(self, tag):
         control = self._getEmailList()
         index = control.getSelectedItemPos()
-        item = control.getSelectedItem()
+        column = control.getSelectedItem()
         items = self._removeItem(control, item, True)
         if tag == 'Before':
             index -= 1
@@ -305,24 +423,8 @@ class MergerView(unohelper.Base):
             print("PageView._getControlByTag() Error: '%s' don't exist!!! **************" % tag)
         return control
 
-    def _canAddItem(self, control, listbox):
-        enabled = control.getSelectedItemPos() != -1
-        if enabled and listbox.ItemCount != 0:
-            column = control.getSelectedItem()
-            columns = getStringItemList(listbox)
-            return column not in columns
-        return enabled
 
-    def _addItemColumn(self, control, item):
-        items = list(getStringItemList(control))
-        control.Model.StringItemList = self._addItem(items, item)
 
-    def _addItem(self, items, item, index=-1):
-        if index != -1:
-            items.insert(index, item)
-        else:
-            items.append(item)
-        return tuple(items)
 
     def _removeItem(self, control, item, mutable=False):
         items = list(getStringItemList(control))
@@ -333,88 +435,57 @@ class MergerView(unohelper.Base):
     def _getPageTitle(self, pageid):
         return 'MergerPage%s.Title' % pageid
 
-# PageView private getter control methods for Page1
+# PageView private getter control methods
     def _getDataSourceList(self):
-        return self.Window.getControl('ListBox1')
+        return self._window.getControl('ListBox1')
 
     def _getColumnList(self):
-        return self.Window.getControl('ListBox2')
+        return self._window.getControl('ListBox2')
 
     def _getTableList(self):
-        return self.Window.getControl('ListBox3')
+        return self._window.getControl('ListBox3')
 
     def _getEmailList(self):
-        return self.Window.getControl('ListBox4')
+        return self._window.getControl('ListBox4')
 
     def _getIndexList(self):
-        return self.Window.getControl('ListBox5')
+        return self._window.getControl('ListBox5')
+
+    def _getQueryList(self):
+        return self._window.getControl('ComboBox1')
 
     def _getNewDataSourceButton(self):
-        return self.Window.getControl('CommandButton1')
+        return self._window.getControl('CommandButton1')
 
     def _getAddEmailButton(self):
-        return self.Window.getControl('CommandButton2')
+        return self._window.getControl('CommandButton2')
 
     def _getRemoveEmailButton(self):
-        return self.Window.getControl('CommandButton3')
+        return self._window.getControl('CommandButton3')
 
     def _getBeforeButton(self):
-        return self.Window.getControl('CommandButton4')
+        return self._window.getControl('CommandButton4')
 
     def _getAfterButton(self):
-        return self.Window.getControl('CommandButton5')
+        return self._window.getControl('CommandButton5')
 
     def _getAddIndexButton(self):
-        return self.Window.getControl('CommandButton6')
+        return self._window.getControl('CommandButton6')
 
     def _getRemoveIndexButton(self):
-        return self.Window.getControl('CommandButton7')
+        return self._window.getControl('CommandButton7')
 
-    def _getProgressBar(self):
-        return self.Window.getControl('ProgressBar1')
+    def _getAddQueryButton(self):
+        return self._window.getControl('CommandButton8')
 
-    def _getGeneralOption(self):
-        return self.Window.getControl('OptionButton1')
-
-    def _getDataSourceOption(self):
-        return self.Window.getControl('OptionButton2')
-
-    def _getTemplateOption(self):
-        return self.Window.getControl('OptionButton3')
-
-    def _getTitleOption(self):
-        return self.Window.getControl('OptionButton4')
+    def _getRemoveQueryButton(self):
+        return self._window.getControl('CommandButton9')
 
     def _getMessageLabel(self):
-        return self.Window.getControl('Label10')
+        return self._window.getControl('Label10')
 
-    def _getTitleField(self):
-        return self.Window.getControl('TextField1')
-
-# PageView private getter control methods for Page2
-    def _getAddressBookList(self):
-        return self.Window.getControl('ListBox1')
-
-    def _getOrderList(self):
-        return self.Window.getControl('ListBox2')
-
-    def _getAddressGrid(self):
-        return self.Window.getControl('Grid1')
-
-    def _getRecipientGrid(self):
-        return self.Window.getControl('Grid2')
-
-    def _getAddAllButton(self):
-        return self.Window.getControl('CommandButton1')
-
-    def _getAddButton(self):
-        return self.Window.getControl('CommandButton2')
-
-    def _getRemoveButton(self):
-        return self.Window.getControl('CommandButton3')
-
-    def _getRemoveAllButton(self):
-        return self.Window.getControl('CommandButton4')
+    def _getProgressBar(self):
+        return self._window.getControl('ProgressBar1')
 
 # PageView private control methods
     def _initDataSource(self, datasources):
@@ -422,24 +493,3 @@ class MergerView(unohelper.Base):
 
     def _getSelectedDataSource(self):
         return self._getDataSourceList().SelectedItem
-
-    def _getGridControl(self, data, column, name, rectangle, tag):
-        grid = self._getGridModel(data, column, name, rectangle, tag)
-        self.Window.Model.insertByName(name, grid)
-        return self.Window.getControl(name)
-
-    def _getGridModel(self, data, column, name, rectangle, tag):
-        service = 'com.sun.star.awt.grid.UnoControlGridModel'
-        grid = self.Window.Model.createInstance(service)
-        grid.Name = name
-        grid.PositionX = rectangle.X
-        grid.PositionY = rectangle.Y
-        grid.Height = rectangle.Height
-        grid.Width = rectangle.Width
-        grid.Tag = tag
-        grid.GridDataModel = data
-        grid.ColumnModel = column
-        grid.SelectionModel = MULTI
-        #grid.ShowRowHeader = True
-        grid.BackgroundColor = 16777215
-        return grid

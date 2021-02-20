@@ -40,8 +40,8 @@ from unolib import getPathSettings
 from unolib import getStringResource
 from unolib import getConfiguration
 
-from .grid import GridModel
-from .grid import ColumnModel
+from smtpserver import GridModel
+from smtpserver import ColumnModel
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -82,7 +82,7 @@ class SpoolerModel(unohelper.Base):
         return self._stringResource.resolveString(resource)
 
     def getGridDataModel(self):
-        return GridModel(self._ctx, self._rowset)
+        return GridModel(self._rowset)
 
     def getGridColumnModel(self, width):
         return self._model.getColumnModel(width)

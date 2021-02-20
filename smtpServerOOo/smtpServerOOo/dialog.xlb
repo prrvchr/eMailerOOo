@@ -29,14 +29,17 @@
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
   <library:element library:name="Wizard"/>
-  <library:element library:name="PageWizard1"/>
-  <library:element library:name="PageWizard2"/>
-  <library:element library:name="PageWizard3"/>
-  <library:element library:name="PageWizard4"/>
+  <library:element library:name="ServerPage1"/>
+  <library:element library:name="ServerPage2"/>
+  <library:element library:name="ServerPage3"/>
+  <library:element library:name="ServerPage4"/>
   <library:element library:name="SendDialog"/>
   <library:element library:name="SpoolerDialog"/>
   <library:element library:name="SpoolerPage1"/>
   <library:element library:name="SpoolerPage2"/>
   <library:element library:name="SenderDialog"/>
+  <library:element library:name="MergerPage1"/>
+  <library:element library:name="MergerPage2"/>
+  <library:element library:name="MergerPage3"/>
   <library:element library:name="MailerWindow"/>
 </library:library>

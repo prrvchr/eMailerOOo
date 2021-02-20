@@ -47,8 +47,8 @@ from .send import SendView
 from unolib import createService
 from unolib import getDialog
 
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 g_message = 'pagemanager'
 
 
@@ -57,7 +57,7 @@ import traceback
 
 class ServerManager(unohelper.Base):
     def __init__(self, ctx, wizard, datasource, email=''):
-        self.ctx = ctx
+        self._ctx = ctx
         self._search = True
         self._loaded = False
         self._connected = False
@@ -72,12 +72,12 @@ class ServerManager(unohelper.Base):
         print("PageManager.__init__() %s" % self._model.Email)
 
     @property
+    def Model(self):
+        return self._model
+    @property
     def View(self):
         pageid = self.Wizard.getCurrentPage().PageId
         return self.getView(pageid)
-    @property
-    def Model(self):
-        return self._model
     @property
     def Wizard(self):
         return self._wizard
@@ -85,12 +85,13 @@ class ServerManager(unohelper.Base):
     @property
     def HandlerEnabled(self):
         return self._enabled
-
     def disableHandler(self):
         self._enabled = False
-
     def enableHandler(self):
         self._enabled = True
+
+    def getPageStep(self, id):
+        return self._model.getPageStep(id)
 
     def getView(self, pageid):
         if pageid in self._views:
@@ -102,7 +103,7 @@ class ServerManager(unohelper.Base):
         return self.Wizard
 
     def initPage(self, pageid, window):
-        view = ServerView(self.ctx, window)
+        view = ServerView(self._ctx, window)
         self._views[pageid] = view
         if pageid == 1:
             view.initPage1(self.Model)
@@ -224,7 +225,7 @@ class ServerManager(unohelper.Base):
 
     def sendMail(self):
         parent = self.Wizard.DialogWindow.getPeer()
-        self._dialog = SendView(self.ctx, self, parent)
+        self._dialog = SendView(self._ctx, self, parent)
         if self._dialog.execute() == OK:
             self.updatePage4(0)
             self.getView(4).setPage4Step(1)

@@ -38,13 +38,13 @@ from unolib import createService
 from unolib import getConfiguration
 from unolib import getStringResource
 
-from smtpserver.datasource import DataSource
+from smtpserver import DataSource
 
-from smtpserver.configuration import g_identifier
-from smtpserver.configuration import g_extension
+from smtpserver import g_identifier
+from smtpserver import g_extension
 
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
+from smtpserver import logMessage
+from smtpserver import getMessage
 
 import validators
 import json
@@ -53,7 +53,6 @@ import traceback
 
 class ServerModel(unohelper.Base):
     def __init__(self, ctx, datasource=None, email=''):
-        self.ctx = ctx
         self._User = None
         self._Servers = ()
         self._metadata = ()
@@ -62,8 +61,8 @@ class ServerModel(unohelper.Base):
         self._email = email
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
-        self._stringResource = getStringResource(self.ctx, g_identifier, g_extension)
-        self._configuration = getConfiguration(self.ctx, g_identifier, True)
+        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
+        self._configuration = getConfiguration(ctx, g_identifier, True)
         self._timeout = self._configuration.getByName('ConnectTimeout')
         try:
             msg = "PageModel.__init__()"
@@ -214,6 +213,17 @@ class ServerModel(unohelper.Base):
             print("PageModel.saveConfiguration() user:\n%s\n%s" % (user.toJson(), self.User.toJson()))
             self._datasource.saveUser(self.Email, user)
 
+# ServerModel StringResource methods
+    def getPageStep(self, id):
+        resource = self._getPageStep(id)
+        step = self.resolveString(resource)
+        return step
+
+# ServerModel StringResource private methods
+    def _getPageStep(self, id):
+        return 'ServerPage%s.Step' % id
+
+# ServerModel private methods
     def _getLoginFromEmail(self):
         mode = self.getLoginMode()
         return self.Email.partition('@')[mode] if mode != 1 else self.Email

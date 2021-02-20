@@ -28,3 +28,7 @@
 """
 
 from .wizard import Wizard
+from .wizardtools import getOrder
+from .wizardtools import getOrders
+from .wizardtools import getSelectedItems
+from .wizardtools import getStringItemList

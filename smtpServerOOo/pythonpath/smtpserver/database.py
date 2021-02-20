@@ -84,7 +84,7 @@ class DataBase(unohelper.Base):
             print("DataBase.__init__() 6")
             self.sync = sync
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
     @property

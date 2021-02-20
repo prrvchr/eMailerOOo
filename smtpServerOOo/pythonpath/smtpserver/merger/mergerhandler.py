@@ -27,25 +27,88 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt.grid import XGridSelectionListener
 
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
-    # XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
         handled = False
-        if method == 'Send':
-            self._manager.sendDocument()
+        # TODO: During WizardPage initialization the listener must be disabled...
+        if not self._manager.HandlerEnabled:
             handled = True
+        elif method == 'StateChange':
+            self._manager.updateUI(event.Source)
+            handled = True
+        elif method == 'SettingChanged':
+            self._manager.updateUI(event.Source)
+            handled = True
+        elif method == 'ColumnChanged':
+            print("PageHandler.callHandlerMethod() ColumnChanged ***************")
+            self._manager.updateUI(event.Source)
+            handled = True
+        elif method == 'OutputChanged':
+            #control = event.Source
+            #handled = self._outputChanged(window, control)
+            handled = True
+        elif method == 'Dispatch':
+            self._manager.executeDispatch(event.Source.Model.Tag)
+            handled = True
+        elif method == 'Move':
+            self._manager.moveItem(event.Source)
+            handled = True
+        elif method == 'Add':
+            self._manager.addItem(event.Source.Model.Tag)
+            handled = True
+        elif method == 'AddAll':
+            self._manager.addAllItem()
+            handled = True
+        elif method == 'Remove':
+            self._manager.removeItem(event.Source.Model.Tag)
+            handled = True
+        elif method == 'RemoveAll':
+            self._manager.removeAllItem()
+            handled = True
+        self._manager.updateTravelUI()
         return handled
 
     def getSupportedMethodNames(self):
-        return ('Send', )
+        return ('StateChange',
+                'Dispatch',
+                'Add',
+                'AddAll',
+                'Remove',
+                'RemoveAll',
+                'OutputChanged',
+                'SettingChanged',
+                'ColumnChanged',
+                'Move')
+
+
+class GridHandler(unohelper.Base,
+                  XGridSelectionListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XGridSelectionListener
+    def selectionChanged(self, event):
+        index = -1
+        control = event.Source
+        tag = control.Model.Tag
+        selected = control.hasSelectedRows()
+        if tag == 'Recipients' and selected:
+            index = control.getSelectedRows()[0]
+        self._manager.selectionChanged(tag, selected, index)
+
+    def disposing(self, event):
+        pass

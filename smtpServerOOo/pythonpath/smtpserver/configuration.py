@@ -30,8 +30,11 @@
 # General configuration
 g_extension = 'smtpServerOOo'
 g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
-# Online and Offline roadmap wizard paths
-g_wizard_paths = ((1, 2, 3, 4), (1, 2, 3))
-g_wizard_page = -1
+# Online and Offline roadmap server wizard paths
+g_server_paths = ((1, 2, 3, 4), (1, 2, 3))
+g_server_page = -1
+# Roadmap merger wizard paths
+g_merger_paths = (1, 2, 3)
+g_merger_page = 2
 # Grid RowSet.FetchSize
 g_fetchsize = 500

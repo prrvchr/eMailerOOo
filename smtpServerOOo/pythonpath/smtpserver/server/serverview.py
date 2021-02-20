@@ -39,16 +39,16 @@ from com.sun.star.awt.FontWeight import NORMAL
 from unolib import KeyMap
 from unolib import getFileSequence
 
-from smtpserver.logger import clearLogger
-from smtpserver.logger import getLoggerUrl
-from smtpserver.logger import logMessage
+from smtpserver import clearLogger
+from smtpserver import getLoggerUrl
+from smtpserver import logMessage
 
 import traceback
 
 
 class ServerView(unohelper.Base):
     def __init__(self, ctx, window):
-        self.ctx = ctx
+        self._ctx = ctx
         self.Window = window
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
@@ -217,8 +217,8 @@ class ServerView(unohelper.Base):
         control.Text = model.resolveString(self._getSecurityMessage(level))
 
     def _updateLogger(self):
-        url = getLoggerUrl(self.ctx)
-        length, sequence = getFileSequence(self.ctx, url)
+        url = getLoggerUrl(self._ctx)
+        length, sequence = getFileSequence(self._ctx, url)
         control = self._getLogger()
         control.Text = sequence.value.decode('utf-8')
         selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
@@ -237,16 +237,16 @@ class ServerView(unohelper.Base):
 
 # PageView private message methods
     def _getPageTitle(self, pageid, offline):
-        return 'PageWizard%s.Title.%s' % (pageid, offline)
+        return 'ServerPage%s.Title.%s' % (pageid, offline)
 
     def _getPageLabelMessage(self, pageid):
-        return 'PageWizard%s.Label1.Label' % pageid
+        return 'ServerPage%s.Label1.Label' % pageid
 
     def _getPage2Message(self, value):
-        return 'PageWizard2.Label2.Label.%s' % value
+        return 'ServerPage2.Label2.Label.%s' % value
 
     def _getSecurityMessage(self, level):
-        return 'PageWizard3.Label10.Label.%s' % level
+        return 'ServerPage3.Label10.Label.%s' % level
 
 # PageView private getter control methods
     def _getPageLabel(self):

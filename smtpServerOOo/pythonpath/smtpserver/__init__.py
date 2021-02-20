@@ -29,8 +29,10 @@
 
 from .configuration import g_extension
 from .configuration import g_identifier
-from .configuration import g_wizard_paths
-from .configuration import g_wizard_page
+from .configuration import g_server_paths
+from .configuration import g_server_page
+from .configuration import g_merger_paths
+from .configuration import g_merger_page
 from .configuration import g_fetchsize
 
 from .logger import getLoggerSetting
@@ -42,9 +44,12 @@ from .logger import getMessage
 from .logger import setDebugMode
 from .logger import isDebugMode
 
-from .smtpdispatch import SmtpDispatch
+from .grid import GridModel
+from .grid import ColumnModel
 
 from .datasource import DataSource
+
+from .smtpdispatch import SmtpDispatch
 
 from .server import ServerModel
 

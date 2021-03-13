@@ -46,19 +46,19 @@ class GridModel(unohelper.Base,
                 XAdapter,
                 XMutableGridDataModel):
     def __init__(self, rowset):
+        self._events = []
         self._listeners = []
-        self._datalisteners = []
         self._resultset = None
         self.RowCount = 0
         self.ColumnCount = 0
         handler = GridHandler(self)
         rowset.addRowSetListener(handler)
 
-    # XWeak
+# XWeak
     def queryAdapter(self):
         return self
 
-    # XAdapter
+# XAdapter
     def queryAdapted(self):
         return self
     def addReference(self, reference):
@@ -66,11 +66,11 @@ class GridModel(unohelper.Base,
     def removeReference(self, reference):
         pass
 
-    # XCloneable
+# XCloneable
     def createClone(self):
         return self
 
-    # XGridDataModel
+# XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
         return getValueFromResult(self._resultset, column +1)
@@ -85,7 +85,7 @@ class GridModel(unohelper.Base,
             data.append(getValueFromResult(self._resultset, index +1))
         return tuple(data)
 
-    # XMutableGridDataModel
+# XMutableGridDataModel
     def addRow(self, heading, data):
         pass
     def addRows(self, headings, data):
@@ -109,22 +109,22 @@ class GridModel(unohelper.Base,
     def updateRowToolTip(self, row, value):
         pass
     def addGridDataListener(self, listener):
-        self._datalisteners.append(listener)
+        self._listeners.append(listener)
     def removeGridDataListener(self, listener):
-        if listener in self._datalisteners:
-            self._datalisteners.remove(listener)
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
-    # XComponent
+# XComponent
     def dispose(self):
         event = uno.createUnoStruct('com.sun.star.lang.EventObject')
         event.Source = self
-        for listener in self._listeners:
+        for listener in self._events:
             listener.disposing(event)
     def addEventListener(self, listener):
-        self._listeners.append(listener)
+        self._events.append(listener)
     def removeEventListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+        if listener in self._events:
+            self._events.remove(listener)
 
 # GridModel setter methods
     def setRowSetData(self, rowset):
@@ -132,10 +132,6 @@ class GridModel(unohelper.Base,
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
         self.ColumnCount = rowset.getMetaData().getColumnCount()
-        self._updateRow(rowcount)
-
-# GridModel private methods
-    def _updateRow(self, rowcount):
         if self.RowCount < rowcount:
             self._removeRow(self.RowCount, rowcount -1)
             if self.RowCount > 0:
@@ -147,10 +143,11 @@ class GridModel(unohelper.Base,
         elif self.RowCount > 0:
             self._changeData(0, rowcount -1)
 
+# GridModel private methods
     def _removeRow(self, firstrow, lastrow):
         event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
-        for listener in self._datalisteners:
+        for listener in self._listeners:
             if previous != listener:
                 listener.rowsRemoved(event)
                 previous = listener
@@ -158,7 +155,7 @@ class GridModel(unohelper.Base,
     def _insertRow(self, firstrow, lastrow):
         event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
-        for listener in self._datalisteners:
+        for listener in self._listeners:
             if previous != listener:
                 listener.rowsInserted(event)
                 previous = listener
@@ -166,7 +163,7 @@ class GridModel(unohelper.Base,
     def _changeData(self, firstrow, lastrow):
         event = self._getGridDataEvent(firstrow, lastrow)
         previous = None
-        for listener in self._datalisteners:
+        for listener in self._listeners:
             if previous != listener:
                 listener.dataChanged(event)
                 previous = listener

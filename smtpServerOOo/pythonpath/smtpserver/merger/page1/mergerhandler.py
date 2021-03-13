@@ -31,6 +31,8 @@ import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
 
+from com.sun.star.awt.Key import RETURN
+
 import traceback
 
 
@@ -44,30 +46,35 @@ class WindowHandler(unohelper.Base,
         try:
             handled = False
             # TODO: During WizardPage initialization the listener must be disabled...
+            enabled = self._manager.isHandlerEnabled(method)
             if method == 'ChangeDataSource':
-                print("MergerHandler.callHandlerMethod() ChangeDataSource *************** %s" % self._manager.HandlerEnabled)
-                if self._manager.HandlerEnabled:
+                print("MergerHandler.callHandlerMethod() ChangeDataSource *************** %s" % enabled)
+                if enabled:
                     control = event.Source
                     datasource = control.getSelectedItem()
                     self._manager.changeDataSource(datasource)
                 handled = True
-            elif method == 'ChangeTables':
-                print("MergerHandler.callHandlerMethod() ChangeTables *************** %s" % self._manager.HandlerEnabled)
-                if self._manager.HandlerEnabled:
+            elif method == 'ChangeTable':
+                print("MergerHandler.callHandlerMethod() ChangeTable *************** %s" % enabled)
+                if enabled:
                     control = event.Source
                     table = control.getSelectedItem()
                     self._manager.changeTables(table)
                 handled = True
-            elif method == 'ChangeColumns':
-                print("MergerHandler.callHandlerMethod() ChangeColumns *************** %s" % self._manager.HandlerEnabled)
-                if self._manager.HandlerEnabled:
+            elif method == 'ChangeColumn':
+                print("MergerHandler.callHandlerMethod() ChangeColumn *************** %s" % enabled)
+                if enabled:
                     control = event.Source
-                    enabled = control.getSelectedItemPos() != -1
+                    selected = control.getSelectedItemPos() != -1
                     column = control.getSelectedItem()
-                    self._manager.changeColumns(enabled, column)
+                    self._manager.changeColumns(selected, column)
                 handled = True
             elif method == 'ChangeQuery':
-                self._manager.changeQuery()
+                print("MergerHandler.callHandlerMethod() ChangeQuery *************** %s" % enabled)
+                if enabled:
+                    control = event.Source
+                    query = control.getText()
+                    self._manager.changeQuery(query)
                 handled = True
             elif method == 'ChangeEmail':
                 print("PageHandler.callHandlerMethod() ChangeEmail ***************")
@@ -81,6 +88,9 @@ class WindowHandler(unohelper.Base,
                 control = event.Source
                 enabled = control.getSelectedItemPos() != -1
                 self._manager.changeIndex(enabled)
+                handled = True
+            elif method == 'NewDataSource':
+                self._manager.newDataSource()
                 handled = True
             elif method == 'AddEmail':
                 print("PageHandler.callHandlerMethod() AddEmail ***************")
@@ -105,10 +115,19 @@ class WindowHandler(unohelper.Base,
                 self._manager.removeIndex()
                 handled = True
             elif method == 'EditQuery':
-                self._manager.editQuery()
+                print("PageHandler.callHandlerMethod() EditQuery ***************")
+                control = event.Source
+                query = control.getText().strip()
+                exist = query in control.getItems()
+                self._manager.editQuery(query, exist)
                 handled = True
             elif method == 'EnterQuery':
-                self._manager.enterQuery()
+                if event.KeyCode == RETURN:
+                    print("PageHandler.callHandlerMethod() EnterQuery ***************")
+                    control = event.Source
+                    query = control.getText().strip()
+                    exist = query in control.getItems()
+                    self._manager.enterQuery(query, exist)
                 handled = True
             elif method == 'AddQuery':
                 self._manager.addQuery()
@@ -118,25 +137,24 @@ class WindowHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s" % traceback.print_exc()
             print(msg)
-
 
     def getSupportedMethodNames(self):
         return ('ChangeDataSource',
-                'ChangeTables',
-                'ChangeColumns',
-                'NewDataSource',
+                'ChangeTable',
+                'ChangeColumn',
+                'ChangeQuery',
                 'ChangeEmail',
+                'ChangeIndex',
+                'NewDataSource',
                 'AddEmail',
                 'RemoveEmail',
                 'MoveBefore',
                 'MoveAfter',
-                'ChangeIndex',
                 'AddIndex',
                 'RemoveIndex',
                 'EditQuery',
-                'ChangeQuery',
                 'EnterQuery',
                 'AddQuery',
                 'RemoveQuery')

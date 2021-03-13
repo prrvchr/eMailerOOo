@@ -74,8 +74,14 @@ class SmtpDispatch(unohelper.Base,
         self._ctx = ctx
         self._parent = parent
         self._listeners = []
-        self._datasource = DataSource(ctx)
+        #self._datasource = DataSource(ctx)
         print("SmtpDispatch.__init__()")
+
+    _datasource = None
+
+    @property
+    def DataSource(self):
+        return SmtpDispatch._datasource
 
     # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
@@ -89,6 +95,8 @@ class SmtpDispatch(unohelper.Base,
 
     def dispatch(self, url, arguments):
         print("SmtpDispatch.dispatch() 1")
+        if self.DataSource is None:
+            SmtpDispatch._datasource = DataSource(self._ctx)
         state = SUCCESS
         result = None
         if url.Path == 'server':
@@ -115,7 +123,7 @@ class SmtpDispatch(unohelper.Base,
             email = None
             msg = "Wizard Loading ..."
             wizard = Wizard(self._ctx, g_server_page, True, self._parent)
-            manager = ServerManager(self._ctx, wizard, self._datasource)
+            manager = ServerManager(self._ctx, wizard, self.DataSource)
             controller = ServerWizard(self._ctx, manager)
             arguments = (g_server_paths, controller)
             wizard.initialize(arguments)
@@ -136,7 +144,7 @@ class SmtpDispatch(unohelper.Base,
     def _showSmtpSpooler(self):
         try:
             print("SmtpDispatch._showSmtpSpooler() 1")
-            manager = SpoolerManager(self._ctx, self._datasource, self._parent)
+            manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
             if manager.execute() == OK:
                 print("SmtpDispatch._showSmtpSpooler() 2")
             manager.dispose()
@@ -156,7 +164,7 @@ class SmtpDispatch(unohelper.Base,
             sender = SenderManager(self._ctx, path)
             url = sender.getDocumentUrl()
             if url is not None:
-                if sender.showDialog(self._datasource, self._parent, url) == OK:
+                if sender.showDialog(self.DataSource, self._parent, url) == OK:
                     state = SUCCESS
                     path = sender.Mailer.Model.Path
                 sender.dispose()

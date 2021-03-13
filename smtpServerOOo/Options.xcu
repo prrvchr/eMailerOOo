@@ -40,4 +40,10 @@
     <prop oor:name="SpoolerGridColumns" oor:op="fuse">
         <value>{}</value>
     </prop>
+    <prop oor:name="MergerGrid1Columns" oor:op="fuse">
+        <value>{}</value>
+    </prop>
+    <prop oor:name="MergerGrid2Columns" oor:op="fuse">
+        <value>{}</value>
+    </prop>
 </oor:component-data>

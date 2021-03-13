@@ -35,11 +35,12 @@
   <library:element library:name="ServerPage4"/>
   <library:element library:name="SendDialog"/>
   <library:element library:name="SpoolerDialog"/>
-  <library:element library:name="SpoolerPage1"/>
-  <library:element library:name="SpoolerPage2"/>
-  <library:element library:name="SenderDialog"/>
+  <library:element library:name="SpoolerTab1"/>
+  <library:element library:name="SpoolerTab2"/>
   <library:element library:name="MergerPage1"/>
   <library:element library:name="MergerPage2"/>
-  <library:element library:name="MergerPage3"/>
+  <library:element library:name="MergerTab1"/>
+  <library:element library:name="MergerTab2"/>
+  <library:element library:name="SenderDialog"/>
   <library:element library:name="MailerWindow"/>
 </library:library>

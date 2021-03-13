@@ -69,7 +69,7 @@ class WindowHandler(unohelper.Base,
         elif method == 'ChangeRecipient':
             self._manager.changeRecipient()
             handled = True
-        elif method == 'KeyPressed':
+        elif method == 'EnterRecipient':
             if event.KeyCode == RETURN:
                 control = event.Source
                 email = control.getText()
@@ -111,7 +111,7 @@ class WindowHandler(unohelper.Base,
                 'RemoveSender',
                 'EditRecipient',
                 'ChangeRecipient',
-                'KeyPressed',
+                'EnterRecipient',
                 'AddRecipient',
                 'RemoveRecipient',
                 'ChangeSubject',

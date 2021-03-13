@@ -35,6 +35,6 @@ g_server_paths = ((1, 2, 3, 4), (1, 2, 3))
 g_server_page = -1
 # Roadmap merger wizard paths
 g_merger_paths = (1, 2, 3)
-g_merger_page = 2
+g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500

@@ -53,13 +53,13 @@ class SpoolerManager(unohelper.Base):
     def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
         self._lock = Condition()
+        self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
         self._view = SpoolerView(ctx, self, parent)
         service = 'com.sun.star.mail.MailServiceSpooler'
         self._spooler = createService(ctx, service)
         self._refreshSpoolerState()
-        self._model.DataSource.initSpooler(self.initView)
-        self._enabled = True
+        self._model.initSpooler(self.initView)
 
     @property
     def Model(self):
@@ -69,29 +69,25 @@ class SpoolerManager(unohelper.Base):
     def HandlerEnabled(self):
         return self._enabled
 
+    def initView(self, titles, orders):
+        with self._lock:
+            if not self._view.isDisposed():
+                # TODO: Attention: order is very important here
+                # TODO: to have fonctionnal columns in the GridColumnModel
+                self._view.initGrid(self, titles)
+                self._model.executeRowSet()
+                self._view.initColumnsList(titles)
+                self._enabled = False
+                self._view.initOrdersList(titles, orders)
+                self._enabled = True
+                self._view.initButtons()
+
     def execute(self):
         return self._view.execute()
 
     def dispose(self):
         with self._lock:
             self._view.dispose()
-
-    def initView(self):
-        with self._lock:
-            if not self._view.isDisposed():
-                # TODO: Attention: order is very important here
-                # TODO: to have fonctionnal columns in the GridColumnModel
-                self._model.initQueryComposer()
-                titles = self._model.getQueryColumnTitles()
-                self._model.initGridColumnModel(titles)
-                self._view.showGridColumnHeader(True)
-                self._model.executeRowSet()
-                self._view.initColumnsList(titles)
-                orders = self._model.getQueryOrder()
-                self._enabled = False
-                self._view.initOrdersList(titles, orders)
-                self._enabled = True
-                self._view.initButtons()
 
     def setGridColumnModel(self, titles, reset):
         self._model.setGridColumnModel(titles, reset)

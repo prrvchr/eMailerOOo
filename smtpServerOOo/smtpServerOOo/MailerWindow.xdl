@@ -46,7 +46,7 @@
     <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="7" dlg:left="60" dlg:top="43" dlg:width="130" dlg:height="14" dlg:help-text="&amp;MailerWindow.ComboBox1.HelpText" dlg:value="&amp;MailerWindow.ComboBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EditRecipient" script:language="UNO"/>
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeRecipient" script:language="UNO"/>
-      <script:event script:event-name="on-keydown" script:macro-name="vnd.sun.star.UNO:KeyPressed" script:language="UNO"/>
+      <script:event script:event-name="on-keydown" script:macro-name="vnd.sun.star.UNO:EnterRecipient" script:language="UNO"/>
     </dlg:combobox>
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="8" dlg:disabled="true" dlg:left="195" dlg:top="43" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailerWindow.CommandButton3.HelpText" dlg:value="&amp;MailerWindow.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddRecipient" script:language="UNO"/>

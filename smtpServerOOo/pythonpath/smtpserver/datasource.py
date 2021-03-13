@@ -123,10 +123,6 @@ class DataSource(unohelper.Base,
     def removeSender(self, sender):
         return self.DataBase.deleteUser(sender)
 
-# Procedures called by the Spooler
-    def initSpooler(self, *args):
-        Thread(target=self._initSpooler, args=args).start()
-
 # Procedures called by the MailServiceSpooler
     def insertJob(self, sender, subject, document, recipients, attachments):
         separator = '|'

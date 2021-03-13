@@ -40,8 +40,8 @@ from unolib import getPathSettings
 from unolib import getStringResource
 from unolib import getConfiguration
 
-from smtpserver import GridModel
-from smtpserver import ColumnModel
+from smtpserver.grid import GridModel
+from smtpserver.grid import ColumnModel
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -53,6 +53,7 @@ from smtpserver import getMessage
 from collections import OrderedDict
 import validators
 import json
+from threading import Thread
 import traceback
 
 
@@ -61,7 +62,7 @@ class SpoolerModel(unohelper.Base):
         self._ctx = ctx
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
-        self._model = ColumnModel(ctx)
+        self._column = ColumnModel(ctx)
         self._rowset = self._getRowSet()
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(ctx, g_identifier, True)
@@ -81,28 +82,31 @@ class SpoolerModel(unohelper.Base):
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
 
-    def getGridDataModel(self):
-        return GridModel(self._rowset)
+    def initSpooler(self, *args):
+        Thread(target=self._initSpooler, args=args).start()
 
-    def getGridColumnModel(self, width):
-        return self._model.getColumnModel(width)
-
-    def initQueryComposer(self):
+    def _initSpooler(self, initView):
+        self.DataSource.waitForDataBase()
         query = self._getQuery()
         self._composer = self._getQueryComposer(query)
-        self._initRowSet(query)
+        self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
+        self._rowset.Command = query.Command
+        titles = self._getQueryColumnTitles()
+        orders = self._getQueryOrder()
+        initView(titles, orders)
 
-    def initGridColumnModel(self, columns):
-        # TODO: GridDataModel.ColumnCount must be assigned before creating the columns !!!
+    def getGridModels(self, titles, width):
+        data = GridModel(self._rowset)
         widths = self._getColumnsWidth()
-        titles = self._getColumnTitles(columns)
-        self._model.initColumnModel(self._rowset, widths, titles)
+        self._column.initColumnModel(self._rowset, widths, titles, width)
+        column = self._column.getColumnModel()
+        return data, column
 
     def setGridColumnModel(self, titles, reset):
-        self._model.setColumnModel(self._rowset, titles, reset)
+        self._column.setColumnModel(self._rowset, titles, reset)
 
     def saveGridColumn(self):
-        widths = self._model.getColumnWidth()
+        widths = self._column.getColumnWidth()
         columns = json.dumps(widths)
         self._configuration.replaceByName('SpoolerGridColumns', columns)
         self._configuration.commitChanges()
@@ -112,28 +116,21 @@ class SpoolerModel(unohelper.Base):
         query.Command = self._composer.getQuery()
         self.DataSource.DataBase.storeDataBase()
 
-    def getQueryColumnTitles(self):
-        columns = self._composer.getColumns().getElementNames()
-        titles = self._getColumnTitles(columns)
-        return titles
-
     def executeRowSet(self):
         # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
         self._rowset.ApplyFilter = True
         self._rowset.ApplyFilter = False
         self._rowset.execute()
 
-    def getQueryOrder(self):
-        return self._composer.getOrderColumns().createEnumeration()
-
     def setRowSetOrder(self, orders, ascending):
-        oldorders, neworders = self._getComposerOrder(orders)
+        olds, news = self._getComposerOrder(orders)
         self._composer.Order = ''
-        for order in oldorders:
+        for order in olds:
             self._composer.appendOrderByColumn(order, order.IsAscending)
         columns = self._composer.getColumns()
-        for order in neworders:
-            self._composer.appendOrderByColumn(columns.getByName(order), ascending)
+        for order in news:
+            column = columns.getByName(order)
+            self._composer.appendOrderByColumn(column, ascending)
         self._rowset.Command = self._composer.getQuery()
         self._rowset.execute()
 
@@ -154,14 +151,14 @@ class SpoolerModel(unohelper.Base):
     def _getDialogTitleResource(self):
         return 'SpoolerDialog.Title'
 
-    def _getTabPageResource(self, id):
-        return 'SpoolerPage%s.Title' % id
-
-    def _getGridColumnResource(self, column):
-        return 'SpoolerPage1.Grid1.Column.%s' % column
-
     def _getSpoolerStateResource(self, state):
         return 'SpoolerDialog.Label2.Label.%s' % state
+
+    def _getTabPageResource(self, id):
+        return 'SpoolerTab%s.Title' % id
+
+    def _getGridColumnResource(self, column):
+        return 'SpoolerTab1.Grid1.Column.%s' % column
 
 # SpoolerModel private methods
     def _getRowSet(self):
@@ -196,16 +193,6 @@ class SpoolerModel(unohelper.Base):
         query.Command = command
         return query
 
-    def _initRowSet(self, query):
-        self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
-        self._rowset.Command = query.Command
-        # TODO: RowSet must be executed to initialize the GridDataModel.ColumnCount,
-        # TODO: in order to be able to create functional columns in the GridColumnModel.
-        # TODO: We apply a temporary filter forcing RowCount = 0 for display purposes.
-        self._rowset.Filter = '"Id" IS NULL'
-        self._rowset.ApplyFilter = True
-        self._rowset.execute()
-
     def _getQueryComposer(self, query):
         service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         composer = self.DataSource.DataBase.Connection.createInstance(service)
@@ -214,15 +201,23 @@ class SpoolerModel(unohelper.Base):
         composer.setQuery(query.Command)
         return composer
 
-    def _getComposerOrder(self, neworders):
-        oldorders = []
-        enumeration = self.getQueryOrder()
+    def _getComposerOrder(self, news):
+        olds = []
+        enumeration = self._getQueryOrder()
         while enumeration.hasMoreElements():
             column = enumeration.nextElement()
-            if column.Name in neworders:
-                oldorders.append(column)
-                neworders.remove(column.Name)
-        return oldorders, neworders
+            if column.Name in news:
+                olds.append(column)
+                news.remove(column.Name)
+        return olds, news
+
+    def _getQueryOrder(self):
+        return self._composer.getOrderColumns().createEnumeration()
+
+    def _getQueryColumnTitles(self):
+        columns = self._composer.getColumns().getElementNames()
+        titles = self._getColumnTitles(columns)
+        return titles
 
     def _getColumnTitles(self, columns):
         titles = OrderedDict()

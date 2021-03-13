@@ -96,9 +96,11 @@ class SenderModel(unohelper.Base):
         return 'Sender.FilePicker.Filter.Writer'
 
 # SenderModel private methods
-    def _getDocument(self, url, callback):
+    def _getDocument(self, url, initMailer):
+        # TODO: Document can be <None> if a lock or password exists !!!
+        # TODO: It would be necessary to test a Handler on the descriptor...
         location = getUrlPresentation(self._ctx, url)
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
-        callback(document)
+        initMailer(document)

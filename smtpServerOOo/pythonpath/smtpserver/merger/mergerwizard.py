@@ -37,6 +37,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .mergermodel import MergerModel
 from .page1 import MergerManager as WizardPage1
+from .page2 import MergerManager as WizardPage2
 
 from smtpserver import g_extension
 
@@ -54,16 +55,20 @@ class MergerWizard(unohelper.Base,
 
     # XWizardController
     def createPage(self, parent, pageid):
-        msg = "PageId: %s ..." % pageid
-        if pageid == 1:
-            page = WizardPage1(self._ctx, self._wizard, self._model, parent, pageid)
-        elif pageid == 2:
-            page = WizardPage2(self._ctx, self._wizard, self._model, parent, pageid)
-        elif pageid == 3:
-            page = WizardPage3(self._ctx, self._wizard, self._model, parent, pageid)
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
-        return page
+        try:
+            msg = "PageId: %s ..." % pageid
+            if pageid == 1:
+                page = WizardPage1(self._ctx, self._wizard, self._model, pageid, parent)
+            elif pageid == 2:
+                page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
+            elif pageid == 3:
+                page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
+            msg += " Done"
+            logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
+            return page
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            print(msg)
 
     def getPageTitle(self, pageid):
         return self._model.getPageStep(pageid)

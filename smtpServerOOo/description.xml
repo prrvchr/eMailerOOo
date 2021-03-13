@@ -38,28 +38,28 @@
         <src xlink:href="https://prrvchr.github.io/smtpServerOOo/smtpServerOOo.update.xml"/>
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en-US">SMTP finally available in LibreOffice / OpenOffice</name>
-        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr-FR">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en">SMTP finally available in LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true">
-            <license-text xlink:href="registration/TermsOfUse_en.md" lang="en-US"/>
-            <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr-FR"/>
+            <license-text xlink:href="registration/TermsOfUse_en.md" lang="en"/>
+            <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr"/>
         </simple-license>
     </registration>
     <release-notes>
-        <src xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en-US"/>
-        <src xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr-FR"/>
+        <src xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en"/>
+        <src xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr"/>
     </release-notes>
     <display-name>
-        <name lang="en-US">smtpServerOOo</name>
+        <name lang="en">smtpServerOOo</name>
     </display-name>
     <icon>
         <default xlink:href="smtpServerOOo/smtpServer.png"/>
         <high-contrast xlink:href="smtpServerOOo/smtpServer.png"/>
     </icon>
     <extension-description>
-        <src xlink:href="description/desc_en.txt" lang="en-US"/>
-        <src xlink:href="description/desc_fr.txt" lang="fr-FR"/>
+        <src xlink:href="description/desc_en.txt" lang="en"/>
+        <src xlink:href="description/desc_fr.txt" lang="fr"/>
     </extension-description>
 </description>

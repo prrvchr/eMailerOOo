@@ -180,7 +180,12 @@ class MailerView(unohelper.Base):
         filepicker.setDisplayDirectory(path)
         filepicker.setMultiSelectionMode(True)
         if filepicker.execute() == OK:
-            urls = filepicker.getSelectedFiles()
+            try:
+                urls = filepicker.getSelectedFiles()
+            except:
+                urls = filepicker.getFiles()
+                if len(urls) > 1:
+                    urls = [urls[0] + url for url in urls[1:]]
             path = filepicker.getDisplayDirectory()
         filepicker.dispose()
         return urls, path

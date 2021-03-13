@@ -75,7 +75,7 @@ class SenderView(unohelper.Base):
         filepicker.appendFilter(filter, '*.odt')
         filepicker.setCurrentFilter(filter)
         if filepicker.execute() == OK:
-            url = filepicker.getSelectedFiles()[0]
+            url = filepicker.getFiles()[0]
             path = filepicker.getDisplayDirectory()
         filepicker.dispose()
         return url, path

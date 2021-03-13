@@ -61,49 +61,53 @@ class DialogHandler(unohelper.Base,
                 'Close')
 
 
-class Page1Handler(unohelper.Base,
-                   XContainerWindowEventHandler):
+class Tab1Handler(unohelper.Base,
+                  XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'ChangeColumn':
-            titles = OrderedDict()
-            control = event.Source
-            positions = control.getSelectedItemsPos()
-            if positions:
-                reset = False
-                for position in positions:
-                    name = control.Model.getItemData(position)
-                    title = control.Model.getItemText(position)
-                    titles[name] = title
-            else:
-                reset = True
-                for position in range(control.getItemCount()):
-                    name = control.Model.getItemData(position)
-                    title = control.Model.getItemText(position)
-                    titles[name] = title
-            self._manager.setGridColumnModel(titles, reset)
-            handled = True
-        elif method == 'ChangeOrder':
-            if self._manager.HandlerEnabled:
-                orders = []
+        try:
+            handled = False
+            if method == 'ChangeColumn':
+                titles = OrderedDict()
                 control = event.Source
                 positions = control.getSelectedItemsPos()
-                for position in positions:
-                    order = control.Model.getItemData(position)
-                    orders.append(order)
-                self._manager.changeOrder(orders)
-            handled = True
-        elif method == 'Add':
-            self._manager.addDocument()
-            handled = True
-        elif method == 'Remove':
-            self._manager.removeDocument()
-            handled = True
-        return handled
+                if positions:
+                    reset = False
+                    for position in positions:
+                        name = control.Model.getItemData(position)
+                        title = control.Model.getItemText(position)
+                        titles[name] = title
+                else:
+                    reset = True
+                    for position in range(control.getItemCount()):
+                        name = control.Model.getItemData(position)
+                        title = control.Model.getItemText(position)
+                        titles[name] = title
+                self._manager.setGridColumnModel(titles, reset)
+                handled = True
+            elif method == 'ChangeOrder':
+                if self._manager.HandlerEnabled:
+                    orders = []
+                    control = event.Source
+                    positions = control.getSelectedItemsPos()
+                    for position in positions:
+                        order = control.Model.getItemData(position)
+                        orders.append(order)
+                    self._manager.changeOrder(orders)
+                handled = True
+            elif method == 'Add':
+                self._manager.addDocument()
+                handled = True
+            elif method == 'Remove':
+                self._manager.removeDocument()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def getSupportedMethodNames(self):
         return ('ChangeColumn',
@@ -112,8 +116,8 @@ class Page1Handler(unohelper.Base,
                 'Remove')
 
 
-class Page2Handler(unohelper.Base,
-                   XContainerWindowEventHandler):
+class Tab2Handler(unohelper.Base,
+                  XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 

@@ -42,54 +42,46 @@ from com.sun.star.logging.LogLevel import SEVERE
 from unolib import createService
 
 from .mergerview import MergerView
-from smtpserver.wizard import getSelectedItems
 
 from smtpserver import logMessage
 from smtpserver import getMessage
-g_message = 'mergermanager'
 
 import traceback
 
 
 class MergerManager(unohelper.Base,
                     XWizardPage):
-    def __init__(self, ctx, wizard, model, parent, pageid):
+    def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
         self._wizard = wizard
         self._model = model
+        self._pageid = pageid
+        self._handlers = []
         datasources = self._model.getAvailableDataSources()
         self._view = MergerView(ctx, self, parent, datasources)
-        self._pageid = pageid
-        self._enabled = True
-
-        self._modified = False
-        self._index = -1
-
         datasource = self._model.getDocumentDataSource()
         if datasource in datasources:
             self._view.setPageStep(1)
-            # TODO: We must disable the handler "PageHandler" otherwise it activates twice
-            #self.disableHandler()
+            # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
+            self._disableHandler('ChangeDataSource')
             self._view.selectDataSource(datasource)
-            #self.enableHandler()
-            #self._model.setDataSource(datasource, self.progress, self.setDataSource)
         else:
             self._view.enableDatasource(True)
-        print("PageManager.__init__() 1")
 
     @property
     def Model(self):
         return self._model
 
-    @property
-    def HandlerEnabled(self):
-        return self._enabled
-    def disableHandler(self):
-        self._enabled = False
-    def enableHandler(self):
-        self._enabled = True
+    def isHandlerEnabled(self, handler):
+        if handler in self._handlers:
+            self._handlers.remove(handler)
+            return False
+        return True
+    def _disableHandler(self, handler):
+        if handler not in self._handlers:
+            self._handlers.append(handler)
 
-    # XWizardPage
+# XWizardPage
     @property
     def PageId(self):
         return self._pageid
@@ -98,68 +90,42 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        try:
-            pass
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'WizardPage', 'activatePage()')
-            print("WizardPage.activatePage() %s" % msg)
+        pass
 
     def commitPage(self, reason):
-        try:
-            keys = self._view.getIndexColumns()
-            emails = self._view.getEmailColumns()
-            recipient = self._view.getSelectedTable()
-            #view = self.getView(2)
-            # TODO: We can know if "WizardPage2" is already loaded if the view is not None
-            #loaded = view is not None
-            #address = view.getSelectedAbbressBook() if loaded else None
-            #self._model.setRowSet(self.callBack2, loaded, address, recipient, emails, keys)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'WizardPage1', 'commitPage()')
-            print("WizardPage1.commitPage() %s" % msg)
+        return True
 
     def canAdvance(self):
-        return all((self._view.hasIndex(),
-                    self._view.isDataSourceSelected()))
+        return all((self._view.hasEmail(),
+                    self._view.hasIndex(),
+                    self._view.isQuerySelected()))
 
-# WizardPage1 methods
-    def getPageStep(self, id):
-        return self._model.getPageStep(id)
-
+# MergerManager setter methods
+    # DataSource setter methods
     def changeDataSource(self, datasource):
         self._view.enablePage(False)
         self._view.enableButton(False)
         self._view.setPageStep(1)
         self._model.setDataSource(datasource, self.progress, self.setDataSource)
-        #self._wizard.updateTravelUI()
 
     def progress(self, value):
-        self._view.updatePage(value)
+        self._view.updateProgress(value)
 
-    def setDataSource(self, step, queries, tables, email, index, msg):
+    def setDataSource(self, step, queries, tables, label1, label2, msg):
         if step == 2:
             self._view.setMessageText(msg)
         elif step == 3:
-            self._setDataSource(queries, tables, email, index)
+            self._view.initQuery(queries)
+            # TODO: We must disable the handler "ChangeTable" otherwise it activates twice
+            self._disableHandler('ChangeTable')
+            self._view.initTables(tables)
+            #self._view.setEmail(email)
+            #self._view.setIndex(index)
+            self._view.setEmailLabel(label1)
+            self._view.setIndexLabel(label2)
             self._view.enablePage(True)
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
-
-    def changeTables(self, table):
-        columns = self._model.getTableColumns(table)
-        print("MergerManager.changeTables() 1")
-        self._view.initColumns(columns)
-        print("MergerManager.changeTables() 2")
-        #self._initColumns(columns)
-        #self._wizard.updateTravelUI()
-
-    def changeColumns(self, enabled, column):
-        print("MergerManager.changeColumns() 1")
-        self._view.updateButtonAdd(enabled, column)
-        print("MergerManager.changeColumns() 2")
-        #self._wizard.updateTravelUI()
 
     def newDataSource(self):
         frame = self._model.getCurrentDocument().CurrentController.Frame
@@ -168,34 +134,97 @@ class MergerManager(unohelper.Base,
         dispatcher.executeDispatch(frame, '.uno:AutoPilotAddressDataSource', '', 0, ())
         #elif tag == 'AddressBook':
         #    dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
-        # TODO: Handler must be disabled because we want just to
-        # TODO: update DataSource list and keep the selection...
+        # TODO: Update the list of data sources and keep the selection if possible
+        datasource = self._view.getDataSource()
         datasources = self._model.getAvailableDataSources()
-        self.disableHandler()
         self._view.initDataSource(datasources)
-        self.enableHandler()
+        if datasource in datasources:
+            # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
+            self._disableHandler('ChangeDataSource')
+            self._view.selectDataSource(datasource)
 
+    # Table setter methods
+    def changeTables(self, table):
+        columns, emails = self._model.setTable(table)
+        # TODO: We must disable the handler "ChangeColumn" otherwise it activates twice
+        self._disableHandler('ChangeColumn')
+        self._view.initColumns(columns)
+        self._view.setEmail(emails)
+
+    # Columns setter methods
+    def changeColumns(self, selected, column):
+        self._view.updateButtonAdd(selected, column)
+
+    # Mailing List setter methods
+    def editQuery(self, query, exist):
+        enabled = self._model.validateQuery(query, exist)
+        if exist:
+            indexes = self._model.setQuery(query)
+            self._view.setIndex(indexes)
+            self._view.updateAddIndex()
+            #self._view.enableAddIndex(exist)
+        self._view.enableAddQuery(enabled)
+        self._view.enableRemoveQuery(exist)
+        self._wizard.updateTravelUI()
+
+    def changeQuery(self, query):
+        #self._view.enableAddIndex(True)
+        indexes = self._model.setQuery(query)
+        self._view.setIndex(indexes)
+        self._view.updateAddIndex()
+        self._view.enableRemoveQuery(True)
+        self._wizard.updateTravelUI()
+
+    def enterQuery(self, query, exist):
+        if self._model.validateQuery(query, exist):
+            self._addQuery(query)
+
+    def addQuery(self):
+        query = self._view.getQuery()
+        self._addQuery(query)
+
+    def _addQuery(self, query):
+        self._model.addQuery(query)
+        self._view.addQuery(query)
+        self._wizard.updateTravelUI()
+
+    def removeQuery(self):
+        query = self._view.getQuery()
+        self._model.removeQuery(query)
+        self._view.removeQuery(query)
+        self._wizard.updateTravelUI()
+
+    # Email column setter methods
     def changeEmail(self, imax, position):
-        self._view.enabledRemoveEmailButton(position != -1)
-        self._view.enabledBeforeButton(position > 0)
-        self._view.enabledAfterButton(-1 < position < imax)
+        self._view.enableRemoveEmail(position != -1)
+        self._view.enableBefore(position > 0)
+        self._view.enableAfter(-1 < position < imax)
 
     def addEmail(self):
         self._view.addEmail()
+        emails = self._view.getEmails()
+        self._model.setAddressFilter(emails)
+        self._wizard.updateTravelUI()
 
     def removeEmail(self):
         self._view.removeEmail()
+        emails = self._view.getEmails()
+        self._model.setAddressFilter(emails)
+        self._wizard.updateTravelUI()
 
     def moveBefore(self):
-        self._modified = True
         self._view.moveBefore()
+        emails = self._view.getEmails()
+        self._model.setAddressFilter(emails)
 
     def moveAfter(self):
-        self._modified = True
         self._view.moveAfter()
+        emails = self._view.getEmails()
+        self._model.setAddressFilter(emails)
 
+    # Index column setter methods
     def changeIndex(self, enabled):
-        self._view.enabledRemoveIndexButton(enabled)
+        self._view.enableRemoveIndex(enabled)
 
     def addIndex(self):
         self._view.addIndex()
@@ -204,235 +233,5 @@ class MergerManager(unohelper.Base,
     def removeIndex(self):
         self._view.removeIndex()
         self._wizard.updateTravelUI()
-
-    def editQuery(self):
-        print("MergerManager.editQuery() ***************************")
-
-    def changeQuery(self):
-        print("MergerManager.changeQuery() ***************************")
-
-    def enterQuery(self):
-        print("MergerManager.enterQuery() ***************************")
-
-    def addQuery(self):
-        print("MergerManager.addQuery() ***************************")
-
-    def removeQuery(self):
-        print("MergerManager.removeQuery() ***************************")
-
-# WizardPage1 private methods
-    def _setDataSource(self, queries, tables, email, index):
-        self._view.initTables(tables)
-        # TODO: We must disable the handler "MergerHandler" otherwise it activates twice
-        #self.disableHandler()
-        #self._view.setTables(table.Name)
-        #self.enableHandler()
-        self._view.setEmail(email)
-        self._view.setIndex(index)
-        self._view.initQuery(queries)
-        #columns = table.getColumns().getElementNames()
-        #self._initColumns(columns)
-
-    def _initColumns(self, columns):
-        self._view.initColumns(columns)
-        # TODO: We must disable the handler "MergerHandler" otherwise it activates twice
-        self.disableHandler()
-        self._view.setColumns(0)
-        self.enableHandler()
-        self._view.updateColumns()
-
-
-
-
-
-
-
-
-
-    # TODO: Don't use 'self.View' here because: 'Wizard.getCurrentPage()'
-    # TODO: is not yet initialized, and returns the previous page...
-    def initPage(self, pageid, window):
-        view = MergerView(self._ctx, window)
-        self._views[pageid] = view
-        if pageid == 1:
-            datasources = self.Model.DataSource.getAvailableDataSources()
-            view.initPage1(datasources)
-            datasource = self.Model.getDocumentDataSource()
-            if datasource in datasources:
-                view.setPageStep(1)
-                # TODO: We must disable the handler "PageHandler" otherwise it activates twice
-                self.disableHandler()
-                view.selectDataSource(datasource)
-                self.enableHandler()
-                self.Model.setDataSource(self.progress, datasource, self.callBack1)
-            else:
-                view.enableDatasource(True)
-        elif pageid == 2:
-            address = self.Model.DataSource.DataBase.Address
-            recipient = self.Model.DataSource.DataBase.Recipient
-            view.initGrid(self, address, recipient)
-            tables = self.getView(1).getTables()
-            columns = self.getView(1).getColumns()
-            keys = self.getView(1).getIndexColumns()
-            view.initPage2(tables, columns)
-            table = self.getView(1).getSelectedTable()
-            index = self.Model.DataSource.DataBase.getOrderIndex(columns)
-            # TODO: We must disable the handler "PageHandler" otherwise it activates twice
-            self.disableHandler()
-            view.setPage2(table, index)
-            self.enableHandler()
-            self.Model.DataSource.initPage2(self.callBack2, keys)
-
-
-
-
-    def callBack2(self):
-        if self.Wizard.DialogWindow is not None:
-            view = self.getView(2)
-            view.updateControlByTag('Addresses')
-            view.updateControlByTag('Recipients')
-
-    def selectionChanged(self, tag, selected, index):
-        if tag == 'Addresses':
-            self.View.updateAddRecipient(selected)
-        elif tag == 'Recipients':
-            self.View.updateRemoveRecipient(selected)
-            if selected and index != self._index:
-                self.Model.setDocumentRecord(index)
-                self._index = index
-
-    def canAdvancePage(self, pageid):
-        advance = False
-        if pageid == 1:
-            advance = self.View.canAdvancePage1()
-        elif pageid == 2:
-            advance = self.Model.DataSource.DataBase._recipient.RowCount != 0
-        elif pageid == 3:
-            pass
-        return advance
-
-    def commitPage(self, pageid, reason):
-        if pageid == 1:
-            keys = self.View.getIndexColumns()
-            emails = self.View.getEmailColumns()
-            recipient = self.View.getSelectedTable()
-            view = self.getView(2)
-            # TODO: We can know if "WizardPage2" is already loaded if the view is not None
-            loaded = view is not None
-            address = view.getSelectedAbbressBook() if loaded else None
-            self.Model.setRowSet(self.callBack2, loaded, address, recipient, emails, keys)
-        elif pageid == 2:
-            pass
-        elif pageid == 3:
-            pass
-        return True
-
-    def updateUI1(self, control):
-        try:
-            tag = control.Model.Tag
-            if tag == 'DataSource':
-                datasource = control.getSelectedItem()
-                view = self.getView(1)
-                view.enablePage(False)
-                view.enableButton(False)
-                view.setPageStep(1)
-                self.Model.setDataSource(self.progress, datasource, self.callBack1)
-            elif tag == 'AddressBook':
-                table = control.getSelectedItem()
-                view = self.getView(1)
-                emails = view.getEmailColumns()
-                keys = view.getIndexColumns()
-                self.Model.executeAddress(self.callBack2, emails, table, keys)
-                #columns = self.Model.DataSource.DataBase.getTableColumns(table)
-                #if self.View.getOrderColumns() != columns:
-                #    print("PageManager.updateUI() ERROR ***********")
-                #    self.View.setOrder(self.Model.DataSource.DataBase.getOrderIndex())
-                #self.View.refreshGridButton()
-            elif tag == 'Columns':
-                self.View.updateControl(control)
-            elif tag == 'OrderColumns':
-                view = self.getView(1)
-                keys = view.getIndexColumns()
-                recipient = view.getSelectedTable()
-                address = self.View.getSelectedAbbressBook()
-                order = getSelectedItems(control)
-                self.Model.executeRowSet(self.callBack2, address, recipient, order, keys)
-                #self.View.refreshGridButton()
-            elif tag == 'EmailAddress':
-                self.View.updateControl(control)
-            elif tag == 'PrimaryKey':
-                self.View.updateControl(control)
-            elif tag == 'Tables':
-                table = control.getSelectedItem()
-                columns = self.Model.getTableColumns(table)
-                print("PageManager.updateUI() %s ***************************" % (columns, ))
-                self._initColumns(self.View, columns)
-        except Exception as e:
-            print("PageManager.updateUI() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-
-
-
-
-
-    def addItem(self, tag):
-        try:
-            self._modified = True
-            if tag == 'EmailAddress':
-                self.View.addEmailAdress()
-            elif tag == 'PrimaryKey':
-                self.View.addPrimaryKey()
-                self.Wizard.updateTravelUI()
-            elif tag == 'Recipient':
-                indexes = self.getView(1).getIndexColumns()
-                recipients = self.Model.DataSource.DataBase.getRecipientFilters(indexes)
-                rows = self.View.getSelectedAddress()
-                filters = self.Model.DataSource.DataBase.getAddressFilters(indexes, rows, recipients)
-                self.Model.executeRecipient(self.callBack2, indexes, recipients + filters)
-        except Exception as e:
-            print("PageManager.addItem() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def addAllItem(self):
-        try:
-            self._modified = True
-            indexes = self.getView(1).getIndexColumns()
-            recipients = self.Model.DataSource.DataBase.getRecipientFilters(indexes)
-            rows = self.Model.DataSource.DataBase.getAddressRows()
-            filters = self.Model.DataSource.DataBase.getAddressFilters(indexes, rows, recipients)
-            self.Model.executeRecipient(self.callBack2, indexes, recipients + filters)
-        except Exception as e:
-            print("PageManager.addAllItem() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def removeItem(self, tag):
-        try:
-            self._modified = True
-            if tag == 'EmailAddress':
-                self.View.removeEmailAdress()
-            elif tag == 'PrimaryKey':
-                self.View.removePrimaryKey()
-                self.Wizard.updateTravelUI()
-            elif tag == 'Recipient':
-                rows = self.View.getSelectedRecipients()
-                indexes = self.getView(1).getIndexColumns()
-                filters = self.Model.DataSource.DataBase.getRecipientFilters(indexes, rows)
-                self.Model.executeRecipient(self.callBack2, indexes, filters)
-        except Exception as e:
-            print("PageManager.removeItem() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def removeAllItem(self):
-        try:
-            self._modified = True
-            self.View.deselectAllRecipients()
-            indexes = self.getView(1).getIndexColumns()
-            self.Model.executeRecipient(self.callBack2, indexes)
-        except Exception as e:
-            print("PageManager.removeAllItem() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def moveItem(self, control):
-        self._modified = True
-        self.View.moveEmailAdress(control.Model.Tag)
-
-
-
 
 

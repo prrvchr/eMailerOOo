@@ -39,11 +39,14 @@ import traceback
 class ColumnModel(unohelper.Base):
     def __init__(self, ctx):
         self._width = 0
+        self._factor = 1
         service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
         self._model = createService(ctx, service)
 
 # ColumnModel setter methods
-    def initColumnModel(self, rowset, widths, titles):
+    def initColumnModel(self, rowset, widths, titles, width, factor=1):
+        self._width = width
+        self._factor = factor
         # TODO: First we need to clear the default columns created 
         # TODO: when assigning GridDataModel.ColumnCount
         for index in range(self._model.getColumnCount() -1, -1, -1):
@@ -83,8 +86,7 @@ class ColumnModel(unohelper.Base):
             self._setDefaultColumnWidth(total)
 
 # ColumnModel getter methods
-    def getColumnModel(self, width):
-        self._width = width
+    def getColumnModel(self):
         return self._model
 
     def getColumnWidth(self):
@@ -107,8 +109,11 @@ class ColumnModel(unohelper.Base):
             name = column.Identifier
             flex = len(column.Title)
             column.ColumnWidth = widths[name]
-            column.Flexibility = flex
             column.MinWidth = flex * 5
+            if self._factor == 1:
+                column.Flexibility = flex
+            else:
+                column.Flexibility = 0
 
     def _setDefaultColumnWidth(self, total):
         sum = 0
@@ -118,14 +123,17 @@ class ColumnModel(unohelper.Base):
             index = column.Index
             width = self._getColumnWidth(flex, total, last, index, sum)
             column.ColumnWidth = width
-            column.Flexibility = flex
             column.MinWidth = flex * 5
+            if self._factor == 1:
+                column.Flexibility = flex
+            else:
+                column.Flexibility = 0
             sum += width
 
     def _getColumnWidth(self, flex, total, last, index, sum):
         if index == last:
             # TODO: To display a Grid without a scroll bar, 1 must be subtracted
-            width = self._width - sum -1
+            width = (self._width * self._factor) - sum -1
         else:
-            width = self._width * flex // total
+            width = self._width * self._factor * flex // total
         return width

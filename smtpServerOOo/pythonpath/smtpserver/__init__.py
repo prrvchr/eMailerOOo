@@ -44,9 +44,6 @@ from .logger import getMessage
 from .logger import setDebugMode
 from .logger import isDebugMode
 
-from .grid import GridModel
-from .grid import ColumnModel
-
 from .datasource import DataSource
 
 from .smtpdispatch import SmtpDispatch

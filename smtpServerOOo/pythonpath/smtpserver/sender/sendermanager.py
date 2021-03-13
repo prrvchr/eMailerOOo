@@ -81,6 +81,8 @@ class SenderManager(unohelper.Base):
     def initMailer(self, document):
         with self._lock:
             if not self._view.isDisposed():
+                # TODO: Document can be <None> if a lock or password exists !!!
+                # TODO: It would be necessary to test a Handler on the descriptor...
                 title = self._model.getDocumentTitle(document.URL)
                 self._mailer.initView(document)
                 self._view.setTitle(title)

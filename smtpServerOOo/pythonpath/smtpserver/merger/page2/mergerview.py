@@ -48,7 +48,8 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, tables):
+    def __init__(self, ctx, manager, parent):
+        self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 5, 285, 195)
         tab1, tab2 = self._getTabPages(manager, 'Tab1', rectangle, 1)
@@ -60,20 +61,26 @@ class MergerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
-        self._getTable().Model.StringItemList = tables
         print("MergerView.__init__()")
 
 # MergerView getter methods
     def getWindow(self):
         return self._window
 
+    # Table getter methods
+    def getTable(self):
+        table = self._getTable().getSelectedItem()
+        return table
+
+    # Address getter methods
+    def isInitialized(self):
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(self._tab1)
+        control = self._tab1.getControl('Grid1')
+        return control is not None
+
     def getAddressSort(self):
         state = self._getAddressSort().Model.State
-        ascending = not bool(state)
-        return ascending
-
-    def getRecipientSort(self):
-        state = self._getRecipientSort().Model.State
         ascending = not bool(state)
         return ascending
 
@@ -81,6 +88,12 @@ class MergerView(unohelper.Base):
         rows = self._getAddress().getSelectedRows()
         print("MergerView.getSelectedAddress() %s" % (rows, ))
         return rows
+
+    # Recipient getter methods
+    def getRecipientSort(self):
+        state = self._getRecipientSort().Model.State
+        ascending = not bool(state)
+        return ascending
 
     def getSelectedRecipient(self):
         control = self._getRecipient()
@@ -90,9 +103,15 @@ class MergerView(unohelper.Base):
         return rows
 
 # MergerView setter methods
-    def initGrids(self, manager):
+    def initTables(self, tables):
+        control = self._getTable()
+        control.Model.StringItemList = tables
+        if control.getItemCount() > 0:
+            control.selectItemPos(0, True)
+
+    def initGrids(self, manager, table):
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
-        data, column = manager.Model.getGridModels(1, rectangle.Width, 2)
+        data, column = manager.Model.getGridModels(1, rectangle.Width, 2, table)
         grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
         handler = Grid1Handler(manager)
         grid.addSelectionListener(handler)
@@ -179,13 +198,6 @@ class MergerView(unohelper.Base):
         return self._tab2.getControl('CheckBox1')
 
 # MergerView private methods
-    def _initListBox(self, control, columns):
-        index = 0
-        for column, name in columns.items():
-            control.Model.insertItemText(index, name)
-            control.Model.setItemData(index, column)
-            index += 1
-
     def _getTabPages(self, manager, name, rectangle, id):
         model = self._getTabModel(rectangle)
         self._window.Model.insertByName(name, model)

@@ -47,7 +47,7 @@ class Tab1Handler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            enabled = self._manager.isHandlerEnabled(method)
+            enabled = self._manager.isHandlerEnabled()
             if method == 'ChangeAddressBook':
                 print("Tab1Handler.callHandlerMethod() ChangeAddressBook *************** %s" % enabled)
                 if enabled:

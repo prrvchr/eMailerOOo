@@ -46,7 +46,7 @@ class WindowHandler(unohelper.Base,
         try:
             handled = False
             # TODO: During WizardPage initialization the listener must be disabled...
-            enabled = self._manager.isHandlerEnabled(method)
+            enabled = self._manager.isHandlerEnabled()
             if method == 'ChangeDataSource':
                 print("MergerHandler.callHandlerMethod() ChangeDataSource *************** %s" % enabled)
                 if enabled:
@@ -65,9 +65,9 @@ class WindowHandler(unohelper.Base,
                 print("MergerHandler.callHandlerMethod() ChangeColumn *************** %s" % enabled)
                 if enabled:
                     control = event.Source
-                    selected = control.getSelectedItemPos() != -1
-                    column = control.getSelectedItem()
-                    self._manager.changeColumns(selected, column)
+                    if control.getSelectedItemPos() != -1:
+                        column = control.getSelectedItem()
+                        self._manager.changeColumns(column)
                 handled = True
             elif method == 'ChangeQuery':
                 print("MergerHandler.callHandlerMethod() ChangeQuery *************** %s" % enabled)
@@ -115,7 +115,7 @@ class WindowHandler(unohelper.Base,
                 self._manager.removeIndex()
                 handled = True
             elif method == 'EditQuery':
-                print("PageHandler.callHandlerMethod() EditQuery ***************")
+                print("PageHandler.callHandlerMethod() EditQuery *************** %s" % enabled)
                 control = event.Source
                 query = control.getText().strip()
                 exist = query in control.getItems()

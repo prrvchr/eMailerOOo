@@ -53,25 +53,22 @@ class MergerManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._handlers = []
+        self._disabled = False
+        self._view = MergerView(ctx, self, parent)
         tables = self._model.getTables()
-        self._view = MergerView(ctx, self, parent, tables)
-        address = AddressHandler(self)
-        recipient = RecipientHandler(self)
-        self._model.initGrids(address, recipient, tables, self.initGrids)
+        self._view.initTables(tables)
 
     @property
     def Model(self):
         return self._model
 
-    def isHandlerEnabled(self, handler):
-        if handler in self._handlers:
-            self._handlers.remove(handler)
-            return False
-        return True
-    def _disableHandler(self, handler):
-        if handler not in self._handlers:
-            self._handlers.append(handler)
+    def isHandlerEnabled(self):
+        enabled = True
+        if self._disabled:
+            self._disabled = enabled = False
+        return enabled
+    def _disableHandler(self):
+        self._disabled = True
 
 # XWizardPage
     @property
@@ -91,12 +88,27 @@ class MergerManager(unohelper.Base):
         return self._model.getRecipientCount() > 0
 
 # MergerManager setter methods
-    def initGrids(self, table, tables):
-        self._view.initGrids(self)
-        if table in tables:
-            # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
-            self._disableHandler('ChangeAddressBook')
-            self._view.setTable(table)
+    def setAddressBook(self, table):
+        if self._view.isInitialized():
+            self._model.setAddressBook(table, self.initAddress)
+        else:
+            address = AddressHandler(self)
+            recipient = RecipientHandler(self)
+            self._model.addRowSetListener(address, recipient)
+            self._view.initGrids(self, table)
+            self._model.setAddressBook(table, self.initAddress)
+
+
+    def initGrids(self, table):
+        self._view.initGrids(self, table)
+        #if table in tables:
+        #    # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
+        #    self._disableHandler()
+        #    self._view.setTable(table)
+
+    def initAddress(self, columns, orders):
+        self._view.initAddressColumn(columns)
+        self._view.initAddressOrder(columns, orders)
 
     def enableAddAll(self, enabled):
         self._view.enableAddAll(enabled)
@@ -105,23 +117,18 @@ class MergerManager(unohelper.Base):
         self._view.enableRemoveAll(enabled)
         self._wizard.updateTravelUI()
 
-    def setAddressBook(self, table):
-        self._model.setAddressBook(table, self.initAddress)
-
-    def initAddress(self, columns, orders):
-        self._view.initAddressColumn(columns)
-        self._view.initAddressOrder(columns, orders)
-
     def initRecipient(self, columns, orders):
         self._view.initRecipientColumn(columns)
         self._view.initRecipientOrder(columns, orders)
 
     def setAddressColumn(self, titles, reset):
-        self._model.setAddressColumn(titles, reset)
+        table = self._view.getTable()
+        self._model.setAddressColumn(table, titles, reset)
 
     def setAddressOrder(self, titles):
+        table = self._view.getTable()
         ascending = self._view.getAddressSort()
-        self._model.setAddressOrder(titles, ascending)
+        self._model.setAddressOrder(table, titles, ascending)
 
     def setRecipientColumn(self, titles, reset):
         self._model.setRecipientColumn(titles, reset)

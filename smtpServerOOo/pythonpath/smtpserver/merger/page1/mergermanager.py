@@ -56,14 +56,14 @@ class MergerManager(unohelper.Base,
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._handlers = []
+        self._disabled = False
         datasources = self._model.getAvailableDataSources()
         self._view = MergerView(ctx, self, parent, datasources)
         datasource = self._model.getDocumentDataSource()
         if datasource in datasources:
             self._view.setPageStep(1)
             # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
-            self._disableHandler('ChangeDataSource')
+            self._disableHandler()
             self._view.selectDataSource(datasource)
         else:
             self._view.enableDatasource(True)
@@ -72,14 +72,13 @@ class MergerManager(unohelper.Base,
     def Model(self):
         return self._model
 
-    def isHandlerEnabled(self, handler):
-        if handler in self._handlers:
-            self._handlers.remove(handler)
-            return False
-        return True
-    def _disableHandler(self, handler):
-        if handler not in self._handlers:
-            self._handlers.append(handler)
+    def isHandlerEnabled(self):
+        enabled = True
+        if self._disabled:
+            self._disabled = enabled = False
+        return enabled
+    def _disableHandler(self):
+        self._disabled = True
 
 # XWizardPage
     @property
@@ -96,9 +95,9 @@ class MergerManager(unohelper.Base,
         return True
 
     def canAdvance(self):
-        return all((self._view.hasEmail(),
-                    self._view.hasIndex(),
-                    self._view.isQuerySelected()))
+        return all((self._view.isQuerySelected(),
+                    self._view.hasEmail(),
+                    self._view.hasIndex()))
 
 # MergerManager setter methods
     # DataSource setter methods
@@ -115,12 +114,12 @@ class MergerManager(unohelper.Base,
         if step == 2:
             self._view.setMessageText(msg)
         elif step == 3:
+            # TODO: We must disable the handler "EditQuery" otherwise it activates twice
+            self._disableHandler()
             self._view.initQuery(queries)
             # TODO: We must disable the handler "ChangeTable" otherwise it activates twice
-            self._disableHandler('ChangeTable')
+            self._disableHandler()
             self._view.initTables(tables)
-            #self._view.setEmail(email)
-            #self._view.setIndex(index)
             self._view.setEmailLabel(label1)
             self._view.setIndexLabel(label2)
             self._view.enablePage(True)
@@ -140,52 +139,48 @@ class MergerManager(unohelper.Base,
         self._view.initDataSource(datasources)
         if datasource in datasources:
             # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
-            self._disableHandler('ChangeDataSource')
+            self._disableHandler()
             self._view.selectDataSource(datasource)
 
     # Table setter methods
     def changeTables(self, table):
         columns, emails = self._model.setTable(table)
         # TODO: We must disable the handler "ChangeColumn" otherwise it activates twice
-        self._disableHandler('ChangeColumn')
+        self._disableHandler()
         self._view.initColumns(columns)
         self._view.setEmail(emails)
 
     # Columns setter methods
-    def changeColumns(self, selected, column):
-        self._view.updateButtonAdd(selected, column)
+    def changeColumns(self, column):
+        emails = self._view.getEmails()
+        enabled = column not in emails
+        self._view.enableAddEmail(enabled)
+        indexes = self._view.getIndexes()
+        enabled = all((self._view.isQuerySelected(),
+                       column not in indexes))
+        self._view.enableAddIndex(enabled)
 
-    # Mailing List setter methods
+    # Query setter methods
     def editQuery(self, query, exist):
         enabled = self._model.validateQuery(query, exist)
-        if exist:
-            indexes = self._model.setQuery(query)
-            self._view.setIndex(indexes)
-            self._view.updateAddIndex()
-            #self._view.enableAddIndex(exist)
+        indexes = self._model.setQuery(query) if exist else ()
+        self._setQuery(indexes, exist)
         self._view.enableAddQuery(enabled)
-        self._view.enableRemoveQuery(exist)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):
-        #self._view.enableAddIndex(True)
         indexes = self._model.setQuery(query)
-        self._view.setIndex(indexes)
-        self._view.updateAddIndex()
-        self._view.enableRemoveQuery(True)
+        self._setQuery(indexes, True)
         self._wizard.updateTravelUI()
 
     def enterQuery(self, query, exist):
         if self._model.validateQuery(query, exist):
             self._addQuery(query)
+            self._wizard.updateTravelUI()
 
     def addQuery(self):
         query = self._view.getQuery()
         self._addQuery(query)
-
-    def _addQuery(self, query):
-        self._model.addQuery(query)
-        self._view.addQuery(query)
         self._wizard.updateTravelUI()
 
     def removeQuery(self):
@@ -201,37 +196,85 @@ class MergerManager(unohelper.Base,
         self._view.enableAfter(-1 < position < imax)
 
     def addEmail(self):
-        self._view.addEmail()
-        emails = self._view.getEmails()
-        self._model.setAddressFilter(emails)
+        self._view.enableAddEmail(False)
+        self._view.enableRemoveEmail(False)
+        self._view.enableBefore(False)
+        self._view.enableAfter(False)
+        table = self._view.getTable()
+        email = self._view.getColumn()
+        emails = self._model.addEmail(table, email)
+        self._view.setEmail(emails)
         self._wizard.updateTravelUI()
 
     def removeEmail(self):
-        self._view.removeEmail()
-        emails = self._view.getEmails()
-        self._model.setAddressFilter(emails)
+        self._view.enableAddEmail(False)
+        self._view.enableRemoveEmail(False)
+        self._view.enableBefore(False)
+        self._view.enableAfter(False)
+        table = self._view.getTable()
+        email = self._view.getEmail()
+        emails = self._model.removeEmail(table, email)
+        self._view.setEmail(emails)
+        column = self._view.getColumn()
+        if column not in emails:
+            self._view.enableAddEmail(True)
         self._wizard.updateTravelUI()
 
     def moveBefore(self):
-        self._view.moveBefore()
-        emails = self._view.getEmails()
-        self._model.setAddressFilter(emails)
+        self._view.enableRemoveEmail(False)
+        self._view.enableBefore(False)
+        self._view.enableAfter(False)
+        table = self._view.getTable()
+        email = self._view.getEmail()
+        index = self._view.getEmailPosition() -1
+        emails = self._model.moveEmail(table, email, index)
+        self._view.setEmail(emails, index)
 
     def moveAfter(self):
-        self._view.moveAfter()
-        emails = self._view.getEmails()
-        self._model.setAddressFilter(emails)
+        self._view.enableRemoveEmail(False)
+        self._view.enableBefore(False)
+        self._view.enableAfter(False)
+        table = self._view.getTable()
+        email = self._view.getEmail()
+        index = self._view.getEmailPosition() +1
+        emails = self._model.moveEmail(table, email, index)
+        self._view.setEmail(emails, index)
 
     # Index column setter methods
     def changeIndex(self, enabled):
         self._view.enableRemoveIndex(enabled)
 
     def addIndex(self):
-        self._view.addIndex()
+        self._view.enableAddIndex(False)
+        self._view.enableRemoveIndex(False)
+        index = self._view.getColumn()
+        indexes = self._model.addIndex(index)
+        self._view.setIndexes(indexes)
         self._wizard.updateTravelUI()
 
     def removeIndex(self):
-        self._view.removeIndex()
+        self._view.enableRemoveIndex(False)
+        self._view.enableAddIndex(False)
+        index = self._view.getIndex()
+        indexes = self._model.removeIndex(index)
+        self._view.setIndexes(indexes)
+        column = self._view.getColumn()
+        if column not in indexes:
+            self._view.enableAddIndex(True)
         self._wizard.updateTravelUI()
 
+# MergerManager private setter methods
+    # Query private setter methods
+    def _setQuery(self, indexes, exist):
+        self._view.setIndexes(indexes)
+        column = self._view.getColumn()
+        enabled = column not in indexes
+        self._view.enableAddIndex(enabled)
+        self._view.enableRemoveQuery(exist)
 
+    def _addQuery(self, query):
+        table = self._view.getTable()
+        self._model.addQuery(table, query)
+        self._view.addQuery(query)
+        self._view.enableAddIndex(False)
+        self._view.enableRemoveQuery(False)

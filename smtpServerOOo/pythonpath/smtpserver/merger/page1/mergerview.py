@@ -54,46 +54,62 @@ class MergerView(unohelper.Base):
     def getWindow(self):
         return self._window
 
-    def hasEmail(self):
-        return self._getEmail().getItemCount() > 0
-
-    def hasIndex(self):
-        return self._getIndex().getItemCount() > 0
-
-    def isQuerySelected(self):
-        control = self._getQuery()
-        if control.getItemCount() > 0:
-            query = control.getText()
-            queries = control.getItems()
-            return query in queries
-        return False
-
+    # DataSource getter methods
     def getDataSource(self):
         datasource = self._getDataSource().getSelectedItem()
         return datasource
 
-    def getQueries(self):
-        control = self._getQuery()
-        queries = control.getItems()
-        query = control.getText()
-        return queries, query
-
-    def getQuery(self):
-        control = self._getQuery()
-        query = control.getText().strip()
-        return query
-
+    # Table getter methods
     def getTable(self):
         table = self._getTable().getSelectedItem()
         return table
 
+    # Column getter methods
+    def getColumn(self):
+        column = self._getColumn().getSelectedItem()
+        return column
+
+    # Query getter methods
+    def getQuery(self):
+        query = self._getQuery().getText().strip()
+        return query
+
+    def isQuerySelected(self):
+        selected = False
+        control = self._getQuery()
+        if control.getItemCount() > 0:
+            query = control.getText()
+            queries = control.getItems()
+            selected = query in queries
+        return selected
+
+    # Email getter method
+    def getEmail(self):
+        email = self._getEmail().getSelectedItem()
+        return email
+
     def getEmails(self):
-        columns = self._getEmail().Model.StringItemList
-        return columns
+        emails = self._getEmail().Model.StringItemList
+        return emails
+
+    def getEmailPosition(self):
+        position = self._getEmail().getSelectedItemPos()
+        return position
+
+    def hasEmail(self):
+        return self._getEmail().getItemCount() > 0
+
+    # Index getter method
+    def getIndex(self):
+        index = self._getIndex().getSelectedItem()
+        return index
 
     def getIndexes(self):
-        columns = self._getIndex().Model.StringItemList
-        return columns
+        indexes = self._getIndex().Model.StringItemList
+        return indexes
+
+    def hasIndex(self):
+        return self._getIndex().getItemCount() > 0
 
 # MergerView setter methods
     def dispose(self):
@@ -105,27 +121,21 @@ class MergerView(unohelper.Base):
 
     def enablePage(self, enabled):
         self.enableDatasource(enabled)
-        control = self._getTable()
-        self._enableListBox(control, enabled)
-        control = self._getColumn()
-        self._enableListBox(control, enabled)
-        self._getQuery().Model.Enabled = enabled
-        self._getEmail().Model.Enabled = enabled
-        self._getIndex().Model.Enabled = enabled
+        self._enableBox(enabled)
 
     def enableDatasource(self, enabled):
         self._getDataSource().Model.Enabled = enabled
         self._getNewDataSource().Model.Enabled = enabled
 
     def enableButton(self, enabled):
+        self._getAddQuery().Model.Enabled = enabled
+        self._getRemoveQuery().Model.Enabled = enabled
         self._getAddEmail().Model.Enabled = enabled
         self._getRemoveEmail().Model.Enabled = enabled
         self._getBefore().Model.Enabled = enabled
         self._getAfter().Model.Enabled = enabled
         self._getAddIndex().Model.Enabled = enabled
         self._getRemoveIndex().Model.Enabled = enabled
-        self._getAddQuery().Model.Enabled = enabled
-        self._getRemoveQuery().Model.Enabled = enabled
 
     def updateProgress(self, value):
         if not self.isDisposed():
@@ -134,8 +144,8 @@ class MergerView(unohelper.Base):
             print("MergerView.updateProgress() ERROR *********************")
 
     def setMessageText(self, text):
-        self._clearContent()
         self.enableDatasource(True)
+        self._enableBox(False)
         self.enableButton(False)
         self._getMessage().Text = text
 
@@ -162,7 +172,6 @@ class MergerView(unohelper.Base):
         control.Model.StringItemList = columns
         if control.getItemCount() > 0:
             control.selectItemPos(0, True)
-        self._updateColumns(control)
 
     def initQuery(self, queries):
         control = self._getQuery()
@@ -173,57 +182,19 @@ class MergerView(unohelper.Base):
         else:
             control.setText('')
 
-    def setTables(self, table):
-        self._getTable().selectItem(table, True)
-
-    def setEmail(self, emails):
-        self._getEmail().Model.StringItemList = emails
-
-    def setIndex(self, indexes):
-        self._getIndex().Model.StringItemList = indexes
-
-    def setColumns(self, index):
-        self._getColumn().selectItemPos(index, True)
-
-    def updateColumns(self):
-        control = self._getColumn()
-        self._updateColumns(control)
-
-    def updateAddEmail(self):
-        email = self._getEmail()
-        column = self._getColumn().getSelectedItem()
-        enabled = self._canAddItem(True, True, column, email)
-        self._getAddEmail().Model.Enabled = enabled
-
-    def updateAddIndex(self):
-        email = self._getIndex()
-        column = self._getColumn().getSelectedItem()
-        enabled = self._canAddItem(True, True, column, email)
-        self._getAddIndex().Model.Enabled = enabled
-
-    def updateButtonAdd(self, selected, column):
-        button = self._getAddEmail()
-        email = self._getEmail()
-        enabled = self._canAddItem(True, selected, column, email)
-        button.Model.Enabled = enabled
-        button = self._getAddIndex()
-        index = self._getIndex()
-        enable = self.isQuerySelected()
-        enabled = self._canAddItem(enable, selected, column, index)
-        button.Model.Enabled = enabled
+    # Query methods
+    def enableAddQuery(self, enabled):
+        self._getAddQuery().Model.Enabled = enabled
 
     def enableRemoveQuery(self, enabled):
         self._getRemoveQuery().Model.Enabled = enabled
-
-    def enableAddQuery(self, enabled):
-        self._getAddQuery().Model.Enabled = enabled
 
     def addQuery(self, query):
         control = self._getQuery()
         control.setText('')
         count = control.getItemCount()
         control.addItem(query, count)
-        self._getRemoveQuery().Model.Enabled = False
+        #self._getRemoveQuery().Model.Enabled = False
 
     def removeQuery(self, query):
         self._getRemoveQuery().Model.Enabled = False
@@ -235,6 +206,10 @@ class MergerView(unohelper.Base):
             position = queries.index(query)
             control.removeItems(position, 1)
 
+    # Email column setter methods
+    def enableAddEmail(self, enabled):
+        self._getAddEmail().Model.Enabled = enabled
+
     def enableRemoveEmail(self, enabled):
         self._getRemoveEmail().Model.Enabled = enabled
 
@@ -244,108 +219,44 @@ class MergerView(unohelper.Base):
     def enableAfter(self, enabled):
         self._getAfter().Model.Enabled = enabled
 
-    def addEmail(self):
-        self._getAddEmail().Model.Enabled = False
-        self._getRemoveEmail().Model.Enabled = False
-        self._getBefore().Model.Enabled = False
-        self._getAfter().Model.Enabled = False
+    def setEmail(self, emails, index=None):
         control = self._getEmail()
-        column = self._getColumn().getSelectedItem()
-        self._addItem(control, column)
+        control.Model.StringItemList = emails
+        if index is not None:
+            control.selectItemPos(index, True)
 
-    def removeEmail(self):
-        self._getRemoveEmail().Model.Enabled = False
-        self._getBefore().Model.Enabled = False
-        self._getAfter().Model.Enabled = False
-        control = self._getEmail()
-        column = control.getSelectedItem()
-        position = control.getSelectedItemPos()
-        control.Model.removeItem(position)
-        selected = self._getColumn().getSelectedItemPos() != -1
-        enabled = self._canAddItem(True, selected, column, control)
-        self._getAddEmail().Model.Enabled = enabled
-
-    def moveBefore(self):
-        control = self._getEmail()
-        column = control.getSelectedItem()
-        position = control.getSelectedItemPos()
-        control.Model.removeItem(position)
-        position -= 1
-        self._addItem(control, column, position)
-        control.selectItemPos(position, True)
-
-    def moveAfter(self):
-        control = self._getEmail()
-        column = control.getSelectedItem()
-        position = control.getSelectedItemPos()
-        control.Model.removeItem(position)
-        position += 1
-        self._addItem(control, column, position)
-        control.selectItemPos(position, True)
+    # Index column methods
+    def setIndexes(self, indexes):
+        self._getIndex().Model.StringItemList = indexes
 
     def enableAddIndex(self, enabled):
-        self._getAddIndex().Model.Enabled = enabled
-
-    def addIndex(self):
-        self._getAddIndex().Model.Enabled = False
-        self._getRemoveIndex().Model.Enabled = False
-        control = self._getIndex()
-        column = self._getColumn().getSelectedItem()
-        self._addItem(control, column)
-
-    def removeIndex(self):
-        self._getRemoveIndex().Model.Enabled = False
-        control = self._getIndex()
-        column = control.getSelectedItem()
-        position = control.getSelectedItemPos()
-        control.Model.removeItem(position)
-        selected = self._getColumn().getSelectedItemPos() != -1
-        enabled = self._canAddItem(True, selected, column, control)
         self._getAddIndex().Model.Enabled = enabled
 
     def enableRemoveIndex(self, enabled):
         self._getRemoveIndex().Model.Enabled = enabled
 
 # MergerView private setter methods
+    def _enableBox(self, enabled):
+        control = self._getQuery()
+        self._enableComboBox(control, enabled)
+        control = self._getColumn()
+        self._enableListBox(control, enabled)
+        control = self._getTable()
+        self._enableListBox(control, enabled)
+        control = self._getEmail()
+        self._enableListBox(control, enabled)
+        control = self._getIndex()
+        self._enableListBox(control, enabled)
+
+    def _enableComboBox(self, control, enabled):
+        self._enableListBox(control, enabled)
+        if not enabled:
+            control.setText('')
+
     def _enableListBox(self, control, enabled):
         control.Model.Enabled = enabled
         if not enabled:
             control.Model.StringItemList = ()
-
-    def _updateColumns(self, control):
-        enabled = control.getSelectedItemPos() != -1
-        column = control.getSelectedItem()
-        self.updateButtonAdd(enabled, column)
-
-    def _canAddItem(self, enabled, selected, column, control):
-        if enabled and selected:
-            columns = control.Model.StringItemList
-            enabled = column not in columns
-        return enabled
-
-    def _addItem(self, control, column, position=-1):
-        if position != -1:
-            control.Model.insertItemText(position, column)
-        else:
-            position = control.getItemCount()
-            control.Model.insertItemText(position, column)
-
-    def _addQuery(self, control, query):
-        control.setText('')
-        count = control.getItemCount()
-        control.addItem(query, count)
-        self._getRemoveQuery().Model.Enabled = False
-        #self._getAddQuery().Model.Enabled = False
-
-    def _clearContent(self):
-        self._getColumn().Model.StringItemList = ()
-        self._getTable().Model.StringItemList = ()
-        self._getEmail().Model.StringItemList = ()
-        self._getIndex().Model.StringItemList = ()
-        control = self._getQuery()
-        count = control.getItemCount()
-        control.removeItems(0, count)
-        control.setText('')
 
 # MergerView private getter control methods
     def _getDataSource(self):

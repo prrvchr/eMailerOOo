@@ -41,10 +41,10 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, datasources):
+    def __init__(self, ctx, manager, parent, addressbooks):
         handler = WindowHandler(manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MergerPage1')
-        self.initDataSource(datasources)
+        self.initAddressBook(addressbooks)
         self.setPageStep(3)
 
 # MergerView getter methods
@@ -54,25 +54,21 @@ class MergerView(unohelper.Base):
     def getWindow(self):
         return self._window
 
-    # DataSource getter methods
-    def getDataSource(self):
-        datasource = self._getDataSource().getSelectedItem()
-        return datasource
+    # AddressBook getter methods
+    def getAddressBook(self):
+        return self._getAddressBook().getSelectedItem()
 
     # Table getter methods
     def getTable(self):
-        table = self._getTable().getSelectedItem()
-        return table
+        return self._getTable().getSelectedItem()
 
     # Column getter methods
     def getColumn(self):
-        column = self._getColumn().getSelectedItem()
-        return column
+        return self._getColumn().getSelectedItem()
 
     # Query getter methods
     def getQuery(self):
-        query = self._getQuery().getText().strip()
-        return query
+        return self._getQuery().getText().strip()
 
     def isQuerySelected(self):
         selected = False
@@ -85,28 +81,23 @@ class MergerView(unohelper.Base):
 
     # Email getter method
     def getEmail(self):
-        email = self._getEmail().getSelectedItem()
-        return email
+        return self._getEmail().getSelectedItem()
 
     def getEmails(self):
-        emails = self._getEmail().Model.StringItemList
-        return emails
+        return self._getEmail().Model.StringItemList
 
     def getEmailPosition(self):
-        position = self._getEmail().getSelectedItemPos()
-        return position
+        return self._getEmail().getSelectedItemPos()
 
     def hasEmail(self):
         return self._getEmail().getItemCount() > 0
 
     # Index getter method
     def getIndex(self):
-        index = self._getIndex().getSelectedItem()
-        return index
+        return self._getIndex().getSelectedItem()
 
     def getIndexes(self):
-        indexes = self._getIndex().Model.StringItemList
-        return indexes
+        return self._getIndex().Model.StringItemList
 
     def hasIndex(self):
         return self._getIndex().getItemCount() > 0
@@ -120,12 +111,12 @@ class MergerView(unohelper.Base):
         self._window.Model.Step = step
 
     def enablePage(self, enabled):
-        self.enableDatasource(enabled)
+        self.enableAddressBook(enabled)
         self._enableBox(enabled)
 
-    def enableDatasource(self, enabled):
-        self._getDataSource().Model.Enabled = enabled
-        self._getNewDataSource().Model.Enabled = enabled
+    def enableAddressBook(self, enabled):
+        self._getAddressBook().Model.Enabled = enabled
+        self._getNewAddressBook().Model.Enabled = enabled
 
     def enableButton(self, enabled):
         self._getAddQuery().Model.Enabled = enabled
@@ -144,16 +135,16 @@ class MergerView(unohelper.Base):
             print("MergerView.updateProgress() ERROR *********************")
 
     def setMessageText(self, text):
-        self.enableDatasource(True)
+        self.enableAddressBook(True)
         self._enableBox(False)
         self.enableButton(False)
         self._getMessage().Text = text
 
-    def initDataSource(self, datasources):
-        self._getDataSource().Model.StringItemList = datasources
+    def initAddressBook(self, addressbooks):
+        self._getAddressBook().Model.StringItemList = addressbooks
 
-    def selectDataSource(self, datasource):
-        self._getDataSource().selectItem(datasource, True)
+    def selectAddressBook(self, addressbook):
+        self._getAddressBook().selectItem(addressbook, True)
 
     def initTables(self, tables):
         control = self._getTable()
@@ -259,7 +250,7 @@ class MergerView(unohelper.Base):
             control.Model.StringItemList = ()
 
 # MergerView private getter control methods
-    def _getDataSource(self):
+    def _getAddressBook(self):
         return self._window.getControl('ListBox1')
 
     def _getTable(self):
@@ -280,7 +271,7 @@ class MergerView(unohelper.Base):
     def _getProgress(self):
         return self._window.getControl('ProgressBar1')
 
-    def _getNewDataSource(self):
+    def _getNewAddressBook(self):
         return self._window.getControl('CommandButton1')
 
     def _getAddQuery(self):

@@ -27,71 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.ui.dialogs import XWizardController
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from .mergermodel import MergerModel
-from .page1 import MergerManager as WizardPage1
-from .page2 import MergerManager as WizardPage2
-from .page3 import MergerManager as WizardPage3
-
-from smtpserver import logMessage
-
-import traceback
+from smtpserver.mail import MailView
 
 
-class MergerWizard(unohelper.Base,
-                   XWizardController):
-    def __init__(self, ctx, wizard, datasource):
-        self._ctx = ctx
-        self._wizard = wizard
-        self._model = MergerModel(ctx, datasource)
+class MergerView(MailView):
+# MergerView getter methods
+    def getWindow(self):
+        return self._window
 
-# XWizardController
-    def createPage(self, parent, pageid):
-        try:
-            msg = "PageId: %s ..." % pageid
-            if pageid == 1:
-                page = WizardPage1(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 2:
-                page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 3:
-                page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
-            msg += " Done"
-            logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
-            return page
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
-
-    def getPageTitle(self, pageid):
-        return self._model.getPageStep(pageid)
-
-    def canAdvance(self):
-        return True
-
-    def onActivatePage(self, pageid):
-        msg = "PageId: %s..." % pageid
-        title = self._model.getPageTitle(pageid)
-        self._wizard.setTitle(title)
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
-
-    def onDeactivatePage(self, pageid):
-        if pageid == 1:
-            pass
-        elif pageid == 2:
-            pass
-        elif pageid == 3:
-            pass
-
-    def confirmFinish(self):
-        return True
+# MergerView setter methods
+    def setMergerRecipient(self, recipients):
+        control = self._getMergerRecipients()
+        control.Model.StringItemList = recipients
+        if len(recipients) > 0:
+            control.selectItemPos(0, True)

@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.ui.dialogs import XWizardPage
+
 from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
 from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
@@ -47,21 +49,29 @@ from smtpserver import getMessage
 import traceback
 
 
-class MergerManager(unohelper.Base):
+class MergerManager(unohelper.Base,
+                    XWizardPage):
     def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        self._view = MergerView(ctx, self, parent)
-        tables = self._model.getTables()
-        self._view.initTables(tables)
+        tables = self._model.getFilteredTables()
+        self._view = MergerView(ctx, self, parent, tables)
+        address = AddressHandler(self)
+        recipient = RecipientHandler(self)
+        columns, orders = self._model.initRowSet(address, recipient)
+        self._view.initRecipient(columns, orders)
+        # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
+        self._disableHandler()
+        self._view.setTable()
 
     @property
     def Model(self):
         return self._model
 
+    # TODO: One shot disabler handler
     def isHandlerEnabled(self):
         enabled = True
         if self._disabled:
@@ -79,7 +89,17 @@ class MergerManager(unohelper.Base):
         return self._view.getWindow()
 
     def activatePage(self):
-        pass
+        if self._model.isSelected():
+            columns, orders = self._model.initRecipient()
+            self._view.initRecipient(columns, orders)
+            self._model.executeRecipient()
+        elif self._model.isIndexed():
+            self._model.executeRecipient()
+        if self._model.isFiltered():
+            tables = self._model.getFilteredTables()
+            # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
+            self._disableHandler()
+            self._view.initTable(tables)
 
     def commitPage(self, reason):
         return True
@@ -88,27 +108,10 @@ class MergerManager(unohelper.Base):
         return self._model.getRecipientCount() > 0
 
 # MergerManager setter methods
-    def setAddressBook(self, table):
-        if self._view.isInitialized():
-            self._model.setAddressBook(table, self.initAddress)
-        else:
-            address = AddressHandler(self)
-            recipient = RecipientHandler(self)
-            self._model.addRowSetListener(address, recipient)
-            self._view.initGrids(self, table)
-            self._model.setAddressBook(table, self.initAddress)
-
-
-    def initGrids(self, table):
-        self._view.initGrids(self, table)
-        #if table in tables:
-        #    # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
-        #    self._disableHandler()
-        #    self._view.setTable(table)
-
-    def initAddress(self, columns, orders):
-        self._view.initAddressColumn(columns)
-        self._view.initAddressOrder(columns, orders)
+    def setAddressTable(self, table):
+        print("MergerManager.setAddressTable() ************************")
+        columns, orders = self._model.setAddressTable(table)
+        self._view.initAddress(columns, orders)
 
     def enableAddAll(self, enabled):
         self._view.enableAddAll(enabled)
@@ -122,13 +125,11 @@ class MergerManager(unohelper.Base):
         self._view.initRecipientOrder(columns, orders)
 
     def setAddressColumn(self, titles, reset):
-        table = self._view.getTable()
-        self._model.setAddressColumn(table, titles, reset)
+        self._model.setAddressColumn(titles, reset)
 
     def setAddressOrder(self, titles):
-        table = self._view.getTable()
         ascending = self._view.getAddressSort()
-        self._model.setAddressOrder(table, titles, ascending)
+        self._model.setAddressOrder(titles, ascending)
 
     def setRecipientColumn(self, titles, reset):
         self._model.setRecipientColumn(titles, reset)

@@ -70,11 +70,10 @@ import traceback
 
 class SmtpDispatch(unohelper.Base,
                    XNotifyingDispatch):
-    def __init__(self, ctx, url, parent):
+    def __init__(self, ctx, parent):
         self._ctx = ctx
         self._parent = parent
         self._listeners = []
-        #self._datasource = DataSource(ctx)
         print("SmtpDispatch.__init__()")
 
     _datasource = None
@@ -83,7 +82,7 @@ class SmtpDispatch(unohelper.Base,
     def DataSource(self):
         return SmtpDispatch._datasource
 
-    # XNotifyingDispatch
+# XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
         print("SmtpDispatch.dispatchWithNotification() 1")
         state, result = self.dispatch(url, arguments)
@@ -100,13 +99,13 @@ class SmtpDispatch(unohelper.Base,
         state = SUCCESS
         result = None
         if url.Path == 'server':
-            state, result = self._showSmtpServer()
+            state, result = self._showServer()
         elif url.Path == 'spooler':
-            self._showSmtpSpooler()
+            self._showSpooler()
         elif url.Path == 'mailer':
-            state, result = self._showSmtpMailer(arguments)
+            state, result = self._showMailer(arguments)
         elif url.Path == 'merger':
-            self._showSmtpMerger()
+            self._showMerger()
         return state, result
         print("SmtpDispatch.dispatch() 2")
 
@@ -116,9 +115,11 @@ class SmtpDispatch(unohelper.Base,
     def removeStatusListener(self, listener, url):
         pass
 
-    def _showSmtpServer(self):
+# SmtpDispatch private methods
+    #Server methods
+    def _showServer(self):
         try:
-            print("_showSmtpServer()")
+            print("_showServer()")
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
@@ -135,24 +136,26 @@ class SmtpDispatch(unohelper.Base,
             wizard.DialogWindow.dispose()
             wizard.DialogWindow = None
             print(msg)
-            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showSmtpServer()')
+            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showServer()')
             return state, email
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def _showSmtpSpooler(self):
+    #Spooler methods
+    def _showSpooler(self):
         try:
-            print("SmtpDispatch._showSmtpSpooler() 1")
+            print("SmtpDispatch._showSpooler() 1")
             manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
             if manager.execute() == OK:
-                print("SmtpDispatch._showSmtpSpooler() 2")
+                print("SmtpDispatch._showSpooler() 2")
             manager.dispose()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def _showSmtpMailer(self, arguments):
+    #Mailer methods
+    def _showMailer(self, arguments):
         try:
             state = FAILURE
             for argument in arguments:
@@ -173,12 +176,13 @@ class SmtpDispatch(unohelper.Base,
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def _showSmtpMerger(self):
+    #Merger methods
+    def _showMerger(self):
         try:
-            print("_showSmtpMerger()")
+            print("_showMerger()")
             msg = "Wizard Loading ..."
             wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
-            controller = MergerWizard(self._ctx, wizard)
+            controller = MergerWizard(self._ctx, wizard, self.DataSource)
             arguments = (g_merger_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
@@ -187,7 +191,7 @@ class SmtpDispatch(unohelper.Base,
             wizard.DialogWindow.dispose()
             wizard.DialogWindow = None
             print(msg)
-            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showSmtpMerger()')
+            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showMerger()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

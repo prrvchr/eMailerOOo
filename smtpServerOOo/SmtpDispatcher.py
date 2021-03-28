@@ -73,7 +73,7 @@ class SmtpDispatcher(unohelper.Base,
         if url.Path in ('server', 'spooler', 'mailer', 'merger'):
             print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
             parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, url, parent)
+            dispatch = SmtpDispatch(self._ctx, parent)
             print("SmtpDispatcher.queryDispatch()3")
         return dispatch
 

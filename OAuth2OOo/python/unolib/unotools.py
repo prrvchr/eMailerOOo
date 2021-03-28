@@ -59,6 +59,9 @@ def getDesktop(ctx):
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
 
+def getInteractionHandler(ctx):
+    return createService(ctx, 'com.sun.star.task.InteractionHandler')
+
 def getPathSettings(ctx):
     return createService(ctx, 'com.sun.star.util.PathSettings')
 
@@ -281,7 +284,7 @@ def getPropertySetInfoChangeEvent(source, name, reason, handle=-1):
     event.Handle = handle
     event.Reason = reason
 
-def getInteractionHandler(ctx):
+def getInteractionHandler1(ctx):
     service = 'com.sun.star.task.InteractionHandler'
     kwargs = {'Parent': getParentWindow(ctx)}
     return createService(ctx, service, **kwargs)

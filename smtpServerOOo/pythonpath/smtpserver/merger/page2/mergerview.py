@@ -48,7 +48,7 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
+    def __init__(self, ctx, manager, parent, tables):
         self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 5, 285, 195)
@@ -61,6 +61,16 @@ class MergerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
+        data, column = manager.Model.getGridModels(1, rectangle.Width, 2, tables)
+        grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
+        handler = Grid1Handler(manager)
+        grid.addSelectionListener(handler)
+        data, column = manager.Model.getGridModels(2, rectangle.Width, 2)
+        grid = self._createGrid(self._tab2, data, column, 'Grid1', rectangle)
+        handler = Grid2Handler(manager)
+        grid.addSelectionListener(handler)
+        self._getTable().Model.StringItemList = tables
         print("MergerView.__init__()")
 
 # MergerView getter methods
@@ -69,64 +79,39 @@ class MergerView(unohelper.Base):
 
     # Table getter methods
     def getTable(self):
-        table = self._getTable().getSelectedItem()
-        return table
+        return self._getTable().getSelectedItem()
 
     # Address getter methods
-    def isInitialized(self):
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(self._tab1)
-        control = self._tab1.getControl('Grid1')
-        return control is not None
-
     def getAddressSort(self):
         state = self._getAddressSort().Model.State
-        ascending = not bool(state)
-        return ascending
+        return not bool(state)
 
     def getSelectedAddress(self):
-        rows = self._getAddress().getSelectedRows()
-        print("MergerView.getSelectedAddress() %s" % (rows, ))
-        return rows
+        return self._getAddress().getSelectedRows()
 
     # Recipient getter methods
     def getRecipientSort(self):
         state = self._getRecipientSort().Model.State
-        ascending = not bool(state)
-        return ascending
+        return not bool(state)
 
     def getSelectedRecipient(self):
         control = self._getRecipient()
         rows = control.getSelectedRows()
         control.deselectAllRows()
-        print("MergerView.getSelectedRecipient() %s" % (rows, ))
         return rows
 
 # MergerView setter methods
-    def initTables(self, tables):
-        control = self._getTable()
-        control.Model.StringItemList = tables
-        if control.getItemCount() > 0:
-            control.selectItemPos(0, True)
-
-    def initGrids(self, manager, table):
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
-        data, column = manager.Model.getGridModels(1, rectangle.Width, 2, table)
-        grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
-        handler = Grid1Handler(manager)
-        grid.addSelectionListener(handler)
-        data, column = manager.Model.getGridModels(2, rectangle.Width, 2)
-        grid = self._createGrid(self._tab2, data, column, 'Grid1', rectangle)
-        handler = Grid2Handler(manager)
-        grid.addSelectionListener(handler)
-
-    def setTable(self, table):
+    def setTable(self):
         self._getTable().selectItemPos(0, True)
 
-    def initAddressColumn(self, columns):
-        self._getAddressColumn().Model.StringItemList = columns
+    def initTable(self, tables):
+        control = self._getTable()
+        control.Model.StringItemList = ()
+        control.Model.StringItemList = tables
+        control.selectItemPos(0, True)
 
-    def initAddressOrder(self, columns, orders):
+    def initAddress(self, columns, orders):
+        self._getAddressColumn().Model.StringItemList = columns
         control = self._getAddressOrder()
         control.Model.StringItemList = columns
         while orders.hasMoreElements():
@@ -134,10 +119,8 @@ class MergerView(unohelper.Base):
             index = columns.index(column.Name)
             control.selectItemPos(index, True)
 
-    def initRecipientColumn(self, columns):
+    def initRecipient(self, columns, orders):
         self._getRecipientColumn().Model.StringItemList = columns
-
-    def initRecipientOrder(self, columns, orders):
         control = self._getRecipientOrder()
         control.Model.StringItemList = columns
         while orders.hasMoreElements():

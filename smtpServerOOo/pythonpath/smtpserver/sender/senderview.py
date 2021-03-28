@@ -66,14 +66,16 @@ class SenderView(unohelper.Base):
         self._dialog = None
 
 # SenderView getter methods
-    def getDocumentUrl(self, title, filter, path):
+    def getDocumentUrl(self, title, filters, path):
         url = None
         service = 'com.sun.star.ui.dialogs.FilePicker'
         filepicker = createService(self._ctx, service)
         filepicker.setTitle(title)
         filepicker.setDisplayDirectory(path)
-        filepicker.appendFilter(filter, '*.odt')
-        filepicker.setCurrentFilter(filter)
+        for name, filter in filters.items():
+            filepicker.appendFilter(name, filter)
+            if not filepicker.getCurrentFilter():
+                filepicker.setCurrentFilter(name)
         if filepicker.execute() == OK:
             url = filepicker.getFiles()[0]
             path = filepicker.getDisplayDirectory()

@@ -57,21 +57,22 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        datasources = self._model.getAvailableDataSources()
-        self._view = MergerView(ctx, self, parent, datasources)
-        datasource = self._model.getDocumentDataSource()
-        if datasource in datasources:
+        addressbooks = self._model.getAvailableAddressBooks()
+        self._view = MergerView(ctx, self, parent, addressbooks)
+        addressbook = self._model.getDocumentAddressBook()
+        if addressbook in addressbooks:
             self._view.setPageStep(1)
-            # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
+            # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
             self._disableHandler()
-            self._view.selectDataSource(datasource)
+            self._view.selectAddressBook(addressbook)
         else:
-            self._view.enableDatasource(True)
+            self._view.enableAddressBook(True)
 
     @property
     def Model(self):
         return self._model
 
+    # TODO: One shot disabler handler
     def isHandlerEnabled(self):
         enabled = True
         if self._disabled:
@@ -92,7 +93,13 @@ class MergerManager(unohelper.Base,
         pass
 
     def commitPage(self, reason):
-        return True
+        try:
+            if self._model.isFiltered():
+                self._model.saveQueries()
+            return True
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def canAdvance(self):
         return all((self._view.isQuerySelected(),
@@ -100,24 +107,24 @@ class MergerManager(unohelper.Base,
                     self._view.hasIndex()))
 
 # MergerManager setter methods
-    # DataSource setter methods
-    def changeDataSource(self, datasource):
+    # AddressBook setter methods
+    def changeAddressBook(self, addressbook):
         self._view.enablePage(False)
         self._view.enableButton(False)
         self._view.setPageStep(1)
-        self._model.setDataSource(datasource, self.progress, self.setDataSource)
+        self._model.setAddressBook(addressbook, self.progress, self.setAddressBook)
 
     def progress(self, value):
         self._view.updateProgress(value)
 
-    def setDataSource(self, step, queries, tables, label1, label2, msg):
+    def setAddressBook(self, step, queries, tables, label1, label2, msg):
         if step == 2:
             self._view.setMessageText(msg)
         elif step == 3:
             # TODO: We must disable the handler "EditQuery" otherwise it activates twice
             self._disableHandler()
             self._view.initQuery(queries)
-            # TODO: We must disable the handler "ChangeTable" otherwise it activates twice
+            # TODO: We must disable the handler "ChangeAddressBookTable" otherwise it activates twice
             self._disableHandler()
             self._view.initTables(tables)
             self._view.setEmailLabel(label1)
@@ -126,32 +133,32 @@ class MergerManager(unohelper.Base,
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
 
-    def newDataSource(self):
+    def newAddressBook(self):
         frame = self._model.getCurrentDocument().CurrentController.Frame
+        url = '.uno:AutoPilotAddressDataSource'
         service = 'com.sun.star.frame.DispatchHelper'
         dispatcher = createService(self._ctx, service)
-        dispatcher.executeDispatch(frame, '.uno:AutoPilotAddressDataSource', '', 0, ())
-        #elif tag == 'AddressBook':
-        #    dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
-        # TODO: Update the list of data sources and keep the selection if possible
-        datasource = self._view.getDataSource()
-        datasources = self._model.getAvailableDataSources()
-        self._view.initDataSource(datasources)
-        if datasource in datasources:
-            # TODO: We must disable the handler "ChangeDataSource" otherwise it activates twice
+        dispatcher.executeDispatch(frame, url, '', 0, ())
+        #dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
+        # TODO: Update the list of AddressBooks and keep the selection if possible
+        addressbook = self._view.getAddressBook()
+        addressbooks = self._model.getAvailableAddressBooks()
+        self._view.initAddressBook(addressbooks)
+        if addressbook in addressbooks:
+            # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
             self._disableHandler()
-            self._view.selectDataSource(datasource)
+            self._view.selectAddressBook(addressbook)
 
-    # Table setter methods
-    def changeTables(self, table):
-        columns, emails = self._model.setTable(table)
-        # TODO: We must disable the handler "ChangeColumn" otherwise it activates twice
+    # AddressBook Table setter methods
+    def changeAddressBookTable(self, table):
+        columns, emails = self._model.setAddressBookTable(table)
+        # TODO: We must disable the handler "ChangeAddressBookColumn" otherwise it activates twice
         self._disableHandler()
         self._view.initColumns(columns)
         self._view.setEmail(emails)
 
-    # Columns setter methods
-    def changeColumns(self, column):
+    # AddressBook Column setter methods
+    def changeAddressBookColumn(self, column):
         emails = self._view.getEmails()
         enabled = column not in emails
         self._view.enableAddEmail(enabled)
@@ -166,11 +173,15 @@ class MergerManager(unohelper.Base,
         indexes = self._model.setQuery(query) if exist else ()
         self._setQuery(indexes, exist)
         self._view.enableAddQuery(enabled)
+        self._view.enableAddIndex(exist)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):
         indexes = self._model.setQuery(query)
         self._setQuery(indexes, True)
+        column = self._view.getColumn()
+        enabled = column not in indexes
+        self._view.enableAddIndex(enabled)
         self._wizard.updateTravelUI()
 
     def enterQuery(self, query, exist):
@@ -267,9 +278,6 @@ class MergerManager(unohelper.Base,
     # Query private setter methods
     def _setQuery(self, indexes, exist):
         self._view.setIndexes(indexes)
-        column = self._view.getColumn()
-        enabled = column not in indexes
-        self._view.enableAddIndex(enabled)
         self._view.enableRemoveQuery(exist)
 
     def _addQuery(self, query):

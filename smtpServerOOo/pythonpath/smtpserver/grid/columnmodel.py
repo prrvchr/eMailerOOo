@@ -43,27 +43,30 @@ class ColumnModel(unohelper.Base):
         service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
         self._model = createService(ctx, service)
 
-# ColumnModel setter methods
-    def initColumnModel(self, rowset, widths, titles, width, factor=1):
+# ColumnModel getter methods
+    def isInitialized(self):
+        # TODO: the modification of com.sun.star.awt.grid.GridColumnModel will only be
+        # TODO: done after its assignment at com.sun.star.awt.grid.UnoControlGridModel.
+        return self._width != 0
+
+    def getColumnModel(self, rowset, widths, titles, width, factor=1):
         self._width = width
         self._factor = factor
-        # TODO: First we need to clear the default columns created 
-        # TODO: when assigning GridDataModel.ColumnCount
+        self._initColumnModel(rowset, widths, titles)
+        return self._model
+
+    def getColumnWidth(self):
+        widths = OrderedDict()
+        for column in self._model.getColumns():
+            widths[column.Identifier] = column.ColumnWidth
+        return widths
+
+# ColumnModel setter methods
+    def initColumnModel(self, rowset, widths, titles):
+        # TODO: First we need to clear the existing columns
         for index in range(self._model.getColumnCount() -1, -1, -1):
             self._model.removeColumn(index)
-        # TODO: ColumnWidth should be assigned after all columns have 
-        # TODO: been added to the GridColumnModel
-        if widths:
-            for name in widths:
-                title = titles[name]
-                self._createColumn(rowset, name, title)
-            self._setSavedColumnWidth(widths)
-        else:
-            total = 0
-            for name, title in titles.items():
-                total += len(title)
-                self._createColumn(rowset, name, title)
-            self._setDefaultColumnWidth(total)
+        self._initColumnModel(rowset, widths, titles)
 
     def setColumnModel(self, rowset, titles, reset):
         total = 0
@@ -85,17 +88,22 @@ class ColumnModel(unohelper.Base):
         if added:
             self._setDefaultColumnWidth(total)
 
-# ColumnModel getter methods
-    def getColumnModel(self):
-        return self._model
-
-    def getColumnWidth(self):
-        widths = OrderedDict()
-        for column in self._model.getColumns():
-            widths[column.Identifier] = column.ColumnWidth
-        return widths
-
 # ColumnModel private methods
+    def _initColumnModel(self, rowset, widths, titles):
+        # TODO: ColumnWidth should be assigned after all columns have 
+        # TODO: been added to the GridColumnModel
+        if widths:
+            for name in widths:
+                title = titles[name]
+                self._createColumn(rowset, name, title)
+            self._setSavedColumnWidth(widths)
+        else:
+            total = 0
+            for name, title in titles.items():
+                total += len(title)
+                self._createColumn(rowset, name, title)
+            self._setDefaultColumnWidth(total)
+
     def _createColumn(self, rowset, name, title):
         column = self._model.createColumn()
         column.Title = title

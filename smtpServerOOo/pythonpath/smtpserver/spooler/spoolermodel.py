@@ -98,8 +98,7 @@ class SpoolerModel(unohelper.Base):
     def getGridModels(self, titles, width):
         data = GridModel(self._rowset)
         widths = self._getColumnsWidth()
-        self._column.initColumnModel(self._rowset, widths, titles, width)
-        column = self._column.getColumnModel()
+        column = self._column.getColumnModel(self._rowset, widths, titles, width, 2)
         return data, column
 
     def setGridColumnModel(self, titles, reset):

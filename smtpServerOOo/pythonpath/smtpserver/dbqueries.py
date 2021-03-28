@@ -39,7 +39,8 @@ g_message = 'dbqueries'
 
 def getSqlQuery(ctx, name, format=None):
 
-# Create Static Table Queries
+# DataBase creation Queries
+    # Create Text Table Queries
     if name == 'createTableTables':
         c1 = '"Table" INTEGER NOT NULL PRIMARY KEY'
         c2 = '"Name" VARCHAR(100) NOT NULL'
@@ -82,6 +83,8 @@ def getSqlQuery(ctx, name, format=None):
         c = (c1, c2, c3, c4, c5)
         p = ','.join(c)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Settings"(%s);' % p
+
+    # Create Text Table Options
     elif name == 'setTableSource':
         query = 'SET TABLE "%s" SOURCE "%s"' % (format, g_csv % format)
     elif name == 'setTableHeader':
@@ -89,7 +92,11 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'setTableReadOnly':
         query = 'SET TABLE "%s" READONLY TRUE' % format
 
-# Create Cached Table Options
+    # Create Cached Table Queries
+    elif name == 'createTable':
+        query = 'CREATE CACHED TABLE IF NOT EXISTS "%s"(%s)' % format
+
+    # Create Cached Table Options
     elif name == 'getPrimayKey':
         query = 'PRIMARY KEY(%s)' % ','.join(format)
 
@@ -101,10 +108,6 @@ def getSqlQuery(ctx, name, format=None):
         q += '"%(ForeignTable)s"(%(ForeignColumns)s) ON DELETE CASCADE ON UPDATE CASCADE'
         query = q % format
 
-# Create Cached Table Queries
-    elif name == 'createTable':
-        query = 'CREATE CACHED TABLE IF NOT EXISTS "%s"(%s)' % format
-
     elif name == 'getPeriodColumns':
         query = '"RowStart" TIMESTAMP GENERATED ALWAYS AS ROW START,'
         query += '"RowEnd" TIMESTAMP GENERATED ALWAYS AS ROW END,'
@@ -113,31 +116,40 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getSystemVersioning':
         query = ' WITH SYSTEM VERSIONING'
 
-# Create View Queries
+    # Create View Queries
     elif name == 'createSpoolerView':
-        c1 = '"Id"'
-        c2 = '"State"'
-        c3 = '"Subject"'
-        c4 = '"Sender"'
-        c5 = '"Recipient"'
-        c6 = '"Document"'
-        c7 = '"TimeStamp"'
-        c = (c1,c2,c3,c4,c5,c6,c7)
-        s1 = '"Senders"."Id"'
-        s2 = '"Recipients"."State"'
-        s3 = '"Senders"."Subject"'
-        s4 = '"Senders"."Sender"'
-        s5 = '"Recipients"."Recipient"'
-        s6 = '"Senders"."Document"'
-        s7 = '"Recipients"."TimeStamp"'
-        s = (s1,s2,s3,s4,s5,s6,s7)
+        c1 = '"JobId"'
+        c2 = '"BatchId"'
+        c3 = '"State"'
+        c4 = '"Subject"'
+        c5 = '"Sender"'
+        c6 = '"Recipient"'
+        c7 = '"Document"'
+        c8 = '"DataSource"'
+        c9 = '"Query"'
+        c10 = '"Submit"'
+        c11 = '"Sending"'
+        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11)
+        s1 = '"Recipients"."JobId"'
+        s2 = '"Senders"."BatchId"'
+        s3 = '"Recipients"."State"'
+        s4 = '"Senders"."Subject"'
+        s5 = '"Senders"."Sender"'
+        s6 = '"Recipients"."Recipient"'
+        s7 = '"Senders"."Document"'
+        s8 = '"Senders"."DataSource"'
+        s9 = '"Senders"."Query"'
+        s10 = '"Senders"."TimeStamp"'
+        s11 = '"Recipients"."TimeStamp"'
+        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11)
         f1 = '"Senders"'
-        f2 = 'JOIN "Recipients" ON "Senders"."Id"="Recipients"."Id"'
+        f2 = 'JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"'
         f = (f1,f2)
         p = (','.join(c), ','.join(s), ' '.join(f))
         query = 'CREATE VIEW "Spooler" (%s) AS SELECT %s FROM %s;' % p
 
 # Select Queries
+    # DataBase creation Select Queries
     elif name == 'getTableName':
         query = 'SELECT "Name" FROM "Tables" ORDER BY "Table";'
     elif name == 'getTables':
@@ -170,6 +182,7 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getTablesName':
         query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
 
+    # IspDb Select Queries
     elif name == 'getSmtpServers':
         s1 = '"Servers"."Server"'
         s2 = '"Servers"."Port"'
@@ -185,24 +198,23 @@ def getSqlQuery(ctx, name, format=None):
         p = (','.join(s), ' '.join(f), w)
         query = 'SELECT %s FROM %s WHERE %s;' % p
 
+    # Mail Select Queries
     elif name == 'getSenders':
         query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
 
-    elif name == 'getSpoolerQuery1':
-        s1 = '"Senders"."Id"'
-        s2 = '"Recipients"."State"'
-        s3 = '"Senders"."Subject"'
-        s4 = '"Senders"."Sender"'
-        s5 = '"Recipients"."Recipient"'
-        s6 = '"Senders"."Document"'
-        s7 = '"Recipients"."TimeStamp"'
-        s = (s1,s2,s3,s4,s5,s6,s7)
-        f1 = '"Senders"'
-        f2 = 'JOIN "Recipients" ON "Senders"."Id"="Recipients"."Id"'
-        f = (f1,f2)
-        p = (','.join(s), ' '.join(f))
-        query = 'SELECT %s FROM %s;' % p
+    # Merger Composer Select Queries
+    elif name == 'getComposerCommand':
+        query = 'SELECT * FROM "%s";' % format
 
+    elif name == 'getComposerColumns':
+        query = '"%s"' % '", "'.join(format)
+        if len(format) > 1:
+            query = 'COALESCE(%s)' % query
+
+    elif name == 'getComposerQuery':
+        query = 'SELECT %s FROM "%s" WHERE %s;' % format
+
+    # Spooler Select Queries
     elif name == 'getViewQuery':
         query = 'SELECT * FROM "Spooler";'
 
@@ -210,10 +222,12 @@ def getSqlQuery(ctx, name, format=None):
         query = 'SELECT * FROM "View";'
 
 # Delete Queries
+    # Mail Delete Queries
     elif name == 'deleteUser':
         query = 'DELETE FROM "Users" WHERE "User" = ?;'
 
 # Function creation Queries
+    # IspDb Function Queries
     elif name == 'createGetDomain':
         query = """\
 CREATE FUNCTION "GetDomain"("User" VARCHAR(320))
@@ -223,6 +237,7 @@ CREATE FUNCTION "GetDomain"("User" VARCHAR(320))
 """
 
 # Select Procedure Queries
+    # IspDb Select Procedure Queries
     elif name == 'createGetServers':
         query = """\
 CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
@@ -248,7 +263,64 @@ CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
     OPEN "Result";
   END;"""
 
+# Insert Procedure Queries
+    # MailServiceSpooler Insert Procedure Queries
+    elif name == 'createInsertJob':
+        query = """\
+CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
+                             IN "Subject" VARCHAR(78),
+                             IN "Document" VARCHAR(512),
+                             IN "Recipient" VARCHAR(32000),
+                             IN "Attachment" VARCHAR(5120),
+                             IN "Separator" VARCHAR(1),
+                             OUT "Id" INTEGER)
+  SPECIFIC "InsertJob_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE "BatchId" INTEGER DEFAULT 0;
+    DECLARE "Index" INTEGER DEFAULT 1;
+    DECLARE "Pattern" VARCHAR(5) DEFAULT '[^$]+';
+    DECLARE "Recipients" VARCHAR(320) ARRAY[500];
+    DECLARE "Attachments" VARCHAR(512) ARRAY[50];
+    SET "Pattern" = REPLACE("Pattern", '$', "Separator");
+    SET "Recipients" = REGEXP_SUBSTRING_ARRAY("Recipient", "Pattern");
+    SET "Attachments" = REGEXP_SUBSTRING_ARRAY("Attachment", "Pattern");
+    INSERT INTO "Senders" ("Sender","Subject","Document") VALUES ("Sender","Subject","Document");
+    SET "BatchId" = IDENTITY();
+    WHILE "Index" <= CARDINALITY("Recipients") DO
+      INSERT INTO "Recipients" ("BatchId","Recipient") VALUES ("BatchId","Recipients"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Index" = 1;
+    WHILE "Index" <= CARDINALITY("Attachments") DO
+      INSERT INTO "Attachments" ("BatchId","Attachment") VALUES ("BatchId","Attachments"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Id" = "BatchId";
+  END;"""
+
+# Update Procedure Queries
+    # IspDb Update Procedure Queries
+    elif name == 'createUpdateServer':
+        query = """\
+CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(255),
+                                IN "Port1" SMALLINT,
+                                IN "Server2" VARCHAR(255),
+                                IN "Port2" SMALLINT,
+                                IN "Connection" TINYINT,
+                                IN "Authentication" TINYINT,
+                                IN "Time" TIMESTAMP(6))
+  SPECIFIC "UpdateServer_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Servers" SET "Server"="Server2", "Port"="Port2",
+      "Connection"="Connection", "Authentication"="Authentication",
+      "TimeStamp"="Time"
+      WHERE "Server" = "Server1" AND "Port" = "Port1";
+  END"""
+
 # Merge Procedure Queries
+    # IspDb Merge Procedure Queries
     elif name == 'createMergeProvider':
         query = """\
 CREATE PROCEDURE "MergeProvider"(IN "Provider" VARCHAR(100),
@@ -302,24 +374,6 @@ CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
           VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
 
-    elif name == 'createUpdateServer':
-        query = """\
-CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(255),
-                                IN "Port1" SMALLINT,
-                                IN "Server2" VARCHAR(255),
-                                IN "Port2" SMALLINT,
-                                IN "Connection" TINYINT,
-                                IN "Authentication" TINYINT,
-                                IN "Time" TIMESTAMP(6))
-  SPECIFIC "UpdateServer_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    UPDATE "Servers" SET "Server"="Server2", "Port"="Port2",
-      "Connection"="Connection", "Authentication"="Authentication",
-      "TimeStamp"="Time"
-      WHERE "Server" = "Server1" AND "Port" = "Port1";
-  END"""
-
     elif name == 'createMergeUser':
         query = """\
 CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
@@ -339,67 +393,29 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
           VALUES vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
 
-    elif name == 'createInsertJob':
-        query = """\
-CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
-                             IN "Subject" VARCHAR(78),
-                             IN "Document" VARCHAR(512),
-                             IN "Recipient" VARCHAR(32000),
-                             IN "Attachment" VARCHAR(5120),
-                             IN "Separator" VARCHAR(1),
-                             OUT "Id" INTEGER)
-  SPECIFIC "InsertJob_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    DECLARE "JobId" INTEGER DEFAULT 0;
-    DECLARE "Index" INTEGER DEFAULT 1;
-    DECLARE "Pattern" VARCHAR(5) DEFAULT '[^$]+';
-    DECLARE "Recipients" VARCHAR(320) ARRAY[500];
-    DECLARE "Attachments" VARCHAR(512) ARRAY[50];
-    SET "Pattern" = REPLACE("Pattern", '$', "Separator");
-    SET "Recipients" = REGEXP_SUBSTRING_ARRAY("Recipient", "Pattern");
-    SET "Attachments" = REGEXP_SUBSTRING_ARRAY("Attachment", "Pattern");
-    INSERT INTO "Senders" ("Sender","Subject","Document") VALUES ("Sender","Subject","Document");
-    SET "JobId" = IDENTITY();
-    WHILE "Index" <= CARDINALITY("Recipients") DO
-      INSERT INTO "Recipients" ("Id","Recipient") VALUES ("JobId","Recipients"["Index"]);
-      SET "Index" = "Index" + 1;
-    END WHILE;
-    SET "Index" = 1;
-    WHILE "Index" <= CARDINALITY("Attachments") DO
-      INSERT INTO "Attachments" ("Id","Attachment") VALUES ("JobId","Attachments"["Index"]);
-      SET "Index" = "Index" + 1;
-    END WHILE;
-    SET "Id" = "JobId";
-  END;"""
-
-# Get DataBase Version Query
-    elif name == 'getVersion':
-        query = 'SELECT DISTINCT DATABASE_VERSION() AS "HSQL Version" FROM INFORMATION_SCHEMA.SYSTEM_TABLES'
-
-# ShutDown Queries
-    elif name == 'shutdown':
-        query = 'SHUTDOWN;'
-    elif name == 'shutdownCompact':
-        query = 'SHUTDOWN COMPACT;'
-
-# Get Procedure Query
-    elif name == 'getUser':
-        query = 'CALL "GetUser"(?)'
+# Call Procedure Query
     elif name == 'getServers':
         query = 'CALL "GetServers"(?,?,?,?,?,?)'
+    elif name == 'insertJob':
+        query = 'CALL "InsertJob"(?,?,?,?,?,?,?)'
+    elif name == 'updateServer':
+        query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':
         query = 'CALL "MergeProvider"(?,?,?,?)'
     elif name == 'mergeDomain':
         query = 'CALL "MergeDomain"(?,?,?)'
     elif name == 'mergeServer':
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
-    elif name == 'updateServer':
-        query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
         query = 'CALL "MergeUser"(?,?,?,?,?,?)'
-    elif name == 'insertJob':
-        query = 'CALL "InsertJob"(?,?,?,?,?,?,?)'
+
+# ShutDown Queries
+    # Normal ShutDown Queries
+    elif name == 'shutdown':
+        query = 'SHUTDOWN;'
+    # Compact ShutDown Queries
+    elif name == 'shutdownCompact':
+        query = 'SHUTDOWN COMPACT;'
 
 # Get prepareCommand Query
     elif name == 'prepareCommand':

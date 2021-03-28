@@ -64,9 +64,9 @@ class SenderManager(unohelper.Base):
 
     def getDocumentUrl(self):
         title = self._model.getFilePickerTitle()
-        filter = self._model.getFilePickerFilter()
+        filters = self._model.getFilePickerFilters()
         path = self._model.Path
-        url, path = self._view.getDocumentUrl(title, filter, path)
+        url, path = self._view.getDocumentUrl(title, filters, path)
         self._model.Path = path
         return url
 

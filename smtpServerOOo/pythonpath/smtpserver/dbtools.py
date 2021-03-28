@@ -273,24 +273,19 @@ def getKeyMapKeyMapFromResult(result):
         sequence.insertValue(name, keymap)
     return sequence
 
-def getSequenceFromResult(result, sequence=None, index=1, provider=None):
-    sequence = [] if sequence is None else sequence
-    i = result.MetaData.ColumnCount
-    if 0 < index < i:
-        i = index
-    if not i:
-        return sequence
-    name = result.MetaData.getColumnName(i)
+def getSequenceFromResult(result, index=1, default=None, transformer=None):
+    sequence = []
+    name = result.MetaData.getColumnName(index)
     while result.next():
-        value = getValueFromResult(result, i)
-        if value is None:
-            continue
+        value = getValueFromResult(result, index)
+#        if value is None:
+#            continue
         if result.wasNull():
-            value = None
-        if provider:
-            value = provider.transform(name, value)
+            value = default
+        if transformer is not None:
+            value = transformer.transform(name, value)
         sequence.append(value)
-    return sequence
+    return tuple(sequence)
 
 def getDictFromResult(result):
     values = {}

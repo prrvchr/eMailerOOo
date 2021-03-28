@@ -48,12 +48,12 @@ class Tab1Handler(unohelper.Base,
         try:
             handled = False
             enabled = self._manager.isHandlerEnabled()
-            if method == 'ChangeAddressBook':
-                print("Tab1Handler.callHandlerMethod() ChangeAddressBook *************** %s" % enabled)
+            if method == 'ChangeAddressTable':
+                print("Tab1Handler.callHandlerMethod() ChangeAddressTable *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     table = control.getSelectedItem()
-                    self._manager.setAddressBook(table)
+                    self._manager.setAddressTable(table)
                 handled = True
             elif method == 'ChangeAddressColumn':
                 titles = OrderedDict()
@@ -89,7 +89,7 @@ class Tab1Handler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeAddressBook',
+        return ('ChangeAddressTable',
                 'ChangeAddressColumn',
                 'ChangeAddressOrder',
                 'Add',

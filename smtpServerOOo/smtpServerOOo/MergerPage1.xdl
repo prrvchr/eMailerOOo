@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MergerPage1" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MergerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MergerPage1.Title" dlg:withtitlebar="false">
   <dlg:styles>
@@ -10,18 +35,18 @@
     <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label1.HelpText" dlg:value="&amp;MergerPage1.Label1.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="25" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label2.HelpText" dlg:value="&amp;MergerPage1.Label2.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:disabled="true" dlg:left="75" dlg:top="25" dlg:width="100" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox1.HelpText" dlg:value="&amp;MergerPage1.ListBox1.Text" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeDataSource" script:language="UNO"/>
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBook" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="4" dlg:disabled="true" dlg:left="185" dlg:top="25" dlg:width="95" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton1.HelpText" dlg:value="&amp;MergerPage1.CommandButton1.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewDataSource" script:language="UNO"/>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewAddressBook" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label3" dlg:tab-index="5" dlg:left="10" dlg:top="45" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label3.HelpText" dlg:value="&amp;MergerPage1.Label3.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:disabled="true" dlg:left="75" dlg:top="45" dlg:width="80" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox2.HelpText" dlg:value="&amp;MergerPage1.ListBox2.Text" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeTable" script:language="UNO"/>
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookTable" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="165" dlg:top="45" dlg:width="30" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label4.HelpText" dlg:value="&amp;MergerPage1.Label4.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox3" dlg:tab-index="8" dlg:disabled="true" dlg:left="200" dlg:top="45" dlg:width="80" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox3.HelpText" dlg:value="&amp;MergerPage1.ListBox3.Text" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeColumn" script:language="UNO"/>
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookColumn" script:language="UNO"/>
     </dlg:menulist>
     <dlg:fixedline dlg:id="FixedLine2" dlg:tab-index="9" dlg:left="0" dlg:top="69" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine2.HelpText" dlg:value="&amp;MergerPage1.FixedLine2.Label"/>
     <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:page="1" dlg:left="5" dlg:top="70" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label5.HelpText" dlg:value="&amp;MergerPage1.Label5.Label" dlg:valign="center"/>
@@ -43,7 +68,7 @@
     </dlg:button>
     <dlg:fixedline dlg:id="FixedLine3" dlg:tab-index="19" dlg:page="3" dlg:left="0" dlg:top="113" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine3.HelpText" dlg:value="&amp;MergerPage1.FixedLine3.Label"/>
     <dlg:text dlg:style-id="0" dlg:id="Label10" dlg:tab-index="20" dlg:page="3" dlg:left="5" dlg:top="114" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label10.HelpText" dlg:value="&amp;MergerPage1.Label10.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label11" dlg:tab-index="21" dlg:page="3" dlg:left="10" dlg:top="126" dlg:width="124" dlg:height="28" dlg:help-text="&amp;MergerPage1.Label11.HelpText" dlg:multiline="true" dlg:value="&amp;MergerPage1.Label11.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label11" dlg:tab-index="21" dlg:page="3" dlg:left="10" dlg:top="126" dlg:width="124" dlg:height="28" dlg:help-text="&amp;MergerPage1.Label11.HelpText" dlg:multiline="true" dlg:value="&amp;MergerPage1.Label11.Label.0" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox4" dlg:tab-index="22" dlg:page="3" dlg:disabled="true" dlg:left="10" dlg:top="155" dlg:width="90" dlg:height="35" dlg:help-text="&amp;MergerPage1.ListBox4.HelpText" dlg:value="&amp;MergerPage1.ListBox4.Text">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeEmail" script:language="UNO"/>
     </dlg:menulist>

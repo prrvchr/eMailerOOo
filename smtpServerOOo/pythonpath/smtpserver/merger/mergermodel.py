@@ -32,6 +32,8 @@ import unohelper
 
 from com.sun.star.sdbc import SQLException
 
+from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
+
 from com.sun.star.sdb.CommandType import COMMAND
 from com.sun.star.sdb.CommandType import QUERY
 from com.sun.star.sdb.CommandType import TABLE
@@ -45,16 +47,23 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from unolib import createService
 from unolib import getDesktop
+from unolib import getInteractionHandler
 from unolib import getStringResource
 from unolib import getConfiguration
+from unolib import getPathSettings
 from unolib import getPropertyValueSet
 from unolib import getPropertyValue
 from unolib import getUrl
 
+from smtpserver.mail import MailModel
+
 from smtpserver.grid import GridModel
 from smtpserver.grid import ColumnModel
 
+from smtpserver.dbqueries import getSqlQuery
+
 from smtpserver.dbtools import getValueFromResult
+from smtpserver.dbtools import getSequenceFromResult
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -65,72 +74,75 @@ from smtpserver import getMessage
 
 from collections import OrderedDict
 from six import string_types
-from threading import Condition
 from threading import Thread
+from threading import Condition
 import json
 from time import sleep
 import traceback
 
 
-class MergerModel(unohelper.Base):
-    def __init__(self, ctx):
+class MergerModel(MailModel):
+    def __init__(self, ctx, datasource):
         self._ctx = ctx
+        self._datasource = datasource
         self._stringResource = getStringResource(ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(ctx, g_identifier, True)
-        self._doc = getDesktop(ctx).CurrentComponent
+        self._document = getDesktop(ctx).CurrentComponent
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(self._document)
+        self._path = self._getPath()
         service = 'com.sun.star.sdb.DatabaseContext'
         self._dbcontext = createService(ctx, service)
         self._address = self._getRowSet(COMMAND, g_fetchsize)
         self._recipient = self._getRowSet(COMMAND, g_fetchsize)
         self._column1 = ColumnModel(ctx)
         self._column2 = ColumnModel(ctx)
+        self._width1 = self._getColumnsWidth('MergerGrid1Columns')
+        self._width2 = self._getColumnsWidth('MergerGrid2Columns')
         self._maxcolumns = 8
         self._composers = {}
-        self._table = None
-        self._tables = ()
-        self._query = None
+        self._queries = None
         self._addressbook = None
-        self._datasource = None
+        self._tables = ()
+        self._table = None
+        self._query = None
         self._statement = None
         self._row = 0
         self._similar = False
+        self._filtered = False
+        self._indexed = False
+        self._selected = False
         self._lock = Condition()
 
     @property
     def Connection(self):
         return self._statement.getConnection()
 
-    def resolveString(self, resource):
-        return self._stringResource.resolveString(resource)
-
 # Procedures called by WizardPage1
-    # DataSource methods
-    def getAvailableDataSources(self):
+    # AddressBook methods
+    def getAvailableAddressBooks(self):
         return self._dbcontext.getElementNames()
 
-    def getDocumentDataSource(self):
-        datasource = ''
-        if self._doc.supportsService('com.sun.star.text.TextDocument'):
+    def getDocumentAddressBook(self):
+        addressbook = ''
+        service = 'com.sun.star.text.TextDocument'
+        if self._document.supportsService(service):
             service = 'com.sun.star.document.Settings'
-            datasource = self._doc.createInstance(service).CurrentDatabaseDataSource
-        return datasource
+            settings = self._document.createInstance(service)
+            addressbook = settings.CurrentDatabaseDataSource
+        return addressbook
 
     def getDataSource(self):
         return self.Connection.getParent()
 
-    def setDataSource(self, *args):
-        Thread(target=self._setDataSource, args=args).start()
+    def setAddressBook(self, *args):
+        Thread(target=self._setAddressBook, args=args).start()
 
-    # Table methods
-    def getTableColumns(self, name):
-        table = self.Connection.getTables().getByName(name)
-        columns = table.getColumns().getElementNames()
-        return columns
-
-    def setTable(self, table):
-        self._table = table
+    # AddressBook Table methods
+    def setAddressBookTable(self, table):
         columns = self._getTableColumns(table)
-        composer = self._getTableComposer(table)
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
         emails = self._getEmails(composer)
         return columns, emails
 
@@ -143,19 +155,26 @@ class MergerModel(unohelper.Base):
         return valid
 
     def setQuery(self, query):
+        # TODO: We do not save the grid columns for the first change of self._query
+        if self._query is not None:
+            self._saveColumnWidth(self._column2, self._width2, self._query)
         self._query = query
         composer = self._getQueryComposer()
+        self._recipient.Command = composer.getQuery()
+        self._initColumn2()
+        self._selected = True
         indexes = self._getIndexes(composer)
         return indexes
 
     def addQuery(self, table, query):
         composers = self._getComposers()
         if query not in composers:
-            indexes = self._getComposerIndexes(composers)
             composer = self._createComposer()
-            command = self._getComposerCommand(table)
+            name = self._getComposerName(table)
+            command = getSqlQuery(self._ctx, 'getComposerCommand', name)
             composer.setQuery(command)
-            if indexes is not None:
+            if self._similar:
+                indexes = self._getComposerIndexes(composers)
                 self._setIndexes(composer, indexes)
             composers[query] = composer
 
@@ -166,33 +185,37 @@ class MergerModel(unohelper.Base):
 
     # Email methods
     def addEmail(self, table, email):
-        composer = self._getTableComposer(table)
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
         emails = self._getEmails(composer)
-        print("MergerModel.addEmail() %s - %s" % (table, emails))
         if email not in emails:
             emails.append(email)
         if self._similar:
             self._setComposerEmails(emails)
         else:
-            self._setEmails(composer, emails)
+            self._setEmails(name, composer, emails)
+        self._address.Command = composer.getQuery()
+        self._filtered = True
         return emails
 
     def removeEmail(self, table, email):
-        composer = self._getTableComposer(table)
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
         emails = self._getEmails(composer)
-        print("MergerModel.removeEmail() %s - %s" % (table, emails))
         if email in emails:
             emails.remove(email)
         if self._similar:
             self._setComposerEmails(emails)
         else:
-            self._setEmails(composer, emails)
+            self._setEmails(name, composer, emails)
+        self._address.Command = composer.getQuery()
+        self._filtered = True
         return emails
 
     def moveEmail(self, table, email, index):
-        composer = self._getTableComposer(table)
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
         emails = self._getEmails(composer)
-        print("MergerModel.moveEmail() %s - %s" % (table, emails))
         if email in emails:
             emails.remove(email)
             if 0 <= index <= len(emails):
@@ -200,7 +223,9 @@ class MergerModel(unohelper.Base):
         if self._similar:
             self._setComposerEmails(emails)
         else:
-            self._setEmails(composer, emails)
+            self._setEmails(name, composer, emails)
+        self._address.Command = composer.getQuery()
+        self._filtered = True
         return emails
 
     # Index methods
@@ -209,9 +234,12 @@ class MergerModel(unohelper.Base):
         indexes = self._getIndexes(composer)
         if index not in indexes:
             indexes.append(index)
-        self._setIndexes(composer, indexes)
         if self._similar:
             self._setComposerIndexes(indexes)
+        else:
+            self._setIndexes(composer, indexes)
+        self._recipient.Command = composer.getQuery()
+        self._indexed = True
         return indexes
 
     def removeIndex(self, index):
@@ -219,72 +247,100 @@ class MergerModel(unohelper.Base):
         indexes = self._getIndexes(composer)
         if index in indexes:
             indexes.remove(index)
-        self._setIndexes(composer, indexes)
         if self._similar:
             self._setComposerIndexes(indexes)
+        else:
+            self._setIndexes(composer, indexes)
+        self._recipient.Command = composer.getQuery()
+        self._indexed = True
         return indexes
 
 # Procedures called by WizardPage2
-    def getRowSetAddress(self):
-        return self._address
-
-    def getRowSetRecipient(self):
-        return self._recipient
-
-    def getTables(self):
+    def getFilteredTables(self):
         tables = self.Connection.getTables().getElementNames()
         if not self._similar:
-            names = []
-            composers = self._getComposers()
-            for table in tables:
-                name = self._getComposerName(table)
-                if name in composers:
-                    composer = composers[name]
-                    filter = composer.getFilter()
-                    print("MergerModel.getTables() '%s'" % filter)
-                    if filter != '':
-                        names.append(table)
-            tables = tuple(names)
+            tables = self._getFilteredTables(tables)
         return tables
 
-    def getDefaultTable(self):
-        return self._table
-
-    def addRowSetListener(self, address, recipient):
-        self._address.addRowSetListener(address)
-        self._recipient.addRowSetListener(recipient)
-
-    def getGridModels(self, tab, width, factor, table=None):
+    def getGridModels(self, tab, width, factor, tables=None):
         # TODO: com.sun.star.awt.grid.GridColumnModel must be initialized 
         # TODO: before its assignment at com.sun.star.awt.grid.UnoControlGridModel !!!
         if tab == 1:
             data = GridModel(self._address)
-            widths = self._getAddressColumnsWidth(table)
-            titles = self._getAddressColumnTitles(widths, table)
-            self._column1.initColumnModel(self._address, widths, titles, width, factor)
-            column = self._column1.getColumnModel()
+            table = self._getDefaultGridTable(tables)
+            widths, titles = self._getGridColumns(self._width1, table)
+            column = self._column1.getColumnModel(self._address, widths, titles, width, factor)
         elif tab == 2:
             data = GridModel(self._recipient)
-            widths = self._getRecipientColumnsWidth()
-            titles = self._getRecipientColumnTitles(widths)
-            self._column2.initColumnModel(self._recipient, widths, titles, width, factor)
-            column = self._column2.getColumnModel()
+            widths, titles = self._getGridColumns(self._width2, self._query)
+            column = self._column2.getColumnModel(self._recipient, widths, titles, width, factor)
         return data, column
 
-    def setAddressBook(self, *args):
-        Thread(target=self._setAddressBook, args=args).start()
+    def initRowSet(self, address, recipient):
+        self._filtered = self._indexed = self._selected = False
+        self._address.addRowSetListener(address)
+        self._recipient.addRowSetListener(recipient)
+        self.executeRecipient()
+        columns, orders = self._initRecipient()
+        return columns, orders
+
+    def initRecipient(self):
+        columns, orders = self._initRecipient()
+        return columns, orders
+
+    def executeRecipient(self):
+        Thread(target=self._executeRecipient).start()
+
+    def isFiltered(self, clear=False):
+        filtered = self._filtered
+        if clear:
+            self._filtered = False
+        return filtered
+
+    def isIndexed(self, clear=False):
+        indexed = self._indexed
+        if clear:
+            self._indexed = False
+        return indexed
+
+    def isSelected(self):
+        selected = self._selected
+        self._selected = False
+        return selected
+
+    def setAddressTable(self, table):
+        # TODO: We do not save the grid columns for the first change of self._table
+        if self._table is not None:
+            self._saveColumnWidth(self._column1, self._width1, self._table)
+        self._table = table
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
+        command = composer.getQuery()
+        self.setRowSetCommand(self._address, command)
+        self._initColumn1()
+        columns, orders = self._getComposerColumnsOrders(composer)
+        return columns, orders
+
+    def setRowSetCommand(self, *args):
+        Thread(target=self._setRowSetCommand, args=args).start()
 
     def setAddressColumn(self, *args):
         Thread(target=self._setAddressColumn, args=args).start()
 
-    def setRecipientColumn(self, *args):
-        Thread(target=self._setRecipientColumn, args=args).start()
-
     def setAddressOrder(self, *args):
         Thread(target=self._setAddressOrder, args=args).start()
 
+    def getAddressCount(self):
+        return self._address.RowCount
+
+    def setRecipientColumn(self, *args):
+        Thread(target=self._setRecipientColumn, args=args).start()
+
     def setRecipientOrder(self, *args):
         Thread(target=self._setRecipientOrder, args=args).start()
+
+    def getRecipientCount(self):
+        return self._recipient.RowCount
 
     def addItem(self, *args):
         Thread(target=self._addItem, args=args).start()
@@ -297,48 +353,74 @@ class MergerModel(unohelper.Base):
             self._row = row
             Thread(target=self._setDocumentRecord).start()
 
-    def getAddressCount(self):
-        return self._address.RowCount
+# Procedures called by WizardPage3
+    def getUrl(self):
+        return self._document.URL
 
-    def getRecipientCount(self):
-        return self._recipient.RowCount
+    def getDocument(self, url=None):
+        if url is None:
+            document = self._document
+        else:
+            properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+            descriptor = getPropertyValueSet(properties)
+            document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        return document
+
+    def setUrl(self, url):
+        pass
+
+    def initView(self, *args):
+        Thread(target=self._initView, args=args).start()
+
+    def getRecipients(self):
+        table, filter = self._getComposerTable()
+        emails = self._getComposerEmails()
+        columns = getSqlQuery(self._ctx, 'getComposerColumns', emails)
+        format = (columns, table, filter)
+        query = getSqlQuery(self._ctx, 'getComposerQuery', format)
+        print("MergerModel.getRecipients() %s" % query)
+        result = self._statement.executeQuery(query)
+        recipients = getSequenceFromResult(result)
+        print("MergerModel.getRecipients() %s" % (recipients, ))
+        return recipients
+
+    def _getComposerTable(self):
+        composer = self._getQueryComposer()
+        table = composer.getTables().getByIndex(0).Name
+        filter = composer.getFilter()
+        return table, filter
+
+    def _getComposerEmails(self):
+        name = self._getComposerName(self._table)
+        composer = self._getTableComposer(name, self._table)
+        emails = self._getEmails(composer)
+        return emails
 
 # Private procedures called by WizardPage2
-    def _initGrids(self, address, recipient, initGrids):
-        self._address.addRowSetListener(address)
-        self._recipient.addRowSetListener(recipient)
-        with self._lock:
-            initGrids(table)
+    def _initRecipient(self):
+        composer = self._getQueryComposer()
+        columns, orders = self._getComposerColumnsOrders(composer)
+        return columns, orders
 
-    def _getAddressColumnTitles(self, widths, table):
+    def _getColumnsWidth(self, name):
+        config = self._configuration.getByName(name)
+        width = json.loads(config, object_pairs_hook=OrderedDict)
+        return width
+
+    def _getComposerColumnsOrders(self, composer):
+        columns = composer.getColumns().getElementNames()
+        orders = composer.getOrderColumns().createEnumeration()
+        return columns, orders
+
+    def _getGridColumns(self, config, name):
+        names = config.get(self._addressbook, {})
+        widths = names.get(name, {})
         if widths:
             titles = self._getColumnTitles(widths)
         else:
-            columns = self._getAddressColumns(table)
+            columns = self._getDefaultColumns(name)
             titles = self._getColumnTitles(columns)
-        return titles
-
-    def _getRecipientColumnTitles(self, widths):
-        if widths:
-            titles = self._getColumnTitles(widths)
-        else:
-            columns = self._getRecipientColumns()
-            titles = self._getColumnTitles(columns)
-        return titles
-
-    def _getAddressColumnsWidth(self, table):
-        columns = self._configuration.getByName('MergerGrid1Columns')
-        datasources = json.loads(columns, object_pairs_hook=OrderedDict)
-        tables = datasources.get(self._datasource, {})
-        widths = tables.get(table, {})
-        return widths
-
-    def _getRecipientColumnsWidth(self):
-        columns = self._configuration.getByName('MergerGrid2Columns')
-        datasources = json.loads(columns, object_pairs_hook=OrderedDict)
-        queries = datasources.get(self._datasource, {})
-        widths = queries.get(self._query, {})
-        return widths
+        return widths, titles
 
     def _getColumnTitles(self, columns):
         titles = OrderedDict()
@@ -346,49 +428,39 @@ class MergerModel(unohelper.Base):
             titles[column] = column
         return titles
 
-    def _getAddressColumns(self, name):
-        table = self.Connection.getTables().getByName(name)
-        columns = table.getColumns().getElementNames()
-        return columns[:self._maxcolumns]
-
-    def _getRecipientColumns(self):
-        composer = self._getQueryComposer()
+    def _getDefaultColumns(self, name):
+        composers = self._getComposers()
+        if name in self._tables:
+            name = self._getComposerName(name)
+        composer = composers[name]
         columns = composer.getColumns().getElementNames()
         return columns[:self._maxcolumns]
 
-    def _setAddressBook(self, table, initAddress):
-        self._addressbook = table
-        composer = self._getTableComposer(table)
-        columns = self.getTableColumns(table)
-        orders = composer.getOrderColumns().createEnumeration()
-        initAddress(columns, orders)
-        #filters = composer.getStructuredFilter()
-        #command = self._getComposerCommand(table)
-        #composer.setQuery(command)
-        #composer.setStructuredFilter(filters)
-        self._setRowSetCommand(self._address, composer)
-
-    def _setAddressColumn(self, table, columns, reset):
+    def _setAddressColumn(self, columns, reset):
         if reset:
-            columns = self._getAddressColumns(table)
+            columns = self._getDefaultColumns(self._table)
         titles = self._getColumnTitles(columns)
         self._column1.setColumnModel(self._address, titles, reset)
 
+    def _setAddressOrder(self, orders, ascending):
+        name = self._getComposerName(self._table)
+        composer = self._getTableComposer(name, self._table)
+        self._setComposerOrder(composer, orders, ascending)
+        command = composer.getQuery()
+        self._setQueryCommand(name, command)
+        self._setRowSetCommand(self._address, command)
+
     def _setRecipientColumn(self, columns, reset):
         if reset:
-            columns = self._getRecipientColumns()
+            columns = self._getDefaultColumns(self._query)
         titles = self._getColumnTitles(columns)
         self._column2.setColumnModel(self._recipient, titles, reset)
-
-    def _setAddressOrder(self, table, orders, ascending):
-        composer = self._getTableComposer(table)
-        self._setComposerOrder(composer, orders, ascending)
-        self._setRowSetCommand(self._address, composer)
 
     def _setRecipientOrder(self, orders, ascending):
         composer = self._getQueryComposer()
         self._setComposerOrder(composer, orders, ascending)
-        self._setRowSetCommand(self._recipient, composer)
+        command = composer.getQuery()
+        self._setRowSetCommand(self._recipient, command)
 
     def _setComposerOrder(self, composer, orders, ascending):
         olds, news = self._getComposerOrder(composer, orders)
@@ -414,50 +486,57 @@ class MergerModel(unohelper.Base):
         composer = self._getQueryComposer()
         filters = self._getRowSetFilters(self._address, composer, rows, True)
         composer.setStructuredFilter(filters)
-        self._setRowSetCommand(self._recipient, composer)
+        command = composer.getQuery()
+        self._setRowSetCommand(self._recipient, command)
 
     def _removeItem(self, rows):
         composer = self._getQueryComposer()
         filters = self._getRowSetFilters(self._recipient, composer, rows, False)
         composer.setStructuredFilter(filters)
-        self._setRowSetCommand(self._recipient, composer)
+        command = composer.getQuery()
+        self._setRowSetCommand(self._recipient, command)
 
     def _getRowSetFilters(self, rowset, composer, rows, add):
         indexes = self._getIndexes(composer)
         filters = self._getComposerFilters(composer)
         for row in rows:
             rowset.absolute(row +1)
-            filter = []
-            for index in indexes:
-                i = rowset.findColumn(index)
-                value = getValueFromResult(rowset, i)
-                filter.append((index, value))
-            filter = tuple(filter)
-            if add:
-                self._addFilters(filters, filter)
-            else:
-                self._removeFilters(filters, filter)
+            self._updateFilters(rowset, indexes, filters, add)
         return self._getStructuredFilters(filters)
 
     def _getComposerFilters(self, composer):
         filters = []
-        for f in composer.getStructuredFilter():
-            filter = []
-            for property in f:
-                value = property.Value
-                if isinstance(value, string_types):
-                    value = value.strip("'")
-                filter.append((property.Name, value))
-            filters.append(tuple(filter))
+        for filter in composer.getStructuredFilter():
+            filters.append(self._getComposerFilter(filter))
         return filters
 
-    def _addFilters(self, filters, filter):
-        if filter not in filters:
+    def _getComposerFilter(self, properties):
+        filters = []
+        for property in properties:
+            value = property.Value
+            # TODO: Filter can be quoted if its type is String!!!
+            if isinstance(value, string_types):
+                value = value.strip("'")
+            filter = (property.Name, value)
             filters.append(filter)
+        return tuple(filters)
 
-    def _removeFilters(self, filters, filter):
-        if filter in filters:
+    def _updateFilters(self, rowset, indexes, filters, add):
+        filter = self._getRowSetFilter(rowset, indexes)
+        if add:
+            if filter not in filters:
+                filters.append(filter)
+        elif filter in filters:
             filters.remove(filter)
+
+    def _getRowSetFilter(self, rowset, indexes):
+        filters = []
+        for index in indexes:
+            i = rowset.findColumn(index)
+            value = getValueFromResult(rowset, i)
+            filter = (index, value)
+            filters.append(filter)
+        return tuple(filters)
 
     def _getStructuredFilters(self, filters):
         structured = []
@@ -467,20 +546,18 @@ class MergerModel(unohelper.Base):
                 operator = EQUAL if value != 'IS NULL' else SQLNULL
                 property = getPropertyValue(name, value, None, operator)
                 properties.append(property)
-            properties = tuple(properties)
-            structured.append(properties)
-        structured = tuple(structured)
-        return structured
+            structured.append(tuple(properties))
+        return tuple(structured)
 
     def _setDocumentRecord(self):
         try:
             dispatch = None
-            frame = self._doc.getCurrentController().Frame
+            frame = self._document.getCurrentController().Frame
             flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
-            if self._doc.supportsService('com.sun.star.text.TextDocument'):
+            if self._document.supportsService('com.sun.star.text.TextDocument'):
                 url = getUrl(self._ctx, '.uno:DataSourceBrowser/InsertContent')
                 dispatch = frame.queryDispatch(url, '_self', flag)
-            elif self._doc.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+            elif self._document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
                 url = getUrl(self._ctx, '.uno:DataSourceBrowser/InsertColumns')
                 dispatch = frame.queryDispatch(url, '_self', flag)
             if dispatch is not None:
@@ -547,6 +624,15 @@ class MergerModel(unohelper.Base):
         return 'MergerPage1.Label12.Label.%s' % int(self._similar)
 
 # Procedures called internally
+    def _getPath(self):
+        location = self.getUrl()
+        if location != '':
+            url = getUrl(self._ctx, location)
+            path = url.Protocol + url.Path
+        else:
+            path = getPathSettings(self._ctx).Work
+        return path
+
     # RowSet private methods
     def _getRowSet(self, command, fetchsize):
         service = 'com.sun.star.sdb.RowSet'
@@ -555,85 +641,102 @@ class MergerModel(unohelper.Base):
         rowset.FetchSize = fetchsize
         return rowset
 
-    def _initRowSet(self):
-        self._address.ActiveConnection = self.Connection
-        self._recipient.ActiveConnection = self.Connection
-
-    def _setRowSetCommand(self, rowset, composer):
-        rowset.Command = composer.getQuery()
+    def _setRowSetCommand(self, rowset, command):
+        print("MergerModel._setRowSetCommand() %s" % command)
+        rowset.Command = command
         rowset.execute()
 
-    # DataSource private methods
-    def _setDataSource(self, datasource, progress, setDataSource):
+    def _executeRecipient(self):
+        print("MergerModel._executeRecipient() %s" % self._recipient.Command)
+        self._recipient.execute()
+
+    # AddressBook private methods
+    def _setAddressBook(self, addressbook, progress, setAddressBook):
         progress(10)
         step = 2
         queries = label1 = label2 = msg = None
+        # TODO: We do not save the grid columns for the first load of a new self._addressbook
+        if self._addressbook is not None:
+            if self._table is not None:
+                self._saveColumnWidth(self._column1, self._width1, self._table)
+            if self._query is not None:
+                self._saveColumnWidth(self._column2, self._width2, self._query)
+        self._query = self._table = None
+        self._filtered = self._indexed = self._selected = False
         sleep(0.2)
         progress(20)
-        database = self._getDatabase(datasource)
-        progress(30)
+        database = self._getDatabase(addressbook)
         try:
             if database.IsPasswordRequired:
-                service = 'com.sun.star.task.InteractionHandler'
-                handler = createService(self._ctx, service)
+                handler = getInteractionHandler(self._ctx)
                 connection = database.connectWithCompletion(handler)
             else:
                 connection = database.getConnection('', '')
         except SQLException as e:
             msg = e.Message
         else:
-            progress(40)
-            self._datasource = datasource
-            self._statement = connection.createStatement()
-            progress(50)
-            self._setTablesInfos()
-            progress(60)
-            self._initRowSet()
-            progress(70)
-            if datasource in self._composers:
-                composers = self._composers[datasource]
+            progress(30)
+            service = 'com.sun.star.sdb.SingleSelectQueryComposer'
+            if service not in connection.getAvailableServiceNames():
+                msg = "MergerModel._setAddressBook() service: %s not available..." % service
             else:
-                composers = {}
-                self._composers[datasource] = composers
-            progress(80)
-            queries = self._getQueries(composers)
-            progress(90)
-            label1 = self.getEmailLabel()
-            label2 = self.getIndexLabel()
-            step = 3
+                progress(40)
+                self._addressbook = addressbook
+                self._statement = connection.createStatement()
+                #mri = createService(self._ctx, 'mytools.Mri')
+                #mri.inspect(connection)
+                progress(50)
+                self._setTablesInfos()
+                progress(60)
+                self._address.ActiveConnection = connection
+                self._recipient.ActiveConnection = connection
+                progress(70)
+                self._queries = database.getQueryDefinitions()
+                if addressbook in self._composers:
+                    composers = self._composers[addressbook]
+                else:
+                    composers = self._getQueriesComposer()
+                    self._composers[addressbook] = composers
+                progress(80)
+                queries = self._getQueryNames(composers)
+                progress(90)
+                label1 = self.getEmailLabel()
+                label2 = self.getIndexLabel()
+                step = 3
         progress(100)
-        setDataSource(step, queries, self._tables, label1, label2, msg)
+        setAddressBook(step, queries, self._tables, label1, label2, msg)
 
-    def _getDatabase(self, datasource):
+    def _getDatabase(self, addressbook):
         database = None
-        if self._dbcontext.hasByName(datasource):
-            database = self._dbcontext.getByName(datasource)
+        if self._dbcontext.hasByName(addressbook):
+            database = self._dbcontext.getByName(addressbook)
         return database
 
     def _setTablesInfos(self):
+        self._similar = True
         tables = self.Connection.getTables()
         self._tables = tables.getElementNames()
-        columns = tables.getByIndex(0).getColumns().getElementNames()
-        for index in range(1, tables.getCount()):
-            table = tables.getByIndex(index)
-            if columns != table.getColumns().getElementNames():
-                self._similar = False
-                break
-        else:
-            self._similar = True
+        if len(self._tables) > 0:
+            columns = tables.getByIndex(0).getColumns().getElementNames()
+            for index in range(1, tables.getCount()):
+                table = tables.getByIndex(index)
+                if columns != table.getColumns().getElementNames():
+                    self._similar = False
+                    break
 
     # Composer private methods
     def _getComposers(self):
-        return self._composers[self._datasource]
+        return self._composers[self._addressbook]
 
-    def _getTableComposer(self, table):
-        name = self._getComposerName(table)
+    def _getTableComposer(self, name, table):
         composers = self._getComposers()
         if name in composers:
             composer = composers[name]
         else:
+            command = getSqlQuery(self._ctx, 'getComposerCommand', table)
+            self._setQueryCommand(name, command)
             composer = self._createComposer()
-            command = self._getComposerCommand(table)
+            #command = getSqlQuery(self._ctx, 'getComposerCommand', name)
             composer.setQuery(command)
             composers[name] = composer
         return composer
@@ -646,17 +749,13 @@ class MergerModel(unohelper.Base):
         return names
 
     def _getComposerName(self, table):
-        name = '%s.%s' % (self._datasource, table)
+        name = '%s%s' % (self._addressbook, table)
         return name
 
     def _createComposer(self):
         service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         composer = self.Connection.createInstance(service)
         return composer
-
-    def _getComposerCommand(self, table):
-        command = 'SELECT * FROM "%s"' % table
-        return command
 
     def _getQueryComposer(self):
         composers = self._getComposers()
@@ -665,28 +764,58 @@ class MergerModel(unohelper.Base):
 
     def _setComposerEmails(self, emails):
         filter = self._getEmailFilters(emails)
-        tables = self._getComposerNames()
-        for table in tables:
-            composer = self._getTableComposer(table)
+        for table in self._tables:
+            name = self._getComposerName(table)
+            composer = self._getTableComposer(name, table)
             composer.setStructuredFilter(filter)
+            command = composer.getQuery()
+            self._setQueryCommand(name, command)
 
     def _getComposerIndexes(self, composers):
-        indexes = None
-        if self._similar:
-            queries = self._getQueries(composers)
-            for query in queries:
-                composer = composers[query]
-                indexes = self._getIndexes(composer)
-                break
+        indexes = []
+        queries = self._getQueryNames(composers)
+        for query in queries:
+            composer = composers[query]
+            indexes = self._getIndexes(composer)
+            break
         return indexes
 
     def _setComposerIndexes(self, indexes):
         filter = self._getIndexFilters(indexes)
         composers = self._getComposers()
-        queries = self._getQueries(composers)
+        queries = self._getQueryNames(composers)
         for query in queries:
             composer = composers[query]
             composer.setStructuredFilter(filter)
+
+    # Queries private methods
+    def _getQueriesComposer(self):
+        composers = {}
+        for name in self._queries.getElementNames():
+            query = self._queries.getByName(name)
+            command = query.Command
+            composer = self._createComposer()
+            composer.setQuery(command)
+            composers[name] = composer
+        return composers
+
+    def _setQueryCommand(self, name, command):
+        print("MergerModel._setQueryCommand() 1 %s - %s" % (name, command))
+        if self._queries.hasByName(name):
+            query = self._queries.getByName(name)
+        else:
+            service = 'com.sun.star.sdb.QueryDefinition'
+            query = createService(self._ctx, service)
+            self._queries.insertByName(name, query)
+        query.Command = command
+
+    def _getQueryNames(self, composers):
+        names = self._getComposerNames()
+        queries = [name for name in composers if name not in names]
+        return tuple(queries)
+
+    def saveQueries(self):
+        self.Connection.getParent().DatabaseDocument.store()
 
     # Table private methods
     def _getTableColumns(self, table):
@@ -694,25 +823,33 @@ class MergerModel(unohelper.Base):
         columns = table.getColumns().getElementNames()
         return columns
 
-    # Query private methods
-    def _getQueries(self, composers):
-        names = self._getComposerNames()
-        queries = [name for name in composers if name not in names]
-        return tuple(queries)
+    def _getFilteredTables(self, tables):
+        names = []
+        composers = self._getComposers()
+        for table in tables:
+            name = self._getComposerName(table)
+            if name in composers:
+                composer = composers[name]
+                filter = composer.getFilter()
+                print("MergerModel._getFilteredTables() '%s'" % filter)
+                if filter != '':
+                    names.append(table)
+        return tuple(names)
 
     # Email private methods
     def _getEmails(self, composer):
         emails = []
-        if composer is not None:
-            filters = composer.getStructuredFilter()
-            for filter in filters:
-                if len(filter) > 0:
-                    emails.append(filter[0].Name)
+        filters = composer.getStructuredFilter()
+        for filter in filters:
+            if len(filter) > 0:
+                emails.append(filter[0].Name)
         return emails
 
-    def _setEmails(self, composer, emails):
+    def _setEmails(self, name, composer, emails):
         filter = self._getEmailFilters(emails)
         composer.setStructuredFilter(filter)
+        command = composer.getQuery()
+        self._setQueryCommand(name, command)
 
     def _getEmailFilters(self, emails):
         filters = []
@@ -741,12 +878,43 @@ class MergerModel(unohelper.Base):
             filters.append(filter)
         return (tuple(filters), )
 
+    # Grid Columns private methods
+    def _getDefaultGridTable(self, tables):
+        return tables[0]
+
+    def _initColumn1(self):
+        # TODO: We do not reset the grid columns if ColumnModel is not yet assigned
+        if self._column1.isInitialized():
+            widths, titles = self._getGridColumns(self._width1, self._table)
+            self._column1.initColumnModel(self._address, widths, titles)
+
+    def _initColumn2(self):
+        # TODO: We do not reset the grid columns if ColumnModel is not yet assigned
+        if self._column2.isInitialized():
+            widths, titles = self._getGridColumns(self._width2, self._query)
+            self._column2.initColumnModel(self._recipient, widths, titles)
+
+    def _saveColumnWidth(self, column, widths, name):
+        # TODO: We do not save the grid columns if ColumnModel is not yet assigned
+        if column.isInitialized():
+            columns = column.getColumnWidth()
+            if self._addressbook not in widths:
+                widths[self._addressbook] = {}
+            addressbook = widths[self._addressbook]
+            addressbook[name] = columns
+            print("MergerModel._saveColumnWidth() %s - %s" % (name, widths))
+
+# Private procedures called by WizardPage3
+    def _initView(self, handler, initView, initRecipient):
+        self._address.addRowSetListener(handler)
+        self._recipient.addRowSetListener(handler)
+        initView(self._document)
+        recipients = self.getRecipients()
+        initRecipient(recipients)
 
 
 
-
-
-    def _getQuery(self, queries, name, create):
+    def _getQuery1(self, queries, name, create):
         print("MergerModel._getQuery() '%s'" % (name, ))
         if queries.hasByName(name):
             query = queries.getByName(name)
@@ -765,7 +933,7 @@ class MergerModel(unohelper.Base):
 
     def _getDocumentName(self):
         url = None
-        location = self._doc.getLocation()
+        location = self._document.getLocation()
         if location:
             url = getUrl(self._ctx, location)
         return None if url is None else url.Name

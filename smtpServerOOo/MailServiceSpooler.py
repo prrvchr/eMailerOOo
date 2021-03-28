@@ -79,10 +79,15 @@ class MailServiceSpooler(unohelper.Base,
         return MailServiceSpooler._started
 
     def addJob(self, sender, subject, document, recipients, attachments):
-        print("MailServiceSpooler.addJob() %s - %s - %s - %s -%s" % (sender, subject, document, recipients, attachments))
-        id = self._datasource.insertJob(sender, subject, document, recipients, attachments)
-        print("MailServiceSpooler.addJob() %s" % id)
-        return id
+        try:
+            print("MailServiceSpooler.addJob() %s - %s - %s - %s - %s" % (sender, subject, document, recipients, attachments))
+            id = self._datasource.insertJob(sender, subject, document, recipients, attachments)
+            print("MailServiceSpooler.addJob() %s" % id)
+            return id
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
 
     def removeJob(self, id):
         pass

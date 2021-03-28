@@ -47,27 +47,30 @@ class WindowHandler(unohelper.Base,
             handled = False
             # TODO: During WizardPage initialization the listener must be disabled...
             enabled = self._manager.isHandlerEnabled()
-            if method == 'ChangeDataSource':
-                print("MergerHandler.callHandlerMethod() ChangeDataSource *************** %s" % enabled)
+            if method == 'ChangeAddressBook':
+                print("MergerHandler.callHandlerMethod() ChangeAddressBook *************** %s" % enabled)
                 if enabled:
                     control = event.Source
-                    datasource = control.getSelectedItem()
-                    self._manager.changeDataSource(datasource)
+                    addressbook = control.getSelectedItem()
+                    self._manager.changeAddressBook(addressbook)
                 handled = True
-            elif method == 'ChangeTable':
-                print("MergerHandler.callHandlerMethod() ChangeTable *************** %s" % enabled)
+            elif method == 'NewAddressBook':
+                self._manager.newAddressBook()
+                handled = True
+            elif method == 'ChangeAddressBookTable':
+                print("MergerHandler.callHandlerMethod() ChangeAddressBookTable *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     table = control.getSelectedItem()
-                    self._manager.changeTables(table)
+                    self._manager.changeAddressBookTable(table)
                 handled = True
-            elif method == 'ChangeColumn':
-                print("MergerHandler.callHandlerMethod() ChangeColumn *************** %s" % enabled)
+            elif method == 'ChangeAddressBookColumn':
+                print("MergerHandler.callHandlerMethod() ChangeAddressBookColumn *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     if control.getSelectedItemPos() != -1:
                         column = control.getSelectedItem()
-                        self._manager.changeColumns(column)
+                        self._manager.changeAddressBookColumn(column)
                 handled = True
             elif method == 'ChangeQuery':
                 print("MergerHandler.callHandlerMethod() ChangeQuery *************** %s" % enabled)
@@ -75,44 +78,6 @@ class WindowHandler(unohelper.Base,
                     control = event.Source
                     query = control.getText()
                     self._manager.changeQuery(query)
-                handled = True
-            elif method == 'ChangeEmail':
-                print("PageHandler.callHandlerMethod() ChangeEmail ***************")
-                control = event.Source
-                imax = control.ItemCount -1
-                position = control.getSelectedItemPos()
-                self._manager.changeEmail(imax, position)
-                handled = True
-            elif method == 'ChangeIndex':
-                print("PageHandler.callHandlerMethod() ChangePrimaryKey ***************")
-                control = event.Source
-                enabled = control.getSelectedItemPos() != -1
-                self._manager.changeIndex(enabled)
-                handled = True
-            elif method == 'NewDataSource':
-                self._manager.newDataSource()
-                handled = True
-            elif method == 'AddEmail':
-                print("PageHandler.callHandlerMethod() AddEmail ***************")
-                self._manager.addEmail()
-                handled = True
-            elif method == 'RemoveEmail':
-                print("PageHandler.callHandlerMethod() RemoveEmail ***************")
-                self._manager.removeEmail()
-                handled = True
-            elif method == 'MoveBefore':
-                print("PageHandler.callHandlerMethod() MoveBefore ***************")
-                self._manager.moveBefore()
-                handled = True
-            elif method == 'MoveAfter':
-                print("PageHandler.callHandlerMethod() MoveAfter ***************")
-                self._manager.moveAfter()
-                handled = True
-            elif method == 'AddIndex':
-                self._manager.addIndex()
-                handled = True
-            elif method == 'RemoveIndex':
-                self._manager.removeIndex()
                 handled = True
             elif method == 'EditQuery':
                 print("PageHandler.callHandlerMethod() EditQuery *************** %s" % enabled)
@@ -135,26 +100,61 @@ class WindowHandler(unohelper.Base,
             elif method == 'RemoveQuery':
                 self._manager.removeQuery()
                 handled = True
+            elif method == 'ChangeEmail':
+                print("PageHandler.callHandlerMethod() ChangeEmail ***************")
+                control = event.Source
+                imax = control.ItemCount -1
+                position = control.getSelectedItemPos()
+                self._manager.changeEmail(imax, position)
+                handled = True
+            elif method == 'AddEmail':
+                print("PageHandler.callHandlerMethod() AddEmail ***************")
+                self._manager.addEmail()
+                handled = True
+            elif method == 'RemoveEmail':
+                print("PageHandler.callHandlerMethod() RemoveEmail ***************")
+                self._manager.removeEmail()
+                handled = True
+            elif method == 'MoveBefore':
+                print("PageHandler.callHandlerMethod() MoveBefore ***************")
+                self._manager.moveBefore()
+                handled = True
+            elif method == 'MoveAfter':
+                print("PageHandler.callHandlerMethod() MoveAfter ***************")
+                self._manager.moveAfter()
+                handled = True
+            elif method == 'ChangeIndex':
+                print("PageHandler.callHandlerMethod() ChangePrimaryKey ***************")
+                control = event.Source
+                enabled = control.getSelectedItemPos() != -1
+                self._manager.changeIndex(enabled)
+                handled = True
+            elif method == 'AddIndex':
+                self._manager.addIndex()
+                handled = True
+            elif method == 'RemoveIndex':
+                self._manager.removeIndex()
+                handled = True
             return handled
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeDataSource',
-                'ChangeTable',
-                'ChangeColumn',
+        return ('ChangeAddressBook',
+                'NewAddressBook',
+                'ChangeAddressBookTable',
+                'ChangeAddressBookColumn',
                 'ChangeQuery',
+                'EditQuery',
+                'EnterQuery',
+                'AddQuery',
+                'RemoveQuery',
                 'ChangeEmail',
-                'ChangeIndex',
-                'NewDataSource',
                 'AddEmail',
                 'RemoveEmail',
                 'MoveBefore',
                 'MoveAfter',
+                'ChangeIndex',
                 'AddIndex',
-                'RemoveIndex',
-                'EditQuery',
-                'EnterQuery',
-                'AddQuery',
-                'RemoveQuery')
+                'RemoveIndex')

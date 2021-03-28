@@ -46,6 +46,8 @@ from smtpserver import g_extension
 from smtpserver import logMessage
 from smtpserver import getMessage
 
+from collections import OrderedDict
+import json
 from threading import Thread
 import traceback
 
@@ -80,10 +82,11 @@ class SenderModel(unohelper.Base):
         title = self.resolveString(resource)
         return title
 
-    def getFilePickerFilter(self):
-        resource = self._getFilePickerFilterResource()
+    def getFilePickerFilters(self):
+        resource = self._getFilePickerFiltersResource()
         filter = self.resolveString(resource)
-        return filter
+        filters = json.loads(filter, object_pairs_hook=OrderedDict)
+        return filters
 
 # SenderModel StringRessoure private methods
     def _getTitleRessource(self):
@@ -92,8 +95,8 @@ class SenderModel(unohelper.Base):
     def _getFilePickerTitleResource(self):
         return 'Sender.FilePicker.Title'
 
-    def _getFilePickerFilterResource(self):
-        return 'Sender.FilePicker.Filter.Writer'
+    def _getFilePickerFiltersResource(self):
+        return 'Sender.FilePicker.Filters'
 
 # SenderModel private methods
     def _getDocument(self, url, initMailer):

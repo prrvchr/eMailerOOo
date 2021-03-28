@@ -30,68 +30,83 @@
 import uno
 import unohelper
 
-from com.sun.star.ui.dialogs import XWizardController
+from com.sun.star.ui.dialogs import XWizardPage
+
+from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
+from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
+from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .mergermodel import MergerModel
-from .page1 import MergerManager as WizardPage1
-from .page2 import MergerManager as WizardPage2
-from .page3 import MergerManager as WizardPage3
+from unolib import createService
+
+from smtpserver.mail import MailManager
+from .mergerview import MergerView
+from .mergerhandler import RecipientHandler
 
 from smtpserver import logMessage
+from smtpserver import getMessage
 
+from threading import Condition
 import traceback
 
 
-class MergerWizard(unohelper.Base,
-                   XWizardController):
-    def __init__(self, ctx, wizard, datasource):
+class MergerManager(MailManager,
+                    XWizardPage):
+    def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
         self._wizard = wizard
-        self._model = MergerModel(ctx, datasource)
+        self._model = model
+        self._pageid = pageid
+        self._disabled = False
+        self._lock = Condition()
+        self._view = MergerView(ctx, self, parent, 2)
+        self._model.getSenders(self.initSenders)
+        handler = RecipientHandler(self)
+        self._model.initView(handler, self.initView, self.initRecipients)
 
-# XWizardController
-    def createPage(self, parent, pageid):
-        try:
-            msg = "PageId: %s ..." % pageid
-            if pageid == 1:
-                page = WizardPage1(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 2:
-                page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 3:
-                page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
-            msg += " Done"
-            logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
-            return page
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            print(msg)
+# XWizardPage
+    @property
+    def PageId(self):
+        return self._pageid
+    @property
+    def Window(self):
+        return self._view.getWindow()
 
-    def getPageTitle(self, pageid):
-        return self._model.getPageStep(pageid)
+    def activatePage(self):
+        pass
+
+    def commitPage(self, reason):
+        return True
 
     def canAdvance(self):
-        return True
+        return self._canAdvance()
 
-    def onActivatePage(self, pageid):
-        msg = "PageId: %s..." % pageid
-        title = self._model.getPageTitle(pageid)
-        self._wizard.setTitle(title)
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
+# MergerManager setter methods
+    def initRecipients(self, recipients):
+        print("MergerManager.initRecipient()")
+        self._view.setMergerRecipient(recipients)
 
-    def onDeactivatePage(self, pageid):
-        if pageid == 1:
-            pass
-        elif pageid == 2:
-            pass
-        elif pageid == 3:
-            pass
+    def changeRecipient(self):
+        recipients = self._model.getRecipients()
+        print("MergerManager.changeRecipient()")
+        self._view.setMergerRecipient(recipients)
 
-    def confirmFinish(self):
-        return True
+    def sendDocument(self):
+        subject, attachments = self._getSavedDocumentProperty()
+        sender = self._view.getSender()
+        recipients = self._view.getRecipients()
+        url = self._model.getUrl()
+        service = 'com.sun.star.mail.MailServiceSpooler'
+        spooler = createService(self._ctx, service)
+        id = spooler.addJob(sender, subject, url, recipients, attachments)
+
+# MergerManager private setter methods
+    def _closeDocument(self, document):
+        url = self._model.getUrl()
+        if document.URL != url:
+            document.close(True)
+
+    def _updateUI(self):
+        self._wizard.updateTravelUI()

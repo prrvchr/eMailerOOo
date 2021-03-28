@@ -48,62 +48,77 @@ class WindowHandler(unohelper.Base,
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'ChangeSender':
-            enabled = event.Source.getSelectedItemPos() != -1
-            self._manager.changeSender(enabled)
-            handled = True
-        elif method == 'AddSender':
-            listener = DispatchListener(self._manager)
-            executeDispatch(self._ctx, 'smtp:server', (), listener)
-            handled = True
-        elif method == 'RemoveSender':
-            self._manager.removeSender()
-            handled = True
-        elif method == 'EditRecipient':
-            control = event.Source
-            email = control.getText()
-            exist = email in control.getItems()
-            self._manager.editRecipient(email, exist)
-            handled = True
-        elif method == 'ChangeRecipient':
-            self._manager.changeRecipient()
-            handled = True
-        elif method == 'EnterRecipient':
-            if event.KeyCode == RETURN:
+        try:
+            handled = False
+            enabled = self._manager.isHandlerEnabled()
+            print("MailHandler.%s ************************** %s" % (method, enabled))
+            if method == 'ChangeSender':
+                selected = event.Source.getSelectedItemPos() != -1
+                self._manager.changeSender(selected)
+                handled = True
+            elif method == 'AddSender':
+                listener = DispatchListener(self._manager)
+                executeDispatch(self._ctx, 'smtp:server', (), listener)
+                handled = True
+            elif method == 'RemoveSender':
+                self._manager.removeSender()
+                handled = True
+            elif method == 'EditRecipient':
                 control = event.Source
                 email = control.getText()
                 exist = email in control.getItems()
-                self._manager.enterRecipient(email, exist)
-            handled = True
-        elif method == 'AddRecipient':
-            self._manager.addRecipient()
-            handled = True
-        elif method == 'RemoveRecipient':
-            self._manager.removeRecipient()
-            handled = True
-        elif method == 'ChangeSubject':
-            self._manager.changeSubject()
-            handled = True
-        elif method == 'ViewHtmlDocument':
-            self._manager.viewHtmlDocument()
-            handled = True
-        elif method == 'AddAttachment':
-            self._manager.addAttachments()
-            handled = True
-        elif method == 'RemoveAttachment':
-            self._manager.removeAttachments()
-            handled = True
-        elif method == 'ChangeAttachments':
-            control = event.Source
-            enabled = control.getSelectedItemPos() != -1
-            attachment = control.getSelectedItem()
-            self._manager.changeAttachments(enabled, attachment)
-            handled = True
-        elif method == 'ViewPdfAttachment':
-            self._manager.viewPdfAttachment()
-            handled = True
-        return handled
+                self._manager.editRecipient(email, exist)
+                handled = True
+            elif method == 'ChangeRecipient':
+                self._manager.changeRecipient()
+                handled = True
+            elif method == 'EnterRecipient':
+                if event.KeyCode == RETURN:
+                    control = event.Source
+                    email = control.getText()
+                    exist = email in control.getItems()
+                    self._manager.enterRecipient(email, exist)
+                handled = True
+            elif method == 'AddRecipient':
+                self._manager.addRecipient()
+                handled = True
+            elif method == 'RemoveRecipient':
+                self._manager.removeRecipient()
+                handled = True
+            elif method == 'ChangeSubject':
+                self._manager.changeSubject()
+                handled = True
+            elif method == 'ViewHtml':
+                self._manager.viewHtml()
+                handled = True
+            elif method == 'AddAttachments':
+                self._manager.addAttachments()
+                handled = True
+            elif method == 'RemoveAttachments':
+                self._manager.removeAttachments()
+                handled = True
+            elif method == 'ChangeAttachments':
+                if enabled:
+                    control = event.Source
+                    index = control.getItemCount() -1
+                    selected = control.getSelectedItemPos() != -1
+                    item = control.getSelectedItem()
+                    positions = control.getSelectedItemsPos()
+                    self._manager.changeAttachments(index, selected, item, positions)
+                handled = True
+            elif method == 'MoveBefore':
+                self._manager.moveAttachments(-1)
+                handled = True
+            elif method == 'MoveAfter':
+                self._manager.moveAttachments(1)
+                handled = True
+            elif method == 'ViewPdf':
+                self._manager.viewPdf()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def getSupportedMethodNames(self):
         return ('ChangeSender',
@@ -115,11 +130,13 @@ class WindowHandler(unohelper.Base,
                 'AddRecipient',
                 'RemoveRecipient',
                 'ChangeSubject',
-                'ViewHtmlDocument'
-                'AddAttachment',
-                'RemoveAttachment',
-                'ChangeAttachments'
-                'ViewPdfAttachment')
+                'ViewHtml',
+                'AddAttachments',
+                'RemoveAttachments',
+                'ChangeAttachments',
+                'MoveBefore',
+                'MoveAfter',
+                'ViewPdf')
 
 
 class DispatchListener(unohelper.Base,

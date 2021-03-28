@@ -37,13 +37,12 @@ from com.sun.star.mail import XMailServiceSpooler
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import executeDispatch
+from smtpserver.unotool import executeDispatch
+
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
 
 from smtpserver import DataSource
-
-from smtpserver import logMessage
-from smtpserver import getMessage
-
 from smtpserver import g_identifier
 
 g_service = 'MailServiceSpooler'

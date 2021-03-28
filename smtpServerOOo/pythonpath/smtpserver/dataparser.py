@@ -32,7 +32,7 @@ import unohelper
 
 from com.sun.star.auth import XRestDataParser
 
-from unolib import KeyMap
+from .unolib import KeyMap
 
 import xml.etree.ElementTree as XmlTree
 

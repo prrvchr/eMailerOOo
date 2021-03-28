@@ -40,11 +40,11 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
-from unolib import getConnectionMode
-from unolib import getUrl
+from .unotool import createService
+from .unotool import getConnectionMode
+from .unotool import getUrl
 
-from .dbtools import getDataSource
+from .dbtool import getDataSource
 
 from .database import DataBase
 from .dataparser import DataParser
@@ -57,8 +57,6 @@ from .logger import getMessage
 
 from multiprocessing import Process
 from threading import Thread
-#from threading import Condition
-
 import traceback
 import time
 

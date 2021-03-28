@@ -34,21 +34,21 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import QUERY
 
-from unolib import KeyMap
-from unolib import parseDateTime
+from .unolib import KeyMap
+from .unotool import parseDateTime
 
 from .dbqueries import getSqlQuery
 from .dbconfig import g_role
 from .dbconfig import g_dba
 
-from .dbtools import getDataSource
-from .dbtools import checkDataBase
-from .dbtools import createStaticTable
-from .dbtools import executeSqlQueries
-from .dbtools import getDataSourceCall
-from .dbtools import executeQueries
-from .dbtools import getKeyMapFromResult
-from .dbtools import getSequenceFromResult
+from .dbtool import getDataSource
+from .dbtool import checkDataBase
+from .dbtool import createStaticTable
+from .dbtool import executeSqlQueries
+from .dbtool import getDataSourceCall
+from .dbtool import executeQueries
+from .dbtool import getKeyMapFromResult
+from .dbtool import getSequenceFromResult
 
 from .dbinit import getStaticTables
 from .dbinit import getQueries

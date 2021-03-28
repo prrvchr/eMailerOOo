@@ -38,27 +38,27 @@ from com.sun.star.frame import XDispatchResultListener
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getFileSequence
-from unolib import getStringResource
-from unolib import getResourceLocation
-from unolib import getUrl
-from unolib import getDialog
-from unolib import createService
-from unolib import getPropertyValueSet
-from unolib import executeDispatch
+from smtpserver.unotool import getFileSequence
+from smtpserver.unotool import getStringResource
+from smtpserver.unotool import getResourceLocation
+from smtpserver.unotool import getUrl
+from smtpserver.unotool import getDialog
+from smtpserver.unotool import createService
+from smtpserver.unotool import getPropertyValueSet
+from smtpserver.unotool import executeDispatch
+
+from smtpserver.logger import getLoggerUrl
+from smtpserver.logger import getLoggerSetting
+from smtpserver.logger import setLoggerSetting
+from smtpserver.logger import clearLogger
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
 
 from smtpserver import ServerModel
-
-from smtpserver import getLoggerUrl
-from smtpserver import getLoggerSetting
-from smtpserver import setLoggerSetting
-from smtpserver import clearLogger
-from smtpserver import logMessage
-from smtpserver import getMessage
-g_message = 'OptionsDialog'
-
 from smtpserver import g_extension
 from smtpserver import g_identifier
+
+g_message = 'Logger'
 
 import os
 import sys

@@ -37,11 +37,10 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpserver.logger import logMessage
+from smtpserver.logger import getMessage
+
 from smtpserver import SmtpDispatch
-
-from smtpserver import logMessage
-from smtpserver import getMessage
-
 from smtpserver import g_identifier
 
 import traceback

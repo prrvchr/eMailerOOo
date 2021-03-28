@@ -29,26 +29,26 @@
 
 from com.sun.star.sdbc import SQLException
 
-from unolib import KeyMap
-from unolib import getResourceLocation
-from unolib import getSimpleFile
+from .unolib import KeyMap
+from .unotool import getResourceLocation
+from .unotool import getSimpleFile
 
 from .dbconfig import g_path
 from .dbconfig import g_version
 
 from .dbqueries import getSqlQuery
 
-from .dbtools import getDataSourceCall
-from .dbtools import getSequenceFromResult
-from .dbtools import getDataFromResult
-from .dbtools import getKeyMapFromResult
-from .dbtools import registerDataSource
-from .dbtools import executeQueries
-from .dbtools import executeSqlQueries
-from .dbtools import getDataSourceConnection
-from .dbtools import createDataSource
-from .dbtools import checkDataBase
-from .dbtools import createStaticTable
+from .dbtool import getDataSourceCall
+from .dbtool import getSequenceFromResult
+from .dbtool import getDataFromResult
+from .dbtool import getKeyMapFromResult
+from .dbtool import registerDataSource
+from .dbtool import executeQueries
+from .dbtool import executeSqlQueries
+from .dbtool import getDataSourceConnection
+from .dbtool import createDataSource
+from .dbtool import checkDataBase
+from .dbtool import createStaticTable
 
 import traceback
 

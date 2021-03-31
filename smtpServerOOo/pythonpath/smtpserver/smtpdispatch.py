@@ -40,30 +40,23 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getPathSettings
+from smtpserver import DataSource
+from smtpserver import Wizard
 
-from .datasource import DataSource
+from smtpserver import getMessage
+from smtpserver import getPathSettings
+from smtpserver import logMessage
+from smtpserver import g_extension
+from smtpserver import g_identifier
+from smtpserver import g_ispdb_page
+from smtpserver import g_ispdb_paths
+from smtpserver import g_merger_page
+from smtpserver import g_merger_paths
 
-from .wizard import Wizard
-
-from .server import ServerWizard
-from .server import ServerManager
-
+from .ispdb import IspdbWizard
 from .merger import MergerWizard
-
-from .spooler import SpoolerManager
-
 from .sender import SenderManager
-
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_server_page
-from .configuration import g_server_paths
-from .configuration import g_merger_page
-from .configuration import g_merger_paths
-
-from .logger import logMessage
-from .logger import getMessage
+from .spooler import SpoolerManager
 
 import traceback
 
@@ -98,8 +91,8 @@ class SmtpDispatch(unohelper.Base,
             SmtpDispatch._datasource = DataSource(self._ctx)
         state = SUCCESS
         result = None
-        if url.Path == 'server':
-            state, result = self._showServer()
+        if url.Path == 'ispdb':
+            state, result = self._showIspdb()
         elif url.Path == 'spooler':
             self._showSpooler()
         elif url.Path == 'mailer':
@@ -117,26 +110,24 @@ class SmtpDispatch(unohelper.Base,
 
 # SmtpDispatch private methods
     #Server methods
-    def _showServer(self):
+    def _showIspdb(self):
         try:
-            print("_showServer()")
+            print("_showIspdb()")
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
-            wizard = Wizard(self._ctx, g_server_page, True, self._parent)
-            manager = ServerManager(self._ctx, wizard, self.DataSource)
-            controller = ServerWizard(self._ctx, manager)
-            arguments = (g_server_paths, controller)
+            wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
+            controller = IspdbWizard(self._ctx, wizard, self.DataSource)
+            arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
                 state = SUCCESS
-                email = manager.Model.Email
+                email = controller.Model.Email
                 msg +=  " Retrieving SMTP configuration OK..."
-            wizard.DialogWindow.dispose()
-            wizard.DialogWindow = None
+            controller.dispose()
             print(msg)
-            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showServer()')
+            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showIspdb()')
             return state, email
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -188,8 +179,7 @@ class SmtpDispatch(unohelper.Base,
             msg += " Done ..."
             if wizard.execute() == OK:
                 msg +=  " Merging SMTP email OK..."
-            wizard.DialogWindow.dispose()
-            wizard.DialogWindow = None
+            controller.dispose()
             print(msg)
             logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showMerger()')
         except Exception as e:

@@ -25,16 +25,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="ServerPage1" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;ServerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;ServerPage1.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage2" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage2.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;ServerPage1.FixedLine1.HelpText" dlg:value="&amp;ServerPage1.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="120" dlg:height="15" dlg:help-text="&amp;ServerPage1.Label1.HelpText" dlg:value="&amp;ServerPage1.Label1.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="80" dlg:height="15" dlg:help-text="&amp;ServerPage1.Label2.HelpText" dlg:value="&amp;ServerPage1.Label2.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="13" dlg:left="95" dlg:top="25" dlg:width="205" dlg:height="15" dlg:default="true" dlg:help-text="&amp;ServerPage1.TextField1.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:TextChange" script:language="UNO"/>
-    </dlg:textfield>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;IspdbPage2.FixedLine1.HelpText" dlg:value="&amp;IspdbPage2.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label1.HelpText" dlg:value="&amp;IspdbPage2.Label1.Label" dlg:valign="center"/>
+    <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="12" dlg:left="8" dlg:top="25" dlg:width="292" dlg:height="15" dlg:help-text="&amp;IspdbPage2.ProgressBar1.HelpText" dlg:value="0"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="13" dlg:left="10" dlg:top="45" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label2.HelpText" dlg:value="&amp;IspdbPage2.Label2.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

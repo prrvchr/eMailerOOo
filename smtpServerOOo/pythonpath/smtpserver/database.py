@@ -35,24 +35,32 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import QUERY
 
 from .unolib import KeyMap
+
+from .unotool import getResourceLocation
+from .unotool import getSimpleFile
 from .unotool import parseDateTime
 
 from .dbqueries import getSqlQuery
+
 from .dbconfig import g_role
 from .dbconfig import g_dba
 
-from .dbtool import getDataSource
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable
-from .dbtool import executeSqlQueries
+from .dbtool import getDataBaseConnection
+from .dbtool import getDataBaseUrl
+from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
-from .dbtool import executeQueries
 from .dbtool import getKeyMapFromResult
 from .dbtool import getSequenceFromResult
+from .dbtool import executeQueries
+from .dbtool import executeSqlQueries
 
 from .dbinit import getStaticTables
 from .dbinit import getQueries
 from .dbinit import getTablesAndStatements
+
+from .dbconfig import g_folder
 
 from .configuration import g_identifier
 
@@ -68,20 +76,27 @@ class DataBase(unohelper.Base):
         try:
             print("DataBase.__init__() 1")
             self._ctx = ctx
-            self._error = None
-            time.sleep(0.5)
-            datasource, self._url, self._created = getDataSource(ctx, dbname, g_identifier, True)
+            self._user = user
+            self._password = password
+            self._statement = None
+            time.sleep(0.2)
+            #datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, False)
             print("DataBase.__init__() 2")
-            connection = datasource.getConnection(user, password)
+            #connection = datasource.getConnection(user, password)
+            folder = g_folder + '/' + dbname
+            path = getResourceLocation(ctx, g_identifier, folder)
+            script = path + '.script'
+            self._created = not getSimpleFile(ctx).exists(script)
+            self._url = getDataBaseUrl(path, True)
+            #connection = getDataBaseConnection(ctx, self._url, user, password)
             print("DataBase.__init__() 3")
-            self._statement = connection.createStatement()
             print("DataBase.__init__() 4")
             if self._created:
                 print("DataBase.__init__() 5")
-                self._error = self._createDataBase()
-                if self._error is None:
-                    self.storeDataBase()
-            print("DataBase.__init__() 6")
+                self._createDataBase()
+                #if error is None:
+                #    self.storeDataBase(url)
+            print("DataBase.__init__() 6 %s" % self.getDataSource().URL)
             self.sync = sync
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -89,10 +104,19 @@ class DataBase(unohelper.Base):
 
     @property
     def Connection(self):
+        if self._statement is None:
+            connection = getDataBaseConnection(self._ctx, self._url)
+            self._statement = connection.createStatement()
         return self._statement.getConnection()
 
-    def storeDataBase(self):
-        self.Connection.getParent().DatabaseDocument.storeAsURL(self._url, ())
+    def dispose(self):
+        connection = self.Connection
+        self._statement = None
+        connection.dispose()
+        print("DataBase.dispose()")
+
+    def storeDataBase(self, url):
+        self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
 # Procedures called by the DataSource
     def getDataSource(self):

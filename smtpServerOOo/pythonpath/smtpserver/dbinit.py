@@ -38,15 +38,17 @@ from .dbconfig import g_version
 
 from .dbqueries import getSqlQuery
 
-from .dbtool import getDataSourceCall
-from .dbtool import getSequenceFromResult
-from .dbtool import getDataFromResult
-from .dbtool import getKeyMapFromResult
-from .dbtool import registerDataSource
+from .dbtool import createDataSource
+from .dbtool import createStaticTable
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
+from .dbtool import getDataFromResult
+from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
-from .dbtool import createDataSource
+from .dbtool import getKeyMapFromResult
+from .dbtool import getSequenceFromResult
+from .dbtool import registerDataSource
+
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable
 

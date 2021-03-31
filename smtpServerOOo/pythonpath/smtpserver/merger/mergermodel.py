@@ -45,39 +45,36 @@ from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
-from unolib import getDesktop
-from unolib import getInteractionHandler
-from unolib import getStringResource
-from unolib import getConfiguration
-from unolib import getPathSettings
-from unolib import getPropertyValueSet
-from unolib import getPropertyValue
-from unolib import getUrl
+from smtpserver import createService
+from smtpserver import getConfiguration
+from smtpserver import getDesktop
+from smtpserver import getInteractionHandler
+from smtpserver import getMessage
+from smtpserver import getPathSettings
+from smtpserver import getPropertyValue
+from smtpserver import getPropertyValueSet
+from smtpserver import getSequenceFromResult
+from smtpserver import getSqlQuery
+from smtpserver import getStringResource
+from smtpserver import getUrl
+from smtpserver import getValueFromResult
+from smtpserver import logMessage
 
-from smtpserver.mail import MailModel
+from smtpserver import MailModel
 
-from smtpserver.grid import GridModel
-from smtpserver.grid import ColumnModel
-
-from smtpserver.dbqueries import getSqlQuery
-
-from smtpserver.dbtools import getValueFromResult
-from smtpserver.dbtools import getSequenceFromResult
+from smtpserver import GridModel
+from smtpserver import ColumnModel
 
 from smtpserver import g_identifier
 from smtpserver import g_extension
 from smtpserver import g_fetchsize
 
-from smtpserver import logMessage
-from smtpserver import getMessage
-
 from collections import OrderedDict
 from six import string_types
 from threading import Thread
 from threading import Condition
-import json
 from time import sleep
+import json
 import traceback
 
 

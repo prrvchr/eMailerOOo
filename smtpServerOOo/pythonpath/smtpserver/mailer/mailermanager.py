@@ -30,14 +30,15 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
+from smtpserver import MailManager
 
-from smtpserver.mail import MailManager
+from smtpserver import createService
+from smtpserver import getMessage
+from smtpserver import logMessage
+
 from .mailermodel import MailerModel
 from .mailerview import MailerView
 
-from smtpserver import logMessage
-from smtpserver import getMessage
 g_message = 'mailermanager'
 
 from threading import Condition
@@ -55,6 +56,11 @@ class MailerManager(MailManager):
         self._model.getSenders(self.initSenders)
 
 # MailerManager setter methods
+    def dispose(self):
+        with self._lock:
+            self._model.DataSource.dispose()
+            self._view.dispose()
+
     def sendDocument(self):
         try:
             subject, attachments = self._getSavedDocumentProperty()

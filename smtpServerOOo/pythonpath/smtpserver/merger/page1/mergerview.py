@@ -29,13 +29,11 @@
 
 import unohelper
 
-from unolib import getContainerWindow
-
-from .mergerhandler import WindowHandler
-
+from smtpserver import getContainerWindow
+from smtpserver import logMessage
 from smtpserver import g_extension
 
-from smtpserver import logMessage
+from .mergerhandler import WindowHandler
 
 import traceback
 

@@ -267,7 +267,7 @@ def getPropertyValue(name, value, state=None, handle=-1):
     property.Value = value
     if state is None:
         state = uno.Enum('com.sun.star.beans.PropertyState', 'DIRECT_VALUE')
-    property.State = s
+    property.State = state
     return property
 
 def getNamedValueSet(kwargs):

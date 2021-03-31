@@ -32,12 +32,11 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from unolib import getDialog
-from unolib import createService
+from smtpserver import createService
+from smtpserver import getDialog
+from smtpserver import g_extension
 
 from .senderhandler import DialogHandler
-
-from smtpserver import g_extension
 
 import traceback
 

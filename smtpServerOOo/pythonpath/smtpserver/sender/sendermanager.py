@@ -33,13 +33,14 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpserver import logMessage
+from smtpserver import getMessage
+
+from ..mailer import MailerManager
+
 from .sendermodel import SenderModel
 from .senderview import SenderView
 
-from smtpserver.mailer import MailerManager
-
-from smtpserver import logMessage
-from smtpserver import getMessage
 g_message = 'sendermanager'
 
 from threading import Condition
@@ -53,6 +54,7 @@ class SenderManager(unohelper.Base):
         self._model = SenderModel(ctx, path)
         self._view = SenderView(ctx)
         self._mailer = None
+        self.lock = Condition()
         print("SenderManager.__init__()")
 
     @property
@@ -95,6 +97,6 @@ class SenderManager(unohelper.Base):
         self._view.endDialog()
 
     def dispose(self):
-        with self._lock:
-            self._view.dispose()
+        with self.lock:
             self._mailer.dispose()
+            self._view.dispose()

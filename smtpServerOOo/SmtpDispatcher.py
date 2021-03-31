@@ -37,10 +37,10 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
-
 from smtpserver import SmtpDispatch
+
+from smtpserver.logger import getMessage
+from smtpserver import logMessage
 from smtpserver import g_identifier
 
 import traceback
@@ -69,7 +69,7 @@ class SmtpDispatcher(unohelper.Base,
     def queryDispatch(self, url, frame, flags):
         dispatch = None
         print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
-        if url.Path in ('server', 'spooler', 'mailer', 'merger'):
+        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
             print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
             parent = self._frame.getContainerWindow()
             dispatch = SmtpDispatch(self._ctx, parent)

@@ -35,7 +35,7 @@ from com.sun.star.uno import XAdapter
 
 from com.sun.star.awt.grid import XMutableGridDataModel
 
-from dbtools import getValueFromResult
+from ..dbtool import getValueFromResult
 
 from .gridhandler import GridHandler
 

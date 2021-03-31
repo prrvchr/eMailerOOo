@@ -25,26 +25,26 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="ServerPage4" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;ServerPage4.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;ServerPage4.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage4" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage4.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage4.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;ServerPage4.FixedLine1.HelpText" dlg:value="&amp;ServerPage4.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="200" dlg:height="15" dlg:help-text="&amp;ServerPage4.Label1.HelpText" dlg:value="&amp;ServerPage4.Label1.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="290" dlg:height="80" dlg:help-text="&amp;ServerPage4.TextField1.HelpText" dlg:value="&amp;ServerPage4.TextField1.Text" dlg:valign="top" dlg:hscroll="true" dlg:vscroll="true" dlg:multiline="true" dlg:readonly="true"/>
-    <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="13" dlg:page="1" dlg:left="8" dlg:top="110" dlg:width="292" dlg:height="15" dlg:help-text="&amp;ServerPage4.ProgressBar1.HelpText" dlg:value="0"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="14" dlg:page="2" dlg:left="10" dlg:top="110" dlg:width="290" dlg:height="15" dlg:help-text="&amp;ServerPage4.Label2.HelpText" dlg:value="&amp;ServerPage4.Label2.Label" dlg:align="center" dlg:valign="center"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="15" dlg:page="3" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;ServerPage4.Label3.HelpText" dlg:value="&amp;ServerPage4.Label3.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="16" dlg:page="3" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;ServerPage4.CommandButton1.HelpText" dlg:value="&amp;ServerPage4.CommandButton1.Label">
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;IspdbPage4.FixedLine1.HelpText" dlg:value="&amp;IspdbPage4.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPage4.Label1.HelpText" dlg:value="&amp;IspdbPage4.Label1.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="290" dlg:height="80" dlg:help-text="&amp;IspdbPage4.TextField1.HelpText" dlg:value="&amp;IspdbPage4.TextField1.Text" dlg:valign="top" dlg:hscroll="true" dlg:vscroll="true" dlg:multiline="true" dlg:readonly="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="13" dlg:page="1" dlg:left="8" dlg:top="110" dlg:width="292" dlg:height="15" dlg:help-text="&amp;IspdbPage4.ProgressBar1.HelpText" dlg:value="0"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="14" dlg:page="2" dlg:left="10" dlg:top="110" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPage4.Label2.HelpText" dlg:value="&amp;IspdbPage4.Label2.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="15" dlg:page="3" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;IspdbPage4.Label3.HelpText" dlg:value="&amp;IspdbPage4.Label3.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="16" dlg:page="3" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;IspdbPage4.CommandButton1.HelpText" dlg:value="&amp;IspdbPage4.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SendMail" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="15" dlg:page="4" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;ServerPage4.Label4.HelpText" dlg:value="&amp;ServerPage4.Label4.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="16" dlg:page="4" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;ServerPage4.CommandButton2.HelpText" dlg:value="&amp;ServerPage4.CommandButton2.Label">
+    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="15" dlg:page="4" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;IspdbPage4.Label4.HelpText" dlg:value="&amp;IspdbPage4.Label4.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="16" dlg:page="4" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;IspdbPage4.CommandButton2.HelpText" dlg:value="&amp;IspdbPage4.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SendMail" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="15" dlg:page="5" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;ServerPage4.Label5.HelpText" dlg:value="&amp;ServerPage4.Label5.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="16" dlg:page="5" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;ServerPage4.CommandButton3.HelpText" dlg:value="&amp;ServerPage4.CommandButton3.Label">
+    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="15" dlg:page="5" dlg:left="10" dlg:top="110" dlg:width="225" dlg:height="15" dlg:help-text="&amp;IspdbPage4.Label5.HelpText" dlg:value="&amp;IspdbPage4.Label5.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="16" dlg:page="5" dlg:left="235" dlg:top="110" dlg:width="65" dlg:height="15" dlg:help-text="&amp;IspdbPage4.CommandButton3.HelpText" dlg:value="&amp;IspdbPage4.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SendMail" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

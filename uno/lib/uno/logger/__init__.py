@@ -31,6 +31,7 @@ from .logger import clearLogger
 from .logger import getLoggerUrl
 from .logger import getLoggerSetting
 from .logger import getMessage
+from .logger import isDebugMode
 from .logger import logMessage
 from .logger import setDebugMode
 from .logger import setLoggerSetting

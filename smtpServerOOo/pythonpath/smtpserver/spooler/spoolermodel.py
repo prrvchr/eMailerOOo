@@ -35,25 +35,23 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import COMMAND
 from com.sun.star.sdb.CommandType import QUERY
 
-from unolib import createService
-from unolib import getPathSettings
-from unolib import getStringResource
-from unolib import getConfiguration
+from smtpserver import GridModel
+from smtpserver import ColumnModel
 
-from smtpserver.grid import GridModel
-from smtpserver.grid import ColumnModel
-
+from smtpserver import createService
+from smtpserver import getConfiguration
+from smtpserver import getMessage
+from smtpserver import getPathSettings
+from smtpserver import getStringResource
+from smtpserver import logMessage
 from smtpserver import g_identifier
 from smtpserver import g_extension
 from smtpserver import g_fetchsize
 
-from smtpserver import logMessage
-from smtpserver import getMessage
-
 from collections import OrderedDict
+from threading import Thread
 import validators
 import json
-from threading import Thread
 import traceback
 
 

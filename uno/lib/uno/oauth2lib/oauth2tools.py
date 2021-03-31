@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from unolib import createService
+from ..unotool import createService
 
 from .oauth2config import g_oauth2
 

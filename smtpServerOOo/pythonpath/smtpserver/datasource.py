@@ -80,6 +80,9 @@ class DataSource(unohelper.Base,
     def DataBase(self):
         return DataSource._database
 
+    def dispose(self):
+        self.DataBase.dispose()
+
     # XCloseListener
     def queryClosing(self, source, ownership):
         self.DataBase.shutdownDataBase()
@@ -130,7 +133,7 @@ class DataSource(unohelper.Base,
         return id
 
 # Procedures called internally by the Server
-    def _getSmtpConfig(self, email, url, progress, callback):
+    def _getSmtpConfig(self, email, url, progress, updateModel):
         progress(5)
         url = getUrl(self._ctx, url)
         progress(10)
@@ -154,7 +157,7 @@ class DataSource(unohelper.Base,
                 progress(100, 3)
             else:
                 progress(100, 4)
-        callback(user, servers, mode)
+        updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
@@ -236,7 +239,6 @@ class DataSource(unohelper.Base,
     def _initDataBase(self):
         time.sleep(0.5)
         database = DataBase(self._ctx, self._dbname)
-        database.addCloseListener(self)
         DataSource._database = database
 
 

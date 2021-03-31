@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from smtpserver.mail import MailView
+from smtpserver import MailView
 
 
 class MergerView(MailView):

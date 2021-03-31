@@ -35,7 +35,7 @@ from com.sun.star.frame import XDispatchResultListener
 from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.awt.Key import RETURN
 
-from unolib import executeDispatch
+from smtpserver import executeDispatch
 
 import traceback
 
@@ -58,7 +58,7 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'AddSender':
                 listener = DispatchListener(self._manager)
-                executeDispatch(self._ctx, 'smtp:server', (), listener)
+                executeDispatch(self._ctx, 'smtp:ispdb', (), listener)
                 handled = True
             elif method == 'RemoveSender':
                 self._manager.removeSender()

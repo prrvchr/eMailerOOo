@@ -27,50 +27,52 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.ui.dialogs import XWizardPage
+from smtpserver import getDialog
+from smtpserver import g_extension
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from smtpserver import logMessage
-
-import traceback
+from .sendhandler import DialogHandler
 
 
-class WizardPage(unohelper.Base,
-                 XWizardPage):
-    def __init__(self, ctx, pageid, window, manager):
-        self._ctx = ctx
-        self._pageid = pageid
-        self._manager = manager
-        self._manager.initPage(pageid, window)
+class SendView(unohelper.Base):
+    def __init__(self, ctx, manager, parent, title, email, subject, msg):
+        handler = DialogHandler(manager)
+        self._dialog = getDialog(ctx, g_extension, 'SendDialog', handler, parent)
+        self._dialog.setTitle(title)
+        self._getRecipient().Text = email
+        self._getSubject().Text = subject
+        self._getMessage().Text = msg
 
-    @property
-    def PageId(self):
-        return self._pageid
-    @property
-    def Window(self):
-        return self._manager.getView(self.PageId).Window
+# DialogView setter methods
+    def enableButtonSend(self, enabled):
+        self._getButtonSend().Model.Enabled = enabled
 
-    # XWizardPage
-    def activatePage(self):
-        try:
-            self._manager.activatePage(self.PageId)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'WizardPage', 'activatePage()')
-            print("WizardPage.activatePage() %s" % msg)
+    def dispose(self):
+        self._dialog.dispose()
 
-    def commitPage(self, reason):
-        try:
-            return self._manager.commitPage(self.PageId, reason)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'WizardPage', 'commitPage()')
-            print("WizardPage.commitPage() %s" % msg)
+# DialogView getter methods
+    def execute(self):
+        return self._dialog.execute()
 
-    def canAdvance(self):
-        return self._manager.canAdvancePage(self.PageId)
+    def getRecipient(self):
+        return self._getRecipient().Text
+
+    def getSubject(self):
+        return self._getSubject().Text
+
+    def getMessage(self):
+        return self._getMessage().Text
+
+# DialogView private control methods
+    def _getRecipient(self):
+        return self._dialog.getControl('TextField1')
+
+    def _getSubject(self):
+        return self._dialog.getControl('TextField2')
+
+    def _getMessage(self):
+        return self._dialog.getControl('TextField3')
+
+    def _getButtonSend(self):
+        return self._dialog.getControl('CommandButton2')

@@ -33,16 +33,16 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
-from unolib import executeDispatch
-from unolib import getPropertyValueSet
+from smtpserver import createService
+from smtpserver import executeDispatch
+from smtpserver import getMessage
+from smtpserver import getPropertyValueSet
+from smtpserver import logMessage
 
 from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
 
-from smtpserver import logMessage
-from smtpserver import getMessage
 g_message = 'spoolermanager'
 
 from threading import Condition
@@ -87,6 +87,7 @@ class SpoolerManager(unohelper.Base):
 
     def dispose(self):
         with self._lock:
+            self._model.DataSource.dispose()
             self._view.dispose()
 
     def setGridColumnModel(self, titles, reset):

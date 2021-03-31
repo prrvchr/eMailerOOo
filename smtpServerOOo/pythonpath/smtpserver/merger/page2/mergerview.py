@@ -32,17 +32,15 @@ import unohelper
 
 from com.sun.star.view.SelectionType import MULTI
 
-from unolib import getContainerWindow
-from unolib import createService
+from smtpserver import createService
+from smtpserver import getContainerWindow
+from smtpserver import logMessage
+from smtpserver import g_extension
 
 from .mergerhandler import Tab1Handler
 from .mergerhandler import Tab2Handler
 from .mergerhandler import Grid1Handler
 from .mergerhandler import Grid2Handler
-
-from smtpserver import g_extension
-
-from smtpserver import logMessage
 
 import traceback
 

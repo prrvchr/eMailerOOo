@@ -29,23 +29,34 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
+from smtpserver import getContainerWindow
+from smtpserver import g_extension
 
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
+class IspdbView(unohelper.Base):
+    def __init__(self, ctx, manager, parent):
+        self._window = getContainerWindow(ctx, parent, None, g_extension, 'IspdbPage2')
 
-    # XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'TextChange':
-            self._manager.updateDialog()
-            handled = True
-        return handled
+# IspdbView getter methods
+    def getWindow(self):
+        return self._window
 
-    def getSupportedMethodNames(self):
-        return ('TextChange', )
+# IspdbView setter methods
+    def setPageLabel(self, text):
+        self._getPageLabel().Text = text
+
+    def updateProgress(self, message, value):
+        self._getProgressLabel().Text = message
+        self._getProgressBar().Value = value
+
+# IspdbView private getter control methods
+    def _getPageLabel(self):
+        return self._window.getControl('Label1')
+
+    def _getProgressBar(self):
+        return self._window.getControl('ProgressBar1')
+
+    def _getProgressLabel(self):
+        return self._window.getControl('Label2')

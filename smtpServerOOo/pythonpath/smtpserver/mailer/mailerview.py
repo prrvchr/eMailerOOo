@@ -27,8 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from smtpserver.mail import MailView
+from smtpserver import MailView
 
 
 class MailerView(MailView):
-    pass
+    def dispose(self):
+        self._window.dispose()
+        self._window = None
+
+    def isDisposed(self):
+        return self._window is None

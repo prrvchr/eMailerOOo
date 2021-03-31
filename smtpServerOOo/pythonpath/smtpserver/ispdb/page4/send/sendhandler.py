@@ -29,40 +29,23 @@
 
 import unohelper
 
-from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt import XDialogEventHandler
 
 import traceback
 
 
-class WindowHandler(unohelper.Base,
-                    XContainerWindowEventHandler):
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    # XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'TextChange':
-            if self._manager.HandlerEnabled:
-                self._manager.updateTravelUI()
-            handled = True
-        elif method == 'ChangeConnection':
-            self._manager.changeConnection(event.Source)
-            handled = True
-        elif method == 'ChangeAuthentication':
-            self._manager.changeAuthentication(event.Source)
-            handled = True
-        elif method == 'Previous':
-            self._manager.previousServerPage()
-            handled = True
-        elif method == 'Next':
-            self._manager.nextServerPage()
-            handled = True
-        elif method == 'SendMail':
-            self._manager.sendMail()
+        if method == 'ChangeText':
+            self._manager.updateDialog()
             handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('TextChange', 'ChangeConnection', 'ChangeAuthentication',
-                'Previous', 'Next', 'SendMail')
+        return ('ChangeText', )

@@ -29,61 +29,41 @@
 
 import unohelper
 
-from unolib import getDialog
+from .ispdbview import IspdbView
 
-from .sendhandler import DialogHandler
-
-from smtpserver.configuration import g_extension
+import traceback
 
 
-class SendView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
-        handler = DialogHandler(manager)
-        self._dialog = getDialog(ctx, g_extension, 'SendDialog', handler, parent)
-        self._setTitle(manager.Model)
-        self._getRecipient().Text = manager.Model.Email
-        self._getSubject().Text = manager.Model.resolveString('SendDialog.TextField2.Text')
-        self._getMessage().Text = manager.Model.resolveString('SendDialog.TextField3.Text')
-        self.enableButtonSend(manager.Model)
+class IspdbManager(unohelper.Base):
+    def __init__(self, ctx, wizard, model, pageid, parent):
+        self._ctx = ctx
+        self._wizard = wizard
+        self._model = model
+        self._pageid = pageid
+        self._view = IspdbView(ctx, self, parent, model.Email)
+        self._wizard.activatePath(1, False)
 
-# DialogView setter methods
-    def enableButtonSend(self, model):
-        enabled = all((model.isEmailValid(self.getRecipient()),
-                       model.isStringValid(self.getSubject()),
-                       model.isStringValid(self.getMessage())))
-        self._getButtonSend().Model.Enabled = enabled
+# XWizardPage
+    @property
+    def PageId(self):
+        return self._pageid
+    @property
+    def Window(self):
+        return self._view.getWindow()
 
-    def dispose(self):
-        self._dialog.dispose()
-        self._dialog = None
+    def activatePage(self):
+        pass
 
-# DialogView getter methods
-    def execute(self):
-        return self._dialog.execute()
+    def commitPage(self, reason):
+        email = self._view.getEmail()
+        self._model.Email = email
+        return True
 
-    def getRecipient(self):
-        return self._dialog.getControl('TextField1').Text
+    def canAdvance(self):
+        email = self._view.getEmail()
+        advance = self._model.isEmailValid(email)
+        return advance
 
-    def getSubject(self):
-        return self._dialog.getControl('TextField2').Text
-
-    def getMessage(self):
-        return self._dialog.getControl('TextField3').Text
-
-# DialogView private setter methods
-    def _setTitle(self, model):
-        title = model.resolveString('SendDialog.Title')
-        self._dialog.setTitle(title % model.Email)
-
-# DialogView private control methods
-    def _getButtonSend(self):
-        return self._dialog.getControl('CommandButton2')
-
-    def _getRecipient(self):
-        return self._dialog.getControl('TextField1')
-
-    def _getSubject(self):
-        return self._dialog.getControl('TextField2')
-
-    def _getMessage(self):
-        return self._dialog.getControl('TextField3')
+# IspdbManager setter methods
+    def updateTravelUI(self):
+        self._wizard.updateTravelUI()

@@ -12,7 +12,7 @@
     <dlg:button dlg:id="CommandButton4" dlg:tab-index="102" dlg:disabled="true" dlg:left="165" dlg:top="186" dlg:width="50" dlg:height="14" dlg:help-text="&amp;Wizard.CommandButton4.HelpText" dlg:value="&amp;Wizard.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Previous" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="103" dlg:disabled="true" dlg:left="220" dlg:top="186" dlg:width="50" dlg:height="14" dlg:help-text="&amp;Wizard.CommandButton3.HelpText" dlg:default="true" dlg:value="&amp;Wizard.CommandButton3.Label">
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="103" dlg:disabled="true" dlg:left="220" dlg:top="186" dlg:width="50" dlg:height="14" dlg:help-text="&amp;Wizard.CommandButton3.HelpText" dlg:value="&amp;Wizard.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Next" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="104" dlg:disabled="true" dlg:left="275" dlg:top="186" dlg:width="50" dlg:height="14" dlg:help-text="&amp;Wizard.CommandButton2.HelpText" dlg:value="&amp;Wizard.CommandButton2.Label">

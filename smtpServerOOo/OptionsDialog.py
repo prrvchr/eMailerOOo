@@ -38,23 +38,24 @@ from com.sun.star.frame import XDispatchResultListener
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver.unotool import getFileSequence
-from smtpserver.unotool import getStringResource
-from smtpserver.unotool import getResourceLocation
-from smtpserver.unotool import getUrl
-from smtpserver.unotool import getDialog
-from smtpserver.unotool import createService
-from smtpserver.unotool import getPropertyValueSet
-from smtpserver.unotool import executeDispatch
+from smtpserver import IspdbModel
 
-from smtpserver.logger import getLoggerUrl
-from smtpserver.logger import getLoggerSetting
-from smtpserver.logger import setLoggerSetting
-from smtpserver.logger import clearLogger
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
+from smtpserver import getFileSequence
+from smtpserver import getStringResource
+from smtpserver import getResourceLocation
+from smtpserver import getUrl
+from smtpserver import getDialog
+from smtpserver import createService
+from smtpserver import getPropertyValueSet
+from smtpserver import executeDispatch
 
-from smtpserver import ServerModel
+from smtpserver import getLoggerUrl
+from smtpserver import getLoggerSetting
+from smtpserver import setLoggerSetting
+from smtpserver import clearLogger
+from smtpserver import logMessage
+from smtpserver import getMessage
+
 from smtpserver import g_extension
 from smtpserver import g_identifier
 
@@ -80,7 +81,7 @@ class OptionsDialog(unohelper.Base,
             self._ctx = ctx
             self._stringResource = getStringResource(self._ctx, g_identifier, g_extension, 'OptionsDialog')
             self._spooler = createService(self._ctx, 'com.sun.star.mail.MailServiceSpooler')
-            self._model = ServerModel(self._ctx)
+            self._model = IspdbModel(self._ctx)
             logMessage(self._ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())

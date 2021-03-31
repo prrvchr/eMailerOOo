@@ -35,12 +35,13 @@ from com.sun.star.ui.dialogs import XWizardController
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpserver import logMessage
+
 from .mergermodel import MergerModel
+
 from .page1 import MergerManager as WizardPage1
 from .page2 import MergerManager as WizardPage2
 from .page3 import MergerManager as WizardPage3
-
-from smtpserver import logMessage
 
 import traceback
 
@@ -51,6 +52,10 @@ class MergerWizard(unohelper.Base,
         self._ctx = ctx
         self._wizard = wizard
         self._model = MergerModel(ctx, datasource)
+
+    def dispose(self):
+        self._model.DataSource.dispose()
+        self._wizard.DialogWindow.dispose()
 
 # XWizardController
     def createPage(self, parent, pageid):
@@ -86,12 +91,7 @@ class MergerWizard(unohelper.Base,
         logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 
     def onDeactivatePage(self, pageid):
-        if pageid == 1:
-            pass
-        elif pageid == 2:
-            pass
-        elif pageid == 3:
-            pass
+        pass
 
     def confirmFinish(self):
         return True

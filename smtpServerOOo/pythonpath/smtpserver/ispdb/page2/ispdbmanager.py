@@ -27,69 +27,65 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.ui.dialogs import XWizardController
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from unolib import getContainerWindow
-
-from .servermanager import ServerManager
-from .serverhandler import WindowHandler
-from .wizardpage import WizardPage
-
-from smtpserver import g_extension
-
-from smtpserver import logMessage
+from .ispdbview import IspdbView
 
 import traceback
 
 
-class ServerWizard(unohelper.Base,
-                   XWizardController):
-    def __init__(self, ctx, manager):
+class IspdbManager(unohelper.Base):
+    def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
-        self._manager = manager
-        self._handler = WindowHandler(self._manager)
+        self._wizard = wizard
+        self._model = model
+        self._pageid = pageid
+        self._view = IspdbView(ctx, self, parent)
+        self._loaded = False
+        self._refresh = False
+        self._finish = False
 
-    # XWizardController
-    def createPage(self, parent, pageid):
-        msg = "PageId: %s ..." % pageid
-        xdl = 'ServerPage%s' % pageid
-        window = getContainerWindow(self._ctx, parent, self._handler, g_extension, xdl)
-        # TODO: Fixed: When initializing XWizardPage, the handler must be disabled...
-        self._manager.disableHandler()
-        page = WizardPage(self._ctx, pageid, window, self._manager)
-        self._manager.enableHandler()
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
-        return page
+# XWizardPage
+    @property
+    def PageId(self):
+        return self._pageid
+    @property
+    def Window(self):
+        return self._view.getWindow()
 
-    def getPageTitle(self, pageid):
-        return self._manager.Model.getPageStep(pageid)
+    def activatePage(self):
+        self._model.Offline = 0
+        self._wizard.activatePath(1, False)
+        self._wizard.enablePage(1, False)
+        label = self._model.getPageLabel(self._pageid)
+        self._view.setPageLabel(label % self._model.Email)
+        self._refresh = True
+        self._loaded = False
+        self._model.getSmtpConfig(self.updateProgress, self.updateModel)
+
+    def commitPage(self, reason):
+        self._finish = False
+        return True
 
     def canAdvance(self):
-        return True
+        return self._finish
 
-    def onActivatePage(self, pageid):
-        msg = "PageId: %s..." % pageid
-        self._manager.setPageTitle(pageid)
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
+# IspdbManager setter methods
+    def updateProgress(self, value, offset=0):
+        if not self._model.isDisposed():
+            message = self._model.getProgressMessage(value + offset)
+            self._view.updateProgress(message, value)
 
-    def onDeactivatePage(self, pageid):
-        if pageid == 1:
-            pass
-        elif pageid == 2:
-            pass
-        elif pageid == 3:
-            pass
-
-    def confirmFinish(self):
-        return True
+    def updateModel(self, user, servers, offline):
+        if not self._model.isDisposed():
+            # TODO: The order of assignment is important (ie: the user before the servers)
+            print("updateModel() %s - %s" % (user, servers))
+            self._model.setUser(user)
+            self._model.setServers(servers)
+            self._model.Offline = offline
+            title = self._model.getPageTitle(self._pageid)
+            self._wizard.setTitle(title)
+            self._wizard.enablePage(1, True)
+            self._wizard.activatePath(offline, True)
+            self._finish = True
+            self._wizard.updateTravelUI()

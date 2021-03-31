@@ -96,20 +96,17 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate
 from email.utils import parseaddr
 
-from smtpserver.oauth2lib import getOAuth2
-from smtpserver.oauth2lib import getOAuth2Token
-
-from smtpserver.unotool import getConfiguration
-from smtpserver.unotool import getInterfaceTypes
-from smtpserver.unotool import hasInterface
-from smtpserver.unotool import getExceptionMessage
-
-from smtpserver.logger import isDebugMode
-from smtpserver.logger import logMessage
-from smtpserver.logger import getMessage
-g_message = 'MailServiceProvider'
-
+from smtpserver import getConfiguration
+from smtpserver import getExceptionMessage
+from smtpserver import getMessage
+from smtpserver import getOAuth2
+from smtpserver import getOAuth2Token
+from smtpserver import hasInterface
+from smtpserver import isDebugMode
+from smtpserver import logMessage
 from smtpserver import smtplib
+
+g_message = 'MailServiceProvider'
 
 import re
 import sys

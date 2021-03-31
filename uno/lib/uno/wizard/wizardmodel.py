@@ -30,7 +30,7 @@
 import uno
 import unohelper
 
-from unotool import getStringResource
+from ..unotool import getStringResource
 
 from ..configuration import g_identifier
 from ..configuration import g_extension

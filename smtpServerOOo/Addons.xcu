@@ -115,7 +115,7 @@
               <value/>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>smtp:server</value>
+              <value>smtp:ispdb</value>
             </prop>
           </node>
         </node>

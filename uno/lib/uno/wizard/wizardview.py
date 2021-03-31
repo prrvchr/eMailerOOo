@@ -36,7 +36,7 @@ from com.sun.star.ui.dialogs.WizardButton import FINISH
 from com.sun.star.ui.dialogs.WizardButton import CANCEL
 from com.sun.star.ui.dialogs.WizardButton import HELP
 
-from ..unolib import getDialog
+from ..unotool import getDialog
 
 from .wizardhandler import DialogHandler, ItemHandler
 

@@ -30,21 +30,17 @@
 import uno
 import unohelper
 
-
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getUrl
-from unolib import getPropertyValueSet
-from unolib import getPathSettings
-from unolib import getUrlTransformer
-from unolib import parseUrl
-
-from unolib import createService
-
-from smtpserver import logMessage
+from smtpserver import createService
 from smtpserver import getMessage
+from smtpserver import getPathSettings
+from smtpserver import getPropertyValueSet
+from smtpserver import getUrl
+from smtpserver import getUrlTransformer
+from smtpserver import logMessage
+from smtpserver import parseUrl
 
 from collections import OrderedDict
 import validators

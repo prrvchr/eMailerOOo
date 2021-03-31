@@ -31,13 +31,11 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from unolib import createService
-from unolib import getContainerWindow
-
-from .mailhandler import WindowHandler
-
+from smtpserver import createService
+from smtpserver import getContainerWindow
 from smtpserver import g_extension
 
+from .mailhandler import WindowHandler
 
 class MailView(unohelper.Base):
     def __init__(self, ctx, manager, parent, step):
@@ -52,7 +50,7 @@ class MailView(unohelper.Base):
         raise NotImplementedError('Need to be implemented if needed!')
 
     def isDisposed(self):
-        return self._window is None
+        raise NotImplementedError('Need to be implemented if needed!')
 
     def getSender(self):
         return self._getSenders().getSelectedItem()
@@ -118,8 +116,7 @@ class MailView(unohelper.Base):
 
 # MailView setter methods
     def dispose(self):
-        self._window.dispose()
-        self._window = None
+        raise NotImplementedError('Need to be implemented if needed!')
 
     def enableRemoveSender(self, enabled):
         self._getRemoveSender().Model.Enabled = enabled

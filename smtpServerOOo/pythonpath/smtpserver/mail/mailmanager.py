@@ -33,10 +33,10 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import executeShell
-
-from smtpserver import logMessage
+from smtpserver import executeShell
 from smtpserver import getMessage
+from smtpserver import logMessage
+
 g_message = 'basemanager'
 
 import traceback
@@ -60,6 +60,9 @@ class MailManager(unohelper.Base):
         self._disabled = True
 
 # MailManager setter methods
+    def dispose(self):
+        raise NotImplementedError('Need to be implemented if needed!')
+
     def sendDocument(self):
         raise NotImplementedError('Need to be implemented!')
 
@@ -96,10 +99,6 @@ class MailManager(unohelper.Base):
                 self._view.setMessage(label)
                 self._updateUI()
             self._closeDocument(document)
-
-    def dispose(self):
-        with self._lock:
-            self._view.dispose()
 
     def addSender(self, sender):
         self._view.addSender(sender)

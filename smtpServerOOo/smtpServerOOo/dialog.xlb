@@ -29,10 +29,10 @@
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
   <library:element library:name="Wizard"/>
-  <library:element library:name="ServerPage1"/>
-  <library:element library:name="ServerPage2"/>
-  <library:element library:name="ServerPage3"/>
-  <library:element library:name="ServerPage4"/>
+  <library:element library:name="IspdbPage1"/>
+  <library:element library:name="IspdbPage2"/>
+  <library:element library:name="IspdbPage3"/>
+  <library:element library:name="IspdbPage4"/>
   <library:element library:name="SendDialog"/>
   <library:element library:name="SpoolerDialog"/>
   <library:element library:name="SpoolerTab1"/>

@@ -27,6 +27,59 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .serverwizard import ServerWizard
-from .servermanager import ServerManager
-from .servermodel import ServerModel
+import uno
+import unohelper
+
+from smtpserver import getContainerWindow
+from smtpserver import getFileSequence
+from smtpserver import clearLogger
+from smtpserver import getLoggerUrl
+from smtpserver import logMessage
+from smtpserver import g_extension
+
+from .ispdbhandler import WindowHandler
+
+import traceback
+
+
+class IspdbView(unohelper.Base):
+    def __init__(self, ctx, manager, parent):
+        self._ctx = ctx
+        self._url = getLoggerUrl(ctx)
+        handler = WindowHandler(manager)
+        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage4')
+
+# IspdbView getter methods
+    def getWindow(self):
+        return self._window
+
+# IspdbView setter methods
+    def setPageLabel(self, text):
+        self._getPageLabel().Text = text
+
+    def setPageStep(self, step):
+        self._window.Model.Step = step
+
+    def updateProgress(self, value):
+        self._getProgressBar().Value = value
+        if value == 0:
+            clearLogger()
+        self._updateLogger()
+
+# IspdbView private setter methods
+    def _updateLogger(self):
+        length, sequence = getFileSequence(self._ctx, self._url)
+        control = self._getLogger()
+        control.Text = sequence.value.decode('utf-8')
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
+
+# IspdbView private getter control methods
+    def _getPageLabel(self):
+        return self._window.getControl('Label1')
+
+    def _getLogger(self):
+        return self._window.getControl('TextField1')
+
+    def _getProgressBar(self):
+        return self._window.getControl('ProgressBar1')

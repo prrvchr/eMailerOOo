@@ -29,7 +29,7 @@
 
 import unohelper
 
-from unotool import createService
+from ..unotool import createService
 
 from collections import OrderedDict
 import traceback

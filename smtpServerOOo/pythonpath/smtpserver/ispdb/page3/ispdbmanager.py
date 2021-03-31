@@ -90,21 +90,13 @@ class IspdbManager(unohelper.Base):
         port = self._view.getPort()
         valid = self._model.isConnectionValid(host, port)
         index = self._view.getAuthentication()
-        print("IspdbManager.canAdvance() 1 %s" % valid)
         if valid and index > 0:
             login = self._view.getLogin()
             valid = self._model.isStringValid(login)
-            print("IspdbManager.canAdvance() 2 %s" % valid)
             if valid and index < 3:
                 pwd, conf = self._view.getPasswords()
                 valid = self._model.isStringValid(pwd) and pwd == conf
-                     
-                print("IspdbManager.canAdvance() 3 %s" % valid)
-        print("IspdbManager.canAdvance() 4 %s" % valid)
         return valid
-
-    def _getAuthentication(self):
-        return self._model.getAuthentication()
 
 # IspdbManager setter methods
     def updateTravelUI(self):

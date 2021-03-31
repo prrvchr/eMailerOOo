@@ -79,7 +79,6 @@ class IspdbManager(unohelper.Base):
     def updateModel(self, user, servers, offline):
         if not self._model.isDisposed():
             # TODO: The order of assignment is important (ie: the user before the servers)
-            print("updateModel() %s - %s" % (user, servers))
             self._model.setUser(user)
             self._model.setServers(servers)
             self._model.Offline = offline

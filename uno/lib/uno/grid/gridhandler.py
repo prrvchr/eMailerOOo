@@ -47,5 +47,10 @@ class GridHandler(unohelper.Base,
     def rowChanged(self, event):
         pass
     def rowSetChanged(self, event):
-        rowset = event.Source
-        self._model.setRowSetData(rowset)
+        try:
+            rowset = event.Source
+            self._model.setRowSetData(rowset)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+

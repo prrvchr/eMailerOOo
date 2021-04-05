@@ -36,6 +36,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import getDesktop
+from smtpserver import getFileUrl
 from smtpserver import getMessage
 from smtpserver import logMessage
 from smtpserver import getPropertyValueSet
@@ -45,58 +46,50 @@ from smtpserver import g_identifier
 from smtpserver import g_extension
 
 from collections import OrderedDict
-import json
 from threading import Thread
+import json
 import traceback
 
 
 class SenderModel(unohelper.Base):
-    def __init__(self, ctx, path):
+    def __init__(self, ctx, datasource, path, close):
         self._ctx = ctx
         self._path = path
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
+        self._datasource = datasource
+        self._close = close
+        self._disposed = False
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'Title': 'SenderDialog.Title',
+                           'PickerTitle': 'Sender.FilePicker.Title',
+                           'PickerFilters': 'Sender.FilePicker.Filters'}
 
+    @property
+    def DataSource(self):
+        return self._datasource
     @property
     def Path(self):
         return self._path
-    @Path.setter
-    def Path(self, path):
-        self._path = path
 
-    def resolveString(self, resource):
-        return self._stringResource.resolveString(resource)
+# SenderModel getter methods
+    def isDisposed(self):
+        return self._disposed
+
+    def getDocumentUrl(self):
+        title = self._getFilePickerTitle()
+        filters = self._getFilePickerFilters()
+        url, self._path = getFileUrl(self._ctx, title, self._path, filters)
+        return url
 
     def getDocument(self, *args):
         Thread(target=self._getDocument, args=args).start()
 
-# SenderModel StringRessoure methods
-    def getDocumentTitle(self, url):
-        resource = self._getTitleRessource()
-        title = self.resolveString(resource)
-        return title + url
+# SenderModel setter methods
+    def dispose(self):
+        self._disposed = True
+        if self._close:
+            self.DataSource.dispose()
 
-    def getFilePickerTitle(self):
-        resource = self._getFilePickerTitleResource()
-        title = self.resolveString(resource)
-        return title
-
-    def getFilePickerFilters(self):
-        resource = self._getFilePickerFiltersResource()
-        filter = self.resolveString(resource)
-        filters = json.loads(filter, object_pairs_hook=OrderedDict)
-        return filters
-
-# SenderModel StringRessoure private methods
-    def _getTitleRessource(self):
-        return 'SenderDialog.Title'
-
-    def _getFilePickerTitleResource(self):
-        return 'Sender.FilePicker.Title'
-
-    def _getFilePickerFiltersResource(self):
-        return 'Sender.FilePicker.Filters'
-
-# SenderModel private methods
+# SenderModel private getter methods
     def _getDocument(self, url, initMailer):
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
@@ -104,4 +97,21 @@ class SenderModel(unohelper.Base):
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
-        initMailer(document)
+        title = self._getDocumentTitle(document.URL)
+        initMailer(document, title)
+
+    def _getDocumentTitle(self, url):
+        resource = self._resources.get('Title')
+        title = self._resolver.resolveString(resource)
+        return title + url
+
+    def _getFilePickerTitle(self):
+        resource = self._resources.get('PickerTitle')
+        title = self._resolver.resolveString(resource)
+        return title
+
+    def _getFilePickerFilters(self):
+        resource = self._resources.get('PickerFilters')
+        filter = self._resolver.resolveString(resource)
+        filters = json.loads(filter, object_pairs_hook=OrderedDict)
+        return filters.items()

@@ -58,13 +58,18 @@ import traceback
 class SpoolerModel(unohelper.Base):
     def __init__(self, ctx, datasource):
         self._ctx = ctx
+        self._diposed = False
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
         self._column = ColumnModel(ctx)
         self._rowset = self._getRowSet()
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
-        self._configuration = getConfiguration(ctx, g_identifier, True)
         self._composer = None
+        self._configuration = getConfiguration(ctx, g_identifier, True)
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'Title': 'SpoolerDialog.Title',
+                           'State': 'SpoolerDialog.Label2.Label.%s',
+                           'TabTitle': 'SpoolerTab%s.Title',
+                           'GridColumn': 'SpoolerTab1.Grid1.Column.%s'}
 
     @property
     def DataSource(self):
@@ -77,21 +82,23 @@ class SpoolerModel(unohelper.Base):
     def Path(self, path):
         self._path = path
 
-    def resolveString(self, resource):
-        return self._stringResource.resolveString(resource)
-
+# SpoolerModel threaded callback methods
     def initSpooler(self, *args):
         Thread(target=self._initSpooler, args=args).start()
 
     def _initSpooler(self, initView):
         self.DataSource.waitForDataBase()
-        query = self._getQuery()
-        self._composer = self._getQueryComposer(query)
+        command = self._getQueryCommand()
+        self._composer = self._getQueryComposer(command)
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
-        self._rowset.Command = query.Command
+        self._rowset.Command = command
         titles = self._getQueryColumnTitles()
         orders = self._getQueryOrder()
         initView(titles, orders)
+
+# SpoolerModel getter methods
+    def isDisposed(self):
+        return self._diposed
 
     def getGridModels(self, titles, width):
         data = GridModel(self._rowset)
@@ -99,19 +106,32 @@ class SpoolerModel(unohelper.Base):
         column = self._column.getColumnModel(self._rowset, widths, titles, width, 2)
         return data, column
 
-    def setGridColumnModel(self, titles, reset):
-        self._column.setColumnModel(self._rowset, titles, reset)
+    def getDialogTitle(self):
+        resource = self._resources.get('Title')
+        return self._resolver.resolveString(resource)
 
-    def saveGridColumn(self):
+    def getTabPageTitle(self, tabid):
+        resource = self._resources.get('TabTitle') % tabid
+        return self._resolver.resolveString(resource)
+
+    def getSpoolerState(self, state):
+        resource = self._resources.get('State') % state
+        return self._resolver.resolveString(resource)
+
+# SpoolerModel setter methods
+    def dispose(self):
+        self._diposed = True
+        self.DataSource.dispose()
+
+    def save(self):
         widths = self._column.getColumnWidth()
-        columns = json.dumps(widths)
-        self._configuration.replaceByName('SpoolerGridColumns', columns)
+        self._saveGridColumn(widths)
+        command = self._composer.getQuery()
+        self._saveQueryCommand(command)
         self._configuration.commitChanges()
 
-    def saveQuery(self):
-        query = self._getQuery()
-        query.Command = self._composer.getQuery()
-        self.DataSource.DataBase.storeDataBase()
+    def setGridColumnModel(self, titles, reset):
+        self._column.setColumnModel(self._rowset, titles, reset)
 
     def executeRowSet(self):
         # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
@@ -131,33 +151,7 @@ class SpoolerModel(unohelper.Base):
         self._rowset.Command = self._composer.getQuery()
         self._rowset.execute()
 
-# SpoolerModel StringRessoure methods
-    def getDialogTitle(self):
-        resource = self._getDialogTitleResource()
-        return self.resolveString(resource)
-
-    def getTabPageTitle(self, id):
-        resource = self._getTabPageResource(id)
-        return self.resolveString(resource)
-
-    def getSpoolerState(self, state):
-        resource = self._getSpoolerStateResource(state)
-        return self.resolveString(resource)
-
-# SpoolerModel StringRessoure private methods
-    def _getDialogTitleResource(self):
-        return 'SpoolerDialog.Title'
-
-    def _getSpoolerStateResource(self, state):
-        return 'SpoolerDialog.Label2.Label.%s' % state
-
-    def _getTabPageResource(self, id):
-        return 'SpoolerTab%s.Title' % id
-
-    def _getGridColumnResource(self, column):
-        return 'SpoolerTab1.Grid1.Column.%s' % column
-
-# SpoolerModel private methods
+# SpoolerModel private getter methods
     def _getRowSet(self):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
@@ -165,37 +159,12 @@ class SpoolerModel(unohelper.Base):
         rowset.FetchSize = g_fetchsize
         return rowset
 
-    def _getQuery(self, name='SpoolerView'):
-        queries = self.DataSource.DataBase.getDataSource().getQueryDefinitions()
-        # TODO: For the SingleSelectQueryComposer to be able to parse the Order,
-        # TODO: we need a sub query and not directly a DataBase View or Table query!!!
-        self._setQuery(queries)
-        if queries.hasByName(name):
-            query = queries.getByName(name)
-        else:
-            command = self.DataSource.DataBase.getSpoolerViewQuery()
-            query = self._createQuery(name, command)
-            queries.insertByName(name, query)
-        return query
-
-    def _setQuery(self, queries, name='View'):
-        if not queries.hasByName(name):
-            command = self.DataSource.DataBase.getViewQuery()
-            query = self._createQuery(name, command)
-            queries.insertByName(name, query)
-
-    def _createQuery(self, name, command):
-        service = 'com.sun.star.sdb.QueryDefinition'
-        query = createService(self._ctx, service)
-        query.Command = command
-        return query
-
-    def _getQueryComposer(self, query):
+    def _getQueryComposer(self, command):
         service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         composer = self.DataSource.DataBase.Connection.createInstance(service)
         # TODO: For the SingleSelectQueryComposer to be able to parse the Order, the ORDER BY
         # TODO: sort criteria must be in the SQL query.Command and not in the query.Order
-        composer.setQuery(query.Command)
+        composer.setQuery(command)
         return composer
 
     def _getComposerOrder(self, news):
@@ -219,11 +188,23 @@ class SpoolerModel(unohelper.Base):
     def _getColumnTitles(self, columns):
         titles = OrderedDict()
         for column in columns:
-            resource = self._getGridColumnResource(column)
-            titles[column] = self.resolveString(resource)
+            resource = self._resources.get('GridColumn') % column
+            titles[column] = self._resolver.resolveString(resource)
         return titles
+
+    def _getQueryCommand(self):
+        command = self._configuration.getByName('SpoolerQueryCommand')
+        return command
 
     def _getColumnsWidth(self):
         columns = self._configuration.getByName('SpoolerGridColumns')
         widths = json.loads(columns, object_pairs_hook=OrderedDict)
         return widths
+
+# SpoolerModel private setter methods
+    def _saveGridColumn(self, widths):
+        columns = json.dumps(widths)
+        self._configuration.replaceByName('SpoolerGridColumns', columns)
+
+    def _saveQueryCommand(self, command):
+        self._configuration.replaceByName('SpoolerQueryCommand', command)

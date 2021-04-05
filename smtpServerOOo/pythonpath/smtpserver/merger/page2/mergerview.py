@@ -138,6 +138,9 @@ class MergerView(unohelper.Base):
     def enableRemoveAll(self, enabled):
         self._getRemoveAll().Model.Enabled = enabled
 
+    def setMailingMessage(self, message):
+        self._getMailingMessage().Text = message
+
 # MergerView private getter control methods
     def _getTable(self):
         return self._tab1.getControl('ListBox1')
@@ -177,6 +180,9 @@ class MergerView(unohelper.Base):
 
     def _getRecipientSort(self):
         return self._tab2.getControl('CheckBox1')
+
+    def _getMailingMessage(self):
+        return self._tab2.getControl('Label1')
 
 # MergerView private methods
     def _getTabPages(self, manager, name, rectangle, id):

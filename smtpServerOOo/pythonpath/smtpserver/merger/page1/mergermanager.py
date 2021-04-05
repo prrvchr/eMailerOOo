@@ -40,6 +40,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import createService
+from smtpserver import executeDispatch
 from smtpserver import logMessage
 from smtpserver import getMessage
 
@@ -93,8 +94,8 @@ class MergerManager(unohelper.Base,
 
     def commitPage(self, reason):
         try:
-            if self._model.isFiltered():
-                self._model.saveQueries()
+            #if self._model.isFiltered():
+            #    self._model.saveQueries()
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -133,12 +134,9 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def newAddressBook(self):
-        frame = self._model.getCurrentDocument().CurrentController.Frame
         url = '.uno:AutoPilotAddressDataSource'
-        service = 'com.sun.star.frame.DispatchHelper'
-        dispatcher = createService(self._ctx, service)
-        dispatcher.executeDispatch(frame, url, '', 0, ())
-        #dispatcher.executeDispatch(frame, '.uno:AddressBookSource', '', 0, ())
+        executeDispatch(self._ctx, url)
+        #url = '.uno:AddressBookSource'
         # TODO: Update the list of AddressBooks and keep the selection if possible
         addressbook = self._view.getAddressBook()
         addressbooks = self._model.getAvailableAddressBooks()

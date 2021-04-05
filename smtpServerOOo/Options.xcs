@@ -32,10 +32,11 @@
   oor:package="com.gmail.prrvchr.extensions"
   oor:name="smtpServerOOo">
     <component>
-        <prop oor:name="ConnectTimeout" oor:type="xs:short" />
-        <prop oor:name="IspDBUrl" oor:type="xs:string" />
-        <prop oor:name="SpoolerGridColumns" oor:type="xs:string" />
-        <prop oor:name="MergerGrid1Columns" oor:type="xs:string" />
-        <prop oor:name="MergerGrid2Columns" oor:type="xs:string" />
+        <prop oor:name="ConnectTimeout" oor:type="xs:short"/>
+        <prop oor:name="IspDBUrl" oor:type="xs:string"/>
+        <prop oor:name="SpoolerQueryCommand" oor:type="xs:string"/>
+        <prop oor:name="SpoolerGridColumns" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid1Columns" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
     </component>
 </oor:component-schema>

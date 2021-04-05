@@ -27,4 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .sendermodel import SenderModel
 from .sendermanager import SenderManager

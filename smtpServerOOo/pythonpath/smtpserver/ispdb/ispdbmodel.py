@@ -45,8 +45,10 @@ import traceback
 
 
 class IspdbModel(unohelper.Base):
-    def __init__(self, ctx, datasource, email=''):
+    def __init__(self, ctx, datasource, close, email=''):
         self._datasource = datasource
+        self._close = close
+        self._email = email
         self._user = None
         self._servers = []
         self._metadata = {}
@@ -58,15 +60,22 @@ class IspdbModel(unohelper.Base):
         self._isnew = False
         self._diposed = False
         self._updated = False
-        self._email = email
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(ctx, g_identifier, True)
         self._timeout = self._configuration.getByName('ConnectTimeout')
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'Step': 'IspdbPage%s.Step',
+                           'Title': 'IspdbPage%s.Title.%s',
+                           'Label': 'IspdbPage%s.Label1.Label',
+                           'Progress': 'IspdbPage2.Label2.Label.%s',
+                           'Security': 'IspdbPage3.Label10.Label.%s',
+                           'SendTitle': 'SendDialog.Title',
+                           'SendSubject': 'SendDialog.TextField2.Text',
+                           'SendMessage': 'SendDialog.TextField3.Text'}
 
     @property
     def Email(self):
@@ -105,7 +114,8 @@ class IspdbModel(unohelper.Base):
 # IspdbModel getter methods called by IspdbWizard
     def dispose(self):
         self._diposed = True
-        self.DataSource.dispose()
+        if self._close:
+            self.DataSource.dispose()
 
 # IspdbModel getter methods called by WizardPages 2 and 4
     def isDisposed(self):
@@ -330,61 +340,36 @@ class IspdbModel(unohelper.Base):
 
 # IspdbModel StringResource methods
     def getPageStep(self, pageid):
-        resource = self._getPageStep(pageid)
-        return self.resolveString(resource)
+        resource = self._resources.get('Step') % pageid
+        return self._resolver.resolveString(resource)
 
     def getPageTitle(self, pageid):
-        resource = self._getPageTitle(pageid)
-        return self.resolveString(resource)
+        resource = self._resources.get('Title') % (pageid, self._offline)
+        return self._resolver.resolveString(resource)
 
     def getPageLabel(self, pageid):
-        resource = self._getPageLabel(pageid)
-        return self.resolveString(resource)
+        resource = self._resources.get('Label') % pageid
+        return self._resolver.resolveString(resource)
 
     def getProgressMessage(self, value):
-        resource = self._getProgressMessage(value)
-        return self.resolveString(resource)
-
-    def getSendTitle(self):
-        resource = self._getSendTitle()
-        return self.resolveString(resource)
-
-    def getSendSubject(self):
-        resource = self._getSendSubject()
-        return self.resolveString(resource)
-
-    def getSendMessage(self):
-        resource = self._getSendMessage()
-        return self.resolveString(resource)
+        resource = self._resources.get('Progress') % value
+        return self._resolver.resolveString(resource)
 
     def getSecurityMessage(self, level):
-        resource = self._getSecurityMessage(level)
-        return self.resolveString(resource)
+        resource = self._resources.get('Security') % level
+        return self._resolver.resolveString(resource)
 
-# IspdbModel StringResource private methods
-    def _getPageStep(self, pageid):
-        return 'IspdbPage%s.Step' % pageid
+    def getSendTitle(self):
+        resource = self._resources.get('SendTitle')
+        return self._resolver.resolveString(resource)
 
-    def _getPageTitle(self, pageid):
-        return 'IspdbPage%s.Title.%s' % (pageid, self._offline)
+    def getSendSubject(self):
+        resource = self._resources.get('SendSubject')
+        return self._resolver.resolveString(resource)
 
-    def _getPageLabel(self, pageid):
-        return 'IspdbPage%s.Label1.Label' % pageid
-
-    def _getProgressMessage(self, value):
-        return 'IspdbPage2.Label2.Label.%s' % value
-
-    def _getSecurityMessage(self, level):
-        return 'IspdbPage3.Label10.Label.%s' % level
-
-    def _getSendTitle(self):
-        return 'SendDialog.Title'
-
-    def _getSendSubject(self):
-        return 'SendDialog.TextField2.Text'
-
-    def _getSendMessage(self):
-        return 'SendDialog.TextField3.Text'
+    def getSendMessage(self):
+        resource = self._resources.get('SendMessage')
+        return self._resolver.resolveString(resource)
 
 
 class CurrentContext(unohelper.Base,

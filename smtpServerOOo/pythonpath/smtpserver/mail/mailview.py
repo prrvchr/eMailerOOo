@@ -31,7 +31,6 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from smtpserver import createService
 from smtpserver import getContainerWindow
 from smtpserver import g_extension
 
@@ -47,9 +46,6 @@ class MailView(unohelper.Base):
 
 # MailView getter methods
     def getWindow(self):
-        raise NotImplementedError('Need to be implemented if needed!')
-
-    def isDisposed(self):
         raise NotImplementedError('Need to be implemented if needed!')
 
     def getSender(self):
@@ -72,24 +68,6 @@ class MailView(unohelper.Base):
         attachments = self._getAttachments().getItems()
         print("MailView.getAttachments() 1 ******************************** %s" % (attachments, ))
         return attachments
-
-    def getAttachmentUrls(self, title, path):
-        urls = ()
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        filepicker = createService(self._ctx, service)
-        filepicker.setTitle(title)
-        filepicker.setDisplayDirectory(path)
-        filepicker.setMultiSelectionMode(True)
-        if filepicker.execute() == OK:
-            try:
-                urls = filepicker.getSelectedFiles()
-            except:
-                urls = filepicker.getFiles()
-                if len(urls) > 1:
-                    urls = [urls[0] + url for url in urls[1:]]
-            path = filepicker.getDisplayDirectory()
-        filepicker.dispose()
-        return urls, path
 
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
@@ -115,9 +93,6 @@ class MailView(unohelper.Base):
         return bool(state)
 
 # MailView setter methods
-    def dispose(self):
-        raise NotImplementedError('Need to be implemented if needed!')
-
     def enableRemoveSender(self, enabled):
         self._getRemoveSender().Model.Enabled = enabled
 
@@ -283,3 +258,6 @@ class MailView(unohelper.Base):
 
     def _getMessage(self):
         return self._window.getControl('Label8')
+
+    def _getMergerMessage(self):
+        return self._window.getControl('Label4')

@@ -153,9 +153,13 @@ class Grid1Handler(unohelper.Base,
 
     # XGridSelectionListener
     def selectionChanged(self, event):
-        control = event.Source
-        selected = control.hasSelectedRows()
-        self._manager.changeAddress(selected)
+        try:
+            control = event.Source
+            selected = control.hasSelectedRows()
+            self._manager.changeAddress(selected)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def disposing(self, event):
         pass
@@ -168,10 +172,14 @@ class Grid2Handler(unohelper.Base,
 
     # XGridSelectionListener
     def selectionChanged(self, event):
-        control = event.Source
-        selected = control.hasSelectedRows()
-        index = control.getSelectedRows()[0] if selected else -1
-        self._manager.changeRecipient(selected, index)
+        try:
+            control = event.Source
+            selected = control.hasSelectedRows()
+            index = control.getSelectedRows()[0] if selected else -1
+            self._manager.changeRecipient(selected, index)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def disposing(self, event):
         pass
@@ -190,8 +198,12 @@ class AddressHandler(unohelper.Base,
     def rowChanged(self, event):
         pass
     def rowSetChanged(self, event):
-        enabled = event.Source.RowCount > 0
-        self._manager.enableAddAll(enabled)
+        try:
+            enabled = event.Source.RowCount > 0
+            self._manager.enableAddAll(enabled)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
 
 class RecipientHandler(unohelper.Base,
@@ -207,5 +219,9 @@ class RecipientHandler(unohelper.Base,
     def rowChanged(self, event):
         pass
     def rowSetChanged(self, event):
-        enabled = event.Source.RowCount > 0
-        self._manager.enableRemoveAll(enabled)
+        try:
+            enabled = event.Source.RowCount > 0
+            self._manager.enableRemoveAll(enabled)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)

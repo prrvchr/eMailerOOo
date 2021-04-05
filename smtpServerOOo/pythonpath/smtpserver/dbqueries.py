@@ -206,13 +206,16 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getComposerCommand':
         query = 'SELECT * FROM "%s";' % format
 
+    elif name == 'getComposerSubQuery':
+        query = '(SELECT * FROM "%s" WHERE %s)' % format
+
     elif name == 'getComposerColumns':
         query = '"%s"' % '", "'.join(format)
         if len(format) > 1:
             query = 'COALESCE(%s)' % query
 
     elif name == 'getComposerQuery':
-        query = 'SELECT %s FROM "%s" WHERE %s;' % format
+        query = 'SELECT %s FROM %s WHERE %s;' % format
 
     # Spooler Select Queries
     elif name == 'getViewQuery':

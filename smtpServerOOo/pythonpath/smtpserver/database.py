@@ -84,10 +84,9 @@ class DataBase(unohelper.Base):
             print("DataBase.__init__() 2")
             #connection = datasource.getConnection(user, password)
             folder = g_folder + '/' + dbname
-            path = getResourceLocation(ctx, g_identifier, folder)
-            script = path + '.script'
+            self._url = getResourceLocation(ctx, g_identifier, folder)
+            script = self._url + '.script'
             self._created = not getSimpleFile(ctx).exists(script)
-            self._url = getDataBaseUrl(path, True)
             #connection = getDataBaseConnection(ctx, self._url, user, password)
             print("DataBase.__init__() 3")
             print("DataBase.__init__() 4")
@@ -105,25 +104,26 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            connection = getDataBaseConnection(self._ctx, self._url)
+            url = getDataBaseUrl(self._url, True)
+            connection = getDataBaseConnection(self._ctx, url)
             self._statement = connection.createStatement()
         return self._statement.getConnection()
 
     def dispose(self):
-        connection = self.Connection
-        self._statement = None
-        connection.dispose()
+        if self._statement is not None:
+            connection = self._statement.getConnection()
+            self._statement = None
+            print("DataBase.dispose() ***************** database closed!!:")
+            connection.dispose()
         print("DataBase.dispose()")
 
-    def storeDataBase(self, url):
+    def storeDataBase(self, url=None):
+        url = self._url + '.odb'
         self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
 # Procedures called by the DataSource
     def getDataSource(self):
         return self.Connection.getParent()
-
-    def addCloseListener(self, listener):
-        self.getDataSource().DatabaseDocument.addCloseListener(listener)
 
     def shutdownDataBase(self):
         if self._created:

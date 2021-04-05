@@ -56,11 +56,6 @@ class MailerManager(MailManager):
         self._model.getSenders(self.initSenders)
 
 # MailerManager setter methods
-    def dispose(self):
-        with self._lock:
-            self._model.DataSource.dispose()
-            self._view.dispose()
-
     def sendDocument(self):
         try:
             subject, attachments = self._getSavedDocumentProperty()

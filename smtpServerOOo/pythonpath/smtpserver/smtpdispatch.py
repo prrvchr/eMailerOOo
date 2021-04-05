@@ -55,6 +55,7 @@ from smtpserver import g_merger_paths
 
 from .ispdb import IspdbWizard
 from .merger import MergerWizard
+from .sender import SenderModel
 from .sender import SenderManager
 from .spooler import SpoolerManager
 
@@ -92,7 +93,7 @@ class SmtpDispatch(unohelper.Base,
         state = SUCCESS
         result = None
         if url.Path == 'ispdb':
-            state, result = self._showIspdb()
+            state, result = self._showIspdb(arguments)
         elif url.Path == 'spooler':
             self._showSpooler()
         elif url.Path == 'mailer':
@@ -110,14 +111,18 @@ class SmtpDispatch(unohelper.Base,
 
 # SmtpDispatch private methods
     #Server methods
-    def _showIspdb(self):
+    def _showIspdb(self, arguments):
         try:
             print("_showIspdb()")
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
+            close = True
+            for argument in arguments:
+                if argument.Name == 'Close':
+                    close = argument.Value
             wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
-            controller = IspdbWizard(self._ctx, wizard, self.DataSource)
+            controller = IspdbWizard(self._ctx, wizard, self.DataSource, close)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
@@ -149,16 +154,20 @@ class SmtpDispatch(unohelper.Base,
     def _showMailer(self, arguments):
         try:
             state = FAILURE
+            path = None
+            close = True
             for argument in arguments:
                 if argument.Name == 'Path':
                     path = argument.Value
-                    break
-            else:
+                elif argument.Name == 'Close':
+                    close = argument.Value
+            if path is None:
                 path = getPathSettings(self._ctx).Work
-            sender = SenderManager(self._ctx, path)
-            url = sender.getDocumentUrl()
+            model = SenderModel(self._ctx, self.DataSource, path, close)
+            url = model.getDocumentUrl()
             if url is not None:
-                if sender.showDialog(self.DataSource, self._parent, url) == OK:
+                sender = SenderManager(self._ctx, model, self._parent, url)
+                if sender.execute() == OK:
                     state = SUCCESS
                     path = sender.Mailer.Model.Path
                 sender.dispose()

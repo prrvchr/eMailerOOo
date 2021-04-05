@@ -48,13 +48,16 @@ import traceback
 
 
 class SenderManager(unohelper.Base):
-    def __init__(self, ctx, path):
+    def __init__(self, ctx, model, parent, url):
         self._ctx = ctx
         self._lock = Condition()
-        self._model = SenderModel(ctx, path)
-        self._view = SenderView(ctx)
-        self._mailer = None
-        self.lock = Condition()
+        self._model = model
+        self._view = SenderView(ctx, self, parent)
+        datasource = self._model.DataSource
+        parent = self._view.getParent()
+        path = self._model.Path
+        self._mailer = MailerManager(ctx, self, datasource, parent, path)
+        self._model.getDocument(url, self.initMailer)
         print("SenderManager.__init__()")
 
     @property
@@ -64,30 +67,16 @@ class SenderManager(unohelper.Base):
     def Mailer(self):
         return self._mailer
 
-    def getDocumentUrl(self):
-        title = self._model.getFilePickerTitle()
-        filters = self._model.getFilePickerFilters()
-        path = self._model.Path
-        url, path = self._view.getDocumentUrl(title, filters, path)
-        self._model.Path = path
-        return url
-
-    def showDialog(self, datasource, parent, url):
-        self._view.setDialog(self, parent)
-        parent = self._view.getParent()
-        path = self.Model.Path
-        self._mailer = MailerManager(self._ctx, self, datasource, parent, path)
-        self._model.getDocument(url, self.initMailer)
-        return self._view.execute()
-
-    def initMailer(self, document):
+    def initMailer(self, document, title):
         with self._lock:
-            if not self._view.isDisposed():
+            if not self._model.isDisposed():
                 # TODO: Document can be <None> if a lock or password exists !!!
                 # TODO: It would be necessary to test a Handler on the descriptor...
-                title = self._model.getDocumentTitle(document.URL)
                 self._mailer.initView(document)
                 self._view.setTitle(title)
+
+    def execute(self):
+        return self._view.execute()
 
     def updateUI(self, enabled):
         self._view.enableButtonSend(enabled)
@@ -97,6 +86,7 @@ class SenderManager(unohelper.Base):
         self._view.endDialog()
 
     def dispose(self):
-        with self.lock:
-            self._mailer.dispose()
+        with self._lock:
+            self._mailer.Model.dispose()
+            self._model.dispose()
             self._view.dispose()

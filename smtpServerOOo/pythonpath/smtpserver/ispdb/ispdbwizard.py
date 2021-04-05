@@ -49,10 +49,10 @@ import traceback
 
 class IspdbWizard(unohelper.Base,
                    XWizardController):
-    def __init__(self, ctx, wizard, datasource):
+    def __init__(self, ctx, wizard, datasource, close):
         self._ctx = ctx
         self._wizard = wizard
-        self._model = IspdbModel(ctx, datasource)
+        self._model = IspdbModel(ctx, datasource, close)
 
     @property
     def Model(self):

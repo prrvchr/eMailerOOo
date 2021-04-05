@@ -34,6 +34,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import executeShell
+from smtpserver import getFileUrl
 from smtpserver import getMessage
 from smtpserver import logMessage
 
@@ -60,22 +61,19 @@ class MailManager(unohelper.Base):
         self._disabled = True
 
 # MailManager setter methods
-    def dispose(self):
-        raise NotImplementedError('Need to be implemented if needed!')
-
     def sendDocument(self):
         raise NotImplementedError('Need to be implemented!')
 
     def initSenders(self, senders):
         with self._lock:
-            if not self._view.isDisposed():
+            if not self._model.isDisposed():
                 # Set the Senders ListBox
                 self._view.setSenders(senders)
                 self._updateUI()
 
     def initView(self, document):
         with self._lock:
-            if not self._view.isDisposed():
+            if not self._model.isDisposed():
                 self._model.setUrl(document.URL)
                 # Set the Save Subject CheckBox and if needed the Subject TextField
                 state = self._model.getDocumentUserProperty(document, 'SaveSubject')
@@ -95,8 +93,8 @@ class MailManager(unohelper.Base):
                 # Set the View Document in HTML CommandButton
                 self._view.enableViewHtml()
                 # Set the View Message Label
-                label = self._model.getMessageLabel(document)
-                self._view.setMessage(label)
+                message = self._model.getDocumentMessage(document)
+                self._view.setMessage(message)
                 self._updateUI()
             self._closeDocument(document)
 
@@ -167,12 +165,13 @@ class MailManager(unohelper.Base):
     def addAttachments(self):
         title = self._model.getFilePickerTitle()
         path = self._model.Path
-        attachments, path = self._view.getAttachmentUrls(title, path)
+        urls, path = getFileUrl(self._ctx, title, path, (), True)
         self._model.Path = path
-        if len(attachments) > 0:
+        print("MailManager.addAttachments() %s" % (urls, ))
+        if urls is not None:
             pdf = self._view.getAttachmentAsPdf()
-            urls = self._model.parseAttachments(attachments, pdf)
-            self._view.addAttachments(urls)
+            attachments = self._model.parseAttachments(urls, pdf)
+            self._view.addAttachments(attachments)
 
     def removeAttachments(self):
         self._view.removeAttachments()

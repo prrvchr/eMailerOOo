@@ -51,7 +51,11 @@ class MailerModel(MailModel):
         self._datasource = datasource
         self._path = path
         self._url = None
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
+        self._disposed = False
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'PickerTitle': 'Mail.FilePicker.Title',
+                           'Property': 'Mail.Document.Property.%s',
+                           'Document': 'MailWindow.Label8.Label.1'}
 
 # MailerModel getter methods
     def getUrl(self):

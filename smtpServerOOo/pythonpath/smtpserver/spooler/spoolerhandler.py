@@ -47,14 +47,20 @@ class DialogHandler(unohelper.Base,
 
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'ToogleSpooler':
-            self._manager.toogleSpooler()
-            handled = True
-        elif method == 'Close':
-            self._manager.closeSpooler()
-            handled = True
-        return handled
+        try:
+            handled = False
+            if method == 'ToogleSpooler':
+                self._manager.toogleSpooler()
+                handled = True
+            elif method == 'Close':
+                self._manager.closeSpooler()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+
 
     def getSupportedMethodNames(self):
         return ('ToogleSpooler',

@@ -69,8 +69,8 @@ class MailModel(unohelper.Base):
     def getDocument(self, url=None):
         raise NotImplementedError('Need to be implemented!')
 
-    def resolveString(self, resource):
-        return self._stringResource.resolveString(resource)
+    def isDisposed(self):
+        return self._disposed
 
     def getDocumentSubject(self, document):
         return document.DocumentProperties.Subject
@@ -108,13 +108,10 @@ class MailModel(unohelper.Base):
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
-    def getMessageLabel(self, document):
-        resource = self._getMessageResource()
-        label = self.resolveString(resource) % document.Title
-        print("MailModel.getMessageLabel() %s - %s" % (label, document.Title))
-        return label
-
 # MailModel setter methods
+    def dispose(self):
+        self._disposed = True
+
     def setUrl(self, url):
         raise NotImplementedError('Need to be implemented!')
 
@@ -123,41 +120,36 @@ class MailModel(unohelper.Base):
 
 # MailModel StringRessoure methods
     def getFilePickerTitle(self):
-        resource = self._getFilePickerTitleResource()
-        title = self.resolveString(resource)
+        resource = self._resources.get('PickerTitle')
+        title = self._resolver.resolveString(resource)
         return title
 
+    def getDocumentMessage(self, document):
+        resource = self._resources.get('Document')
+        label = self._resolver.resolveString(resource) % document.Title
+        return label
+
     def getDocumentUserProperty(self, document, name):
-        resource = self._getPropertyResource(name)
+        resource = self._resources.get('Property') % name
         state = self._getDocumentUserProperty(document, resource)
         return state
 
     def getDocumentAttachemnts(self, document, name):
-        resource = self._getPropertyResource(name)
+        resource = self._resources.get('Property') % name
         attachments = self._getDocumentAttachments(document, resource)
         return attachments
 
     def setDocumentUserProperty(self, document, name, value):
-        resource = self._getPropertyResource(name)
+        resource = self._resources.get('Property') % name
         self._setDocumentUserProperty(document, resource, value)
 
     def setDocumentAttachments(self, document, name, value):
-        resource = self._getPropertyResource(name)
+        resource = self._resources.get('Property') % name
         self._setDocumentAttachments(document, resource, value)
-
-# MailModel StringRessoure private methods
-    def _getFilePickerTitleResource(self):
-        return 'Mail.FilePicker.Title'
-
-    def _getPropertyResource(self, name):
-        return 'Mail.Document.Property.%s' % name
-
-    def _getMessageResource(self):
-        return 'MailWindow.Label8.Label.1'
 
 # MailModel private getter methods
     def _getDocumentUserProperty(self, document, resource, default=True):
-        name = self.resolveString(resource)
+        name = self._resolver.resolveString(resource)
         properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(name):
             value = properties.getPropertyValue(name)
@@ -233,7 +225,7 @@ class MailModel(unohelper.Base):
         self._setDocumentUserProperty(document, resource, value)
 
     def _setDocumentUserProperty(self, document, resource, value):
-        name = self.resolveString(resource)
+        name = self._resolver.resolveString(resource)
         properties = document.DocumentProperties.UserDefinedProperties
         if properties.PropertySetInfo.hasPropertyByName(name):
             if value is None:

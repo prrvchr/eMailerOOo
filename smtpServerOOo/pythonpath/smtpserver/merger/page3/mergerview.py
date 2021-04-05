@@ -36,8 +36,9 @@ class MergerView(MailView):
         return self._window
 
 # MergerView setter methods
-    def setMergerRecipient(self, recipients):
+    def setMergerRecipient(self, recipients, message):
         control = self._getMergerRecipients()
         control.Model.StringItemList = recipients
         if len(recipients) > 0:
             control.selectItemPos(0, True)
+        self._getMergerMessage().Text = message

@@ -42,6 +42,7 @@ from .unotool import getDialog
 from .unotool import getDialogUrl
 from .unotool import getExceptionMessage
 from .unotool import getFileSequence
+from .unotool import getFileUrl
 from .unotool import getInteractionHandler
 from .unotool import getInterfaceTypes
 from .unotool import getNamedValue

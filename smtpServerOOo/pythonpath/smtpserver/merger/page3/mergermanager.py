@@ -84,14 +84,14 @@ class MergerManager(MailManager,
         return self._canAdvance()
 
 # MergerManager setter methods
-    def initRecipients(self, recipients):
+    def initRecipients(self, recipients, message):
         print("MergerManager.initRecipient()")
-        self._view.setMergerRecipient(recipients)
+        self._view.setMergerRecipient(recipients, message)
 
     def changeRecipient(self):
-        recipients = self._model.getRecipients()
+        recipients, message = self._model.getRecipients()
         print("MergerManager.changeRecipient()")
-        self._view.setMergerRecipient(recipients)
+        self._view.setMergerRecipient(recipients, message)
 
     def sendDocument(self):
         subject, attachments = self._getSavedDocumentProperty()

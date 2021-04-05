@@ -82,7 +82,6 @@ class MergerModel(MailModel):
     def __init__(self, ctx, datasource):
         self._ctx = ctx
         self._datasource = datasource
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
         self._configuration = getConfiguration(ctx, g_identifier, True)
         self._document = getDesktop(ctx).CurrentComponent
         #mri = createService(self._ctx, 'mytools.Mri')
@@ -105,11 +104,25 @@ class MergerModel(MailModel):
         self._query = None
         self._statement = None
         self._row = 0
+        self._disposed = False
         self._similar = False
         self._filtered = False
         self._indexed = False
         self._selected = False
+        #self._commands = self._getCommands()
         self._lock = Condition()
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'Step': 'MergerPage%s.Step',
+                           'Title': 'MergerPage%s.Title',
+                           'TabTitle': 'MergerTab%s.Title',
+                           'TabTip': 'MergerTab%s.Tab.ToolTip',
+                           'Email': 'MergerPage1.Label11.Label.%s',
+                           'Index': 'MergerPage1.Label12.Label.%s',
+                           'Mailing': 'MergerTab2.Label1.Label',
+                           'Recipient': 'MailWindow.Label4.Label',
+                           'PickerTitle': 'Mail.FilePicker.Title',
+                           'Property': 'Mail.Document.Property.%s',
+                           'Document': 'MailWindow.Label8.Label.1'}
 
     @property
     def Connection(self):
@@ -157,19 +170,19 @@ class MergerModel(MailModel):
             self._saveColumnWidth(self._column2, self._width2, self._query)
         self._query = query
         composer = self._getQueryComposer()
-        self._recipient.Command = composer.getQuery()
-        self._initColumn2()
-        self._selected = True
+        #command = self._getRecipientCommand(composer)
+        #self._recipient.Command = command
+        #self._initColumn2()
         indexes = self._getIndexes(composer)
+        self._selected = True
         return indexes
 
     def addQuery(self, table, query):
         composers = self._getComposers()
         if query not in composers:
-            composer = self._createComposer()
-            name = self._getComposerName(table)
-            command = getSqlQuery(self._ctx, 'getComposerCommand', name)
-            composer.setQuery(command)
+            #name = self._getComposerName(table)
+            command = getSqlQuery(self._ctx, 'getComposerCommand', table)
+            composer = self._createComposer(command)
             if self._similar:
                 indexes = self._getComposerIndexes(composers)
                 self._setIndexes(composer, indexes)
@@ -235,7 +248,8 @@ class MergerModel(MailModel):
             self._setComposerIndexes(indexes)
         else:
             self._setIndexes(composer, indexes)
-        self._recipient.Command = composer.getQuery()
+        #command = self._getRecipientCommand(composer)
+        #self._recipient.Command = command
         self._indexed = True
         return indexes
 
@@ -248,7 +262,8 @@ class MergerModel(MailModel):
             self._setComposerIndexes(indexes)
         else:
             self._setIndexes(composer, indexes)
-        self._recipient.Command = composer.getQuery()
+        #command = self._getRecipientCommand(composer)
+        #self._recipient.Command = command
         self._indexed = True
         return indexes
 
@@ -273,36 +288,51 @@ class MergerModel(MailModel):
             column = self._column2.getColumnModel(self._recipient, widths, titles, width, factor)
         return data, column
 
-    def initRowSet(self, address, recipient):
+    def initRowSet(self, address, recipient, initRecipient):
         self._filtered = self._indexed = self._selected = False
         self._address.addRowSetListener(address)
         self._recipient.addRowSetListener(recipient)
-        self.executeRecipient()
-        columns, orders = self._initRecipient()
-        return columns, orders
+        self.initRecipient(initRecipient)
 
-    def initRecipient(self):
-        columns, orders = self._initRecipient()
-        return columns, orders
+    def initRecipient(self, *args):
+        Thread(target=self._initRecipient, args=args).start()
 
-    def executeRecipient(self):
-        Thread(target=self._executeRecipient).start()
+    def _initRecipient(self, initRecipient):
+        composer = self._getQueryComposer()
+        command = self._getRecipientCommand(composer)
+        self._recipient.Command = command
+        self._executeRecipient()
+        self._initColumn2()
+        columns, orders = self._getRecipientColumnsOrders()
+        initRecipient(columns, orders)
 
-    def isFiltered(self, clear=False):
+    def initRecipientGrid(self, *args):
+        Thread(target=self._initRecipientGrid, args=args).start()
+
+    def updateRecipient(self):
+        Thread(target=self._updateRecipient).start()
+
+    def _updateRecipient(self):
+        composer = self._getQueryComposer()
+        command = self._getRecipientCommand(composer)
+        self._recipient.Command = command
+        self._executeRecipient()
+
+    def isFiltered(self):
         filtered = self._filtered
-        if clear:
-            self._filtered = False
+        self._filtered = False
         return filtered
 
-    def isIndexed(self, clear=False):
+    def isIndexed(self):
         indexed = self._indexed
-        if clear:
-            self._indexed = False
+        self._indexed = False
         return indexed
 
     def isSelected(self):
         selected = self._selected
+        print("MergerModel.isSelected() 1 %s" % selected)
         self._selected = False
+        print("MergerModel.isSelected() 2 %s" % selected)
         return selected
 
     def setAddressTable(self, table):
@@ -313,13 +343,13 @@ class MergerModel(MailModel):
         name = self._getComposerName(table)
         composer = self._getTableComposer(name, table)
         command = composer.getQuery()
-        self.setRowSetCommand(self._address, command)
+        self.setAddressCommand(command)
         self._initColumn1()
         columns, orders = self._getComposerColumnsOrders(composer)
         return columns, orders
 
-    def setRowSetCommand(self, *args):
-        Thread(target=self._setRowSetCommand, args=args).start()
+    def setAddressCommand(self, *args):
+        Thread(target=self._setAddressCommand, args=args).start()
 
     def setAddressColumn(self, *args):
         Thread(target=self._setAddressColumn, args=args).start()
@@ -350,6 +380,12 @@ class MergerModel(MailModel):
             self._row = row
             Thread(target=self._setDocumentRecord).start()
 
+    def getMailingMessage(self):
+        composer = self._getQueryComposer()
+        table = composer.getTables().getByIndex(0).Name
+        message = self._getMailingMessage(table)
+        return message
+
 # Procedures called by WizardPage3
     def getUrl(self):
         return self._document.URL
@@ -370,32 +406,38 @@ class MergerModel(MailModel):
         Thread(target=self._initView, args=args).start()
 
     def getRecipients(self):
-        table, filter = self._getComposerTable()
-        emails = self._getComposerEmails()
+        composer = self._getQueryComposer()
+        table = composer.getTables().getByIndex(0).Name
+        emails, subquery = self._getComposerInfos(table)
         columns = getSqlQuery(self._ctx, 'getComposerColumns', emails)
-        format = (columns, table, filter)
+        filter = composer.getFilter()
+        format = (columns, subquery, filter)
         query = getSqlQuery(self._ctx, 'getComposerQuery', format)
         print("MergerModel.getRecipients() %s" % query)
         result = self._statement.executeQuery(query)
         recipients = getSequenceFromResult(result)
         print("MergerModel.getRecipients() %s" % (recipients, ))
-        return recipients
+        total = len(recipients)
+        message = self._getRecipientMessage(total)
+        return recipients, message
 
-    def _getComposerTable(self):
-        composer = self._getQueryComposer()
-        table = composer.getTables().getByIndex(0).Name
-        filter = composer.getFilter()
-        return table, filter
-
-    def _getComposerEmails(self):
-        name = self._getComposerName(self._table)
-        composer = self._getTableComposer(name, self._table)
+    def _getComposerInfos(self, table):
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
         emails = self._getEmails(composer)
-        return emails
+        subquery =  self._getComposerSubQuery(table, composer)
+        return emails, subquery
 
 # Private procedures called by WizardPage2
-    def _initRecipient(self):
+    def _initRecipientGrid(self, initRecipient):
+        self._initColumn2()
+        columns, orders = self._getRecipientColumnsOrders()
+        initRecipient(columns, orders)
+
+    def _getRecipientColumnsOrders(self):
         composer = self._getQueryComposer()
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(composer)
         columns, orders = self._getComposerColumnsOrders(composer)
         return columns, orders
 
@@ -445,7 +487,7 @@ class MergerModel(MailModel):
         self._setComposerOrder(composer, orders, ascending)
         command = composer.getQuery()
         self._setQueryCommand(name, command)
-        self._setRowSetCommand(self._address, command)
+        self._setAddressCommand(command)
 
     def _setRecipientColumn(self, columns, reset):
         if reset:
@@ -456,8 +498,8 @@ class MergerModel(MailModel):
     def _setRecipientOrder(self, orders, ascending):
         composer = self._getQueryComposer()
         self._setComposerOrder(composer, orders, ascending)
-        command = composer.getQuery()
-        self._setRowSetCommand(self._recipient, command)
+        command = self._getRecipientCommand(composer)
+        self._setRecipientCommand(command)
 
     def _setComposerOrder(self, composer, orders, ascending):
         olds, news = self._getComposerOrder(composer, orders)
@@ -483,15 +525,15 @@ class MergerModel(MailModel):
         composer = self._getQueryComposer()
         filters = self._getRowSetFilters(self._address, composer, rows, True)
         composer.setStructuredFilter(filters)
-        command = composer.getQuery()
-        self._setRowSetCommand(self._recipient, command)
+        command = self._getRecipientCommand(composer)
+        self._setRecipientCommand(command)
 
     def _removeItem(self, rows):
         composer = self._getQueryComposer()
         filters = self._getRowSetFilters(self._recipient, composer, rows, False)
         composer.setStructuredFilter(filters)
-        command = composer.getQuery()
-        self._setRowSetCommand(self._recipient, command)
+        command = self._getRecipientCommand(composer)
+        self._setRecipientCommand(command)
 
     def _getRowSetFilters(self, rowset, composer, rows, add):
         indexes = self._getIndexes(composer)
@@ -575,50 +617,39 @@ class MergerModel(MailModel):
         return descriptor
 
 # MergerModel StringRessoure methods
-    def getPageStep(self, id):
-        resource = self._getPageStep(id)
-        step = self.resolveString(resource)
+    def getPageStep(self, pageid):
+        resource = self._resources.get('Step') % pageid
+        step = self._resolver.resolveString(resource)
         return step
 
-    def getPageTitle(self, id):
-        resource = self._getPageTitle(id)
-        title = self.resolveString(resource)
+    def getPageTitle(self, pageid):
+        resource = self._resources.get('Title') % pageid
+        title = self._resolver.resolveString(resource)
         return title
 
-    def getTabTitle(self, id):
-        resource = self._getTabTitleResource(id)
-        return self.resolveString(resource)
+    def getTabTitle(self, tab):
+        resource = self._resources.get('TabTitle') % tab
+        return self._resolver.resolveString(resource)
 
-    def getTabTip(self, id):
-        resource = self._getTabTipResource(id)
-        return self.resolveString(resource)
+    def getTabTip(self, tab):
+        resource = self._resources.get('TabTip') % tab
+        return self._resolver.resolveString(resource)
 
-    def getEmailLabel(self):
-        resource = self._getEmailResource()
-        return self.resolveString(resource)
+    def _getEmailLabel(self):
+        resource = self._resources.get('Email') % int(self._similar)
+        return self._resolver.resolveString(resource)
 
-    def getIndexLabel(self):
-        resource = self._getIndexResource()
-        return self.resolveString(resource)
+    def _getIndexLabel(self):
+        resource = self._resources.get('Index') % int(self._similar)
+        return self._resolver.resolveString(resource)
 
-# MergerModel StringRessoure private methods
-    def _getPageStep(self, id):
-        return 'MergerPage%s.Step' % id
+    def _getRecipientMessage(self, total):
+        resource = self._resources.get('Recipient')
+        return self._resolver.resolveString(resource) % total
 
-    def _getPageTitle(self, pageid):
-        return 'MergerPage%s.Title' % pageid
-
-    def _getTabTitleResource(self, id):
-        return 'MergerTab%s.Title' % id
-
-    def _getTabTipResource(self, id):
-        return 'MergerTab%s.Tab.ToolTip' % id
-
-    def _getEmailResource(self):
-        return 'MergerPage1.Label11.Label.%s' % int(self._similar)
-
-    def _getIndexResource(self):
-        return 'MergerPage1.Label12.Label.%s' % int(self._similar)
+    def _getMailingMessage(self, table):
+        resource = self._resources.get('Mailing')
+        return self._resolver.resolveString(resource) % (self._query, table)
 
 # Procedures called internally
     def _getPath(self):
@@ -635,13 +666,39 @@ class MergerModel(MailModel):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
         rowset.CommandType = command
-        rowset.FetchSize = fetchsize
+        #rowset.FetchSize = fetchsize
+        print("MergerModel._getRowSet() FetchSize = %s" % rowset.FetchSize)
         return rowset
 
-    def _setRowSetCommand(self, rowset, command):
-        print("MergerModel._setRowSetCommand() %s" % command)
-        rowset.Command = command
-        rowset.execute()
+    def _setAddressCommand(self, command):
+        print("MergerModel._setAddressCommand() %s" % command)
+        self._address.Command = command
+        self._address.execute()
+
+    def _setRecipientCommand(self, command):
+        print("MergerModel._setRecipientCommand() %s" % command)
+        self._recipient.Command = command
+        self._executeRecipient()
+
+    def _getRecipientCommand(self, composer):
+        table = composer.getTables().getByIndex(0).Name
+        query = '"%s"' % table
+        subquery = self._getSubQueryCommand(table)
+        command = composer.getQuery().replace(query, subquery)
+        print("MergerModel._getRecipientCommand() %s" % command)
+        return command
+
+    def _getSubQueryCommand(self, table):
+        name = self._getComposerName(table)
+        composer = self._getTableComposer(name, table)
+        command = self._getComposerSubQuery(table, composer)
+        return command
+
+    def _getComposerSubQuery(self, table, composer):
+        filter = composer.getFilter()
+        format = (table, filter)
+        command = getSqlQuery(self._ctx, 'getComposerSubQuery', format)
+        return command
 
     def _executeRecipient(self):
         print("MergerModel._executeRecipient() %s" % self._recipient.Command)
@@ -680,13 +737,14 @@ class MergerModel(MailModel):
                 progress(40)
                 self._addressbook = addressbook
                 self._statement = connection.createStatement()
-                #mri = createService(self._ctx, 'mytools.Mri')
-                #mri.inspect(connection)
                 progress(50)
                 self._setTablesInfos()
                 progress(60)
                 self._address.ActiveConnection = connection
+                #mri = createService(self._ctx, 'mytools.Mri')
+                #mri.inspect(self._recipient)
                 self._recipient.ActiveConnection = connection
+                #self._recipient.DataSourceName = addressbook
                 progress(70)
                 self._queries = database.getQueryDefinitions()
                 if addressbook in self._composers:
@@ -697,8 +755,8 @@ class MergerModel(MailModel):
                 progress(80)
                 queries = self._getQueryNames(composers)
                 progress(90)
-                label1 = self.getEmailLabel()
-                label2 = self.getIndexLabel()
+                label1 = self._getEmailLabel()
+                label2 = self._getIndexLabel()
                 step = 3
         progress(100)
         setAddressBook(step, queries, self._tables, label1, label2, msg)
@@ -730,11 +788,8 @@ class MergerModel(MailModel):
         if name in composers:
             composer = composers[name]
         else:
-            command = getSqlQuery(self._ctx, 'getComposerCommand', table)
-            self._setQueryCommand(name, command)
-            composer = self._createComposer()
-            #command = getSqlQuery(self._ctx, 'getComposerCommand', name)
-            composer.setQuery(command)
+            command = self._getQueryCommand(name, table)
+            composer = self._createComposer(command)
             composers[name] = composer
         return composer
 
@@ -749,9 +804,10 @@ class MergerModel(MailModel):
         name = '%s%s' % (self._addressbook, table)
         return name
 
-    def _createComposer(self):
+    def _createComposer(self, command):
         service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         composer = self.Connection.createInstance(service)
+        composer.setQuery(command)
         return composer
 
     def _getQueryComposer(self):
@@ -790,9 +846,7 @@ class MergerModel(MailModel):
         composers = {}
         for name in self._queries.getElementNames():
             query = self._queries.getByName(name)
-            command = query.Command
-            composer = self._createComposer()
-            composer.setQuery(command)
+            composer = self._createComposer(query.Command)
             composers[name] = composer
         return composers
 
@@ -804,7 +858,22 @@ class MergerModel(MailModel):
             service = 'com.sun.star.sdb.QueryDefinition'
             query = createService(self._ctx, service)
             self._queries.insertByName(name, query)
+            print("MergerModel._setQueryCommand() 2 %s - %s" % (name, command))
         query.Command = command
+
+    def _getQueryCommand(self, name, table):
+        print("MergerModel._getQueryCommand() 1 %s - %s" % (name, table))
+        if self._queries.hasByName(name):
+            query = self._queries.getByName(name)
+            command = query.Command
+        else:
+            #service = 'com.sun.star.sdb.QueryDefinition'
+            #query = createService(self._ctx, service)
+            command = getSqlQuery(self._ctx, 'getComposerCommand', table)
+            #self._queries.insertByName(name, query)
+            #self.Connection.getParent().DatabaseDocument.store()
+        print("MergerModel._getQueryCommand() 2 %s - %s - %s" % (name, table, command))
+        return command
 
     def _getQueryNames(self, composers):
         names = self._getComposerNames()
@@ -906,8 +975,8 @@ class MergerModel(MailModel):
         self._address.addRowSetListener(handler)
         self._recipient.addRowSetListener(handler)
         initView(self._document)
-        recipients = self.getRecipients()
-        initRecipient(recipients)
+        recipients, message = self.getRecipients()
+        initRecipient(recipients, message)
 
 
 

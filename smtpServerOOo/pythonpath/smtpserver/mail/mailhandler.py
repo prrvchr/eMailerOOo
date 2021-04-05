@@ -36,6 +36,7 @@ from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.awt.Key import RETURN
 
 from smtpserver import executeDispatch
+from smtpserver import getPropertyValueSet
 
 import traceback
 
@@ -58,7 +59,8 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'AddSender':
                 listener = DispatchListener(self._manager)
-                executeDispatch(self._ctx, 'smtp:ispdb', (), listener)
+                arguments = getPropertyValueSet({'Close': False})
+                executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
                 handled = True
             elif method == 'RemoveSender':
                 self._manager.removeSender()
@@ -146,8 +148,12 @@ class DispatchListener(unohelper.Base,
 
     # XDispatchResultListener
     def dispatchFinished(self, notification):
-        if notification.State == SUCCESS:
-            self._manager.addSender(notification.Result)
+        try:
+            if notification.State == SUCCESS:
+                self._manager.addSender(notification.Result)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def disposing(self, source):
         pass

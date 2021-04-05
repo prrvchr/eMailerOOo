@@ -98,16 +98,13 @@ class SpoolerView(unohelper.Base):
     def endDialog(self):
         self._dialog.endDialog(OK)
 
-    def isDisposed(self):
-        return self._dialog is None
-
     def dispose(self):
         self._dialog.dispose()
-        self._tab1.dispose()
-        self._tab2.dispose()
-        self._dialog = None
-        self._tab1 = None
-        self._tab2 = None
+        #self._tab1.dispose()
+        #self._tab2.dispose()
+        #self._dialog = None
+        #self._tab1 = None
+        #self._tab2 = None
 
     def showGridColumnHeader(self, enabled):
         self._getGrid().Model.ShowColumnHeader = enabled

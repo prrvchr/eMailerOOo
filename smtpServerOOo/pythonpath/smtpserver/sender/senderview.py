@@ -42,15 +42,11 @@ import traceback
 
 
 class SenderView(unohelper.Base):
-    def __init__(self, ctx):
-        self._ctx = ctx
-        self._dialog = None
+    def __init__(self, ctx, manager, parent):
+        handler = DialogHandler(manager)
+        self._dialog = getDialog(ctx, g_extension, 'SenderDialog', handler, parent)
 
 # SenderView setter methods
-    def setDialog(self, manager, parent):
-        handler = DialogHandler(manager)
-        self._dialog = getDialog(self._ctx, g_extension, 'SenderDialog', handler, parent)
-
     def setTitle(self, title):
         self._dialog.setTitle(title)
 
@@ -62,33 +58,13 @@ class SenderView(unohelper.Base):
 
     def dispose(self):
         self._dialog.dispose()
-        self._dialog = None
 
 # SenderView getter methods
-    def getDocumentUrl(self, title, filters, path):
-        url = None
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        filepicker = createService(self._ctx, service)
-        filepicker.setTitle(title)
-        filepicker.setDisplayDirectory(path)
-        for name, filter in filters.items():
-            filepicker.appendFilter(name, filter)
-            if not filepicker.getCurrentFilter():
-                filepicker.setCurrentFilter(name)
-        if filepicker.execute() == OK:
-            url = filepicker.getFiles()[0]
-            path = filepicker.getDisplayDirectory()
-        filepicker.dispose()
-        return url, path
-
     def getParent(self):
         return self._dialog.getPeer()
 
     def execute(self):
         return self._dialog.execute()
-
-    def isDisposed(self):
-        return self._dialog is None
 
 # SenderView private control methods
     def _getButtonSend(self):

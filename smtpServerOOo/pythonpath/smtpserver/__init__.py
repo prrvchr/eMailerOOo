@@ -48,11 +48,13 @@ from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import executeShell
 from .unotool import getConfiguration
+from .unotool import getConnectionMode
 from .unotool import getContainerWindow
 from .unotool import getDesktop
 from .unotool import getDialog
 from .unotool import getExceptionMessage
 from .unotool import getFileSequence
+from .unotool import getFileUrl
 from .unotool import getInteractionHandler
 from .unotool import getPathSettings
 from .unotool import getPropertyValue

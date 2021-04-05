@@ -36,26 +36,23 @@ from com.sun.star.datatransfer import XTransferable
 from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail.MailServiceType import SMTP
+
 from com.sun.star.ucb.ConnectionMode import OFFLINE
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .unotool import createService
-from .unotool import getConnectionMode
-from .unotool import getUrl
-
-from .dbtool import getDataSource
+from smtpserver import createService
+from smtpserver import getConnectionMode
+from smtpserver import getMessage
+from smtpserver import getUrl
+from smtpserver import logMessage
+from smtpserver import setDebugMode
 
 from .database import DataBase
+
 from .dataparser import DataParser
 
-from .configuration import g_identifier
-
-from .logger import setDebugMode
-from .logger import logMessage
-from .logger import getMessage
-
-from multiprocessing import Process
 from threading import Thread
 import traceback
 import time
@@ -92,7 +89,7 @@ class DataSource(unohelper.Base,
     def notifyClosing(self, source):
         pass
 
-# Procedures called by the Server
+# Procedures called by Ispdb
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
@@ -132,7 +129,7 @@ class DataSource(unohelper.Base,
         id = self.DataBase.insertJob(sender, subject, document, recipient, attachment, separator)
         return id
 
-# Procedures called internally by the Server
+# Procedures called internally by Ispdb
     def _getSmtpConfig(self, email, url, progress, updateModel):
         progress(5)
         url = getUrl(self._ctx, url)
@@ -191,7 +188,7 @@ class DataSource(unohelper.Base,
         setDebugMode(self._ctx, False)
         callback(step)
 
-    def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, callback):
+    def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, setStep):
         step = 3
         progress(5)
         service = 'com.sun.star.mail.MailServiceProvider2'
@@ -219,7 +216,7 @@ class DataSource(unohelper.Base,
                 server.disconnect()
         progress(100)
         setDebugMode(self._ctx, False)
-        callback(step)
+        setStep(step)
 
 # Procedures called internally by the Mailer
     def _getSenders(self, callback):

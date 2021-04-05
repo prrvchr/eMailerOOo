@@ -71,7 +71,7 @@ class SpoolerManager(unohelper.Base):
 
     def initView(self, titles, orders):
         with self._lock:
-            if not self._view.isDisposed():
+            if not self._model.isDisposed():
                 # TODO: Attention: order is very important here
                 # TODO: to have fonctionnal columns in the GridColumnModel
                 self._view.initGrid(self, titles)
@@ -87,7 +87,7 @@ class SpoolerManager(unohelper.Base):
 
     def dispose(self):
         with self._lock:
-            self._model.DataSource.dispose()
+            self._model.dispose()
             self._view.dispose()
 
     def setGridColumnModel(self, titles, reset):
@@ -98,7 +98,8 @@ class SpoolerManager(unohelper.Base):
         self._model.setRowSetOrder(orders, ascending)
 
     def addDocument(self):
-        arguments = getPropertyValueSet({'Path': self._model.Path})
+        arguments = getPropertyValueSet({'Path': self._model.Path,
+                                         'Close': False})
         listener = DispatchListener(self)
         executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
 
@@ -120,8 +121,7 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
 
     def closeSpooler(self):
-        self._model.saveGridColumn()
-        self._model.saveQuery()
+        self._model.save()
         self._view.endDialog()
 
 # SpoolerManager private methods

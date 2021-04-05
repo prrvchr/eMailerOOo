@@ -94,8 +94,8 @@ class MergerManager(unohelper.Base,
 
     def commitPage(self, reason):
         try:
-            #if self._model.isFiltered():
-            #    self._model.saveQueries()
+            if self._model.isUpdated():
+                self._model.updateRecipient()
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()

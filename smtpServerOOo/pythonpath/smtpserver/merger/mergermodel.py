@@ -107,8 +107,8 @@ class MergerModel(MailModel):
         self._disposed = False
         self._similar = False
         self._filtered = False
-        self._indexed = False
-        self._selected = False
+        self._changed = False
+        self._updated = False
         #self._commands = self._getCommands()
         self._lock = Condition()
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
@@ -174,7 +174,7 @@ class MergerModel(MailModel):
         #self._recipient.Command = command
         #self._initColumn2()
         indexes = self._getIndexes(composer)
-        self._selected = True
+        self._setChanged()
         return indexes
 
     def addQuery(self, table, query):
@@ -235,7 +235,7 @@ class MergerModel(MailModel):
         else:
             self._setEmails(name, composer, emails)
         self._address.Command = composer.getQuery()
-        self._filtered = True
+        self._setFiltered()
         return emails
 
     # Index methods
@@ -250,7 +250,7 @@ class MergerModel(MailModel):
             self._setIndexes(composer, indexes)
         #command = self._getRecipientCommand(composer)
         #self._recipient.Command = command
-        self._indexed = True
+        self._setUpdated()
         return indexes
 
     def removeIndex(self, index):
@@ -264,7 +264,7 @@ class MergerModel(MailModel):
             self._setIndexes(composer, indexes)
         #command = self._getRecipientCommand(composer)
         #self._recipient.Command = command
-        self._indexed = True
+        self._setUpdated()
         return indexes
 
 # Procedures called by WizardPage2
@@ -289,7 +289,7 @@ class MergerModel(MailModel):
         return data, column
 
     def initRowSet(self, address, recipient, initRecipient):
-        self._filtered = self._indexed = self._selected = False
+        self._filtered = self._changed = False
         self._address.addRowSetListener(address)
         self._recipient.addRowSetListener(recipient)
         self.initRecipient(initRecipient)
@@ -318,22 +318,29 @@ class MergerModel(MailModel):
         self._recipient.Command = command
         self._executeRecipient()
 
+    def _setFiltered(self):
+        self._filtered = self._updated = True
+
+    def _setChanged(self):
+        self._changed = self._updated = True
+
+    def _setUpdated(self):
+        self._updated = True
+
     def isFiltered(self):
         filtered = self._filtered
         self._filtered = False
         return filtered
 
-    def isIndexed(self):
-        indexed = self._indexed
-        self._indexed = False
-        return indexed
+    def isChanged(self):
+        changed = self._changed
+        self._changed = False
+        return changed
 
-    def isSelected(self):
-        selected = self._selected
-        print("MergerModel.isSelected() 1 %s" % selected)
-        self._selected = False
-        print("MergerModel.isSelected() 2 %s" % selected)
-        return selected
+    def isUpdated(self):
+        updated = self._updated
+        self._updated = False
+        return updated
 
     def setAddressTable(self, table):
         # TODO: We do not save the grid columns for the first change of self._table
@@ -716,7 +723,7 @@ class MergerModel(MailModel):
             if self._query is not None:
                 self._saveColumnWidth(self._column2, self._width2, self._query)
         self._query = self._table = None
-        self._filtered = self._indexed = self._selected = False
+        self._filtered = self._changed = self._updated = False
         sleep(0.2)
         progress(20)
         database = self._getDatabase(addressbook)
@@ -880,7 +887,7 @@ class MergerModel(MailModel):
         queries = [name for name in composers if name not in names]
         return tuple(queries)
 
-    def saveQueries(self):
+    def saveQueries1(self):
         self.Connection.getParent().DatabaseDocument.store()
 
     # Table private methods

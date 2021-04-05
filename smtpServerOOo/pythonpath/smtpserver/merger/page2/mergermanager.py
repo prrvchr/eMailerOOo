@@ -88,15 +88,9 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        selected = self._model.isSelected()
-        filtered = self._model.isFiltered()
-        indexed = self._model.isIndexed()
-        print("MergerManager.activatePage() %s %s %s" % (selected, filtered, indexed))
-        if any((selected, filtered, indexed)):
-            self._model.updateRecipient()
-        if selected:
+        if self._model.isChanged():
             self._model.initRecipientGrid(self.initRecipient)
-        if filtered:
+        if self._model.isFiltered():
             tables = self._model.getFilteredTables()
             # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
             self._disableHandler()

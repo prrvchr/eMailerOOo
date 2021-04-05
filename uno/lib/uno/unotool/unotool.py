@@ -30,14 +30,17 @@
 import uno
 
 from com.sun.star.lang import WrappedTargetRuntimeException
+
 from com.sun.star.connection import NoConnectException
+
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.ucb.ConnectionMode import ONLINE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
+from six import binary_type, string_types
 import datetime
 import binascii
-from six import binary_type, string_types
 import traceback
 
 
@@ -217,6 +220,31 @@ def getContainerWindow(ctx, parent, handler, library, xdl):
     except WrappedTargetRuntimeException as e:
         print("unotool.getContainerWindow() ERROR: %s - %s" % (e, traceback.print_exc()))
     return window
+
+def getFileUrl(ctx, title, path, filters=(), multi=False):
+    url = None
+    service = 'com.sun.star.ui.dialogs.FilePicker'
+    filepicker = createService(ctx, service)
+    filepicker.setTitle(title)
+    filepicker.setDisplayDirectory(path)
+    for name, filter in filters:
+        filepicker.appendFilter(name, filter)
+        if not filepicker.getCurrentFilter():
+            filepicker.setCurrentFilter(name)
+    filepicker.setMultiSelectionMode(multi)
+    if filepicker.execute() == OK:
+        url = filepicker.getFiles()[0]
+        if multi:
+            try:
+                urls = filepicker.getSelectedFiles()
+            except:
+                urls = filepicker.getFiles()
+                if len(urls) > 1:
+                    urls = [url + u for u in urls[1:]]
+            url = urls
+        path = filepicker.getDisplayDirectory()
+    filepicker.dispose()
+    return url, path
 
 def getDialogUrl(library, xdl):
     return 'vnd.sun.star.script:%s.%s?location=application' % (library, xdl)

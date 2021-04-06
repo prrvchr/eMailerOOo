@@ -82,4 +82,3 @@ class ItemHandler(unohelper.Base,
 
     def disposing(self, event):
         pass
-

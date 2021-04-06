@@ -41,11 +41,15 @@ class DialogHandler(unohelper.Base,
 
     # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'Send':
-            self._manager.sendDocument()
-            handled = True
-        return handled
+        try:
+            handled = False
+            if method == 'Send':
+                self._manager.sendDocument()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def getSupportedMethodNames(self):
         return ('Send', )

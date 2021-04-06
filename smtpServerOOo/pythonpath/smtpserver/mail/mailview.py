@@ -48,6 +48,9 @@ class MailView(unohelper.Base):
     def getWindow(self):
         raise NotImplementedError('Need to be implemented if needed!')
 
+    def isRecipientsValid(self):
+        raise NotImplementedError('Need to be implemented!')
+
     def getSender(self):
         return self._getSenders().getSelectedItem()
 
@@ -74,9 +77,6 @@ class MailView(unohelper.Base):
 
     def isSenderValid(self):
         return self._getSenders().getSelectedItemPos() != -1
-
-    def isRecipientsValid(self):
-        return self._getMailerRecipients().getItemCount() > 0
 
     def isSubjectValid(self):
         return self._getSubject().getText().strip() != ''

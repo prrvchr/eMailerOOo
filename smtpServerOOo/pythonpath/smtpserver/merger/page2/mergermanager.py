@@ -61,7 +61,7 @@ class MergerManager(unohelper.Base,
         self._view = MergerView(ctx, self, parent, tables)
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
-        self._model.initRowSet(address, recipient, self.initRecipient)
+        self._model.initRowSet(address, recipient, self.initTab2)
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
         self._view.setTable()
@@ -89,6 +89,7 @@ class MergerManager(unohelper.Base,
 
     def activatePage(self):
         if self._model.isChanged():
+            print("MergerManager.activatePage() query has changed")
             self._model.initRecipientGrid(self.initRecipient)
         if self._model.isFiltered():
             tables = self._model.getFilteredTables()
@@ -108,6 +109,17 @@ class MergerManager(unohelper.Base,
         columns, orders = self._model.setAddressTable(table)
         self._view.initAddress(columns, orders)
 
+    def recipientChanged(self, enabled):
+        self._model.recipientChanged()
+        self._view.enableRemoveAll(enabled)
+        message = self._model.getMailingMessage()
+        self._view.setMailingMessage(message)
+        self._wizard.updateTravelUI()
+
+    def addressChanged(self, enabled):
+        self._model.addressChanged()
+        self._view.enableAddAll(enabled)
+
     def enableAddAll(self, enabled):
         self._view.enableAddAll(enabled)
 
@@ -116,6 +128,10 @@ class MergerManager(unohelper.Base,
         message = self._model.getMailingMessage()
         self._view.setMailingMessage(message)
         self._wizard.updateTravelUI()
+
+    def initTab2(self, columns, orders, message):
+        self._view.initRecipient(columns, orders)
+        self._view.setMailingMessage(message)
 
     def initRecipient(self, columns, orders):
         self._view.initRecipient(columns, orders)

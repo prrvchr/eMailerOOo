@@ -82,9 +82,10 @@ class WindowHandler(unohelper.Base,
             elif method == 'EditQuery':
                 print("PageHandler.callHandlerMethod() EditQuery *************** %s" % enabled)
                 control = event.Source
-                query = control.getText().strip()
-                exist = query in control.getItems()
-                self._manager.editQuery(query, exist)
+                if control.Model.Enabled:
+                    query = control.getText().strip()
+                    exist = query in control.getItems()
+                    self._manager.editQuery(query, exist)
                 handled = True
             elif method == 'EnterQuery':
                 if event.KeyCode == RETURN:

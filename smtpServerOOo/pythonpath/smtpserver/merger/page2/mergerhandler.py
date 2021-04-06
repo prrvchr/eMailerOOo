@@ -200,7 +200,7 @@ class AddressHandler(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             enabled = event.Source.RowCount > 0
-            self._manager.enableAddAll(enabled)
+            self._manager.addressChanged(enabled)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -221,7 +221,7 @@ class RecipientHandler(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             enabled = event.Source.RowCount > 0
-            self._manager.enableRemoveAll(enabled)
+            self._manager.recipientChanged(enabled)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)

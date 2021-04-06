@@ -31,4 +31,6 @@ from smtpserver import MailView
 
 
 class MailerView(MailView):
-        pass
+
+    def isRecipientsValid(self):
+        return self._getMailerRecipients().getItemCount() > 0

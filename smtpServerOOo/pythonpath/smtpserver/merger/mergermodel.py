@@ -30,7 +30,7 @@
 import uno
 import unohelper
 
-from com.sun.star.sdbc import SQLException
+from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 
@@ -91,6 +91,8 @@ class MergerModel(MailModel):
         self._dbcontext = createService(ctx, service)
         self._address = self._getRowSet(COMMAND, g_fetchsize)
         self._recipient = self._getRowSet(COMMAND, g_fetchsize)
+        self._grid1 = GridModel()
+        self._grid2 = GridModel()
         self._column1 = ColumnModel(ctx)
         self._column2 = ColumnModel(ctx)
         self._width1 = self._getColumnsWidth('MergerGrid1Columns')
@@ -102,6 +104,7 @@ class MergerModel(MailModel):
         self._tables = ()
         self._table = None
         self._query = None
+        self._previous = None
         self._statement = None
         self._row = 0
         self._disposed = False
@@ -109,7 +112,6 @@ class MergerModel(MailModel):
         self._filtered = False
         self._changed = False
         self._updated = False
-        #self._commands = self._getCommands()
         self._lock = Condition()
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'MergerPage%s.Step',
@@ -165,16 +167,29 @@ class MergerModel(MailModel):
         return valid
 
     def setQuery(self, query):
-        # TODO: We do not save the grid columns for the first change of self._query
-        if self._query is not None:
-            self._saveColumnWidth(self._column2, self._width2, self._query)
+        if query != self._query:
+            self._setChanged()
+        self._previous = self._query
         self._query = query
-        composer = self._getQueryComposer()
+
+        # TODO: We do not save the grid columns for the first change of self._query
+        #if self._query is not None:
+        #    self._saveColumnWidth(self._column2, self._width2, self._query)
+        #self._query = query
+        #composer = self._getQueryComposer()
         #command = self._getRecipientCommand(composer)
         #self._recipient.Command = command
         #self._initColumn2()
-        indexes = self._getIndexes(composer)
-        self._setChanged()
+        #indexes = self._getIndexes(composer)
+        #self._setChanged()
+        #return indexes
+
+    def getQueryIndex(self, query):
+        indexes = ()
+        composers = self._getComposers()
+        if query in composers:
+            composer = composers[query]
+            indexes = self._getIndexes(composer)
         return indexes
 
     def addQuery(self, table, query):
@@ -205,7 +220,7 @@ class MergerModel(MailModel):
         else:
             self._setEmails(name, composer, emails)
         self._address.Command = composer.getQuery()
-        self._filtered = True
+        self._setFiltered()
         return emails
 
     def removeEmail(self, table, email):
@@ -219,7 +234,7 @@ class MergerModel(MailModel):
         else:
             self._setEmails(name, composer, emails)
         self._address.Command = composer.getQuery()
-        self._filtered = True
+        self._setFiltered()
         return emails
 
     def moveEmail(self, table, email, index):
@@ -239,8 +254,8 @@ class MergerModel(MailModel):
         return emails
 
     # Index methods
-    def addIndex(self, index):
-        composer = self._getQueryComposer()
+    def addIndex(self, query, index):
+        composer = self._getComposer(query)
         indexes = self._getIndexes(composer)
         if index not in indexes:
             indexes.append(index)
@@ -253,8 +268,8 @@ class MergerModel(MailModel):
         self._setUpdated()
         return indexes
 
-    def removeIndex(self, index):
-        composer = self._getQueryComposer()
+    def removeIndex(self, query, index):
+        composer = self._getComposer(query)
         indexes = self._getIndexes(composer)
         if index in indexes:
             indexes.remove(index)
@@ -278,45 +293,62 @@ class MergerModel(MailModel):
         # TODO: com.sun.star.awt.grid.GridColumnModel must be initialized 
         # TODO: before its assignment at com.sun.star.awt.grid.UnoControlGridModel !!!
         if tab == 1:
-            data = GridModel(self._address)
+            model = self._grid1
             table = self._getDefaultGridTable(tables)
             widths, titles = self._getGridColumns(self._width1, table)
             column = self._column1.getColumnModel(self._address, widths, titles, width, factor)
         elif tab == 2:
-            data = GridModel(self._recipient)
+            model = self._grid2
             widths, titles = self._getGridColumns(self._width2, self._query)
             column = self._column2.getColumnModel(self._recipient, widths, titles, width, factor)
-        return data, column
+        return model, column
 
-    def initRowSet(self, address, recipient, initRecipient):
+    def addressChanged(self):
+        self._grid1.setRowSetData(self._address)
+
+    def recipientChanged(self):
+        self._grid2.setRowSetData(self._recipient)
+
+    def initRowSet(self, address, recipient, initTab2):
         self._filtered = self._changed = False
         self._address.addRowSetListener(address)
         self._recipient.addRowSetListener(recipient)
-        self.initRecipient(initRecipient)
+        self.initTab2(initTab2)
 
-    def initRecipient(self, *args):
-        Thread(target=self._initRecipient, args=args).start()
+    def initTab2(self, *args):
+        Thread(target=self._initTab2, args=args).start()
 
-    def _initRecipient(self, initRecipient):
-        composer = self._getQueryComposer()
-        command = self._getRecipientCommand(composer)
-        self._recipient.Command = command
-        self._executeRecipient()
+    def _initTab2(self, initTab2):
+        #composer = self._getQueryComposer()
+        #command = self._getRecipientCommand(composer)
+        #self._recipient.Command = command
+        #self._executeRecipient()
+        self._grid2.setRowSetData(self._recipient)
         self._initColumn2()
         columns, orders = self._getRecipientColumnsOrders()
-        initRecipient(columns, orders)
-
-    def initRecipientGrid(self, *args):
-        Thread(target=self._initRecipientGrid, args=args).start()
+        message = self.getMailingMessage()
+        initTab2(columns, orders, message)
 
     def updateRecipient(self):
         Thread(target=self._updateRecipient).start()
 
     def _updateRecipient(self):
-        composer = self._getQueryComposer()
-        command = self._getRecipientCommand(composer)
-        self._recipient.Command = command
-        self._executeRecipient()
+        with self._lock:
+            composer = self._getQueryComposer()
+            command = self._getRecipientCommand(composer)
+            self._recipient.Command = command
+            self._executeRecipient()
+
+    def initRecipientGrid(self, *args):
+        Thread(target=self._initRecipientGrid, args=args).start()
+
+    def _initRecipientGrid(self, initRecipient):
+        with self._lock:
+            if self._previous is not None:
+                self._saveColumnWidth(self._column2, self._width2, self._previous)
+            self._initColumn2()
+            columns, orders = self._getRecipientColumnsOrders()
+            initRecipient(columns, orders)
 
     def _setFiltered(self):
         self._filtered = self._updated = True
@@ -436,11 +468,6 @@ class MergerModel(MailModel):
         return emails, subquery
 
 # Private procedures called by WizardPage2
-    def _initRecipientGrid(self, initRecipient):
-        self._initColumn2()
-        columns, orders = self._getRecipientColumnsOrders()
-        initRecipient(columns, orders)
-
     def _getRecipientColumnsOrders(self):
         composer = self._getQueryComposer()
         #mri = createService(self._ctx, 'mytools.Mri')
@@ -506,7 +533,8 @@ class MergerModel(MailModel):
         composer = self._getQueryComposer()
         self._setComposerOrder(composer, orders, ascending)
         command = self._getRecipientCommand(composer)
-        self._setRecipientCommand(command)
+        self._recipient.Command = command
+        self._recipient.execute()
 
     def _setComposerOrder(self, composer, orders, ascending):
         olds, news = self._getComposerOrder(composer, orders)
@@ -533,14 +561,16 @@ class MergerModel(MailModel):
         filters = self._getRowSetFilters(self._address, composer, rows, True)
         composer.setStructuredFilter(filters)
         command = self._getRecipientCommand(composer)
-        self._setRecipientCommand(command)
+        self._recipient.Command = command
+        self._recipient.execute()
 
     def _removeItem(self, rows):
         composer = self._getQueryComposer()
         filters = self._getRowSetFilters(self._recipient, composer, rows, False)
         composer.setStructuredFilter(filters)
         command = self._getRecipientCommand(composer)
-        self._setRecipientCommand(command)
+        self._recipient.Command = command
+        self._recipient.execute()
 
     def _getRowSetFilters(self, rowset, composer, rows, add):
         indexes = self._getIndexes(composer)
@@ -682,11 +712,6 @@ class MergerModel(MailModel):
         self._address.Command = command
         self._address.execute()
 
-    def _setRecipientCommand(self, command):
-        print("MergerModel._setRecipientCommand() %s" % command)
-        self._recipient.Command = command
-        self._executeRecipient()
-
     def _getRecipientCommand(self, composer):
         table = composer.getTables().getByIndex(0).Name
         query = '"%s"' % table
@@ -722,18 +747,18 @@ class MergerModel(MailModel):
                 self._saveColumnWidth(self._column1, self._width1, self._table)
             if self._query is not None:
                 self._saveColumnWidth(self._column2, self._width2, self._query)
-        self._query = self._table = None
+        self._previous = self._query = self._table = None
         self._filtered = self._changed = self._updated = False
         sleep(0.2)
         progress(20)
-        database = self._getDatabase(addressbook)
         try:
+            database = self._getDatabase(addressbook)
             if database.IsPasswordRequired:
                 handler = getInteractionHandler(self._ctx)
                 connection = database.connectWithCompletion(handler)
             else:
                 connection = database.getConnection('', '')
-        except SQLException as e:
+        except UnoException as e:
             msg = e.Message
         else:
             progress(30)
@@ -790,6 +815,11 @@ class MergerModel(MailModel):
     def _getComposers(self):
         return self._composers[self._addressbook]
 
+    def _getComposer(self, name):
+        composers = self._getComposers()
+        composer = composers[name]
+        return composer
+
     def _getTableComposer(self, name, table):
         composers = self._getComposers()
         if name in composers:
@@ -808,7 +838,7 @@ class MergerModel(MailModel):
         return names
 
     def _getComposerName(self, table):
-        name = '%s%s' % (self._addressbook, table)
+        name = '%s.%s' % (self._addressbook, table)
         return name
 
     def _createComposer(self, command):
@@ -965,6 +995,7 @@ class MergerModel(MailModel):
         # TODO: We do not reset the grid columns if ColumnModel is not yet assigned
         if self._column2.isInitialized():
             widths, titles = self._getGridColumns(self._width2, self._query)
+            print("MergerModel._initColumn2() %s - %s" % (self._query, widths))
             self._column2.initColumnModel(self._recipient, widths, titles)
 
     def _saveColumnWidth(self, column, widths, name):

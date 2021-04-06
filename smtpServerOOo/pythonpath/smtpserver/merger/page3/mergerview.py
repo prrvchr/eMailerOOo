@@ -35,6 +35,9 @@ class MergerView(MailView):
     def getWindow(self):
         return self._window
 
+    def isRecipientsValid(self):
+        return self._getMergerRecipients().getItemCount() > 0
+
 # MergerView setter methods
     def setMergerRecipient(self, recipients, message):
         control = self._getMergerRecipients()

@@ -94,7 +94,11 @@ class MergerManager(unohelper.Base,
 
     def commitPage(self, reason):
         try:
-            if self._model.isUpdated():
+            query = self._view.getQuery()
+            self._model.setQuery(query)
+            updated = self._model.isUpdated()
+            print("MergerManager.commitPage() %s" % updated)
+            if updated:
                 self._model.updateRecipient()
             return True
         except Exception as e:
@@ -166,15 +170,15 @@ class MergerManager(unohelper.Base,
 
     # Query setter methods
     def editQuery(self, query, exist):
-        enabled = self._model.validateQuery(query, exist)
-        indexes = self._model.setQuery(query) if exist else ()
+        indexes = self._model.getQueryIndex(query)
         self._setQuery(indexes, exist)
+        enabled = self._model.validateQuery(query, exist)
         self._view.enableAddQuery(enabled)
         self._view.enableAddIndex(exist)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):
-        indexes = self._model.setQuery(query)
+        indexes = self._model.getQueryIndex(query)
         self._setQuery(indexes, True)
         column = self._view.getColumn()
         enabled = column not in indexes
@@ -255,16 +259,18 @@ class MergerManager(unohelper.Base,
     def addIndex(self):
         self._view.enableAddIndex(False)
         self._view.enableRemoveIndex(False)
+        query = self._view.getQuery()
         index = self._view.getColumn()
-        indexes = self._model.addIndex(index)
+        indexes = self._model.addIndex(query, index)
         self._view.setIndexes(indexes)
         self._wizard.updateTravelUI()
 
     def removeIndex(self):
         self._view.enableRemoveIndex(False)
         self._view.enableAddIndex(False)
+        query = self._view.getQuery()
         index = self._view.getIndex()
-        indexes = self._model.removeIndex(index)
+        indexes = self._model.removeIndex(query, index)
         self._view.setIndexes(indexes)
         column = self._view.getColumn()
         if column not in indexes:

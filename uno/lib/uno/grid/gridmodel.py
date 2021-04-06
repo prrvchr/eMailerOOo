@@ -46,14 +46,15 @@ class GridModel(unohelper.Base,
                 XWeak,
                 XAdapter,
                 XMutableGridDataModel):
-    def __init__(self, rowset):
+    def __init__(self, rowset=None):
         self._events = []
         self._listeners = []
         self._resultset = None
         self.RowCount = 0
         self.ColumnCount = 0
-        handler = GridHandler(self)
-        rowset.addRowSetListener(handler)
+        if rowset is not None:
+            handler = GridHandler(self)
+            rowset.addRowSetListener(handler)
 
 # XWeak
     def queryAdapter(self):

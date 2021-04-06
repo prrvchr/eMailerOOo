@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
@@ -43,22 +42,29 @@ class DialogHandler(unohelper.Base,
 
 # XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'Help':
-            handled = True
-        elif method == 'Previous':
-            self._manager.travelPrevious()
-            handled = True
-        elif method == 'Next':
-            self._manager.travelNext()
-            handled = True
-        elif method == 'Finish':
-            self._manager.doFinish(dialog)
-            handled = True
-        return handled
+        try:
+            handled = False
+            if method == 'Help':
+                handled = True
+            elif method == 'Previous':
+                self._manager.travelPrevious()
+                handled = True
+            elif method == 'Next':
+                self._manager.travelNext()
+                handled = True
+            elif method == 'Finish':
+                self._manager.doFinish(dialog)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def getSupportedMethodNames(self):
-        return ('Help', 'Previous', 'Next', 'Finish')
+        return ('Help',
+                'Previous',
+                'Next',
+                'Finish')
 
 
 class ItemHandler(unohelper.Base,
@@ -68,7 +74,11 @@ class ItemHandler(unohelper.Base,
 
 # XItemListener
     def itemStateChanged(self, event):
-        self._manager.changeRoadmapStep(event.ItemId)
+        try:
+            self._manager.changeRoadmapStep(event.ItemId)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def disposing(self, event):
         pass

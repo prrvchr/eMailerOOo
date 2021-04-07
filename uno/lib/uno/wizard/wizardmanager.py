@@ -234,15 +234,18 @@ class WizardManager(unohelper.Base):
                 self._model.addPage(pageid, self._setPageWindow(window, page, name))
                 print("WizardManager._setPage() 5")
             self._model.setCurrentPageId(pageid)
+            print("WizardManager._setPage() 6")
             self._activatePage(pageid)
+            print("WizardManager._setPage() 7")
             # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
             self._model.updateRoadmap(self._getFirstPage())
+            print("WizardManager._setPage() 8")
             self._updateButton()
-            print("WizardManager._setPage() 6")
+            print("WizardManager._setPage() 9")
             self._model.setPageVisible(pageid, True)
-            print("WizardManager._setPage() 7")
+            print("WizardManager._setPage() 10")
         except Exception as e:
-            msg = "WizardManager._setPage() Error: %s - %s" % (e, traceback.print_exc())
+            msg = "WizardManager._setPage() Error: %s" % traceback.print_exc()
             print(msg)
 
     def _updateButton(self):

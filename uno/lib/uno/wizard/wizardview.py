@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from com.sun.star.ui.dialogs.WizardButton import NEXT
 from com.sun.star.ui.dialogs.WizardButton import PREVIOUS
 from com.sun.star.ui.dialogs.WizardButton import FINISH
@@ -46,28 +48,29 @@ import traceback
 
 
 class WizardView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
-        self._spacer = 5
-        self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
+    def __init__(self, ctx, manager, parent, title):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'Wizard', handler, parent)
-        title = manager.Model.getRoadmapTitle()
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 85, 180)
         roadmap = self._getRoadmap('Roadmap1', title, rectangle, 0)
         handler = ItemHandler(manager)
         roadmap.addItemListener(handler)
-        manager.Model.setRoadmapModel(roadmap.Model)
+        self._button = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
+        self._spacer = 5
 
-    @property
-    def DialogWindow(self):
+# WizardView getter methods
+    def getDialog(self):
         return self._dialog
-    @DialogWindow.setter
-    def DialogWindow(self, dialog):
-        self._dialog = dialog
+
+    def getRoadmapModel(self):
+        return self._getRoadmapControl().Model
 
 # WizardView setter methods
     def execute(self):
         return self._dialog.execute()
+
+    def endDialog(self):
+        self._dialog.endDialog(OK)
 
     def dispose(self):
         self._dialog.dispose()
@@ -75,6 +78,9 @@ class WizardView(unohelper.Base):
 
     def isDisposed(self):
         return self._dialog is None
+
+    def setDialogTitle(self, title):
+        self._dialog.setTitle(title)
 
     def setDialogSize(self, page):
         button = self._getButton(HELP).Model
@@ -85,6 +91,9 @@ class WizardView(unohelper.Base):
         # We assume all buttons are named appropriately
         for i in (1,2,3,4):
             self._setButtonPosition(i, button.PositionY, dialog.Width)
+
+    def enableHelpButton(self, enabled):
+        self._getButton(HELP).Model.Enabled = enabled
 
     def enableButton(self, button, enabled):
         self._getButton(button).Model.Enabled = enabled
@@ -108,7 +117,7 @@ class WizardView(unohelper.Base):
             button.DefaultButton = True
 
 # WizardView private control methods
-    def _getRoadmap(self):
+    def _getRoadmapControl(self):
         return self._dialog.getControl('Roadmap1')
 
     def _getButtonByIndex(self, index):

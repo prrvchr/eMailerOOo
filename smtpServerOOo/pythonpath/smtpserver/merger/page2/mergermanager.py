@@ -59,12 +59,17 @@ class MergerManager(unohelper.Base,
         self._disabled = False
         tables = self._model.getFilteredTables()
         self._view = MergerView(ctx, self, parent, tables)
+        print("mergerManager.__init__() 1")
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
+        print("mergerManager.__init__() 2")
         self._model.initRowSet(address, recipient, self.initTab2)
+        print("mergerManager.__init__() 3")
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
+        print("mergerManager.__init__() 4")
         self._view.setTable()
+        print("mergerManager.__init__() 5")
 
     @property
     def Model(self):
@@ -89,19 +94,29 @@ class MergerManager(unohelper.Base,
 
     def activatePage(self):
         if self._model.isChanged():
-            print("MergerManager.activatePage() query has changed")
+            print("MergerManager.activatePage() 1")
             self._model.initRecipientGrid(self.initRecipient)
+            print("MergerManager.activatePage() 2")
         if self._model.isFiltered():
+            print("MergerManager.activatePage() 3")
             tables = self._model.getFilteredTables()
+            print("MergerManager.activatePage() 4")
             # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
+            print("MergerManager.activatePage() 5")
             self._disableHandler()
+            print("MergerManager.activatePage() 6")
             self._view.initTable(tables)
+            print("MergerManager.activatePage() 7")
+        print("MergerManager.activatePage() 8")
 
     def commitPage(self, reason):
         return True
 
     def canAdvance(self):
-        return self._model.getRecipientCount() > 0
+        print("MergerManager2.canAdvance() 1")
+        advance = self._model.getRecipientCount() > 0
+        print("MergerManager2.canAdvance() 2")
+        return advance
 
 # MergerManager setter methods
     def setAddressTable(self, table):
@@ -134,6 +149,7 @@ class MergerManager(unohelper.Base,
         self._view.setMailingMessage(message)
 
     def initRecipient(self, columns, orders):
+        print("MergerManager.initRecipient() 1")
         self._view.initRecipient(columns, orders)
 
     def setAddressColumn(self, titles, reset):

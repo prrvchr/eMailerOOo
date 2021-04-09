@@ -44,13 +44,11 @@ class WizardModel(unohelper.Base):
         self._currentPageId = -1
         self._disabledPages = []
         self._roadmap = None
-        self._stringResource = getStringResource(ctx, g_identifier, g_extension)
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'Roadmap': 'Wizard.Roadmap.Text'}
 
     def setRoadmapModel(self, model):
         self._roadmap = model
-
-    def resolveString(self, resource):
-        return self._stringResource.resolveString(resource)
 
     def setRoadmapSize(self, page):
         self._roadmap.Height = page.Height
@@ -164,13 +162,9 @@ class WizardModel(unohelper.Base):
 
 # WizardModel StringRessoure methods
     def getRoadmapTitle(self):
-        resource = self._getRoadmapTitleResource()
-        title = self.resolveString(resource)
+        resource = self._resources.get('Roadmap')
+        title = self._resolver.resolveString(resource)
         return title
-
-# WizardModel StringRessoure private methods
-    def _getRoadmapTitleResource(self):
-        return 'Wizard.Roadmap.Text'
 
 # WizardModel private methods
     def _isPageEnabled(self, page):

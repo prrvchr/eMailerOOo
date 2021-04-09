@@ -53,7 +53,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.travelNext()
                 handled = True
             elif method == 'Finish':
-                self._manager.doFinish(dialog)
+                self._manager.doFinish()
                 handled = True
             return handled
         except Exception as e:

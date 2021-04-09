@@ -99,7 +99,7 @@ class MergerManager(unohelper.Base,
             updated = self._model.isUpdated()
             print("MergerManager.commitPage() %s" % updated)
             if updated:
-                self._model.updateRecipient()
+                self._model.updateRecipient(self.updateTravelUI)
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -111,6 +111,9 @@ class MergerManager(unohelper.Base,
                     self._view.hasIndex()))
 
 # MergerManager setter methods
+    def updateTravelUI(self):
+        self._wizard.updateTravelUI()
+
     # AddressBook setter methods
     def changeAddressBook(self, addressbook):
         self._view.enablePage(False)

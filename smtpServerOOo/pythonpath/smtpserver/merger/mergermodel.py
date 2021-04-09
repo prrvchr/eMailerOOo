@@ -107,6 +107,8 @@ class MergerModel(MailModel):
         self._previous = None
         self._statement = None
         self._row = 0
+        self._rowcount = 0
+        self._loaded = False
         self._disposed = False
         self._similar = False
         self._filtered = False
@@ -171,6 +173,7 @@ class MergerModel(MailModel):
             self._setChanged()
         self._previous = self._query
         self._query = query
+        self._loaded = True
 
         # TODO: We do not save the grid columns for the first change of self._query
         #if self._query is not None:
@@ -185,6 +188,8 @@ class MergerModel(MailModel):
         #return indexes
 
     def getQueryIndex(self, query):
+        self._loaded = query == self._query
+        print("MergerModel.getQueryIndex() %s" % self._loaded)
         indexes = ()
         composers = self._getComposers()
         if query in composers:
@@ -319,36 +324,43 @@ class MergerModel(MailModel):
         Thread(target=self._initTab2, args=args).start()
 
     def _initTab2(self, initTab2):
-        #composer = self._getQueryComposer()
-        #command = self._getRecipientCommand(composer)
-        #self._recipient.Command = command
-        #self._executeRecipient()
+        print("MergerModel._initTab2() 1")
         self._grid2.setRowSetData(self._recipient)
+        print("MergerModel._initTab2() 2")
         self._initColumn2()
+        print("MergerModel._initTab2() 3")
         columns, orders = self._getRecipientColumnsOrders()
+        print("MergerModel._initTab2() 4")
         message = self.getMailingMessage()
+        print("MergerModel._initTab2() 5")
         initTab2(columns, orders, message)
 
-    def updateRecipient(self):
-        Thread(target=self._updateRecipient).start()
+    def updateRecipient(self, *args):
+        Thread(target=self._updateRecipient, args=args).start()
 
-    def _updateRecipient(self):
+    def _updateRecipient(self, updateTravelUI):
         with self._lock:
             composer = self._getQueryComposer()
             command = self._getRecipientCommand(composer)
             self._recipient.Command = command
             self._executeRecipient()
+            updateTravelUI()
 
     def initRecipientGrid(self, *args):
         Thread(target=self._initRecipientGrid, args=args).start()
 
     def _initRecipientGrid(self, initRecipient):
         with self._lock:
+            print("MergerModel._initRecipientGrid() 1")
             if self._previous is not None:
+                print("MergerModel._initRecipientGrid() 2")
                 self._saveColumnWidth(self._column2, self._width2, self._previous)
             self._initColumn2()
+            print("MergerModel._initRecipientGrid() 3")
             columns, orders = self._getRecipientColumnsOrders()
+            print("MergerModel._initRecipientGrid() 4")
             initRecipient(columns, orders)
+            print("MergerModel._initRecipientGrid() 5")
 
     def _setFiltered(self):
         self._filtered = self._updated = True
@@ -406,7 +418,13 @@ class MergerModel(MailModel):
         Thread(target=self._setRecipientOrder, args=args).start()
 
     def getRecipientCount(self):
-        return self._recipient.RowCount
+        print("MergerModel.getRecipientCount() 1")
+        rowcount = 0
+        print("MergerModel.getRecipientCount() 2")
+        if self._loaded:
+            rowcount = self._rowcount
+        print("MergerModel.getRecipientCount() 3 %s" % rowcount)
+        return rowcount
 
     def addItem(self, *args):
         Thread(target=self._addItem, args=args).start()
@@ -534,7 +552,7 @@ class MergerModel(MailModel):
         self._setComposerOrder(composer, orders, ascending)
         command = self._getRecipientCommand(composer)
         self._recipient.Command = command
-        self._recipient.execute()
+        self._executeRecipient()
 
     def _setComposerOrder(self, composer, orders, ascending):
         olds, news = self._getComposerOrder(composer, orders)
@@ -557,20 +575,22 @@ class MergerModel(MailModel):
         return olds, news
 
     def _addItem(self, rows):
-        composer = self._getQueryComposer()
-        filters = self._getRowSetFilters(self._address, composer, rows, True)
-        composer.setStructuredFilter(filters)
-        command = self._getRecipientCommand(composer)
-        self._recipient.Command = command
-        self._recipient.execute()
+        with self._lock:
+            composer = self._getQueryComposer()
+            filters = self._getRowSetFilters(self._address, composer, rows, True)
+            composer.setStructuredFilter(filters)
+            command = self._getRecipientCommand(composer)
+            self._recipient.Command = command
+            self._executeRecipient()
 
     def _removeItem(self, rows):
-        composer = self._getQueryComposer()
-        filters = self._getRowSetFilters(self._recipient, composer, rows, False)
-        composer.setStructuredFilter(filters)
-        command = self._getRecipientCommand(composer)
-        self._recipient.Command = command
-        self._recipient.execute()
+        with self._lock:
+            composer = self._getQueryComposer()
+            filters = self._getRowSetFilters(self._recipient, composer, rows, False)
+            composer.setStructuredFilter(filters)
+            command = self._getRecipientCommand(composer)
+            self._recipient.Command = command
+            self._executeRecipient()
 
     def _getRowSetFilters(self, rowset, composer, rows, add):
         indexes = self._getIndexes(composer)
@@ -734,7 +754,11 @@ class MergerModel(MailModel):
 
     def _executeRecipient(self):
         print("MergerModel._executeRecipient() %s" % self._recipient.Command)
+        # TODO: RowSet.RowCount is not accessible during the executuion of RowSet
+        # TODO: to overcome this problem we cache RowCount
+        self._rowcount = 0
         self._recipient.execute()
+        self._rowcount = self._recipient.RowCount
 
     # AddressBook private methods
     def _setAddressBook(self, addressbook, progress, setAddressBook):

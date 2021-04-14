@@ -166,26 +166,29 @@ class MergerManager(unohelper.Base,
         emails = self._view.getEmails()
         enabled = column not in emails
         self._view.enableAddEmail(enabled)
-        indexes = self._view.getIndexes()
-        enabled = all((self._view.isQuerySelected(),
-                       column not in indexes))
-        self._view.enableAddIndex(enabled)
+        #indexes = self._view.getIndexes()
+        #enabled = all((self._view.isQuerySelected(),
+        #               column not in indexes))
+        #self._view.enableAddIndex(enabled)
 
     # Query setter methods
     def editQuery(self, query, exist):
-        indexes = self._model.getQueryIndex(query)
-        self._setQuery(indexes, exist)
+        index = self._model.getQueryIndex(query)
+        self._view.setIndex(index, exist)
+        #self._setQuery(index, exist)
         enabled = self._model.validateQuery(query, exist)
         self._view.enableAddQuery(enabled)
-        self._view.enableAddIndex(exist)
+        #enabled = exist and not self._view.hasIndex()
+        #self._view.enableAddIndex(enabled)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):
-        indexes = self._model.getQueryIndex(query)
-        self._setQuery(indexes, True)
-        column = self._view.getColumn()
-        enabled = column not in indexes
-        self._view.enableAddIndex(enabled)
+        index = self._model.getQueryIndex(query)
+        self._view.setIndex(index, True)
+        #self._setQuery(index, True)
+        #column = self._view.getColumn()
+        #enabled = column not in indexes
+        #self._view.enableAddIndex(enabled)
         self._wizard.updateTravelUI()
 
     def enterQuery(self, query, exist):
@@ -203,6 +206,19 @@ class MergerManager(unohelper.Base,
         self._model.removeQuery(query)
         self._view.removeQuery(query)
         self._wizard.updateTravelUI()
+
+    #def _setQuery(self, index, exist):
+    #    self._view.setIndex(index)
+    #    self._view.enableRemoveQuery(exist)
+
+    # Query private setter methods
+    def _addQuery(self, query):
+        table = self._view.getTable()
+        self._model.addQuery(table, query)
+        self._view.addQuery(query)
+        #self._view.enableAddIndex(False)
+        self._view.enableRemoveQuery(False)
+
 
     # Email column setter methods
     def changeEmail(self, imax, position):
@@ -257,38 +273,30 @@ class MergerManager(unohelper.Base,
 
     # Index column setter methods
     def changeIndex(self, enabled):
-        self._view.enableRemoveIndex(enabled)
+        pass
+        #self._view.enableRemoveIndex(enabled)
 
     def addIndex(self):
         self._view.enableAddIndex(False)
         self._view.enableRemoveIndex(False)
         query = self._view.getQuery()
         index = self._view.getColumn()
-        indexes = self._model.addIndex(query, index)
-        self._view.setIndexes(indexes)
+        self._model.setIndex(query, index)
+        self._view.addIndex(index)
+        #self._view.enableRemoveIndex(True)
         self._wizard.updateTravelUI()
 
     def removeIndex(self):
         self._view.enableRemoveIndex(False)
         self._view.enableAddIndex(False)
         query = self._view.getQuery()
-        index = self._view.getIndex()
-        indexes = self._model.removeIndex(query, index)
-        self._view.setIndexes(indexes)
-        column = self._view.getColumn()
-        if column not in indexes:
-            self._view.enableAddIndex(True)
+        #index = self._view.getIndex()
+        self._model.setIndex(query, None)
+        self._view.removeIndex()
+        #column = self._view.getColumn()
+        #if column not in indexes:
+        #self._view.enableAddIndex(True)
         self._wizard.updateTravelUI()
 
 # MergerManager private setter methods
     # Query private setter methods
-    def _setQuery(self, indexes, exist):
-        self._view.setIndexes(indexes)
-        self._view.enableRemoveQuery(exist)
-
-    def _addQuery(self, query):
-        table = self._view.getTable()
-        self._model.addQuery(table, query)
-        self._view.addQuery(query)
-        self._view.enableAddIndex(False)
-        self._view.enableRemoveQuery(False)

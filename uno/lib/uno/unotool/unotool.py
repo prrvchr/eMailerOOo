@@ -260,8 +260,10 @@ def executeDispatch(ctx, url, arguments=(), listener=None):
     if dispatcher is not None:
         if listener is not None:
             dispatcher.dispatchWithNotification(url, arguments, listener)
+            print("unotool.executeDispatch() dispatchWithNotification")
         else:
             dispatcher.dispatch(url, arguments)
+            print("unotool.executeDispatch() dispatch")
 
 def createMessageBox(peer, message, title, box='message', buttons=2):
     boxtypes = {'message': 'MESSAGEBOX',

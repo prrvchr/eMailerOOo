@@ -46,6 +46,7 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import createService
+from smtpserver import executeDispatch
 from smtpserver import getConfiguration
 from smtpserver import getDesktop
 from smtpserver import getInteractionHandler
@@ -107,7 +108,6 @@ class MergerModel(MailModel):
         self._previous = None
         self._statement = None
         self._row = 0
-        self._rowcount = 0
         self._loaded = False
         self._disposed = False
         self._similar = False
@@ -190,12 +190,12 @@ class MergerModel(MailModel):
     def getQueryIndex(self, query):
         self._loaded = query == self._query
         print("MergerModel.getQueryIndex() %s" % self._loaded)
-        indexes = ()
+        index = None
         composers = self._getComposers()
         if query in composers:
             composer = composers[query]
-            indexes = self._getIndexes(composer)
-        return indexes
+            index = self._getIndex(composer)
+        return index
 
     def addQuery(self, table, query):
         composers = self._getComposers()
@@ -204,8 +204,8 @@ class MergerModel(MailModel):
             command = getSqlQuery(self._ctx, 'getComposerCommand', table)
             composer = self._createComposer(command)
             if self._similar:
-                indexes = self._getComposerIndexes(composers)
-                self._setIndexes(composer, indexes)
+                index = self._getComposerIndex(composers)
+                self._setIndex(composer, index)
             composers[query] = composer
 
     def removeQuery(self, query):
@@ -259,33 +259,25 @@ class MergerModel(MailModel):
         return emails
 
     # Index methods
-    def addIndex(self, query, index):
+    def setIndex(self, query, index):
         composer = self._getComposer(query)
-        indexes = self._getIndexes(composer)
-        if index not in indexes:
-            indexes.append(index)
         if self._similar:
-            self._setComposerIndexes(indexes)
+            self._setComposerIndex(index)
         else:
-            self._setIndexes(composer, indexes)
-        #command = self._getRecipientCommand(composer)
-        #self._recipient.Command = command
+            self._setIndex(composer, index)
         self._setUpdated()
-        return indexes
 
-    def removeIndex(self, query, index):
+    # not used
+    def removeIndex(self, query):
         composer = self._getComposer(query)
-        indexes = self._getIndexes(composer)
-        if index in indexes:
-            indexes.remove(index)
         if self._similar:
-            self._setComposerIndexes(indexes)
+            self._setComposerIndexes(None)
         else:
-            self._setIndexes(composer, indexes)
+            self._setIndexes(composer, None)
         #command = self._getRecipientCommand(composer)
         #self._recipient.Command = command
         self._setUpdated()
-        return indexes
+        return None
 
 # Procedures called by WizardPage2
     def getFilteredTables(self):
@@ -418,12 +410,9 @@ class MergerModel(MailModel):
         Thread(target=self._setRecipientOrder, args=args).start()
 
     def getRecipientCount(self):
-        print("MergerModel.getRecipientCount() 1")
-        rowcount = 0
-        print("MergerModel.getRecipientCount() 2")
-        if self._loaded:
-            rowcount = self._rowcount
-        print("MergerModel.getRecipientCount() 3 %s" % rowcount)
+        print("MergerModel.getRecipientCount() 1 %s" % self._loaded)
+        rowcount = self._recipient.RowCount if self._loaded else 0
+        print("MergerModel.getRecipientCount() 2 %s" % rowcount)
         return rowcount
 
     def addItem(self, *args):
@@ -593,11 +582,11 @@ class MergerModel(MailModel):
             self._executeRecipient()
 
     def _getRowSetFilters(self, rowset, composer, rows, add):
-        indexes = self._getIndexes(composer)
+        index = self._getIndex(composer)
         filters = self._getComposerFilters(composer)
         for row in rows:
             rowset.absolute(row +1)
-            self._updateFilters(rowset, indexes, filters, add)
+            self._updateFilters(rowset, index, filters, add)
         return self._getStructuredFilters(filters)
 
     def _getComposerFilters(self, composer):
@@ -617,22 +606,20 @@ class MergerModel(MailModel):
             filters.append(filter)
         return tuple(filters)
 
-    def _updateFilters(self, rowset, indexes, filters, add):
-        filter = self._getRowSetFilter(rowset, indexes)
+    def _updateFilters(self, rowset, index, filters, add):
+        filter = self._getRowSetFilter(rowset, index)
         if add:
             if filter not in filters:
                 filters.append(filter)
         elif filter in filters:
             filters.remove(filter)
 
-    def _getRowSetFilter(self, rowset, indexes):
-        filters = []
-        for index in indexes:
-            i = rowset.findColumn(index)
-            value = getValueFromResult(rowset, i)
-            filter = (index, value)
-            filters.append(filter)
-        return tuple(filters)
+    def _getRowSetFilter(self, rowset, index):
+        i = rowset.findColumn(index)
+        value = getValueFromResult(rowset, i)
+        filter = (index, value)
+        filters = (filter, )
+        return filters
 
     def _getStructuredFilters(self, filters):
         structured = []
@@ -645,31 +632,54 @@ class MergerModel(MailModel):
             structured.append(tuple(properties))
         return tuple(structured)
 
+    def _setDocumentRecord1(self):
+        try:
+            print("MergerModel._setDocumentRecord() 1")
+            url = None
+            if self._document.supportsService('com.sun.star.text.TextDocument'):
+                url = '.uno:DataSourceBrowser/InsertContent'
+            elif self._document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+                url = '.uno:DataSourceBrowser/InsertColumns'
+            if url is not None:
+                print("MergerModel._setDocumentRecord() 2")
+                descriptor = self._getDataDescriptor()
+                executeDispatch(self._ctx, url, descriptor)
+            print("MergerModel._setDocumentRecord() 3")
+        except Exception as e:
+            print("MergerModel._setDocumentRecord() ERROR: %s" % traceback.print_exc())
+
+
     def _setDocumentRecord(self):
         try:
+            print("MergerModel._setDocumentRecord() 1")
             dispatch = None
             frame = self._document.getCurrentController().Frame
             flag = uno.getConstantByName('com.sun.star.frame.FrameSearchFlag.SELF')
+            print("MergerModel._setDocumentRecord() 2")
             if self._document.supportsService('com.sun.star.text.TextDocument'):
                 url = getUrl(self._ctx, '.uno:DataSourceBrowser/InsertContent')
                 dispatch = frame.queryDispatch(url, '_self', flag)
+                print("MergerModel._setDocumentRecord() 3")
             elif self._document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
                 url = getUrl(self._ctx, '.uno:DataSourceBrowser/InsertColumns')
                 dispatch = frame.queryDispatch(url, '_self', flag)
+                print("MergerModel._setDocumentRecord() 4")
             if dispatch is not None:
                 descriptor = self._getDataDescriptor()
                 dispatch.dispatch(url, descriptor)
+                print("MergerModel._setDocumentRecord() 5")
         except Exception as e:
             print("MergerModel._setDocumentRecord() ERROR: %s" % traceback.print_exc())
 
     def _getDataDescriptor(self):
-        properties = {'DataSourceName': self._recipient.DataSourceName,
+        properties = {'DataSourceName': self._addressbook,
                       'ActiveConnection': self._recipient.ActiveConnection,
                       'Command': self._recipient.Command,
                       'CommandType': self._recipient.CommandType,
                       'Cursor': self._recipient,
                       'Selection': (self._row, ),
                       'BookmarkSelection': False}
+        print("MergerModel._getDataDescriptor() %s" % (properties, ))
         descriptor = getPropertyValueSet(properties)
         return descriptor
 
@@ -723,7 +733,7 @@ class MergerModel(MailModel):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
         rowset.CommandType = command
-        #rowset.FetchSize = fetchsize
+        rowset.FetchSize = fetchsize
         print("MergerModel._getRowSet() FetchSize = %s" % rowset.FetchSize)
         return rowset
 
@@ -756,9 +766,7 @@ class MergerModel(MailModel):
         print("MergerModel._executeRecipient() %s" % self._recipient.Command)
         # TODO: RowSet.RowCount is not accessible during the executuion of RowSet
         # TODO: to overcome this problem we cache RowCount
-        self._rowcount = 0
         self._recipient.execute()
-        self._rowcount = self._recipient.RowCount
 
     # AddressBook private methods
     def _setAddressBook(self, addressbook, progress, setAddressBook):
@@ -885,6 +893,15 @@ class MergerModel(MailModel):
             command = composer.getQuery()
             self._setQueryCommand(name, command)
 
+    def _getComposerIndex(self, composers):
+        index = None
+        queries = self._getQueryNames(composers)
+        for query in queries:
+            composer = composers[query]
+            index = self._getIndex(composer)
+            break
+        return index
+
     def _getComposerIndexes(self, composers):
         indexes = []
         queries = self._getQueryNames(composers)
@@ -893,6 +910,14 @@ class MergerModel(MailModel):
             indexes = self._getIndexes(composer)
             break
         return indexes
+
+    def _setComposerIndex(self, index):
+        filter = self._getIndexFilter(index)
+        composers = self._getComposers()
+        queries = self._getQueryNames(composers)
+        for query in queries:
+            composer = composers[query]
+            composer.setStructuredFilter(filter)
 
     def _setComposerIndexes(self, indexes):
         filter = self._getIndexFilters(indexes)
@@ -986,6 +1011,14 @@ class MergerModel(MailModel):
         return tuple(filters)
 
     # Index private methods
+    def _getIndex(self, composer):
+        index = None
+        filters = composer.getStructuredFilter()
+        if len(filters) > 0:
+            for filter in filters[0]:
+                index = filter.Name
+        return index
+
     def _getIndexes(self, composer):
         indexes = []
         filters = composer.getStructuredFilter()
@@ -994,9 +1027,20 @@ class MergerModel(MailModel):
                 indexes.append(filter.Name)
         return indexes
 
+    def _setIndex(self, composer, index):
+        filter = self._getIndexFilter(index)
+        composer.setStructuredFilter(filter)
+
     def _setIndexes(self, composer, indexes):
         filter = self._getIndexFilters(indexes)
         composer.setStructuredFilter(filter)
+
+    def _getIndexFilter(self, index):
+        filters = ()
+        if index is not None:
+            filter = getPropertyValue(index, 'IS NULL', None, SQLNULL)
+            filters = (filter, )
+        return (filters, )
 
     def _getIndexFilters(self, indexes):
         filters = []

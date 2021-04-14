@@ -85,12 +85,12 @@ class DataBase(unohelper.Base):
             #connection = datasource.getConnection(user, password)
             folder = g_folder + '/' + dbname
             self._url = getResourceLocation(ctx, g_identifier, folder)
-            script = self._url + '.script'
-            self._created = not getSimpleFile(ctx).exists(script)
+            database = self._url + '.data'
+            self._exist = getSimpleFile(ctx).exists(database)
             #connection = getDataBaseConnection(ctx, self._url, user, password)
             print("DataBase.__init__() 3")
             print("DataBase.__init__() 4")
-            if self._created:
+            if not self._exist:
                 print("DataBase.__init__() 5")
                 self._createDataBase()
                 #if error is None:
@@ -126,10 +126,10 @@ class DataBase(unohelper.Base):
         return self.Connection.getParent()
 
     def shutdownDataBase(self):
-        if self._created:
-            query = getSqlQuery(self._ctx, 'shutdownCompact')
-        else:
+        if self._exist:
             query = getSqlQuery(self._ctx, 'shutdown')
+        else:
+            query = getSqlQuery(self._ctx, 'shutdownCompact')
         self._statement.execute(query)
 
 # Procedures called by the Server

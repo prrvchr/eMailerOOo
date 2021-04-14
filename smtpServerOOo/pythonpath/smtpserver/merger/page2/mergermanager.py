@@ -115,7 +115,7 @@ class MergerManager(unohelper.Base,
     def canAdvance(self):
         print("MergerManager2.canAdvance() 1")
         advance = self._model.getRecipientCount() > 0
-        print("MergerManager2.canAdvance() 2")
+        print("MergerManager2.canAdvance() 2 %s" % advance)
         return advance
 
 # MergerManager setter methods

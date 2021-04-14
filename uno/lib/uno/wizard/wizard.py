@@ -78,6 +78,7 @@ class Wizard(unohelper.Base,
             print(msg)
 
 # XWizard
+    # XWizard Attributes
     @property
     def HelpURL(self):
         return self._helpUrl
@@ -91,7 +92,7 @@ class Wizard(unohelper.Base,
     def DialogWindow(self):
         return self._view.getDialog()
 
-    # not used?
+    # XWizard Methods
     def getCurrentPage(self):
         return self._model.getCurrentPage()
 
@@ -102,15 +103,15 @@ class Wizard(unohelper.Base,
         self._view.setDefaultButton(button)
 
     def travelNext(self):
-        page = self._getNextPage()
-        if page is not None:
-            return self._setCurrentPage(page)
+        pageid = self._getNextPageId()
+        if pageid is not None:
+            return self._setCurrentPage(pageid)
         return False
 
     def travelPrevious(self):
-        page = self._getPreviousPage()
-        if page is not None:
-            return self._setCurrentPage(page)
+        pageid = self._getPreviousPageId()
+        if pageid is not None:
+            return self._setCurrentPage(pageid)
         return False
 
     def enablePage(self, pageid, enabled):
@@ -122,20 +123,20 @@ class Wizard(unohelper.Base,
         if pageid == self._model.getCurrentPageId():
             raise self._getInvalidStateException(113)
         if self._model.enablePage(pageid, enabled):
-            self._model.updateRoadmap(self._getFirstPage())
+            self._model.updateRoadmap(self._getFirstPageId())
 
     def updateTravelUI(self):
-        self._model.updateRoadmap(self._getFirstPage())
+        self._model.updateRoadmap(self._getFirstPageId())
         self._updateButton()
 
     def advanceTo(self, pageid):
-        if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(page)
+        if pageid in self._model.getRoadmapPath():
+            return self._setCurrentPage(pageid)
         return False
 
     def goBackTo(self, pageid):
-        if page in self._model.getRoadmapPath():
-            return self._setCurrentPage(page)
+        if pageid in self._model.getRoadmapPath():
+            return self._setCurrentPage(pageid)
         return False
 
     def activatePath(self, index, final):
@@ -144,12 +145,12 @@ class Wizard(unohelper.Base,
         if index not in self._getMultiPathsIndex():
             raise self._getNoSuchElementException(122)
         path = self._paths[index]
-        page = self._model.getCurrentPageId()
-        if page != -1 and page not in path:
+        pageid = self._model.getCurrentPageId()
+        if pageid != -1 and pageid not in path:
             raise self._getInvalidStateException(123)
         if self._currentPath != index or self._isComplete() != final:
             self._initPath(index, final)
-            self._model.updateRoadmap(self._getFirstPage())
+            self._model.updateRoadmap(self._getFirstPageId())
 
 # XWizard -> XExecutableDialog
     def setTitle(self, title):
@@ -176,11 +177,11 @@ class Wizard(unohelper.Base,
         self._controller = controller
 
 # Wizard setter methods
-    def changeRoadmapStep(self, page):
-        pageid = self._model.getCurrentPageId()
-        if pageid != page:
-            if not self._setCurrentPage(page):
-                self._model.setCurrentPageId(pageid)
+    def changeRoadmapStep(self, pageid):
+        currentid = self._model.getCurrentPageId()
+        if currentid != pageid:
+            if not self._setCurrentPage(pageid):
+                self._model.setCurrentPageId(currentid)
 
     def doFinish(self):
         if self._isLastPage():
@@ -194,35 +195,35 @@ class Wizard(unohelper.Base,
         return self._model.isComplete()
 
     def _isLastPage(self):
-        return self._isComplete() and self._model.getCurrentPageId() == self._getLastPage()
+        return self._isComplete() and self._model.getCurrentPageId() == self._getLastPageId()
 
     def _isFirstPage(self):
-        return self._model.getCurrentPageId() == self._getFirstPage()
+        return self._model.getCurrentPageId() == self._getFirstPageId()
 
     def _isCurrentPathSet(self):
         return self._currentPath != -1
 
-    def _getNextPage(self):
+    def _getNextPageId(self):
         path = self._model.getRoadmapPath()
-        page = self._model.getCurrentPageId()
-        if page in path:
-            i = path.index(page) + 1
+        pageid = self._model.getCurrentPageId()
+        if pageid in path:
+            i = path.index(pageid) + 1
             if i < len(path):
                 return path[i]
         return None
 
-    def _getPreviousPage(self):
+    def _getPreviousPageId(self):
         path = self._model.getRoadmapPath()
-        page = self._model.getCurrentPageId()
-        if page in path:
-            i = path.index(page) - 1
+        pageid = self._model.getCurrentPageId()
+        if pageid in path:
+            i = path.index(pageid) - 1
             if i >= 0:
                 return path[i]
         return None
 
-    def _setCurrentPage(self, page):
-        if self._deactivatePage(page):
-            self._setPage(page)
+    def _setCurrentPage(self, pageid):
+        if self._deactivatePage(pageid):
+            self._setPage(pageid)
             return True
         return False
 
@@ -235,15 +236,15 @@ class Wizard(unohelper.Base,
             return True
         return False
 
-    def _getCommitReason(self, old=None, new=None):
-        page = self._model.getCurrentPageId()
-        if old is None:
-            old = page
-        if new is None:
-            new = page
-        if old < new:
+    def _getCommitReason(self, oldid=None, newid=None):
+        pageid = self._model.getCurrentPageId()
+        if oldid is None:
+            oldid = pageid
+        if newid is None:
+            newid = pageid
+        if oldid < newid:
             reason = FORWARD
-        elif old > new:
+        elif oldid > newid:
             reason = BACKWARD
         else:
             reason = FINISH
@@ -280,10 +281,10 @@ class Wizard(unohelper.Base,
     def _getMultiPathsIndex(self):
         return range(len(self._paths))
 
-    def _getFirstPage(self):
+    def _getFirstPageId(self):
         return min(self._getActivePath())
 
-    def _getLastPage(self):
+    def _getLastPageId(self):
         return max(self._getActivePath())
 
     def _getActivePath(self):
@@ -291,9 +292,9 @@ class Wizard(unohelper.Base,
 
     def _isAutoLoad(self, page=None):
         if page is None:
-            nextindex = self._getFirstPage()
+            nextindex = self._getFirstPageId()
         else:
-            nextindex = self._getCurrentPath().index(page) + 1
+            nextindex = self._getCurrentPath().index(page) +1
         return nextindex < self._auto
 
     def _getPath(self, index, final):
@@ -327,9 +328,9 @@ class Wizard(unohelper.Base,
 
     def _initNextPage(self):
         init = False
-        page = self._getNextPage()
-        if page is not None:
-            init = self._setCurrentPage(page) and self._isAutoLoad(page)
+        pageid = self._getNextPageId()
+        if pageid is not None:
+            init = self._setCurrentPage(pageid) and self._isAutoLoad(pageid)
         return init
 
 # Wizard private setter methods
@@ -338,7 +339,7 @@ class Wizard(unohelper.Base,
         self._model.initRoadmap(self._controller, paths, complete)
 
     def _initPage(self):
-        self._setPage(self._getFirstPage())
+        self._setPage(self._getFirstPageId())
         nextpage = self._isAutoLoad()
         while nextpage and self._canAdvance():
             nextpage = self._initNextPage()
@@ -361,13 +362,13 @@ class Wizard(unohelper.Base,
         self._model.setCurrentPageId(pageid)
         self._activatePage(pageid)
         # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()
-        self._model.updateRoadmap(self._getFirstPage())
+        self._model.updateRoadmap(self._getFirstPageId())
         self._updateButton()
         self._model.setPageVisible(pageid, True)
 
     def _updateButton(self):
         self._view.updateButtonPrevious(not self._isFirstPage())
-        enabled = self._getNextPage() is not None and self._canAdvance()
+        enabled = self._getNextPageId() is not None and self._canAdvance()
         self._view.updateButtonNext(enabled)
         enabled = self._isLastPage() and self._canAdvance()
         self._view.updateButtonFinish(enabled)

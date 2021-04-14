@@ -92,10 +92,10 @@ class MergerView(unohelper.Base):
 
     # Index getter method
     def getIndex(self):
-        return self._getIndex().getSelectedItem()
+        return self._getIndex().getItem(0)
 
-    def getIndexes(self):
-        return self._getIndex().Model.StringItemList
+    #def getIndexes(self):
+    #    return self._getIndex().Model.StringItemList
 
     def hasIndex(self):
         return self._getIndex().getItemCount() > 0
@@ -215,8 +215,28 @@ class MergerView(unohelper.Base):
             control.selectItemPos(index, True)
 
     # Index column methods
-    def setIndexes(self, indexes):
-        self._getIndex().Model.StringItemList = indexes
+    def setIndex(self, index, add):
+        control = self._getIndex()
+        if control.getItemCount() > 0:
+            if index is None:
+                self._removeIndex(control, add)
+            else:
+                self.enableAddIndex(False)
+                control.Model.setItemText(0, index)
+                self.enableRemoveIndex(True)
+        elif index is not None:
+            self._addIndex(control, index)
+        else:
+            self.enableAddIndex(add)
+            self.enableRemoveIndex(False)
+
+    def addIndex(self, index):
+        control = self._getIndex()
+        self._addIndex(control, index)
+
+    def removeIndex(self):
+        control = self._getIndex()
+        self._removeIndex(control, True)
 
     def enableAddIndex(self, enabled):
         self._getAddIndex().Model.Enabled = enabled
@@ -246,6 +266,16 @@ class MergerView(unohelper.Base):
         control.Model.Enabled = enabled
         if not enabled:
             control.Model.StringItemList = ()
+
+    def _addIndex(self, control, index):
+        self.enableAddIndex(False)
+        control.Model.insertItemText(0, index)
+        self.enableRemoveIndex(True)
+
+    def _removeIndex(self, control, add):
+        self.enableRemoveIndex(False)
+        control.Model.removeItem(0)
+        self.enableAddIndex(add)
 
 # MergerView private getter control methods
     def _getAddressBook(self):

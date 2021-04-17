@@ -203,7 +203,7 @@ def getSqlQuery(ctx, name, format=None):
         query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
 
     # Merger Composer Select Queries
-    elif name == 'getComposerCommand':
+    elif name == 'getQueryCommand':
         query = 'SELECT * FROM "%s";' % format
 
     elif name == 'getComposerSubQuery':

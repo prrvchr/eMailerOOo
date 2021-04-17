@@ -126,9 +126,10 @@ class MergerView(unohelper.Base):
         self._getAddIndex().Model.Enabled = enabled
         self._getRemoveIndex().Model.Enabled = enabled
 
-    def updateProgress(self, value):
+    def updateProgress(self, value, message):
         if not self.isDisposed():
-            self._getProgress().Value = value
+            self._getProgressBar().Value = value
+            self._getProgressMessage().Text = message
         else:
             print("MergerView.updateProgress() ERROR *********************")
 
@@ -149,9 +150,6 @@ class MergerView(unohelper.Base):
         control.Model.StringItemList = tables
         if control.getItemCount() > 0:
             control.selectItemPos(0, True)
-
-    def setEmailLabel(self, text):
-        self._getEmailLabel().Text = text
 
     def setIndexLabel(self, text):
         self._getIndexLabel().Text = text
@@ -296,7 +294,7 @@ class MergerView(unohelper.Base):
     def _getQuery(self):
         return self._window.getControl('ComboBox1')
 
-    def _getProgress(self):
+    def _getProgressBar(self):
         return self._window.getControl('ProgressBar1')
 
     def _getNewAddressBook(self):
@@ -326,11 +324,11 @@ class MergerView(unohelper.Base):
     def _getRemoveIndex(self):
         return self._window.getControl('CommandButton9')
 
-    def _getMessage(self):
-        return self._window.getControl('Label7')
+    def _getProgressMessage(self):
+        return self._window.getControl('Label6')
 
-    def _getEmailLabel(self):
-        return self._window.getControl('Label11')
+    def _getMessage(self):
+        return self._window.getControl('Label8')
 
     def _getIndexLabel(self):
-        return self._window.getControl('Label12')
+        return self._window.getControl('Label13')

@@ -60,6 +60,7 @@ from .unotool import getPathSettings
 from .unotool import getPropertyValue
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
+from .unotool import getSimpleFile
 from .unotool import getStringResource
 from .unotool import getUrl
 from .unotool import getUrlPresentation

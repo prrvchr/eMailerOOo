@@ -47,9 +47,9 @@ class IspdbView(unohelper.Base):
     def setPageLabel(self, text):
         self._getPageLabel().Text = text
 
-    def updateProgress(self, message, value):
-        self._getProgressLabel().Text = message
+    def updateProgress(self, value, message):
         self._getProgressBar().Value = value
+        self._getProgressMessage().Text = message
 
 # IspdbView private getter control methods
     def _getPageLabel(self):
@@ -58,5 +58,5 @@ class IspdbView(unohelper.Base):
     def _getProgressBar(self):
         return self._window.getControl('ProgressBar1')
 
-    def _getProgressLabel(self):
+    def _getProgressMessage(self):
         return self._window.getControl('Label2')

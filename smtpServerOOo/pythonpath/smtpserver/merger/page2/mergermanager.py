@@ -63,7 +63,7 @@ class MergerManager(unohelper.Base,
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
         print("mergerManager.__init__() 2")
-        self._model.initRowSet(address, recipient, self.initTab2)
+        self._model.initRowSet(address, recipient, self.initTab1, self.initTab2)
         print("mergerManager.__init__() 3")
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
@@ -95,7 +95,7 @@ class MergerManager(unohelper.Base,
     def activatePage(self):
         if self._model.isChanged():
             print("MergerManager.activatePage() 1")
-            self._model.initRecipientGrid(self.initRecipient)
+            self._model.updateColumn2(self.updateColumn2)
             print("MergerManager.activatePage() 2")
         if self._model.isFiltered():
             print("MergerManager.activatePage() 3")
@@ -119,38 +119,33 @@ class MergerManager(unohelper.Base,
         return advance
 
 # MergerManager setter methods
+    def updateColumn2(self, columns, orders):
+        print("MergerManager.updateColumn2() 1")
+        self._view.updateColumn2(columns, orders)
+
     def setAddressTable(self, table):
         print("MergerManager.setAddressTable() ************************")
-        columns, orders = self._model.setAddressTable(table)
-        self._view.initAddress(columns, orders)
+        self._model.setAddressTable(table)
 
     def recipientChanged(self, enabled):
         self._model.recipientChanged()
         self._view.enableRemoveAll(enabled)
         message = self._model.getMailingMessage()
-        self._view.setMailingMessage(message)
+        self._view.setMessage(message)
         self._wizard.updateTravelUI()
 
     def addressChanged(self, enabled):
         self._model.addressChanged()
         self._view.enableAddAll(enabled)
 
-    def enableAddAll(self, enabled):
-        self._view.enableAddAll(enabled)
-
-    def enableRemoveAll(self, enabled):
-        self._view.enableRemoveAll(enabled)
-        message = self._model.getMailingMessage()
-        self._view.setMailingMessage(message)
-        self._wizard.updateTravelUI()
+    def initTab1(self, columns, orders):
+        self._view.updateColumn1(columns, orders)
 
     def initTab2(self, columns, orders, message):
-        self._view.initRecipient(columns, orders)
-        self._view.setMailingMessage(message)
+        self._view.updateColumn2(columns, orders)
+        self._view.setMessage(message)
 
-    def initRecipient(self, columns, orders):
-        print("MergerManager.initRecipient() 1")
-        self._view.initRecipient(columns, orders)
+
 
     def setAddressColumn(self, titles, reset):
         self._model.setAddressColumn(titles, reset)

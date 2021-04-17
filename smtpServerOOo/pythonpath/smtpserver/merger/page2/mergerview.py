@@ -108,7 +108,7 @@ class MergerView(unohelper.Base):
         control.Model.StringItemList = tables
         control.selectItemPos(0, True)
 
-    def initAddress(self, columns, orders):
+    def updateColumn1(self, columns, orders):
         self._getAddressColumn().Model.StringItemList = columns
         control = self._getAddressOrder()
         control.Model.StringItemList = columns
@@ -117,7 +117,7 @@ class MergerView(unohelper.Base):
             index = columns.index(column.Name)
             control.selectItemPos(index, True)
 
-    def initRecipient(self, columns, orders):
+    def updateColumn2(self, columns, orders):
         self._getRecipientColumn().Model.StringItemList = columns
         control = self._getRecipientOrder()
         control.Model.StringItemList = columns
@@ -138,8 +138,8 @@ class MergerView(unohelper.Base):
     def enableRemoveAll(self, enabled):
         self._getRemoveAll().Model.Enabled = enabled
 
-    def setMailingMessage(self, message):
-        self._getMailingMessage().Text = message
+    def setMessage(self, message):
+        self._getMessage().Text = message
 
 # MergerView private getter control methods
     def _getTable(self):
@@ -181,7 +181,7 @@ class MergerView(unohelper.Base):
     def _getRecipientSort(self):
         return self._tab2.getControl('CheckBox1')
 
-    def _getMailingMessage(self):
+    def _getMessage(self):
         return self._tab2.getControl('Label1')
 
 # MergerView private methods

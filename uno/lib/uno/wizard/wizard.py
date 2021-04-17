@@ -356,7 +356,8 @@ class Wizard(unohelper.Base,
     def _setPage(self, pageid):
         if not self._model.hasPage(pageid):
             window = self._view.getDialog()
-            page = self._controller.createPage(window.getPeer(), pageid)
+            parent = window.getPeer()
+            page = self._controller.createPage(parent, pageid)
             name = self._setPageModel(page)
             self._model.addPage(pageid, self._setPageWindow(window, page, name))
         self._model.setCurrentPageId(pageid)

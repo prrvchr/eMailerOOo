@@ -124,12 +124,6 @@ class WindowHandler(unohelper.Base,
                 print("PageHandler.callHandlerMethod() MoveAfter ***************")
                 self._manager.moveAfter()
                 handled = True
-            elif method == 'ChangeIndex':
-                print("PageHandler.callHandlerMethod() ChangePrimaryKey ***************")
-                control = event.Source
-                enabled = control.getSelectedItemPos() != -1
-                self._manager.changeIndex(enabled)
-                handled = True
             elif method == 'AddIndex':
                 self._manager.addIndex()
                 handled = True
@@ -156,6 +150,5 @@ class WindowHandler(unohelper.Base,
                 'RemoveEmail',
                 'MoveBefore',
                 'MoveAfter',
-                'ChangeIndex',
                 'AddIndex',
                 'RemoveIndex')

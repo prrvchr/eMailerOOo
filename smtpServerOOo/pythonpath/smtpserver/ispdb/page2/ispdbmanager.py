@@ -74,7 +74,7 @@ class IspdbManager(unohelper.Base):
     def updateProgress(self, value, offset=0):
         if not self._model.isDisposed():
             message = self._model.getProgressMessage(value + offset)
-            self._view.updateProgress(message, value)
+            self._view.updateProgress(value, message)
 
     def updateModel(self, user, servers, offline):
         if not self._model.isDisposed():

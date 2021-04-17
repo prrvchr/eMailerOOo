@@ -95,19 +95,14 @@ class MergerManager(unohelper.Base,
     def commitPage(self, reason):
         try:
             query = self._view.getQuery()
-            self._model.setQuery(query)
-            updated = self._model.isUpdated()
-            print("MergerManager.commitPage() %s" % updated)
-            if updated:
-                self._model.updateRecipient(self.updateTravelUI)
+            self._model.setQuery(query, self.updateTravelUI)
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
     def canAdvance(self):
-        return all((self._view.isQuerySelected(),
-                    self._view.hasEmail(),
+        return all((self._view.hasEmail(),
                     self._view.hasIndex()))
 
 # MergerManager setter methods
@@ -119,24 +114,24 @@ class MergerManager(unohelper.Base,
         self._view.enablePage(False)
         self._view.enableButton(False)
         self._view.setPageStep(1)
+        message = self._model.getProgressMessage(0)
+        self._view.updateProgress(0, message)
         self._model.setAddressBook(addressbook, self.progress, self.setAddressBook)
 
     def progress(self, value):
-        self._view.updateProgress(value)
+        message = self._model.getProgressMessage(value)
+        self._view.updateProgress(value, message)
 
-    def setAddressBook(self, step, queries, tables, label1, label2, msg):
+    def setAddressBook(self, step, queries, tables, label, msg):
         if step == 2:
             self._view.setMessageText(msg)
         elif step == 3:
-            # TODO: We must disable the handler "EditQuery" otherwise it activates twice
-            self._disableHandler()
+            self._view.enablePage(True)
+            self._view.setIndexLabel(label)
             self._view.initQuery(queries)
             # TODO: We must disable the handler "ChangeAddressBookTable" otherwise it activates twice
             self._disableHandler()
             self._view.initTables(tables)
-            self._view.setEmailLabel(label1)
-            self._view.setIndexLabel(label2)
-            self._view.enablePage(True)
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
 
@@ -153,42 +148,36 @@ class MergerManager(unohelper.Base,
             self._disableHandler()
             self._view.selectAddressBook(addressbook)
 
-    # AddressBook Table setter methods
+    # Table setter methods
     def changeAddressBookTable(self, table):
-        columns, emails = self._model.setAddressBookTable(table)
+        columns = self._model.setAddressBookTable(table)
         # TODO: We must disable the handler "ChangeAddressBookColumn" otherwise it activates twice
         self._disableHandler()
         self._view.initColumns(columns)
-        self._view.setEmail(emails)
 
-    # AddressBook Column setter methods
+    # Column setter methods
     def changeAddressBookColumn(self, column):
-        emails = self._view.getEmails()
-        enabled = column not in emails
+        enabled = False
+        if self._view.isQuerySelected():
+            emails = self._view.getEmails()
+            enabled = column not in emails
         self._view.enableAddEmail(enabled)
-        #indexes = self._view.getIndexes()
-        #enabled = all((self._view.isQuerySelected(),
-        #               column not in indexes))
-        #self._view.enableAddIndex(enabled)
 
     # Query setter methods
     def editQuery(self, query, exist):
-        index = self._model.getQueryIndex(query)
+        index = self._model.getIndex(query, exist)
         self._view.setIndex(index, exist)
-        #self._setQuery(index, exist)
+        emails = self._model.getEmails(query, exist)
+        self._view.setEmail(emails)
         enabled = self._model.validateQuery(query, exist)
         self._view.enableAddQuery(enabled)
-        #enabled = exist and not self._view.hasIndex()
-        #self._view.enableAddIndex(enabled)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):
-        index = self._model.getQueryIndex(query)
+        index = self._model.getIndex(query, True)
         self._view.setIndex(index, True)
-        #self._setQuery(index, True)
-        #column = self._view.getColumn()
-        #enabled = column not in indexes
-        #self._view.enableAddIndex(enabled)
+        emails = self._model.getEmails(query, True)
+        self._view.setEmail(emails)
         self._wizard.updateTravelUI()
 
     def enterQuery(self, query, exist):
@@ -207,18 +196,12 @@ class MergerManager(unohelper.Base,
         self._view.removeQuery(query)
         self._wizard.updateTravelUI()
 
-    #def _setQuery(self, index, exist):
-    #    self._view.setIndex(index)
-    #    self._view.enableRemoveQuery(exist)
-
     # Query private setter methods
     def _addQuery(self, query):
         table = self._view.getTable()
         self._model.addQuery(table, query)
         self._view.addQuery(query)
-        #self._view.enableAddIndex(False)
         self._view.enableRemoveQuery(False)
-
 
     # Email column setter methods
     def changeEmail(self, imax, position):
@@ -231,9 +214,9 @@ class MergerManager(unohelper.Base,
         self._view.enableRemoveEmail(False)
         self._view.enableBefore(False)
         self._view.enableAfter(False)
-        table = self._view.getTable()
+        query = self._view.getQuery()
         email = self._view.getColumn()
-        emails = self._model.addEmail(table, email)
+        emails = self._model.addEmail(query, email)
         self._view.setEmail(emails)
         self._wizard.updateTravelUI()
 
@@ -242,9 +225,9 @@ class MergerManager(unohelper.Base,
         self._view.enableRemoveEmail(False)
         self._view.enableBefore(False)
         self._view.enableAfter(False)
-        table = self._view.getTable()
+        query = self._view.getQuery()
         email = self._view.getEmail()
-        emails = self._model.removeEmail(table, email)
+        emails = self._model.removeEmail(query, email)
         self._view.setEmail(emails)
         column = self._view.getColumn()
         if column not in emails:
@@ -255,27 +238,23 @@ class MergerManager(unohelper.Base,
         self._view.enableRemoveEmail(False)
         self._view.enableBefore(False)
         self._view.enableAfter(False)
-        table = self._view.getTable()
+        query = self._view.getQuery()
         email = self._view.getEmail()
         index = self._view.getEmailPosition() -1
-        emails = self._model.moveEmail(table, email, index)
+        emails = self._model.moveEmail(query, email, index)
         self._view.setEmail(emails, index)
 
     def moveAfter(self):
         self._view.enableRemoveEmail(False)
         self._view.enableBefore(False)
         self._view.enableAfter(False)
-        table = self._view.getTable()
+        query = self._view.getQuery()
         email = self._view.getEmail()
         index = self._view.getEmailPosition() +1
-        emails = self._model.moveEmail(table, email, index)
+        emails = self._model.moveEmail(query, email, index)
         self._view.setEmail(emails, index)
 
     # Index column setter methods
-    def changeIndex(self, enabled):
-        pass
-        #self._view.enableRemoveIndex(enabled)
-
     def addIndex(self):
         self._view.enableAddIndex(False)
         self._view.enableRemoveIndex(False)
@@ -283,19 +262,14 @@ class MergerManager(unohelper.Base,
         index = self._view.getColumn()
         self._model.setIndex(query, index)
         self._view.addIndex(index)
-        #self._view.enableRemoveIndex(True)
         self._wizard.updateTravelUI()
 
     def removeIndex(self):
         self._view.enableRemoveIndex(False)
         self._view.enableAddIndex(False)
         query = self._view.getQuery()
-        #index = self._view.getIndex()
         self._model.setIndex(query, None)
         self._view.removeIndex()
-        #column = self._view.getColumn()
-        #if column not in indexes:
-        #self._view.enableAddIndex(True)
         self._wizard.updateTravelUI()
 
 # MergerManager private setter methods

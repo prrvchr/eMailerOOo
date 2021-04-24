@@ -76,6 +76,8 @@ class DataBase(unohelper.Base):
         try:
             print("DataBase.__init__() 1")
             self._ctx = ctx
+            self._dbname = dbname
+            self._shutdown = True
             self._user = user
             self._password = password
             self._statement = None
@@ -85,16 +87,16 @@ class DataBase(unohelper.Base):
             #connection = datasource.getConnection(user, password)
             folder = g_folder + '/' + dbname
             self._url = getResourceLocation(ctx, g_identifier, folder)
-            database = self._url + '.data'
-            self._exist = getSimpleFile(ctx).exists(database)
+            url = self._url + '.odb'
+            exist = getSimpleFile(ctx).exists(url)
             #connection = getDataBaseConnection(ctx, self._url, user, password)
             print("DataBase.__init__() 3")
             print("DataBase.__init__() 4")
-            if not self._exist:
+            if not exist:
                 print("DataBase.__init__() 5")
                 self._createDataBase()
-                #if error is None:
-                #    self.storeDataBase(url)
+                if error is None:
+                    self._storeDataBase(url)
             print("DataBase.__init__() 6 %s" % self.getDataSource().URL)
             self.sync = sync
         except Exception as e:
@@ -104,7 +106,7 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            url = getDataBaseUrl(self._url, True)
+            url = getDataBaseUrl(self._url, self._shutdown)
             connection = getDataBaseConnection(self._ctx, url)
             self._statement = connection.createStatement()
         return self._statement.getConnection()
@@ -113,12 +115,10 @@ class DataBase(unohelper.Base):
         if self._statement is not None:
             connection = self._statement.getConnection()
             self._statement = None
-            print("DataBase.dispose() ***************** database closed!!:")
             connection.dispose()
-        print("DataBase.dispose()")
+            print("DataBase.dispose() ***************** database: %s closed!!!" % self._dbname)
 
-    def storeDataBase(self, url=None):
-        url = self._url + '.odb'
+    def _storeDataBase(self, url):
         self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
 # Procedures called by the DataSource

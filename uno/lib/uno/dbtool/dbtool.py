@@ -46,7 +46,7 @@ from ..unotool import getSimpleFile
 from ..dbqueries import getSqlQuery
 
 from ..dbconfig import g_protocol
-from ..dbconfig import g_path
+from ..dbconfig import g_folder
 from ..dbconfig import g_jar
 from ..dbconfig import g_class
 from ..dbconfig import g_options
@@ -85,7 +85,7 @@ def getDataBaseUrl(url, shutdown):
 
 
 def getDataSource(ctx, name, identifier, register, shutdown=False):
-    location = getResourceLocation(ctx, identifier, g_path)
+    location = getResourceLocation(ctx, identifier, g_folder)
     url = '%s/%s.odb' % (location, name)
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     if getSimpleFile(ctx).exists(url):
@@ -161,7 +161,7 @@ def executeQueries(ctx, statement, queries):
         statement.executeQuery(query)
 
 def getDataSourceClassPath(ctx, identifier):
-    path = getResourceLocation(ctx, identifier, g_path)
+    path = getResourceLocation(ctx, identifier, g_folder)
     return '%s/%s' % (path, g_jar)
 
 def getDataSourceJavaInfo(location):

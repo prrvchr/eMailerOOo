@@ -190,8 +190,6 @@ class MergerModel(MailModel):
             msg = self._getErrorMessage(0, format)
         else:
             progress(50)
-            mri = createService(self._ctx, 'mytools.Mri')
-            mri.inspect(connection)
             self._database = database
             self._statement = connection.createStatement()
             self._composer = self.Connection.createInstance(service)
@@ -203,6 +201,9 @@ class MergerModel(MailModel):
             url = self._getDataSourceTempUrl()
             self._address.DataSourceName = url
             self._recipient.DataSourceName = url
+            #mri = createService(self._ctx, 'mytools.Mri')
+            #mri.inspect(connection)
+            #mri.inspect(self._recipient)
             progress(80)
             self._queries = database.getQueryDefinitions()
             progress(90)
@@ -366,7 +367,7 @@ class MergerModel(MailModel):
 
     def _getEmails(self, name):
         query = self._queries.getByName(name)
-        emails = self._getQueryEmails(query)
+        emails = self._getQueryEmails(query, True)
         return emails
         # Email getEmails() method end
 
@@ -433,9 +434,11 @@ class MergerModel(MailModel):
         # Email moveEmail() method end
 
     # Email private shared methods
-    def _getQueryEmails(self, query):
+    def _getQueryEmails(self, query, update=False):
         self._composer.setQuery(query.Command)
         filters = self._composer.getStructuredFilter()
+        if update:
+            self._address.Filter = self._composer.getFilter()
         emails = self._getSubQueryEmails(filters)
         return emails
 

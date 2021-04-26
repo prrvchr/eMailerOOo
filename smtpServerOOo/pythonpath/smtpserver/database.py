@@ -94,7 +94,7 @@ class DataBase(unohelper.Base):
             print("DataBase.__init__() 4")
             if not exist:
                 print("DataBase.__init__() 5")
-                self._createDataBase()
+                error = self._createDataBase()
                 if error is None:
                     self._storeDataBase(url)
             print("DataBase.__init__() 6 %s" % self.getDataSource().URL)

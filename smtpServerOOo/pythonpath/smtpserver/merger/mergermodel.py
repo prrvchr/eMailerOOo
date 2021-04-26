@@ -190,6 +190,8 @@ class MergerModel(MailModel):
             msg = self._getErrorMessage(0, format)
         else:
             progress(50)
+            mri = createService(self._ctx, 'mytools.Mri')
+            mri.inspect(connection)
             self._database = database
             self._statement = connection.createStatement()
             self._composer = self.Connection.createInstance(service)
@@ -325,7 +327,7 @@ class MergerModel(MailModel):
     def _getIndexFilters(self, index):
         filters = ((), )
         if index is not None:
-            filter = getPropertyValue(index, 'IS NULL', None, SQLNULL)
+            filter = getPropertyValue(index, 'IS NULL', 0, SQLNULL)
             filters = ((filter, ), )
         return filters
 
@@ -447,7 +449,7 @@ class MergerModel(MailModel):
     def _getSubQueryFilters(self, emails):
         filters = []
         for email in emails:
-            filter = getPropertyValue(email, 'IS NOT NULL', None, NOT_SQLNULL)
+            filter = getPropertyValue(email, 'IS NOT NULL', 0, NOT_SQLNULL)
             filters.append((filter, ))
         return tuple(filters)
 
@@ -483,7 +485,7 @@ class MergerModel(MailModel):
         if index is None:
             filters = ((), )
         else:
-            filter = getPropertyValue(index, 'IS NULL', None, SQLNULL)
+            filter = getPropertyValue(index, 'IS NULL', 0, SQLNULL)
             filters = ((filter, ), )
         self._composer.setStructuredFilter(filters)
         query.Command = self._composer.getQuery()
@@ -827,7 +829,7 @@ class MergerModel(MailModel):
             properties = []
             for name, value in filter:
                 operator = EQUAL if value != 'IS NULL' else SQLNULL
-                property = getPropertyValue(name, value, None, operator)
+                property = getPropertyValue(name, value, 0, operator)
                 properties.append(property)
             structured.append(tuple(properties))
         return tuple(structured)

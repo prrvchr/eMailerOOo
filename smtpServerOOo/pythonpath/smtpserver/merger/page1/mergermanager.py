@@ -171,6 +171,7 @@ class MergerManager(unohelper.Base,
         self._view.setEmail(emails)
         enabled = self._model.validateQuery(query, exist)
         self._view.enableAddQuery(enabled)
+        self._view.enableRemoveQuery(exist)
         self._wizard.updateTravelUI()
 
     def changeQuery(self, query):

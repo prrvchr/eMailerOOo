@@ -223,6 +223,8 @@ class MergerModel(MailModel):
             self._composer = connection.createInstance(service)
             self._subcomposer = connection.createInstance(service)
             progress(60)
+            mri = createService(self._ctx, 'mytools.Mri')
+            mri.inspect(connection)
             self._setTablesInfos()
             progress(70)
             self._address = self._getRowSet(connection, TABLE)

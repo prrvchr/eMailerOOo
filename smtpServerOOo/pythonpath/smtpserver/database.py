@@ -42,13 +42,13 @@ from .unotool import parseDateTime
 
 from .dbqueries import getSqlQuery
 
-from .dbconfig import g_role
-from .dbconfig import g_dba
+from .dbconfig import g_folder
+from .dbconfig import g_jar
 
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable
+from .dbtool import getConnectionInfo
 from .dbtool import getDataBaseConnection
-from .dbtool import getDataBaseUrl
 from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
 from .dbtool import getKeyMapFromResult
@@ -60,8 +60,6 @@ from .dbinit import getStaticTables
 from .dbinit import getQueries
 from .dbinit import getTablesAndStatements
 
-from .dbconfig import g_folder
-
 from .configuration import g_identifier
 
 from .logger import logMessage
@@ -72,33 +70,29 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, dbname, user='SA', password='', sync=None):
+    def __init__(self, ctx, dbname):
         try:
             print("DataBase.__init__() 1")
             self._ctx = ctx
             self._dbname = dbname
-            self._shutdown = True
-            self._user = user
-            self._password = password
             self._statement = None
             time.sleep(0.2)
-            #datasource, url, self._created = getDataSource(ctx, dbname, g_identifier, False)
             print("DataBase.__init__() 2")
-            #connection = datasource.getConnection(user, password)
-            folder = g_folder + '/' + dbname
-            self._url = getResourceLocation(ctx, g_identifier, folder)
-            url = self._url + '.odb'
-            exist = getSimpleFile(ctx).exists(url)
-            #connection = getDataBaseConnection(ctx, self._url, user, password)
+            url = getResourceLocation(ctx, g_identifier, g_folder)
+            self._url = url + '/' + dbname
+            self._path = url + '/' + g_jar
+            odb = self._url + '.odb'
+            exist = getSimpleFile(ctx).exists(odb)
             print("DataBase.__init__() 3")
-            print("DataBase.__init__() 4")
             if not exist:
-                print("DataBase.__init__() 5")
-                error = self._createDataBase()
+                print("DataBase.__init__() 4")
+                datasource = createDataSource(self._ctx, self._url, self._path)
+                connection = datasource.getConnection('', '')
+                error = self._createDataBase(connection)
                 if error is None:
-                    self._storeDataBase(url)
-            print("DataBase.__init__() 6 %s" % self.getDataSource().URL)
-            self.sync = sync
+                    datasource.DatabaseDocument.storeAsURL(odb, ())
+                datasource.dispose()
+                connection.close()
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -106,8 +100,8 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            url = getDataBaseUrl(self._url, self._shutdown)
-            connection = getDataBaseConnection(self._ctx, url)
+            info = getConnectionInfo(user, password, self._path)
+            connection = getDataBaseConnection(self._ctx, self._url, info)
             self._statement = connection.createStatement()
         return self._statement.getConnection()
 
@@ -117,9 +111,6 @@ class DataBase(unohelper.Base):
             self._statement = None
             connection.dispose()
             print("DataBase.dispose() ***************** database: %s closed!!!" % self._dbname)
-
-    def _storeDataBase(self, url):
-        self.Connection.getParent().DatabaseDocument.storeAsURL(url, ())
 
 # Procedures called by the DataSource
     def getDataSource(self):
@@ -280,13 +271,15 @@ class DataBase(unohelper.Base):
         result = call.executeUpdate()
 
 # Procedures called internally
-    def _createDataBase(self):
-        version, error = checkDataBase(self._ctx, self.Connection)
+    def _createDataBase(self, connection):
+        version, error = checkDataBase(self._ctx, connection)
         if error is None:
-            createStaticTable(self._ctx, self._statement, getStaticTables(), True)
-            tables, statements = getTablesAndStatements(self._ctx, self._statement, version)
-            executeSqlQueries(self._statement, tables)
-            executeQueries(self._ctx, self._statement, getQueries())
+            statement = connection.createStatement()
+            createStaticTable(self._ctx, statement, getStaticTables(), True)
+            tables, statements = getTablesAndStatements(self._ctx, statement, version)
+            executeSqlQueries(statement, tables)
+            executeQueries(self._ctx, statement, getQueries())
+            statement.close()
         return error
 
     def _getCall(self, name, format=None):

@@ -54,7 +54,7 @@ class MergerWizard(unohelper.Base,
         self._model = MergerModel(ctx, datasource)
 
     def dispose(self):
-        self._model.DataSource.dispose()
+        self._model.dispose()
         self._wizard.DialogWindow.dispose()
 
 # XWizardController

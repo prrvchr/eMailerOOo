@@ -110,7 +110,7 @@ class SmtpDispatch(unohelper.Base,
         pass
 
 # SmtpDispatch private methods
-    #Server methods
+    #Ispdb methods
     def _showIspdb(self, arguments):
         try:
             print("_showIspdb()")

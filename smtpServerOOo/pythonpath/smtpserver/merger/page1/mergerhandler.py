@@ -72,13 +72,6 @@ class WindowHandler(unohelper.Base,
                         column = control.getSelectedItem()
                         self._manager.changeAddressBookColumn(column)
                 handled = True
-            elif method == 'ChangeQuery':
-                print("MergerHandler.callHandlerMethod() ChangeQuery *************** %s" % enabled)
-                if enabled:
-                    control = event.Source
-                    query = control.getText()
-                    self._manager.changeQuery(query)
-                handled = True
             elif method == 'EditQuery':
                 print("PageHandler.callHandlerMethod() EditQuery *************** %s" % enabled)
                 control = event.Source
@@ -92,8 +85,8 @@ class WindowHandler(unohelper.Base,
                     print("PageHandler.callHandlerMethod() EnterQuery ***************")
                     control = event.Source
                     query = control.getText().strip()
-                    exist = query in control.getItems()
-                    self._manager.enterQuery(query, exist)
+                    if not query in control.getItems():
+                        self._manager.enterQuery(query)
                 handled = True
             elif method == 'AddQuery':
                 self._manager.addQuery()
@@ -140,7 +133,6 @@ class WindowHandler(unohelper.Base,
                 'NewAddressBook',
                 'ChangeAddressBookTable',
                 'ChangeAddressBookColumn',
-                'ChangeQuery',
                 'EditQuery',
                 'EnterQuery',
                 'AddQuery',

@@ -49,7 +49,7 @@
           <node oor:name="Menu1" oor:op="replace">
             <prop oor:name="Title" oor:type="xs:string">
               <value xml:lang="en">Merge a document</value>
-              <value xml:lang="fr">Fusionner un document</value>
+              <value xml:lang="fr">Publiposter un document</value>
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>

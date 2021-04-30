@@ -103,7 +103,7 @@ class SpoolerModel(unohelper.Base):
     def getGridModels(self, titles, width):
         data = GridModel(self._rowset)
         widths = self._getColumnsWidth()
-        column = self._column.getColumnModel(self._rowset, widths, titles, width, 2)
+        column = self._column.getModel(self._rowset, widths, titles, width, 2)
         return data, column
 
     def getDialogTitle(self):
@@ -124,14 +124,14 @@ class SpoolerModel(unohelper.Base):
         self.DataSource.dispose()
 
     def save(self):
-        widths = self._column.getColumnWidth()
+        widths = self._column.getWidths()
         self._saveGridColumn(widths)
         command = self._composer.getQuery()
         self._saveQueryCommand(command)
         self._configuration.commitChanges()
 
     def setGridColumnModel(self, titles, reset):
-        self._column.setColumnModel(self._rowset, titles, reset)
+        self._column.setModel(self._rowset, titles, reset)
 
     def executeRowSet(self):
         # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1

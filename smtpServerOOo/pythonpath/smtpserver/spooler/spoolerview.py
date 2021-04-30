@@ -48,8 +48,8 @@ class SpoolerView(unohelper.Base):
         handler = DialogHandler(manager)
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 180)
-        title1 = manager.Model.getTabPageTitle(1)
-        title2 = manager.Model.getTabPageTitle(2)
+        title1 = manager.getTabPageTitle(1)
+        title2 = manager.getTabPageTitle(2)
         tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
         parent = tab1.getPeer()
         handler = Tab1Handler(manager)
@@ -59,13 +59,13 @@ class SpoolerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerTab2')
         self._tab2.setVisible(True)
-        title = manager.Model.getDialogTitle()
+        title = manager.getDialogTitle()
         self._dialog.setTitle(title)
 
 # SpoolerView setter methods
     def initGrid(self, manager, titles):
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
-        data, column = manager.Model.getGridModels(titles, rectangle.Width)
+        data, column = manager.getGridModels(titles, rectangle.Width)
         grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)

@@ -78,6 +78,7 @@ class DataSource(unohelper.Base,
         return DataSource._database
 
     def dispose(self):
+        self.waitForDataBase()
         self.DataBase.dispose()
 
     # XCloseListener

@@ -58,7 +58,6 @@
     <dlg:text dlg:id="Label10" dlg:tab-index="16" dlg:page="3" dlg:left="10" dlg:top="90" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label10.HelpText" dlg:value="&amp;MergerPage1.Label10.Label" dlg:valign="center"/>
     <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="17" dlg:page="3" dlg:left="75" dlg:top="90" dlg:width="100" dlg:height="14" dlg:help-text="&amp;MergerPage1.ComboBox1.HelpText" dlg:value="&amp;MergerPage1.ComboBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EditQuery" script:language="UNO"/>
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeQuery" script:language="UNO"/>
       <script:event script:event-name="on-keydown" script:macro-name="vnd.sun.star.UNO:EnterQuery" script:language="UNO"/>
     </dlg:combobox>
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="18" dlg:page="3" dlg:disabled="true" dlg:left="185" dlg:top="90" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton2.HelpText" dlg:value="&amp;MergerPage1.CommandButton2.Label">

@@ -94,17 +94,10 @@ class MergerView(unohelper.Base):
     def getIndex(self):
         return self._getIndex().getItem(0)
 
-    #def getIndexes(self):
-    #    return self._getIndex().Model.StringItemList
-
     def hasIndex(self):
         return self._getIndex().getItemCount() > 0
 
 # MergerView setter methods
-    def dispose(self):
-        self._window.dispose()
-        self._window = None
-
     def setPageStep(self, step):
         self._window.Model.Step = step
 
@@ -151,11 +144,16 @@ class MergerView(unohelper.Base):
         if control.getItemCount() > 0:
             control.selectItemPos(0, True)
 
+    def setTable(self, table):
+        self._getTable().selectItem(table, True)
+
     def setIndexLabel(self, text):
         self._getIndexLabel().Text = text
 
     def initColumns(self, columns):
         control= self._getColumn()
+        # TODO: We need to reset the control in order the handler been called
+        control.Model.StringItemList = ()
         control.Model.StringItemList = columns
         if control.getItemCount() > 0:
             control.selectItemPos(0, True)
@@ -163,11 +161,8 @@ class MergerView(unohelper.Base):
     def initQuery(self, queries):
         control = self._getQuery()
         control.Model.StringItemList = queries
-        if control.getItemCount() > 0:
-            query = control.getItem(0)
-            control.setText(query)
-        else:
-            control.setText('')
+        query = control.getItem(0) if control.getItemCount() > 0 else ''
+        control.setText(query)
 
     # Query methods
     def enableAddQuery(self, enabled):
@@ -181,7 +176,6 @@ class MergerView(unohelper.Base):
         control.setText('')
         count = control.getItemCount()
         control.addItem(query, count)
-        #self._getRemoveQuery().Model.Enabled = False
 
     def removeQuery(self, query):
         self._getRemoveQuery().Model.Enabled = False
@@ -197,6 +191,12 @@ class MergerView(unohelper.Base):
     def enableAddEmail(self, enabled):
         self._getAddEmail().Model.Enabled = enabled
 
+    def updateAddEmail(self, emails, enabled):
+        if enabled:
+            column = self.getColumn()
+            enabled = column not in emails
+        self.enableAddEmail(enabled)
+
     def enableRemoveEmail(self, enabled):
         self._getRemoveEmail().Model.Enabled = enabled
 
@@ -206,35 +206,30 @@ class MergerView(unohelper.Base):
     def enableAfter(self, enabled):
         self._getAfter().Model.Enabled = enabled
 
-    def setEmail(self, emails, index=None):
+    def setEmail(self, emails, position=-1):
         control = self._getEmail()
         control.Model.StringItemList = emails
-        if index is not None:
-            control.selectItemPos(index, True)
+        if position != -1:
+            control.selectItemPos(position, True)
 
     # Index column methods
-    def setIndex(self, index, add):
-        control = self._getIndex()
-        if control.getItemCount() > 0:
-            if index is None:
-                self._removeIndex(control, add)
-            else:
-                self.enableAddIndex(False)
-                control.Model.setItemText(0, index)
-                self.enableRemoveIndex(True)
-        elif index is not None:
-            self._addIndex(control, index)
+    def setIndex(self, index, exist):
+        indexes = () if index is None else (index, )
+        self._getIndex().Model.StringItemList = indexes
+        if exist:
+            self.enableAddIndex(index is None)
+            self.enableRemoveIndex(index is not None)
         else:
-            self.enableAddIndex(add)
+            self.enableAddIndex(False)
             self.enableRemoveIndex(False)
 
     def addIndex(self, index):
-        control = self._getIndex()
-        self._addIndex(control, index)
+        self._getIndex().Model.insertItemText(0, index)
+        self.enableRemoveIndex(True)
 
-    def removeIndex(self):
-        control = self._getIndex()
-        self._removeIndex(control, True)
+    def removeIndex(self, enabled):
+        self._getIndex().Model.removeItem(0)
+        self.enableAddIndex(enabled)
 
     def enableAddIndex(self, enabled):
         self._getAddIndex().Model.Enabled = enabled
@@ -264,11 +259,6 @@ class MergerView(unohelper.Base):
         control.Model.Enabled = enabled
         if not enabled:
             control.Model.StringItemList = ()
-
-    def _addIndex(self, control, index):
-        self.enableAddIndex(False)
-        control.Model.insertItemText(0, index)
-        self.enableRemoveIndex(True)
 
     def _removeIndex(self, control, add):
         self.enableRemoveIndex(False)

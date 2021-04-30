@@ -204,7 +204,10 @@ def getSqlQuery(ctx, name, format=None):
 
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
-        query = 'SELECT * FROM "%s";' % format
+        query = 'SELECT * FROM "%s"' % format
+
+    elif name == 'getRowSetCommand':
+        query = 'SELECT * FROM (%s)' % format
 
     elif name == 'getComposerSubQuery':
         query = '(SELECT * FROM "%s" WHERE %s)' % format

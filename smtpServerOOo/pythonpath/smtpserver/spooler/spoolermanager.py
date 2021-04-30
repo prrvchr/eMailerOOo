@@ -62,13 +62,23 @@ class SpoolerManager(unohelper.Base):
         self._model.initSpooler(self.initView)
 
     @property
-    def Model(self):
-        return self._model
-
-    @property
     def HandlerEnabled(self):
         return self._enabled
 
+# SpoolerManager getter method
+    def execute(self):
+        return self._view.execute()
+
+    def getTabPageTitle(self, tab):
+        return self._model.getTabPageTitle(tab)
+
+    def getDialogTitle(self):
+        return self._model.getDialogTitle()
+
+    def getGridModels(self, titles, width):
+        return self._model.getGridModels(titles, width)
+
+# SpoolerManager setter method
     def initView(self, titles, orders):
         with self._lock:
             if not self._model.isDisposed():
@@ -81,9 +91,6 @@ class SpoolerManager(unohelper.Base):
                 self._view.initOrdersList(titles, orders)
                 self._enabled = True
                 self._view.initButtons()
-
-    def execute(self):
-        return self._view.execute()
 
     def dispose(self):
         with self._lock:

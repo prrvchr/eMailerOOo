@@ -57,18 +57,18 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables = self._model.getFilteredTables()
+        tables, table = self._model.getFilteredTables()
         self._view = MergerView(ctx, self, parent, tables)
         print("mergerManager.__init__() 1")
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
         print("mergerManager.__init__() 2")
-        self._model.initRowSet(address, recipient, self.initTab1, self.initTab2)
+        self._model.initGrid(address, recipient, self.initGrid1, self.initGrid2)
         print("mergerManager.__init__() 3")
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
         print("mergerManager.__init__() 4")
-        self._view.setTable()
+        self._view.setTable(table)
         print("mergerManager.__init__() 5")
 
     @property
@@ -93,21 +93,22 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        if self._model.isChanged():
-            print("MergerManager.activatePage() 1")
-            self._model.updateColumn2(self.updateColumn2)
-            print("MergerManager.activatePage() 2")
-        if self._model.isFiltered():
-            print("MergerManager.activatePage() 3")
-            tables = self._model.getFilteredTables()
-            print("MergerManager.activatePage() 4")
-            # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
-            print("MergerManager.activatePage() 5")
-            self._disableHandler()
-            print("MergerManager.activatePage() 6")
-            self._view.initTable(tables)
-            print("MergerManager.activatePage() 7")
-        print("MergerManager.activatePage() 8")
+        pass
+        #if self._model.isChanged():
+        #    print("MergerManager.activatePage() 1")
+        #    #self._model.updateColumn2(self.updateColumn2)
+        #    print("MergerManager.activatePage() 2")
+        #if self._model.isFiltered():
+        #    print("MergerManager.activatePage() 3")
+        #    tables, table = self._model.getFilteredTables()
+        #    print("MergerManager.activatePage() 4")
+        #    # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
+        #    print("MergerManager.activatePage() 5")
+        #    self._disableHandler()
+        #    print("MergerManager.activatePage() 6")
+        #    self._view.initTable(tables, table)
+        #    print("MergerManager.activatePage() 7")
+        #print("MergerManager.activatePage() 8")
 
     def commitPage(self, reason):
         return True
@@ -118,7 +119,18 @@ class MergerManager(unohelper.Base,
         print("MergerManager2.canAdvance() 2 %s" % advance)
         return advance
 
+# MergerManager getter methods
+    def getGridModel(self, tab, width, factor):
+        return self._model.getGridModel(tab, width, factor)
+
 # MergerManager setter methods
+    def initGrid1(self, columns, orders):
+        self._view.updateColumn1(columns, orders)
+
+    def initGrid2(self, columns, orders, message):
+        self._view.updateColumn2(columns, orders)
+        self._view.setMessage(message)
+
     def updateColumn2(self, columns, orders):
         print("MergerManager.updateColumn2() 1")
         self._view.updateColumn2(columns, orders)
@@ -138,12 +150,6 @@ class MergerManager(unohelper.Base,
         self._model.addressChanged()
         self._view.enableAddAll(enabled)
 
-    def initTab1(self, columns, orders):
-        self._view.updateColumn1(columns, orders)
-
-    def initTab2(self, columns, orders, message):
-        self._view.updateColumn2(columns, orders)
-        self._view.setMessage(message)
 
 
 

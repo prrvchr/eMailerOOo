@@ -68,7 +68,6 @@ class SmtpDispatch(unohelper.Base,
         self._ctx = ctx
         self._parent = parent
         self._listeners = []
-        print("SmtpDispatch.__init__()")
 
     _datasource = None
 
@@ -78,16 +77,12 @@ class SmtpDispatch(unohelper.Base,
 
 # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
-        print("SmtpDispatch.dispatchWithNotification() 1")
         state, result = self.dispatch(url, arguments)
         struct = 'com.sun.star.frame.DispatchResultEvent'
         notification = uno.createUnoStruct(struct, self, state, result)
-        print("SmtpDispatch.dispatchWithNotification() 2")
         listener.dispatchFinished(notification)
-        print("SmtpDispatch.dispatchWithNotification() 3")
 
     def dispatch(self, url, arguments):
-        print("SmtpDispatch.dispatch() 1")
         if self.DataSource is None:
             SmtpDispatch._datasource = DataSource(self._ctx)
         state = SUCCESS
@@ -101,7 +96,6 @@ class SmtpDispatch(unohelper.Base,
         elif url.Path == 'merger':
             self._showMerger()
         return state, result
-        print("SmtpDispatch.dispatch() 2")
 
     def addStatusListener(self, listener, url):
         pass
@@ -113,7 +107,6 @@ class SmtpDispatch(unohelper.Base,
     #Ispdb methods
     def _showIspdb(self, arguments):
         try:
-            print("_showIspdb()")
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
@@ -141,10 +134,9 @@ class SmtpDispatch(unohelper.Base,
     #Spooler methods
     def _showSpooler(self):
         try:
-            print("SmtpDispatch._showSpooler() 1")
             manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
             if manager.execute() == OK:
-                print("SmtpDispatch._showSpooler() 2")
+                pass
             manager.dispose()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -179,7 +171,6 @@ class SmtpDispatch(unohelper.Base,
     #Merger methods
     def _showMerger(self):
         try:
-            print("_showMerger()")
             msg = "Wizard Loading ..."
             wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
             controller = MergerWizard(self._ctx, wizard, self.DataSource)

@@ -156,7 +156,7 @@ class Grid1Handler(unohelper.Base,
         try:
             control = event.Source
             selected = control.hasSelectedRows()
-            self._manager.changeAddress(selected)
+            self._manager.changeGrid1Selection(selected)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -176,7 +176,7 @@ class Grid2Handler(unohelper.Base,
             control = event.Source
             selected = control.hasSelectedRows()
             index = control.getSelectedRows()[0] if selected else -1
-            self._manager.changeRecipient(selected, index)
+            self._manager.changeGrid2Selection(selected, index)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -200,7 +200,7 @@ class AddressHandler(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             enabled = event.Source.RowCount > 0
-            self._manager.addressChanged(enabled)
+            self._manager.changeAddressRowSet(enabled)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -221,7 +221,7 @@ class RecipientHandler(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             enabled = event.Source.RowCount > 0
-            self._manager.recipientChanged(enabled)
+            self._manager.changeRecipientRowSet(enabled)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)

@@ -57,8 +57,8 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, table = self._model.getFilteredTables()
-        self._view = MergerView(ctx, self, parent, tables)
+        tables, table, enabled, message = self._model.getPageInfos(True)
+        self._view = MergerView(ctx, self, parent, tables, enabled, message)
         print("mergerManager.__init__() 1")
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
@@ -70,10 +70,6 @@ class MergerManager(unohelper.Base,
         print("mergerManager.__init__() 4")
         self._view.setTable(table)
         print("mergerManager.__init__() 5")
-
-    @property
-    def Model(self):
-        return self._model
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -93,22 +89,13 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        pass
-        #if self._model.isChanged():
-        #    print("MergerManager.activatePage() 1")
-        #    #self._model.updateColumn2(self.updateColumn2)
-        #    print("MergerManager.activatePage() 2")
-        #if self._model.isFiltered():
-        #    print("MergerManager.activatePage() 3")
-        #    tables, table = self._model.getFilteredTables()
-        #    print("MergerManager.activatePage() 4")
-        #    # TODO: We must disable the handler "ChangeAddressTable" otherwise it activates twice
-        #    print("MergerManager.activatePage() 5")
-        #    self._disableHandler()
-        #    print("MergerManager.activatePage() 6")
-        #    self._view.initTable(tables, table)
-        #    print("MergerManager.activatePage() 7")
-        #print("MergerManager.activatePage() 8")
+        if self._model.isChanged():
+            tables, table, enabled, message = self._model.getPageInfos()
+            self._view.setMessage(message)
+            # TODO: We must disable the handler "ChangeAddressTable"
+            # TODO: otherwise it activates twice
+            self._disableHandler()
+            self._view.initTables(tables, table, enabled)
 
     def commitPage(self, reason):
         return True
@@ -123,6 +110,9 @@ class MergerManager(unohelper.Base,
     def getGridModel(self, tab, width, factor):
         return self._model.getGridModel(tab, width, factor)
 
+    def getTabTitle(self, tab):
+        return self._model.getTabTitle(tab)
+
 # MergerManager setter methods
     def initGrid1(self, columns, orders):
         self._view.updateColumn1(columns, orders)
@@ -131,27 +121,18 @@ class MergerManager(unohelper.Base,
         self._view.updateColumn2(columns, orders)
         self._view.setMessage(message)
 
-    def updateColumn2(self, columns, orders):
-        print("MergerManager.updateColumn2() 1")
-        self._view.updateColumn2(columns, orders)
-
     def setAddressTable(self, table):
         print("MergerManager.setAddressTable() ************************")
         self._model.setAddressTable(table)
 
-    def recipientChanged(self, enabled):
-        self._model.recipientChanged()
+    def changeRecipientRowSet(self, enabled):
+        self._model.changeRecipientRowSet()
         self._view.enableRemoveAll(enabled)
-        message = self._model.getMailingMessage()
-        self._view.setMessage(message)
         self._wizard.updateTravelUI()
 
-    def addressChanged(self, enabled):
-        self._model.addressChanged()
+    def changeAddressRowSet(self, enabled):
+        self._model.changeAddressRowSet()
         self._view.enableAddAll(enabled)
-
-
-
 
     def setAddressColumn(self, titles, reset):
         self._model.setAddressColumn(titles, reset)
@@ -167,10 +148,10 @@ class MergerManager(unohelper.Base,
         ascending = self._view.getRecipientSort()
         self._model.setRecipientOrder(titles, ascending)
 
-    def changeAddress(self, selected):
+    def changeGrid1Selection(self, selected):
         self._view.enableAdd(selected)
 
-    def changeRecipient(self, selected, index):
+    def changeGrid2Selection(self, selected, index):
         self._view.enableRemove(selected)
         if selected:
             self._model.setDocumentRecord(index +1)

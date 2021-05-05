@@ -30,16 +30,17 @@
 import uno
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
-from com.sun.star.lang import XInitialization
 from com.sun.star.frame import XDispatchProvider
+
+from com.sun.star.lang import XInitialization
+from com.sun.star.lang import XServiceInfo
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import SmtpDispatch
 
-from smtpserver.logger import getMessage
+from smtpserver import getMessage
 from smtpserver import logMessage
 from smtpserver import g_identifier
 
@@ -51,29 +52,25 @@ g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
 
 
 class SmtpDispatcher(unohelper.Base,
-                     XServiceInfo,
+                     XDispatchProvider,
                      XInitialization,
-                     XDispatchProvider):
+                     XServiceInfo):
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
         logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
 
-    # XInitialization
+# XInitialization
     def initialize(self, args):
         if len(args) > 0:
-            print("SmtpDispatcher.initialize() *************************")
             self._frame = args[0]
 
-    # XDispatchProvider
+# XDispatchProvider
     def queryDispatch(self, url, frame, flags):
         dispatch = None
-        print("SmtpDispatcher.queryDispatch() 1 %s %s" % (url.Protocol, url.Path))
         if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
-            print("SmtpDispatcher.queryDispatch() 2 %s %s" % (url.Protocol, url.Path))
             parent = self._frame.getContainerWindow()
             dispatch = SmtpDispatch(self._ctx, parent)
-            print("SmtpDispatcher.queryDispatch()3")
         return dispatch
 
     def queryDispatches(self, requests):

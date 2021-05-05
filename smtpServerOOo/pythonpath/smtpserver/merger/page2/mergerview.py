@@ -46,7 +46,7 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, tables):
+    def __init__(self, ctx, manager, parent, tables, enabled, message):
         self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 5, 285, 195)
@@ -68,7 +68,9 @@ class MergerView(unohelper.Base):
         grid = self._createGrid(self._tab2, data, column, 'Grid1', rectangle)
         handler = Grid2Handler(manager)
         grid.addSelectionListener(handler)
-        self._getTable().Model.StringItemList = tables
+        self._initTables(tables, enabled)
+        self.setMessage(message)
+        #self._getTable().Model.StringItemList = tables
         print("MergerView.__init__()")
 
 # MergerView getter methods
@@ -102,11 +104,16 @@ class MergerView(unohelper.Base):
     def setTable(self, table):
         self._getTable().selectItem(table, True)
 
-    def initTable(self, tables, table):
+    def initTables(self, tables, table, enabled):
         control = self._getTable()
-        control.Model.StringItemList = ()
         control.Model.StringItemList = tables
         control.selectItem(table, True)
+        control.Model.Enabled = enabled
+
+    def _initTables(self, tables, enabled):
+        control = self._getTable()
+        control.Model.StringItemList = tables
+        control.Model.Enabled = enabled
 
     def updateColumn1(self, columns, orders):
         self._getAddressColumn().Model.StringItemList = columns
@@ -185,13 +192,13 @@ class MergerView(unohelper.Base):
         return self._tab2.getControl('Label1')
 
 # MergerView private methods
-    def _getTabPages(self, manager, name, rectangle, id):
+    def _getTabPages(self, manager, name, rectangle, i):
         model = self._getTabModel(rectangle)
         self._window.Model.insertByName(name, model)
         tab = self._window.getControl(name)
         tab1 = self._getTabPage(manager, model, tab, 0)
         tab2 = self._getTabPage(manager, model, tab, 1)
-        tab.ActiveTabPageID = id
+        tab.ActiveTabPageID = i
         return tab1, tab2
 
     def _getTabModel(self, rectangle):
@@ -203,13 +210,12 @@ class MergerView(unohelper.Base):
         model.Height = rectangle.Height
         return model
 
-    def _getTabPage(self, manager, model, tab, id):
-        page = model.createTabPage(id +1)
-        page.Title = manager.Model.getTabTitle(id +1)
-        #page.ToolTip = manager.Model.getTabTip(id +1)
+    def _getTabPage(self, manager, model, tab, i):
+        page = model.createTabPage(i +1)
+        page.Title = manager.getTabTitle(i +1)
         index = model.getCount()
         model.insertByIndex(index, page)
-        return tab.getControls()[id]
+        return tab.getControls()[i]
 
     def _createGrid(self, page, data, column, name, rectangle):
         model = self._getGridModel(page, data, column, name, rectangle)

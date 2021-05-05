@@ -46,6 +46,7 @@ from .dbconfig import g_folder
 from .dbconfig import g_jar
 
 from .dbtool import checkDataBase
+from .dbtool import createDataSource
 from .dbtool import createStaticTable
 from .dbtool import getConnectionInfo
 from .dbtool import getDataBaseConnection
@@ -72,27 +73,32 @@ import traceback
 class DataBase(unohelper.Base):
     def __init__(self, ctx, dbname):
         try:
-            print("DataBase.__init__() 1")
+            print("smtpServer.DataBase.__init__() 1")
             self._ctx = ctx
             self._dbname = dbname
             self._statement = None
+            self._embedded = False
             time.sleep(0.2)
-            print("DataBase.__init__() 2")
+            print("smtpServer.DataBase.__init__() 2")
             url = getResourceLocation(ctx, g_identifier, g_folder)
             self._url = url + '/' + dbname
-            self._path = url + '/' + g_jar
+            if self._embedded:
+                self._path = url + '/' + g_jar
+            else:
+                self._path = None
             odb = self._url + '.odb'
             exist = getSimpleFile(ctx).exists(odb)
-            print("DataBase.__init__() 3")
+            print("smtpServer.DataBase.__init__() 3")
             if not exist:
-                print("DataBase.__init__() 4")
-                datasource = createDataSource(self._ctx, self._url, self._path)
-                connection = datasource.getConnection('', '')
+                print("smtpServer.DataBase.__init__() 4")
+                connection = self._getConnection()
                 error = self._createDataBase(connection)
                 if error is None:
-                    datasource.DatabaseDocument.storeAsURL(odb, ())
-                datasource.dispose()
+                    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
+                connection.getParent().dispose()
                 connection.close()
+                print("smtpServer.DataBase.__init__() 5")
+            print("smtpServer.DataBase.__init__() 6")
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -100,17 +106,23 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            info = getConnectionInfo(user, password, self._path)
-            connection = getDataBaseConnection(self._ctx, self._url, info)
+            connection = self._getConnection()
             self._statement = connection.createStatement()
         return self._statement.getConnection()
 
     def dispose(self):
         if self._statement is not None:
             connection = self._statement.getConnection()
+            self._statement.dispose()
             self._statement = None
-            connection.dispose()
-            print("DataBase.dispose() ***************** database: %s closed!!!" % self._dbname)
+            connection.getParent().dispose()
+            connection.close()
+            print("smtpServer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
+
+    def _getConnection(self, user='', password=''):
+        info = getConnectionInfo(user, password, self._path)
+        connection = getDataBaseConnection(self._ctx, self._url, info)
+        return connection
 
 # Procedures called by the DataSource
     def getDataSource(self):

@@ -109,7 +109,7 @@ class MergerManager(unohelper.Base,
 
     # AddressBook setter methods
     def changeAddressBook(self, addressbook):
-        if not self._model.isLoadedAddressBook(addressbook):
+        if self._model.isAddressBookNotLoaded(addressbook):
             self._view.enablePage(False)
             self._view.enableButton(False)
             self._view.setPageStep(1)

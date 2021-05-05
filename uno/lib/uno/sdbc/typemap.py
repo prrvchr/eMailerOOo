@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf_8 -*-
+# -*- coding: utf-8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,5 +27,35 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .connection import Connection
-from .datasource import DataSource
+import unohelper
+
+from com.sun.star.container import XNameAccess
+
+from com.sun.star.container import NoSuchElementException
+
+
+class TypeMap(unohelper.Base,
+              XNameAccess):
+
+    def __init__(self, typemap, typeclass):
+        self._typemap = typemap
+        self._typeclass = typeclass
+
+# XNameAccess
+    def getByName(self, name):
+        if not self.hasByName(name):
+            raise NoSuchElementException()
+        return self._typemap[name]
+
+    def getElementNames(self):
+        names = self._typemap.keys()
+        return tuple(names)
+
+    def hasByName(self, name):
+        return name in self._typemap
+
+    def getElementType(self):
+        return self._typeclass
+
+    def hasElements(self):
+        return len(self._typemap) > 0

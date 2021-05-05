@@ -27,5 +27,26 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .connection import Connection
-from .datasource import DataSource
+import uno
+import unohelper
+
+from com.sun.star.uno import XAdapter
+
+import weakref
+import traceback
+
+
+class Adapter(XAdapter):
+
+    def __init__(self, adapted, references):
+        self._adapted = weakref.ref(adapted)
+        self._references = references
+
+# XAdapter
+    def queryAdapted(self):
+        return self._adapted()
+    def addReference(self, reference):
+        self._references.append(reference)
+    def removeReference(self, reference):
+        if reference in self._references:
+            self._references.remove(reference)

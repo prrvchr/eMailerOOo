@@ -132,7 +132,7 @@ def getDataSourceLocation1(location, dbname, shutdown):
         url += g_shutdown
     return url
 
-def getDataSourceConnection(ctx, url, dbname, name='', password=''):
+def getDataSourceConnection1(ctx, url, dbname, name='', password=''):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     odb = dbname if dbcontext.hasByName(dbname) else '%s/%s.odb' % (url, dbname)
     datasource = dbcontext.getByName(odb)

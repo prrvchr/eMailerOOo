@@ -60,14 +60,14 @@ class MergerManager(unohelper.Base,
         addressbooks = self._model.getAvailableAddressBooks()
         self._view = MergerView(ctx, self, parent, addressbooks)
         addressbook = self._model.getDocumentAddressBook()
-        if addressbook in addressbooks:
-            self._view.setPageStep(1)
+        #if addressbook in addressbooks:
+            #self._view.setPageStep(1)
             # TODO: We must disable the handler "ChangeAddressBook"
             # TODO: otherwise it activates twice
-            self._disableHandler()
-            self._view.selectAddressBook(addressbook)
-        else:
-            self._view.enableAddressBook(True)
+            #self._disableHandler()
+            #self._view.selectAddressBook(addressbook)
+        #else:
+        self._view.enableAddressBook(True)
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -92,7 +92,7 @@ class MergerManager(unohelper.Base,
     def commitPage(self, reason):
         try:
             query = self._view.getQuery()
-            self._model.commitPage1(query, self.updateTravelUI)
+            self._model.commitPage1(query)
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -103,10 +103,6 @@ class MergerManager(unohelper.Base,
                     self._view.hasIndex()))
 
 # MergerManager setter methods
-    # Wizard setter methods
-    def updateTravelUI(self):
-        self._wizard.updateTravelUI()
-
     # AddressBook setter methods
     def changeAddressBook(self, addressbook):
         if self._model.isAddressBookNotLoaded(addressbook):

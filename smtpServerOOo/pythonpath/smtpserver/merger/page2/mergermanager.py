@@ -117,12 +117,10 @@ class MergerManager(unohelper.Base,
     def initGrid1(self, columns, orders):
         self._view.updateColumn1(columns, orders)
 
-    def initGrid2(self, columns, orders, message):
+    def initGrid2(self, columns, orders):
         self._view.updateColumn2(columns, orders)
-        self._view.setMessage(message)
 
     def setAddressTable(self, table):
-        print("MergerManager.setAddressTable() ************************")
         self._model.setAddressTable(table)
 
     def changeRecipientRowSet(self, enabled):
@@ -154,7 +152,7 @@ class MergerManager(unohelper.Base,
     def changeGrid2Selection(self, selected, index):
         self._view.enableRemove(selected)
         if selected:
-            self._model.setDocumentRecord(index +1)
+            self._model.setDocumentRecord(index)
 
     def addItem(self):
         rows = self._view.getSelectedAddress()

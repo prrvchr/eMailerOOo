@@ -276,21 +276,14 @@ CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
 CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
                              IN "Subject" VARCHAR(78),
                              IN "Document" VARCHAR(512),
-                             IN "Recipient" VARCHAR(32000),
-                             IN "Attachment" VARCHAR(5120),
-                             IN "Separator" VARCHAR(1),
+                             IN "Recipients" VARCHAR(320) ARRAY,
+                             IN "Attachments" VARCHAR(512) ARRAY,
                              OUT "Id" INTEGER)
   SPECIFIC "InsertJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
     DECLARE "BatchId" INTEGER DEFAULT 0;
     DECLARE "Index" INTEGER DEFAULT 1;
-    DECLARE "Pattern" VARCHAR(5) DEFAULT '[^$]+';
-    DECLARE "Recipients" VARCHAR(320) ARRAY[500];
-    DECLARE "Attachments" VARCHAR(512) ARRAY[50];
-    SET "Pattern" = REPLACE("Pattern", '$', "Separator");
-    SET "Recipients" = REGEXP_SUBSTRING_ARRAY("Recipient", "Pattern");
-    SET "Attachments" = REGEXP_SUBSTRING_ARRAY("Attachment", "Pattern");
     INSERT INTO "Senders" ("Sender","Subject","Document") VALUES ("Sender","Subject","Document");
     SET "BatchId" = IDENTITY();
     WHILE "Index" <= CARDINALITY("Recipients") DO
@@ -403,7 +396,7 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
     elif name == 'getServers':
         query = 'CALL "GetServers"(?,?,?,?,?,?)'
     elif name == 'insertJob':
-        query = 'CALL "InsertJob"(?,?,?,?,?,?,?)'
+        query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'updateServer':
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':

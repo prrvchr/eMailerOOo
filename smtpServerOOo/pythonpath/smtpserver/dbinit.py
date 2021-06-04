@@ -122,11 +122,17 @@ def _createPreparedStatement(ctx, datasource, statements):
             query.Command = sql
             queries.insertByName(name, query)
 
-def getTablesAndStatements(ctx, statement, version=g_version):
+def getTablesAndStatements(ctx, connection, version=g_version):
     tables = []
     statements = []
-    call = getDataSourceCall(ctx, statement.getConnection(), 'getTables')
-    for table in getSequenceFromResult(statement.executeQuery(getSqlQuery(ctx, 'getTableName'))):
+    statement = connection.createStatement()
+    query = getSqlQuery(ctx, 'getTableName')
+    result = statement.executeQuery(query)
+    sequence = getSequenceFromResult(result)
+    result.close()
+    statement.close()
+    call = getDataSourceCall(ctx, connection, 'getTables')
+    for table in sequence:
         view = False
         versioned = False
         columns = []
@@ -165,6 +171,7 @@ def getTablesAndStatements(ctx, statement, version=g_version):
                                            'Columns': '"%s"' % column,
                                            'ForeignTable': foreign,
                                            'ForeignColumns': '"%s"' % data.getValue('ForeignColumn')}
+        result.close()
         if primary:
             columns.append(getSqlQuery(ctx, 'getPrimayKey', primary))
         for format in unique:

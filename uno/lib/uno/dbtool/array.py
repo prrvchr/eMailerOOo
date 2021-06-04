@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,40 +25,36 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="0.0.1"/>
-  <identifier value="com.gmail.prrvchr.extensions.smtpServerOOo"/>
-  <platform value="all"/>
-  <dependencies>
-    <OpenOffice.org-minimal-version value="4.1" d:name="OpenOffice.org 4.1"/>
-  </dependencies>
-  <update-information>
-    <src xlink:href="https://prrvchr.github.io/smtpServerOOo/smtpServerOOo.update.xml"/>
-  </update-information>
-  <publisher>
-    <name xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en">SMTP finally available in LibreOffice / OpenOffice</name>
-    <name xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
-  </publisher>
-  <registration>
-    <simple-license accept-by="admin" suppress-on-update="true">
-      <license-text xlink:href="registration/TermsOfUse_en.md" lang="en"/>
-      <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr"/>
-    </simple-license>
-  </registration>
-  <release-notes>
-    <src xlink:href="https://prrvchr.github.io/smtpServerOOo/" lang="en"/>
-    <src xlink:href="https://prrvchr.github.io/smtpServerOOo/README_fr" lang="fr"/>
-  </release-notes>
-  <display-name>
-    <name lang="en">smtpServerOOo</name>
-  </display-name>
-  <icon>
-    <default xlink:href="smtpServerOOo/smtpServer.png"/>
-    <high-contrast xlink:href="smtpServerOOo/smtpServer.png"/>
-  </icon>
-  <extension-description>
-    <src xlink:href="description/desc_en.txt" lang="en"/>
-    <src xlink:href="description/desc_fr.txt" lang="fr"/>
-  </extension-description>
-</description>
+"""
+
+import uno
+import unohelper
+
+from com.sun.star.sdbc import XArray
+import traceback
+
+
+class Array(unohelper.Base,
+            XArray):
+    def __init__(self, sqltype, data):
+        self._type = sqltype
+        self._data = data
+
+    # XArray
+    def getBaseTypeName(self):
+        return self._type
+
+    def getBaseType(self):
+        return uno.getConstantByName("com.sun.star.sdbc.DataType.%s" % self._type)
+
+    def getArray(self, map):
+        return self._data
+
+    def getArrayAtIndex(self, index, count, map):
+        return self._data
+
+    def getResultSet(self, map):
+        return None
+
+    def getResultSetAtIndex(self, index, count, map):
+        return None

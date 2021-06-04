@@ -51,6 +51,8 @@ from smtpserver import setDebugMode
 
 from .database import DataBase
 
+from .dbtool import Array
+
 from .dataparser import DataParser
 
 from threading import Thread
@@ -123,11 +125,10 @@ class DataSource(unohelper.Base,
         return self.DataBase.deleteUser(sender)
 
 # Procedures called by the MailServiceSpooler
-    def insertJob(self, sender, subject, document, recipients, attachments):
-        separator = '|'
-        recipient = separator.join(recipients)
-        attachment = separator.join(attachments)
-        id = self.DataBase.insertJob(sender, subject, document, recipient, attachment, separator)
+    def insertJob(self, sender, subject, document, recipient, attachment):
+        recipients = Array('VARCHAR', recipient)
+        attachments = Array('VARCHAR', attachment)
+        id = self.DataBase.insertJob(sender, subject, document, recipients, attachments)
         return id
 
 # Procedures called internally by Ispdb

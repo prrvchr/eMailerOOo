@@ -36,6 +36,7 @@ from com.sun.star.sdb.CommandType import QUERY
 
 from .unolib import KeyMap
 
+from .unotool import createService
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import parseDateTime
@@ -52,6 +53,7 @@ from .dbtool import getConnectionInfo
 from .dbtool import getDataBaseConnection
 from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
+from .dbtool import getDataSourceConnection
 from .dbtool import getKeyMapFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import executeQueries
@@ -91,11 +93,14 @@ class DataBase(unohelper.Base):
             print("smtpServer.DataBase.__init__() 3")
             if not exist:
                 print("smtpServer.DataBase.__init__() 4")
-                connection = self._getConnection()
+                connection = getDataSourceConnection(ctx, self._url)
                 error = self._createDataBase(connection)
                 if error is None:
-                    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
-                connection.getParent().dispose()
+                    datasource = connection.getParent()
+                    datasource.DatabaseDocument.storeAsURL(odb, ())
+                    datasource.dispose()
+                #mri = createService(ctx, 'mytools.Mri')
+                #mri.inspect(connection)
                 connection.close()
                 print("smtpServer.DataBase.__init__() 5")
             print("smtpServer.DataBase.__init__() 6")
@@ -115,13 +120,12 @@ class DataBase(unohelper.Base):
             connection = self._statement.getConnection()
             self._statement.dispose()
             self._statement = None
-            connection.getParent().dispose()
+            #connection.getParent().dispose()
             connection.close()
             print("smtpServer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
 
     def _getConnection(self, user='', password=''):
-        info = getConnectionInfo(user, password, self._path)
-        connection = getDataBaseConnection(self._ctx, self._url, info)
+        connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
         return connection
 
 # Procedures called by the DataSource
@@ -216,7 +220,19 @@ class DataBase(unohelper.Base):
     def getViewQuery(self):
         return getSqlQuery(self._ctx, 'getViewQuery')
 
-    def insertJob(self, sender, subject, document, recipient, attachment, separator):
+    def insertJob(self, sender, subject, document, recipients, attachments):
+        call = self._getCall('insertJob')
+        call.setString(1, sender)
+        call.setString(2, subject)
+        call.setString(3, document)
+        call.setArray(4, recipients)
+        call.setArray(5, attachments)
+        status = call.executeUpdate()
+        id = call.getInt(6)
+        call.close()
+        return id
+
+    def insertJob1(self, sender, subject, document, recipient, attachment, separator):
         call = self._getCall('insertJob')
         call.setString(1, sender)
         call.setString(2, subject)
@@ -288,7 +304,7 @@ class DataBase(unohelper.Base):
         if error is None:
             statement = connection.createStatement()
             createStaticTable(self._ctx, statement, getStaticTables(), True)
-            tables, statements = getTablesAndStatements(self._ctx, statement, version)
+            tables, statements = getTablesAndStatements(self._ctx, connection, version)
             executeSqlQueries(statement, tables)
             executeQueries(self._ctx, statement, getQueries())
             statement.close()

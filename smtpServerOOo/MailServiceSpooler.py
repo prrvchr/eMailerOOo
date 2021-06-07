@@ -86,6 +86,15 @@ class MailServiceSpooler(unohelper.Base,
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
+    def addMergeJob(self, sender, subject, document, datasource, query, recipients, identifiers, attachments):
+        try:
+            print("MailServiceSpooler.addMergeJob() %s - %s - %s - %s - %s - %s - %s" % (sender, subject, document, datasource, recipients, identifiers, attachments))
+            id = self._datasource.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
+            print("MailServiceSpooler.addMergeJob() %s" % id)
+            return id
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     def removeJob(self, id):
         pass

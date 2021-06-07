@@ -78,6 +78,8 @@ class MergerManager(MailManager,
         pass
 
     def commitPage(self, reason):
+        if reason == FINISH:
+            self.sendDocument()
         return True
 
     def canAdvance(self):
@@ -85,22 +87,25 @@ class MergerManager(MailManager,
 
 # MergerManager setter methods
     def initRecipients(self, recipients, message):
-        print("MergerManager.initRecipient()")
         self._view.setMergerRecipient(recipients, message)
+        self._updateUI()
 
     def changeRecipient(self):
-        recipients, message = self._model.getRecipients()
+        recipients = self._model.getRecipients()
+        message = self._model.getTotal(len(recipients))
         print("MergerManager.changeRecipient()")
         self._view.setMergerRecipient(recipients, message)
+        self._updateUI()
 
     def sendDocument(self):
         subject, attachments = self._getSavedDocumentProperty()
         sender = self._view.getSender()
-        recipients = self._view.getRecipients()
-        url = self._model.getUrl()
+        recipients, identifiers = self._view.getRecipients()
+        url, datasource, query = self._model.getDocumentInfo()
+        print("MergerManager.sendDocument() %s: %s - %s - %s - %s" % (sender, subject, url, datasource, query))
         service = 'com.sun.star.mail.MailServiceSpooler'
         spooler = createService(self._ctx, service)
-        id = spooler.addJob(sender, subject, url, recipients, attachments)
+        id = spooler.addMergeJob(sender, subject, url, datasource, query, recipients, identifiers, attachments)
 
 # MergerManager private setter methods
     def _closeDocument(self, document):

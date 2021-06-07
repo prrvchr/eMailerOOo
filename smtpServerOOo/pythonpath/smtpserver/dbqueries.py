@@ -206,19 +206,13 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getQueryCommand':
         query = 'SELECT * FROM "%s"' % format
 
-    elif name == 'getRowSetCommand':
-        query = 'SELECT * FROM (%s)' % format
-
-    elif name == 'getComposerSubQuery':
-        query = '(SELECT * FROM "%s" WHERE %s)' % format
-
-    elif name == 'getComposerColumns':
+    elif name == 'getRecipientColumns':
         query = '"%s"' % '", "'.join(format)
         if len(format) > 1:
             query = 'COALESCE(%s)' % query
 
-    elif name == 'getComposerQuery':
-        query = 'SELECT %s FROM %s WHERE %s;' % format
+    elif name == 'getRecipientQuery':
+        query = 'SELECT %s AS "Recipient", "%s" AS "Identifier" FROM "%s" WHERE %s;' % format
 
     # Spooler Select Queries
     elif name == 'getViewQuery':
@@ -284,15 +278,51 @@ CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
   BEGIN ATOMIC
     DECLARE "BatchId" INTEGER DEFAULT 0;
     DECLARE "Index" INTEGER DEFAULT 1;
-    INSERT INTO "Senders" ("Sender","Subject","Document") VALUES ("Sender","Subject","Document");
+    INSERT INTO "Senders" ("Sender","Subject","Document")
+    VALUES ("Sender","Subject","Document");
     SET "BatchId" = IDENTITY();
     WHILE "Index" <= CARDINALITY("Recipients") DO
-      INSERT INTO "Recipients" ("BatchId","Recipient") VALUES ("BatchId","Recipients"["Index"]);
+      INSERT INTO "Recipients" ("BatchId","Recipient")
+      VALUES ("BatchId","Recipients"["Index"]);
       SET "Index" = "Index" + 1;
     END WHILE;
     SET "Index" = 1;
     WHILE "Index" <= CARDINALITY("Attachments") DO
-      INSERT INTO "Attachments" ("BatchId","Attachment") VALUES ("BatchId","Attachments"["Index"]);
+      INSERT INTO "Attachments" ("BatchId","Attachment")
+      VALUES ("BatchId","Attachments"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Id" = "BatchId";
+  END;"""
+
+    elif name == 'createInsertMergeJob':
+        query = """\
+CREATE PROCEDURE "InsertMergeJob"(IN "Sender" VARCHAR(320),
+                                  IN "Subject" VARCHAR(78),
+                                  IN "Document" VARCHAR(512),
+                                  IN "DataSource" VARCHAR(512),
+                                  IN "Query" VARCHAR(512),
+                                  IN "Recipients" VARCHAR(320) ARRAY,
+                                  IN "Identifiers" VARCHAR(128) ARRAY,
+                                  IN "Attachments" VARCHAR(512) ARRAY,
+                                  OUT "Id" INTEGER)
+  SPECIFIC "InsertMergeJob_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE "BatchId" INTEGER DEFAULT 0;
+    DECLARE "Index" INTEGER DEFAULT 1;
+    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query")
+    VALUES ("Sender","Subject","Document", "DataSource","Query");
+    SET "BatchId" = IDENTITY();
+    WHILE "Index" <= CARDINALITY("Recipients") DO
+      INSERT INTO "Recipients" ("BatchId","Recipient","Identifier")
+      VALUES ("BatchId","Recipients"["Index"],"Identifiers"["Index"]);
+      SET "Index" = "Index" + 1;
+    END WHILE;
+    SET "Index" = 1;
+    WHILE "Index" <= CARDINALITY("Attachments") DO
+      INSERT INTO "Attachments" ("BatchId","Attachment")
+      VALUES ("BatchId","Attachments"["Index"]);
       SET "Index" = "Index" + 1;
     END WHILE;
     SET "Id" = "BatchId";
@@ -397,6 +427,8 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
         query = 'CALL "GetServers"(?,?,?,?,?,?)'
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
+    elif name == 'insertMergeJob':
+        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?)'
     elif name == 'updateServer':
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':

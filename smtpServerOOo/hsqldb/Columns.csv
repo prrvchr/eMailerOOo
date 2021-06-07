@@ -19,6 +19,7 @@ Column|Name
 17|Query
 18|JobId
 19|Recipient
-20|State
-21|Attachment
-22|TimeStamp
+20|Identifier
+21|State
+22|Attachment
+23|TimeStamp

@@ -232,16 +232,18 @@ class DataBase(unohelper.Base):
         call.close()
         return id
 
-    def insertJob1(self, sender, subject, document, recipient, attachment, separator):
-        call = self._getCall('insertJob')
+    def insertMergeJob(self, sender, subject, document, datasource, query, recipients, identifiers, attachments):
+        call = self._getCall('insertMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
         call.setString(3, document)
-        call.setString(4, recipient)
-        call.setString(5, attachment)
-        call.setString(6, separator)
+        call.setString(4, datasource)
+        call.setString(5, query)
+        call.setArray(6, recipients)
+        call.setArray(7, identifiers)
+        call.setArray(8, attachments)
         status = call.executeUpdate()
-        id = call.getInt(7)
+        id = call.getInt(9)
         call.close()
         return id
 

@@ -131,6 +131,13 @@ class DataSource(unohelper.Base,
         id = self.DataBase.insertJob(sender, subject, document, recipients, attachments)
         return id
 
+    def insertMergeJob(self, sender, subject, document, datasource, query, recipient, identifier, attachment):
+        recipients = Array('VARCHAR', recipient)
+        identifiers = Array('VARCHAR', identifier)
+        attachments = Array('VARCHAR', attachment)
+        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
+        return id
+
 # Procedures called internally by Ispdb
     def _getSmtpConfig(self, email, url, progress, updateModel):
         progress(5)

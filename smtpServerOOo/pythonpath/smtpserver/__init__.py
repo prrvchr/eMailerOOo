@@ -71,6 +71,7 @@ from .unotool import parseUrl
 from .oauth2lib import getOAuth2
 from .oauth2lib import getOAuth2Token
 
+from .dbtool import getObjectSequenceFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import getValueFromResult
 

@@ -38,10 +38,23 @@ class MergerView(MailView):
     def isRecipientsValid(self):
         return self._getMergerRecipients().getItemCount() > 0
 
+    def getRecipients(self):
+        recipients = []
+        identifiers = []
+        control = self._getMergerRecipients()
+        for index in range(control.Model.ItemCount):
+            recipients.append(control.Model.getItemText(index))
+            identifiers.append(control.Model.getItemData(index))
+        return tuple(recipients), tuple(identifiers)
+
 # MergerView setter methods
     def setMergerRecipient(self, recipients, message):
+        self._getMergerMessage().Text = message
         control = self._getMergerRecipients()
-        control.Model.StringItemList = recipients
+        control.Model.removeAllItems()
+        for recipient in recipients:
+            index = control.Model.ItemCount
+            control.Model.insertItemText(index, recipient.Recipient)
+            control.Model.setItemData(index, recipient.Identifier)
         if len(recipients) > 0:
             control.selectItemPos(0, True)
-        self._getMergerMessage().Text = message

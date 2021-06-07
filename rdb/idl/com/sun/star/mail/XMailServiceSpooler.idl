@@ -42,6 +42,14 @@ interface XMailServiceSpooler: com::sun::star::uno::XInterface
                 [in] string Document,
                 [in] sequence<string> Recipients,
                 [in] sequence<string> Attachments);
+    long addMergeJob([in] string Sender,
+                     [in] string Subject,
+                     [in] string Document,
+                     [in] string DataSource,
+                     [in] string Query,
+                     [in] sequence<string> Recipients,
+                     [in] sequence<string> Identifiers,
+                     [in] sequence<string> Attachments);
     boolean removeJob([in] long Id);
     long getJobState([in] long Id);
 

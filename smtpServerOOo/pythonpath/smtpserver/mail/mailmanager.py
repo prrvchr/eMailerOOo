@@ -204,7 +204,6 @@ class MailManager(unohelper.Base):
         state = self._view.getSaveAttachments()
         self._model.setDocumentUserProperty(document, 'SaveAttachments', state)
         if state:
-            
             self._model.setDocumentAttachments(document, 'Attachments', attachments)
             state = self._view.getAttachmentAsPdf()
             self._model.setDocumentUserProperty(document, 'AttachmentAsPdf', state)

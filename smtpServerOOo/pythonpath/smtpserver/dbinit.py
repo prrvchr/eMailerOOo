@@ -259,4 +259,5 @@ def getQueries():
             ('createMergeServer', None),
             ('createUpdateServer', None),
             ('createMergeUser', None),
-            ('createInsertJob', None))
+            ('createInsertJob', None),
+            ('createInsertMergeJob', None))

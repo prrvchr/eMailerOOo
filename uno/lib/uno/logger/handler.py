@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,78 +27,70 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_fetchsize
-from .configuration import g_identifier
-from .configuration import g_ispdb_page
-from .configuration import g_ispdb_paths
-from .configuration import g_merger_page
-from .configuration import g_merger_paths
+import uno
+import unohelper
 
-from .logger import Logger
-from .logger import LogHandler
+from com.sun.star.logging.LogLevel import SEVERE
+from com.sun.star.logging.LogLevel import WARNING
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import CONFIG
+from com.sun.star.logging.LogLevel import FINE
+from com.sun.star.logging.LogLevel import FINER
+from com.sun.star.logging.LogLevel import FINEST
+from com.sun.star.logging.LogLevel import ALL
+from com.sun.star.logging.LogLevel import OFF
 
-from .logger import clearLogger
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import getMessage
-from .logger import isDebugMode
-from .logger import logMessage
-from .logger import setDebugMode
-from .logger import setLoggerSetting
+from com.sun.star.logging import XLogHandler
 
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import executeShell
-from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getContainerWindow
-from .unotool import getDesktop
-from .unotool import getDialog
-from .unotool import getExceptionMessage
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getInteractionHandler
-from .unotool import getPathSettings
-from .unotool import getPropertyValue
-from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getStringResource
-from .unotool import getUrl
-from .unotool import getUrlPresentation
-from .unotool import getUrlTransformer
-from .unotool import hasInterface
-from .unotool import parseUrl
 
-from .oauth2lib import getOAuth2
-from .oauth2lib import getOAuth2Token
+class LogHandler(unohelper.Base,
+                 XLogHandler):
+    def __init__(self):
+        self._encoding = 'UTF-8'
+        self._formatter = None
+        self._level = ALL
+        self._listener = []
 
-from .dbtool import getObjectSequenceFromResult
-from .dbtool import getSequenceFromResult
-from .dbtool import getValueFromResult
+    @property
+    def Encoding(self):
+        return self._encoding
+    @Encoding.setter
+    def Encoding(self, value):
+        self._encoding = value
 
-from .dbqueries import getSqlQuery
+    @property
+    def Formatter(self):
+        return self._formatter
+    @Formatter.setter
+    def Formatter(self, value):
+        print("LogHandler.Formatter.setter()")
+        self._formatter = value
 
-from .unolib import KeyMap
+    @property
+    def Level(self):
+        return self._level
+    @Level.setter
+    def Level(self, value):
+        self._level = value
 
-from .grid import GridModel
-from .grid import ColumnModel
+# XLogHandler
+    def flush(self):
+        print("LogHandler.flush()")
 
-from .mail import MailModel
-from .mail import MailManager
-from .mail import MailView
+    def publish(self, record):
+        print("LogHandler.publish() %s" % record.Message)
+        return True
 
-from .datasource import DataSource
+# XComponent <- XLogHandler
+    def dispose(self):
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        event.Source = self
+        for listener in self._listeners:
+            listener.disposing(event)
 
-from .wizard import Wizard
+    def addEventListener(self, listener):
+        self._listeners.append(listener)
 
-from .smtpdispatch import SmtpDispatch
-
-from .mailspooler import MailSpooler
-
-from .listener import TerminateListener
-
-from .ispdb import IspdbModel
-
-from . import smtplib
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)

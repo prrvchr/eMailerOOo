@@ -27,11 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .logger import clearLogger
-from .logger import getLoggerUrl
-from .logger import getLoggerSetting
-from .logger import getMessage
-from .logger import isDebugMode
-from .logger import logMessage
-from .logger import setDebugMode
-from .logger import setLoggerSetting
+from .logger import Logger
+from .handler import LogHandler
+
+from .log import clearLogger
+from .log import getLoggerUrl
+from .log import getLoggerSetting
+from .log import getMessage
+from .log import isDebugMode
+from .log import logMessage
+from .log import setDebugMode
+from .log import setLoggerSetting

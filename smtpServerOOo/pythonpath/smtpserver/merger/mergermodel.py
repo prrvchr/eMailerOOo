@@ -227,10 +227,10 @@ class MergerModel(MailModel):
                     msg = self._getErrorMessage(2, service)
                     e = self._getUnoException(msg)
                     raise e
-                if not connection.getMetaData().supportsCorrelatedSubqueries():
-                    msg = self._getErrorMessage(3)
-                    e = self._getUnoException(msg)
-                    raise e
+                #if not connection.getMetaData().supportsCorrelatedSubqueries():
+                #    msg = self._getErrorMessage(3)
+                #    e = self._getUnoException(msg)
+                #    raise e
             except UnoException as e:
                 format = (addressbook, e.Message)
                 message = self._getErrorMessage(0, format)
@@ -608,6 +608,8 @@ class MergerModel(MailModel):
         self._executeRowset()
 
     def changeAddressRowSet(self):
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(self._address)
         self._grid1.setRowSetData(self._address)
 
     def changeRecipientRowSet(self):

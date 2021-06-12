@@ -221,10 +221,19 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getSpoolerViewQuery':
         query = 'SELECT * FROM "View";'
 
+    # MailSpooler Select Queries
+    elif name == 'getSpoolerJobs':
+        query = 'SELECT "JobId" FROM "Spooler" WHERE "State" = ? ORDER BY "JobId";'
+
 # Delete Queries
     # Mail Delete Queries
     elif name == 'deleteUser':
         query = 'DELETE FROM "Users" WHERE "User" = ?;'
+
+# Update Queries
+    # MailSpooler Update Queries
+    elif name == 'setJobState':
+        query = 'UPDATE "Recipients" SET "State"=? WHERE "JobId"=?;'
 
 # Function creation Queries
     # IspDb Function Queries
@@ -295,6 +304,7 @@ CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
     SET "Id" = "BatchId";
   END;"""
 
+    # MailServiceSpooler Insert Procedure Queries
     elif name == 'createInsertMergeJob':
         query = """\
 CREATE PROCEDURE "InsertMergeJob"(IN "Sender" VARCHAR(320),
@@ -367,6 +377,7 @@ CREATE PROCEDURE "MergeProvider"(IN "Provider" VARCHAR(100),
           VALUES vals.w, vals.x, vals.y, vals.z;
   END"""
 
+    # IspDb Merge Procedure Queries
     elif name == 'createMergeDomain':
         query = """\
 CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
@@ -383,6 +394,7 @@ CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
           VALUES vals.x, vals.y, vals.z;
   END"""
 
+    # IspDb Merge Procedure Queries
     elif name == 'createMergeServer':
         query = """\
 CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
@@ -403,6 +415,7 @@ CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
           VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
   END"""
 
+    # IspDb Merge Procedure Queries
     elif name == 'createMergeUser':
         query = """\
 CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),

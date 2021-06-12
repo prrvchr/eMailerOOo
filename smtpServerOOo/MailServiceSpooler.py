@@ -38,8 +38,11 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import DataSource
+from smtpserver import MailSpooler
+from smtpserver import TerminateListener
 
 from smtpserver import executeDispatch
+from smtpserver import getDesktop
 from smtpserver import getMessage
 from smtpserver import logMessage
 from smtpserver import g_identifier
@@ -57,31 +60,40 @@ class MailServiceSpooler(unohelper.Base,
                          XServiceInfo,
                          XMailServiceSpooler):
     def __init__(self, ctx):
-        msg = getMessage(ctx, g_service, 101)
-        logMessage(ctx, INFO, msg, g_service, '__init__()')
+        #msg = getMessage(ctx, g_service, 101)
+        #logMessage(ctx, INFO, msg, g_service, '__init__()')
         self._ctx = ctx
         self._datasource = DataSource(ctx)
-        msg = getMessage(ctx, g_service, 102)
-        logMessage(ctx, INFO, msg, g_service, '__init__()')
+        #msg = getMessage(ctx, g_service, 102)
+        #logMessage(ctx, INFO, msg, g_service, '__init__()')
+        if self.Spooler is None:
+            spooler = MailSpooler(ctx, self._datasource.DataBase)
+            MailServiceSpooler._spooler = spooler
+            listener = TerminateListener(spooler)
+            getDesktop(ctx).addTerminateListener(listener)
 
-    _started = False
+    _spooler = None
+
+    @property
+    def Spooler(self):
+        return MailServiceSpooler._spooler
 
     # XMailServiceSpooler
     def start(self):
-        MailServiceSpooler._started = True
+        self.Spooler.start()
 
     def stop(self):
-        MailServiceSpooler._started = False
+        self.Spooler.stop()
 
     def isStarted(self):
-        return MailServiceSpooler._started
+        return self.Spooler.isStarted()
 
     def addJob(self, sender, subject, document, recipients, attachments):
         try:
             print("MailServiceSpooler.addJob() %s - %s - %s - %s - %s" % (sender, subject, document, recipients, attachments))
-            id = self._datasource.insertJob(sender, subject, document, recipients, attachments)
-            print("MailServiceSpooler.addJob() %s" % id)
-            return id
+            jobid = self._datasource.insertJob(sender, subject, document, recipients, attachments)
+            print("MailServiceSpooler.addJob() %s" % jobid)
+            return jobid
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -89,17 +101,17 @@ class MailServiceSpooler(unohelper.Base,
     def addMergeJob(self, sender, subject, document, datasource, query, recipients, identifiers, attachments):
         try:
             print("MailServiceSpooler.addMergeJob() %s - %s - %s - %s - %s - %s - %s" % (sender, subject, document, datasource, recipients, identifiers, attachments))
-            id = self._datasource.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
-            print("MailServiceSpooler.addMergeJob() %s" % id)
-            return id
+            jobid = self._datasource.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
+            print("MailServiceSpooler.addMergeJob() %s" % jobid)
+            return jobid
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
-    def removeJob(self, id):
+    def removeJob(self, jobid):
         pass
  
-    def getJobState(self, id):
+    def getJobState(self, jobid):
         pass
 
     # XServiceInfo

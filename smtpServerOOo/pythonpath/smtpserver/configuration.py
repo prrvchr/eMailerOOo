@@ -38,3 +38,5 @@ g_merger_paths = (1, 2, 3)
 g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
+# Resource strings folder
+g_resource = 'resource'

@@ -96,11 +96,7 @@ class DataBase(unohelper.Base):
                 connection = getDataSourceConnection(ctx, self._url)
                 error = self._createDataBase(connection)
                 if error is None:
-                    datasource = connection.getParent()
-                    datasource.DatabaseDocument.storeAsURL(odb, ())
-                    datasource.dispose()
-                #mri = createService(ctx, 'mytools.Mri')
-                #mri.inspect(connection)
+                    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
                 connection.close()
                 print("smtpServer.DataBase.__init__() 5")
             print("smtpServer.DataBase.__init__() 6")
@@ -262,6 +258,23 @@ class DataBase(unohelper.Base):
         status = call.executeUpdate()
         call.close()
         return status
+
+# Procedures called by the MailSpooler
+    def getSpoolerJobs(self, state):
+        jobid = []
+        call = self._getCall('getSpoolerJobs')
+        call.setInt(1, state)
+        result = call.executeQuery()
+        jobids = getSequenceFromResult(result)
+        call.close()
+        return jobids
+
+    def setJobState(self, jobid, state):
+        call = self._getCall('setJobState')
+        call.setInt(1, state)
+        call.setInt(2, jobid)
+        result = call.executeUpdate()
+        call.close()
 
 # Procedures called internally by the Server
     def _mergeProvider(self, provider, name, shortname, timestamp):

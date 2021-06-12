@@ -37,11 +37,15 @@ from smtpserver import createService
 from smtpserver import executeDispatch
 from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
+from smtpserver import Logger
+from smtpserver import LogHandler
+
 from smtpserver import logMessage
 
 from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
+
 
 g_message = 'spoolermanager'
 
@@ -60,6 +64,8 @@ class SpoolerManager(unohelper.Base):
         self._spooler = createService(ctx, service)
         self._refreshSpoolerState()
         self._model.initSpooler(self.initView)
+        handler = LogHandler()
+        Logger(ctx, 'MailSpooler').addLogHandler(handler)
 
     @property
     def HandlerEnabled(self):
@@ -130,6 +136,9 @@ class SpoolerManager(unohelper.Base):
     def closeSpooler(self):
         self._model.save()
         self._view.endDialog()
+
+    def clearLog(self):
+        print("SpoolerManager.clearLog()")
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

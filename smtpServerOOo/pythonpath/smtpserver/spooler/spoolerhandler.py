@@ -130,22 +130,13 @@ class Tab2Handler(unohelper.Base,
     # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         handled = False
-        if method == 'AddAttachment':
-            self._manager.addAttachments()
-            handled = True
-        elif method == 'RemoveAttachment':
-            self._manager.removeAttachments()
-            handled = True
-        elif method == 'ChangeAttachments':
-            enabled = event.Source.getSelectedItemPos() != -1
-            self._manager.enableRemoveAttachments(enabled)
+        if method == 'ClearLog':
+            self._manager.clearLog()
             handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('AddAttachment',
-                'RemoveAttachment',
-                'ChangeAttachments')
+        return ('ClearLog', )
 
 
 class GridHandler(unohelper.Base,

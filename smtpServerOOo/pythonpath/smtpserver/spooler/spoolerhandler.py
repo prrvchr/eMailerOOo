@@ -133,10 +133,14 @@ class Tab2Handler(unohelper.Base,
         if method == 'ClearLog':
             self._manager.clearLog()
             handled = True
+        elif method == 'RefreshLog':
+            self._manager.refreshLog()
+            handled = True
         return handled
 
     def getSupportedMethodNames(self):
-        return ('ClearLog', )
+        return ('ClearLog',
+                'RefreshLog')
 
 
 class GridHandler(unohelper.Base,

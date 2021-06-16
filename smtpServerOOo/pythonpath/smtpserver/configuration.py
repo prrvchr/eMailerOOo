@@ -38,5 +38,7 @@ g_merger_paths = (1, 2, 3)
 g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
-# Resource strings folder
+# Resource strings files folder
 g_resource = 'resource'
+# Internet DNS connection
+g_dns = ('1.1.1.1', 53)

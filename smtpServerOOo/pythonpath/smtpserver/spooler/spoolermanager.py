@@ -35,6 +35,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import createService
 from smtpserver import executeDispatch
+from smtpserver import getFileSequence
 from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
 from smtpserver import Logger
@@ -64,8 +65,8 @@ class SpoolerManager(unohelper.Base):
         self._spooler = createService(ctx, service)
         self._refreshSpoolerState()
         self._model.initSpooler(self.initView)
-        handler = LogHandler()
-        Logger(ctx, 'MailSpooler').addLogHandler(handler)
+        #handler = LogHandler()
+        self._logger = Logger(ctx, 'MailSpooler')
 
     @property
     def HandlerEnabled(self):
@@ -137,8 +138,17 @@ class SpoolerManager(unohelper.Base):
         self._model.save()
         self._view.endDialog()
 
+    def refreshLog(self):
+        print("SpoolerManager.refreshLog()")
+        url = self._logger.getLoggerUrl()
+        length, sequence = getFileSequence(self._ctx, url)
+        text = sequence.value.decode('utf-8')
+        self._view.setActivityLog(text)
+
     def clearLog(self):
         print("SpoolerManager.clearLog()")
+        self._logger.clearLogger()
+        self._view.setActivityLog('')
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

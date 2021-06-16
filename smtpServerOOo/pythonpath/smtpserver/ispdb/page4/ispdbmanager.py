@@ -35,6 +35,7 @@ from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
 from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
+from smtpserver import Logger
 from smtpserver import createService
 from smtpserver import getDialog
 
@@ -52,6 +53,7 @@ class IspdbManager(unohelper.Base):
         self._pageid = pageid
         self._connected = False
         self._dialog = None
+        #self._logger = Logger(ctx, 'IspDb')
         self._view = IspdbView(ctx, self, parent)
 
 # XWizardPage

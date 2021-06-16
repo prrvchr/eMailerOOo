@@ -62,6 +62,21 @@ class SpoolerView(unohelper.Base):
         title = manager.getDialogTitle()
         self._dialog.setTitle(title)
 
+# SpoolerView getter methods
+    def execute(self):
+        return self._dialog.execute()
+
+    def getParent(self):
+        return self._dialog.getPeer()
+
+    def getGridWidth(self):
+        width = self._getGrid().Model.Width
+        return width
+
+    def getSortDirection(self):
+        ascending = not bool(self._getSortDirection().Model.State)
+        return ascending
+
 # SpoolerView setter methods
     def initGrid(self, manager, titles):
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
@@ -109,20 +124,8 @@ class SpoolerView(unohelper.Base):
     def showGridColumnHeader(self, enabled):
         self._getGrid().Model.ShowColumnHeader = enabled
 
-# SpoolerView getter methods
-    def execute(self):
-        return self._dialog.execute()
-
-    def getParent(self):
-        return self._dialog.getPeer()
-
-    def getGridWidth(self):
-        width = self._getGrid().Model.Width
-        return width
-
-    def getSortDirection(self):
-        ascending = not bool(self._getSortDirection().Model.State)
-        return ascending
+    def setActivityLog(self, text):
+        self._getActivityLog().Text = text
 
 # SpoolerView private setter methods
     def _initListBox(self, control, columns):
@@ -174,6 +177,9 @@ class SpoolerView(unohelper.Base):
 
     def getOrdersList(self):
         return self._tab1.getControl('ListBox2')
+
+    def _getActivityLog(self):
+        return self._tab2.getControl('TextField1')
 
 # SpoolerView private methods
     def _getTabPages(self, page, name, title1, title2, rectangle, id):

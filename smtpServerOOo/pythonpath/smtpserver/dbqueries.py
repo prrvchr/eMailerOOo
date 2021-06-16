@@ -272,6 +272,48 @@ CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
     OPEN "Result";
   END;"""
 
+    # MailSpooler Select Procedure Queries
+    elif name == 'createGetJobMail':
+        query = """\
+CREATE PROCEDURE "GetJobMail"(IN "Job" INTEGER)
+  SPECIFIC "GetJobMail_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
+      "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
+      "Recipients"."Identifier", ARRAY_AGG("Attachments"."Attachment")
+      FROM "Senders"
+      JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"
+      LEFTJOIN "Attachments" ON ""Senders"."BatchId"="Attachments"."BatchId"
+      WHERE "Recipients"."JobId"="Job"
+      GROUP BY "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
+      "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
+      "Recipients"."Identifier"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
+    elif name == 'createGetJobServer':
+        query = """\
+CREATE PROCEDURE "GetJobServer"(IN "Job" INTEGER)
+  SPECIFIC "GetJobServer_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
+      "Servers"."Authentication", "Servers"."LoginMode", "Users"."User",
+      "Users"."LoginName", "Users"."Password" FROM "Servers"
+      JOIN "Users" ON "Servers"."Server"="Users"."Server" AND "Servers"."Port"="Users"."Port"
+      JOIN "Senders" ON "Users"."User"="Senders"."Sender"
+      JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"
+      WHERE "Recipients"."JobId"="Job"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
 # Insert Procedure Queries
     # MailServiceSpooler Insert Procedure Queries
     elif name == 'createInsertJob':
@@ -438,6 +480,10 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
 # Call Procedure Query
     elif name == 'getServers':
         query = 'CALL "GetServers"(?,?,?,?,?,?)'
+    elif name == 'getJobMail':
+        query = 'CALL "GetJobMail"(?)'
+    elif name == 'getJobServer':
+        query = 'CALL "GetJobServer"(?)'
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':

@@ -55,6 +55,7 @@ from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
 from .dbtool import getKeyMapFromResult
+from .dbtool import getObjectFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
@@ -268,6 +269,16 @@ class DataBase(unohelper.Base):
         jobids = getSequenceFromResult(result)
         call.close()
         return jobids
+
+    def getJobServer(self, job):
+        sender = None
+        call = self._getCall('getJobServer')
+        call.setInt(1, job)
+        result = call.executeQuery()
+        if result.next():
+            sender = getObjectFromResult(result)
+        call.close()
+        return sender
 
     def setJobState(self, jobid, state):
         call = self._getCall('setJobState')

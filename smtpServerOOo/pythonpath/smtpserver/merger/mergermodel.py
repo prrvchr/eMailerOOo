@@ -51,6 +51,7 @@ from smtpserver import createService
 from smtpserver import executeDispatch
 from smtpserver import getConfiguration
 from smtpserver import getDesktop
+from smtpserver import getDocument
 from smtpserver import getInteractionHandler
 from smtpserver import getMessage
 from smtpserver import getPathSettings
@@ -821,9 +822,7 @@ class MergerModel(MailModel):
         if url is None:
             document = self._document
         else:
-            properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-            descriptor = getPropertyValueSet(properties)
-            document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+            document = getDocument(self._ctx, url)
         return document
 
     def setUrl(self, url):

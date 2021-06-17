@@ -36,6 +36,11 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from .unotool import getConnectionMode
+from .unotool import getFileSequence
+from .unotool import getSimpleFile
+
+from smtpserver import getDocument
+from smtpserver import saveDocumentAs
 
 from .logger import Logger
 
@@ -52,6 +57,10 @@ class MailSpooler(unohelper.Base):
         self.DataBase = database
         self._count = 0
         self._disposed = Event()
+        self._batch = None
+        self._sender = None
+        self._attachments = ()
+        self._server = None
         self._thread = None
         self._logger = Logger(ctx, 'MailSpooler', 'MailSpooler')
         self._logger.setDebugMode(True)
@@ -87,24 +96,74 @@ class MailSpooler(unohelper.Base):
                     print("MailSpooler._run() 2 break")
                     break
                 self._count = 0
-                self._send(job)
+                state = self._getSendState(job)
+                self.DataBase.setJobState(job, state)
+                resource = 110 + state
+                self._logMessage(INFO, resource, job)
             #self.DataBase.dispose()
             print("MailSpooler._run() 3 canceled *******************************************")
         except Exception as e:
             msg = "MailSpooler _run(): Error: %s" % traceback.print_exc()
             print(msg)
 
-    def _send(self, job):
+    def _getSendState(self, job):
         print("MailSpooler._send() 1")
-        self._logMessage(INFO, 102, job)
-        mail = self.DataBase.getJobMail(job)
-        print("MailSpooler._send() 2 %s - %s - %s - %s - %s - %s - %s - %s" % (mail.Sender, mail.Subject, mail.Document , mail.DataSource , mail.Query , mail.Recipient , mail.Identifier , mail.Attachments))
-        server = self.DataBase.getJobServer(job)
-        print("MailSpooler._send() 3 %s - %s - %s - %s - %s - %s - %s - %s" % (server.Server, server.Port, server.Connection , server.Authentication , server.LoginMode , server.User , server.LoginName , server.Password))
-        self.DataBase.setJobState(job, 1)
-        print("MailSpooler._send() 4")
-        self._logMessage(INFO, 102, job)
+        self._logMessage(INFO, 121, job)
+        recipient = self.DataBase.getRecipient(job)
+        batch = recipient.BatchId
+        if self._batch != batch:
+            if not self._canSetBatch(job, batch):
+                return 2
+        if self._sender.DataSource is not None:
+            # TODO: need to merge the document
+            self._url = saveDocumentAs(self._ctx, self._document, 'html')
 
+        print("MailSpooler._send() 2 %s - %s - %s - %s - %s - %s - %s - %s" % (self._sender.Sender, self._sender.Subject, self._sender.Document , self._sender.DataSource , self._sender.Query , recipient.Recipient , recipient.Identifier , self._attachments))
+        print("MailSpooler._send() 3 %s - %s - %s - %s - %s - %s - %s" % (self._server.Server, self._server.Port, self._server.Connection , self._server.Authentication , self._server.LoginMode , self._server.LoginName , self._server.Password))
+
+        print("MailSpooler._send() 4")
+        return 1
+
+
+    def _canSetBatch(self, job, batch):
+        self._sender = self.DataBase.getSender(batch)
+        url = self._sender.Document
+        if not self._isUrl(url):
+            format = (job, url)
+            self._logMessage(INFO, 131, format)
+            return False
+        self._attachments = self.DataBase.getAttachments(batch)
+        if not self._isAttachments(job):
+            return False
+        self._server = self.DataBase.getServer(self._sender.Sender)
+        if not self._isServer(job, self._sender.Sender):
+            return False
+        self._document = getDocument(self._ctx, self._sender.Document)
+        if self._sender.DataSource is None:
+            self._url = saveDocumentAs(self._ctx, self._document, 'html')
+        self._batch = batch
+        return True
+
+    def _getUrlContent(self, url):
+        return getFileSequence(self._ctx, url)
+
+    def _isUrl(self, url):
+        return getSimpleFile(self._ctx).exists(url)
+
+    def _isAttachments(self, job):
+        for url in self._attachments:
+            if not self._isUrl(url):
+                format = (job, url)
+                self._logMessage(INFO, 141, format)
+                return False
+        return True
+
+    def _isServer(self, job, sender):
+        if self._server is None:
+            format = (job, sender)
+            self._logMessage(INFO, 151, format)
+            return False
+        return True
 
     def _logMessage(self, level, resource, format=None):
         msg = self._logger.getMessage(resource, format)

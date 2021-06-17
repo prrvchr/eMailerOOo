@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,83 +27,71 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_fetchsize
-from .configuration import g_identifier
-from .configuration import g_ispdb_page
-from .configuration import g_ispdb_paths
-from .configuration import g_merger_page
-from .configuration import g_merger_paths
+from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 
-from .logger import Logger
-from .logger import LogHandler
-
-from .logger import clearLogger
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
-from .logger import getMessage
-from .logger import isDebugMode
-from .logger import logMessage
-from .logger import setDebugMode
-from .logger import setLoggerSetting
-
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import executeShell
-from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getContainerWindow
 from .unotool import getDesktop
-from .unotool import getDialog
-from .unotool import getExceptionMessage
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getInteractionHandler
 from .unotool import getPathSettings
-from .unotool import getPropertyValue
 from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getStringResource
 from .unotool import getUrl
-from .unotool import getUrlPresentation
-from .unotool import getUrlTransformer
-from .unotool import hasInterface
-from .unotool import parseUrl
 
-from .mailertool import getDocument
-from .mailertool import getDocumentFilter
-from .mailertool import getNamedExtension
-from .mailertool import saveDocumentAs
+import traceback
 
-from .oauth2lib import getOAuth2
-from .oauth2lib import getOAuth2Token
 
-from .dbtool import getObjectSequenceFromResult
-from .dbtool import getSequenceFromResult
-from .dbtool import getValueFromResult
+def getDocument(ctx, url):
+    properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+    descriptor = getPropertyValueSet(properties)
+    document = getDesktop(ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+    return document
 
-from .dbqueries import getSqlQuery
+def getDocumentFilter(extension, format):
+    ext = extension.lower()
+    if ext in ('odt', 'ott', 'odm', 'doc', 'dot'):
+        filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
+    elif ext in ('ods', 'ots', 'xls', 'xlt'):
+        filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
+    elif ext in ('odg', 'otg'):
+        filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
+    elif ext in ('odp', 'otp', 'ppt', 'pot'):
+        filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
+    else:
+        filters = {}
+    filter = filters.get(format, None)
+    return filter
 
-from .unolib import KeyMap
+def getNamedExtension(name):
+    part1, dot, part2 = name.rpartition('.')
+    if dot:
+        name, extension = part1, part2
+    else:
+        name, extension = part2, None
+    return name, extension
 
-from .grid import GridModel
-from .grid import ColumnModel
+def saveDocumentAs(ctx, document, format):
+    url = None
+    name, extension = getNamedExtension(document.Title)
+    if extension is None:
+        extension = _getDocumentExtension(document)
+    filter = getDocumentFilter(extension, format)
+    if filter is not None:
+        temp = getPathSettings(ctx).Temp
+        url = '%s/%s.%s' % (temp, name, format)
+        descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True})
+        document.storeToURL(url, descriptor)
+        url = getUrl(ctx, url)
+        if url is not None:
+            url = url.Main
+    return url
 
-from .mail import MailModel
-from .mail import MailManager
-from .mail import MailView
-
-from .datasource import DataSource
-
-from .wizard import Wizard
-
-from .smtpdispatch import SmtpDispatch
-
-from .mailspooler import MailSpooler
-
-from .listener import TerminateListener
-
-from .ispdb import IspdbModel
-
-from . import smtplib
+def _getDocumentExtension(document):
+    identifier = document.getIdentifier()
+    if identifier == 'com.sun.star.text.TextDocument':
+        extension = 'odt'
+    elif identifier == 'com.sun.star.sheet.SpreadsheetDocument':
+        extension = 'ods'
+    elif identifier == 'com.sun.star.drawing.DrawingDocument':
+        extension = 'odg'
+    elif identifier == 'com.sun.star.presentation.PresentationDocument':
+        extension = 'odp'
+    else:
+        extension = None
+    return extension

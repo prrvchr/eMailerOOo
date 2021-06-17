@@ -53,12 +53,13 @@ class Logger(unohelper.Base):
         self._name = '%s.%s' % (g_identifier, name)
         self._resolver = self._getStringResource(resource)
 
-    _loggerpool = {}
-    _logsetting = {}
+    _pool = {}
+    _settings = {}
+    _listeners = {}
 
 # Public getter method
     def isDebugMode(self):
-        return self._name in Logger._logsetting
+        return self._name in Logger._settings
 
     def isLoggerEnabled(self):
         level = self._getLogConfig().LogLevel
@@ -96,6 +97,13 @@ class Logger(unohelper.Base):
     def removeLogHandler(self, handler):
         self._getLogger().removeLogHandler(handler)
 
+    def addListener(self, listener):
+        self._getLogger().addLogHandler(handler)
+
+    def removeListener(self, listener):
+        if listener in 
+        self._getLogger().removeLogHandler(handler)
+
     def setDebugMode(self, mode):
         if mode:
             self._setDebugModeOn()
@@ -112,8 +120,8 @@ class Logger(unohelper.Base):
                 logger.logp(level, clazz, method, msg)
 
     def clearLogger(self):
-        if self._name in Logger._loggerpool:
-            del Logger._loggerpool[self._name]
+        if self._name in Logger._pool:
+            del Logger._pool[self._name]
 
     def setLoggerSetting(self, enabled, index, state):
         handler = self._getHandler(state)
@@ -121,11 +129,11 @@ class Logger(unohelper.Base):
 
 # Private getter method
     def _getLogger(self):
-        if self._name not in Logger._loggerpool:
+        if self._name not in Logger._pool:
             service = '/singletons/com.sun.star.logging.LoggerPool'
             pool = self._ctx.getValueByName(service)
-            Logger._loggerpool[self._name] = pool.getNamedLogger(self._name)
-        return Logger._loggerpool[self._name]
+            Logger._pool[self._name] = pool.getNamedLogger(self._name)
+        return Logger._pool[self._name]
 
     def _getStringResource(self, resource):
         if resource is not None:
@@ -204,11 +212,11 @@ class Logger(unohelper.Base):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        Logger._logsetting[self._name] = self._getLoggerSetting()
+        Logger._settings[self._name] = self._getLoggerSetting()
         self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
 
     def _setDebugModeOff(self):
         if self.isDebugMode():
-            settings = Logger._logsetting[self._name]
+            settings = Logger._settings[self._name]
             self._setLoggerSetting(*settings)
-            del Logger._logsetting[self._name]
+            del Logger._settings[self._name]

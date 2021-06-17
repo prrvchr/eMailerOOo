@@ -34,13 +34,13 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import createService
+from smtpserver import getDocumentFilter
 from smtpserver import getMessage
-from smtpserver import getPathSettings
-from smtpserver import getPropertyValueSet
-from smtpserver import getUrl
+from smtpserver import getNamedExtension
 from smtpserver import getUrlTransformer
 from smtpserver import logMessage
 from smtpserver import parseUrl
+from smtpserver import saveDocumentAs
 
 from collections import OrderedDict
 import validators
@@ -76,20 +76,7 @@ class MailModel(unohelper.Base):
         return document.DocumentProperties.Subject
 
     def saveDocumentAs(self, document, format):
-        url = None
-        name, extension = self._getNamedExtension(document.Title)
-        if extension is None:
-            extension = self._getDocumentExtension(document)
-        filter = self._getDocumentFilter(extension, format)
-        if filter is not None:
-            temp = getPathSettings(self._ctx).Temp
-            url = '%s/%s.%s' % (temp, name, format)
-            descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True})
-            document.storeToURL(url, descriptor)
-            url = getUrl(self._ctx, url)
-            if url is not None:
-                url = url.Main
-        return url
+        return saveDocumentAs(self._ctx, document, format)
 
     def parseAttachments(self, attachments, pdf):
         urls = []
@@ -178,46 +165,9 @@ class MailModel(unohelper.Base):
             self._addPdfMark(url)
         return transformer.getPresentation(url, False)
 
-    def _getNamedExtension(self, name):
-        part1, dot, part2 = name.rpartition('.')
-        if dot:
-            name, extension = part1, part2
-        else:
-            name, extension = part2, None
-        return name, extension
-
-    def _getDocumentExtension(self, document):
-        identifier = document.getIdentifier()
-        if identifier == 'com.sun.star.text.TextDocument':
-            extension = 'odt'
-        elif identifier == 'com.sun.star.sheet.SpreadsheetDocument':
-            extension = 'ods'
-        elif identifier == 'com.sun.star.drawing.DrawingDocument':
-            extension = 'odg'
-        elif identifier == 'com.sun.star.presentation.PresentationDocument':
-            extension = 'odp'
-        else:
-            extension = None
-        return extension
-
     def _hasPdfFilter(self, extension):
-        filter = self._getDocumentFilter(extension, 'pdf')
+        filter = getDocumentFilter(extension, 'pdf')
         return filter is not None
-
-    def _getDocumentFilter(self, extension, format):
-        ext = extension.lower()
-        if ext in ('odt', 'ott', 'odm', 'doc', 'dot'):
-            filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
-        elif ext in ('ods', 'ots', 'xls', 'xlt'):
-            filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
-        elif ext in ('odg', 'otg'):
-            filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
-        elif ext in ('odp', 'otp', 'ppt', 'pot'):
-            filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
-        else:
-            filters = {}
-        filter = filters.get(format, None)
-        return filter
 
 # MailModel private setter methods
     def _setDocumentAttachments(self, document, resource, values):
@@ -241,6 +191,6 @@ class MailModel(unohelper.Base):
             value)
 
     def _addPdfMark(self, url):
-        name, extension = self._getNamedExtension(url.Name)
+        name, extension = getNamedExtension(url.Name)
         if self._hasPdfFilter(extension):
             url.Complete += '#pdf'

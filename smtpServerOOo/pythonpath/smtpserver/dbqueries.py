@@ -273,7 +273,67 @@ CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
   END;"""
 
     # MailSpooler Select Procedure Queries
-    elif name == 'createGetJobMail':
+    elif name == 'createGetRecipient':
+        query = """\
+CREATE PROCEDURE "GetRecipient"(IN "Id" INTEGER)
+  SPECIFIC "GetRecipient_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Recipient", "Identifier", "BatchId" From "Recipients"
+      WHERE "JobId"="Id"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
+    elif name == 'createGetSender':
+        query = """\
+CREATE PROCEDURE "GetSender"(IN "Id" INTEGER)
+  SPECIFIC "GetSender_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Sender", "Subject", "Document", "DataSource", "Query" FROM "Senders"
+      WHERE "BatchId"="Id"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
+    elif name == 'createGetAttachments':
+        query = """\
+CREATE PROCEDURE "GetAttachments"(IN "Id" INTEGER)
+  SPECIFIC "GetAttachments_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Attachment" From "Attachments"
+      WHERE "BatchId"="Id" ORDER BY "TimeStamp"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
+    elif name == 'createGetServer':
+        query = """\
+CREATE PROCEDURE "GetServer"(IN "User" VARCHAR(320))
+  SPECIFIC "GetServer_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE "Result" CURSOR WITH RETURN FOR
+      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
+      "Servers"."Authentication", "Servers"."LoginMode",
+      "Users"."LoginName", "Users"."Password"
+      FROM "Servers"
+      JOIN "Users" ON "Servers"."Server"="Users"."Server" AND "Servers"."Port"="Users"."Port"
+      WHERE "Users"."User"="User"
+      FOR READ ONLY;
+    OPEN "Result";
+  END;"""
+
+    elif name == 'createGetJobMail1':
         query = """\
 CREATE PROCEDURE "GetJobMail"(IN "Job" INTEGER)
   SPECIFIC "GetJobMail_1"
@@ -291,25 +351,6 @@ CREATE PROCEDURE "GetJobMail"(IN "Job" INTEGER)
       GROUP BY "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
       "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
       "Recipients"."Identifier"
-      FOR READ ONLY;
-    OPEN "Result";
-  END;"""
-
-    elif name == 'createGetJobServer':
-        query = """\
-CREATE PROCEDURE "GetJobServer"(IN "Job" INTEGER)
-  SPECIFIC "GetJobServer_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
-      "Servers"."Authentication", "Servers"."LoginMode", "Users"."User",
-      "Users"."LoginName", "Users"."Password" FROM "Servers"
-      JOIN "Users" ON "Servers"."Server"="Users"."Server" AND "Servers"."Port"="Users"."Port"
-      JOIN "Senders" ON "Users"."User"="Senders"."Sender"
-      JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"
-      WHERE "Recipients"."JobId"="Job"
       FOR READ ONLY;
     OPEN "Result";
   END;"""
@@ -480,10 +521,14 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
 # Call Procedure Query
     elif name == 'getServers':
         query = 'CALL "GetServers"(?,?,?,?,?,?)'
-    elif name == 'getJobMail':
-        query = 'CALL "GetJobMail"(?)'
-    elif name == 'getJobServer':
-        query = 'CALL "GetJobServer"(?)'
+    elif name == 'getRecipient':
+        query = 'CALL "GetRecipient"(?)'
+    elif name == 'getSender':
+        query = 'CALL "GetSender"(?)'
+    elif name == 'getAttachments':
+        query = 'CALL "GetAttachments"(?)'
+    elif name == 'getServer':
+        query = 'CALL "GetServer"(?)'
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':

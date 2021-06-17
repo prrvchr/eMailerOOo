@@ -27,13 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import MailModel
 
+from smtpserver import getDocument
 from smtpserver import getDesktop
 from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
@@ -64,9 +63,7 @@ class MailerModel(MailModel):
     def getDocument(self, url=None):
         if url is None:
             url = self._url
-        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-        descriptor = getPropertyValueSet(properties)
-        document = getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
+        document = getDocument(self._ctx, url)
         return document
 
 # MailerModel setter methods

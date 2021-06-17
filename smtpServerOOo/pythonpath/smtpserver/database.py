@@ -270,15 +270,44 @@ class DataBase(unohelper.Base):
         call.close()
         return jobids
 
-    def getJobServer(self, job):
-        sender = None
-        call = self._getCall('getJobServer')
+    def getRecipient(self, job):
+        recipient = None
+        call = self._getCall('getRecipient')
         call.setInt(1, job)
+        result = call.executeQuery()
+        if result.next():
+            recipient = getObjectFromResult(result)
+        call.close()
+        return recipient
+
+    def getSender(self, batch):
+        sender = None
+        call = self._getCall('getSender')
+        call.setInt(1, batch)
         result = call.executeQuery()
         if result.next():
             sender = getObjectFromResult(result)
         call.close()
         return sender
+
+    def getAttachments(self, batch):
+        attachments = ()
+        call = self._getCall('getAttachments')
+        call.setInt(1, batch)
+        result = call.executeQuery()
+        attachments = getSequenceFromResult(result)
+        call.close()
+        return attachments
+
+    def getServer(self, user):
+        server = None
+        call = self._getCall('getServer')
+        call.setString(1, user)
+        result = call.executeQuery()
+        if result.next():
+            server = getObjectFromResult(result)
+        call.close()
+        return server
 
     def setJobState(self, jobid, state):
         call = self._getCall('setJobState')

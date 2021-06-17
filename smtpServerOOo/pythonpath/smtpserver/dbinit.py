@@ -261,4 +261,7 @@ def getQueries():
             ('createMergeUser', None),
             ('createInsertJob', None),
             ('createInsertMergeJob', None),
-            ('createGetJobServer', None))
+            ('createGetRecipient', None),
+            ('createGetSender', None),
+            ('createGetAttachments', None),
+            ('createGetServer', None))

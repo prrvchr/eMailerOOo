@@ -67,6 +67,9 @@ class MailServiceSpooler(unohelper.Base,
         #msg = getMessage(ctx, g_service, 102)
         #logMessage(ctx, INFO, msg, g_service, '__init__()')
         if self.Spooler is None:
+            print("MailServiceSpooler.__init__() 1")
+            self._datasource.waitForDataBase()
+            print("MailServiceSpooler.__init__() 2")
             spooler = MailSpooler(ctx, self._datasource.DataBase)
             MailServiceSpooler._spooler = spooler
             listener = TerminateListener(spooler)

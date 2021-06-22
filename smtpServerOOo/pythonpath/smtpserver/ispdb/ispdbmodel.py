@@ -29,10 +29,11 @@
 
 import unohelper
 
-from com.sun.star.uno import XCurrentContext
-from com.sun.star.mail import XAuthenticator
-
 from smtpserver import KeyMap
+from smtpserver import DataParser
+
+from smtpserver import CurrentContext
+from smtpserver import Authenticator
 
 from smtpserver import getConfiguration
 from smtpserver import getStringResource
@@ -47,6 +48,7 @@ import traceback
 class IspdbModel(unohelper.Base):
     def __init__(self, ctx, datasource, close, email=''):
         self._datasource = datasource
+        self._database = datasource.DataBase
         self._close = close
         self._email = email
         self._user = None
@@ -197,16 +199,58 @@ class IspdbModel(unohelper.Base):
         if self._isnew or server.toJson() != self._getServerMetaData():
             provider = self._getDomain()
             host, port = self._getServerKeys()
-            self._datasource.saveServer(self._isnew, provider, host, port, server)
+            self._saveServer(provider, host, port, server)
             print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._metadata['Servers'][self._index]))
         if self._user.toJson() != self._getUserMetaData():
             print("PageModel.saveConfiguration() user:\n%s\n%s" % (self._user.toJson(), self._getUserMetaData()))
-            self._datasource.saveUser(self.Email, self._user)
+            self._database.mergeUser(self.Email, self._user)
 
     def getSecurity(self, i, j):
         level = self._levels.get(i).get(j)
         message = self.getSecurityMessage(level)
         return message, level
+
+    def _saveServer(self, provider, host, port, server):
+        if self._isnew:
+            self._database.mergeProvider(provider)
+            self._database.mergeServer(provider, server)
+        else:
+            self._database.updateServer(host, port, server)
+
+    def _getSmtpConfig(self, email, url, progress, updateModel):
+        progress(5)
+        url = getUrl(self._ctx, url)
+        progress(10)
+        mode = getConnectionMode(self._ctx, url.Server)
+        progress(20)
+        self.waitForDataBase()
+        progress(40)
+        user, servers = self._database.getSmtpConfig(email)
+        if len(servers) > 0:
+            progress(100, 1)
+        elif mode == OFFLINE:
+            progress(100, 2)
+        else:
+            progress(60)
+            service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+            request = createService(self._ctx, service)
+            response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
+            if response.IsPresent:
+                progress(80)
+                servers = self._database.setSmtpConfig(response.Value)
+                progress(100, 3)
+            else:
+                progress(100, 4)
+        updateModel(user, servers, mode)
+
+    def _getIspdbConfig(self, request, url, domain):
+        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter.Method = 'GET'
+        parameter.Url = '%s%s' % (url, domain)
+        parameter.NoAuth = True
+        #parameter.NoVerify = True
+        response = request.getRequest(parameter, DataParser()).execute()
+        return response
 
 # IspdbModel getter methods called by WizardPage4
     def getHost(self):
@@ -326,9 +370,9 @@ class IspdbModel(unohelper.Base):
         return CurrentContext(data)
 
     def _getAuthenticator(self):
-        user = self._getLoginName()
-        password = self._getPassword()
-        return Authenticator(user, password)
+        data = {'LoginName': self._getLoginName(),
+                'Password': self._getPassword()}
+        return Authenticator(data)
 
     def _getConnectionMap(self):
         index = self._getServer().getValue('Connection')
@@ -370,25 +414,3 @@ class IspdbModel(unohelper.Base):
     def getSendMessage(self):
         resource = self._resources.get('SendMessage')
         return self._resolver.resolveString(resource)
-
-
-class CurrentContext(unohelper.Base,
-                     XCurrentContext):
-    def __init__(self, context):
-        self._context = context
-
-    def getValueByName(self, name):
-        return self._context[name]
-
-
-class Authenticator(unohelper.Base,
-                    XAuthenticator):
-    def __init__(self, user, password):
-        self._user = user
-        self._password = password
-
-    def getUserName(self):
-        return self._user
-
-    def getPassword(self):
-        return self._password

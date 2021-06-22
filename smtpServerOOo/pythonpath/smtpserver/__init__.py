@@ -37,6 +37,7 @@ from .configuration import g_merger_paths
 
 from .logger import Logger
 from .logger import LogHandler
+from .logger import Pool
 
 from .logger import clearLogger
 from .logger import getLoggerSetting
@@ -71,8 +72,13 @@ from .unotool import getUrlTransformer
 from .unotool import hasInterface
 from .unotool import parseUrl
 
+from .mailerlib import Authenticator
+from .mailerlib import CurrentContext
+from .mailerlib import MailTransferable
+
 from .mailertool import getDocument
 from .mailertool import getDocumentFilter
+from .mailertool import getMail
 from .mailertool import getNamedExtension
 from .mailertool import saveDocumentAs
 
@@ -95,6 +101,7 @@ from .mail import MailManager
 from .mail import MailView
 
 from .datasource import DataSource
+from .dataparser import DataParser
 
 from .wizard import Wizard
 

@@ -248,7 +248,9 @@ def getStaticTables():
     tables = ('Tables',
               'Columns',
               'TableColumn',
-              'Settings')
+              'Settings',
+              'ConnectionType',
+              'AuthenticationType')
     return tables
 
 def getQueries():

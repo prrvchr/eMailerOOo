@@ -785,10 +785,10 @@ class MergerModel(MailModel):
         #bookmark = self._getBookmark(index)
         # TODO: We need early initialization to reduce loading time
         properties = {'ActiveConnection': self.Connection,
-                      'DataSourceName': self._addressbook.Name,
                       'Command': self._table,
                       'CommandType': TABLE,
                       'BookmarkSelection': False}
+ #                     'DataSourceName': self._addressbook.Name,
         if self._index is not None:
             # TODO: The cursor is not present during initialization to avoid any display
             properties['Cursor'] = self._resultset

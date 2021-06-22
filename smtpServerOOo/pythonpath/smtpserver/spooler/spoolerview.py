@@ -124,8 +124,12 @@ class SpoolerView(unohelper.Base):
     def showGridColumnHeader(self, enabled):
         self._getGrid().Model.ShowColumnHeader = enabled
 
-    def setActivityLog(self, text):
-        self._getActivityLog().Text = text
+    def setActivityLog(self, text, length):
+        control = self._getActivityLog()
+        control.Text = text
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
+
 
 # SpoolerView private setter methods
     def _initListBox(self, control, columns):

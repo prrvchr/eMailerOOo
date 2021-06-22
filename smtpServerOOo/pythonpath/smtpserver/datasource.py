@@ -44,6 +44,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpserver import createService
 from smtpserver import getConnectionMode
+from smtpserver import getMail
 from smtpserver import getMessage
 from smtpserver import getUrl
 from smtpserver import logMessage
@@ -211,10 +212,7 @@ class DataSource(unohelper.Base,
         else:
             progress(75)
             if server.isConnected():
-                service = 'com.sun.star.mail.MailMessage2'
-                body = MailTransferable(self._ctx, message)
-                arguments = (recipient, sender, subject, body)
-                mail = createService(self._ctx, service, *arguments)
+                mail = getMail(self._ctx, sender, recipient, subject, message)
                 print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
                 try:
                     server.sendMailMessage(mail)
@@ -246,42 +244,3 @@ class DataSource(unohelper.Base,
         time.sleep(0.5)
         database = DataBase(self._ctx, self._dbname)
         DataSource._database = database
-
-
-class MailTransferable(unohelper.Base,
-                       XTransferable):
-    def __init__(self, ctx, body):
-        print("MailTransferable.__init__() 1")
-        self._ctx = ctx
-        self._body = body
-        self._html = False
-        print("MailTransferable.__init__() 2")
-
-    # XTransferable
-    def getTransferData(self, flavor):
-        if flavor.MimeType == "text/plain;charset=utf-16":
-            print("MailTransferable.getTransferData() 1")
-            data = self._body
-        elif flavor.MimeType == "text/html;charset=utf-8":
-            print("MailTransferable.getTransferData() 2")
-            data = ''
-        else:
-            print("MailTransferable.getTransferData() 3")
-            data = ''
-        return data
-
-    def getTransferDataFlavors(self):
-        flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
-        if self._html:
-            flavor.MimeType = 'text/html;charset=utf-8'
-            flavor.HumanPresentableName = 'HTML-Documents'
-        else:
-            flavor.MimeType = 'text/plain;charset=utf-16'
-            flavor.HumanPresentableName = 'Unicode text'
-        print("MailTransferable.getTransferDataFlavors() 1")
-        return (flavor,)
-
-    def isDataFlavorSupported(self, flavor):
-        support = flavor.MimeType == 'text/plain;charset=utf-16' or flavor.MimeType == 'text/html;charset=utf-8'
-        print("MailTransferable.isDataFlavorSupported() 1 %s" % support)
-        return support

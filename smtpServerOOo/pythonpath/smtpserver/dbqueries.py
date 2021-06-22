@@ -83,6 +83,19 @@ def getSqlQuery(ctx, name, format=None):
         c = (c1, c2, c3, c4, c5)
         p = ','.join(c)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Settings"(%s);' % p
+    elif name == 'createTableConnectionType':
+        c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
+        c2 = '"Connection" VARCHAR(20) NOT NULL'
+        c = (c1, c2)
+        p = ','.join(c)
+        query = 'CREATE TEXT TABLE IF NOT EXISTS "ConnectionType"(%s);' % p
+    elif name == 'createTableAuthenticationType':
+        c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
+        c2 = '"Authentication" VARCHAR(20) NOT NULL'
+        c = (c1, c2)
+        p = ','.join(c)
+        query = 'CREATE TEXT TABLE IF NOT EXISTS "AuthenticationType"(%s);' % p
+
 
     # Create Text Table Options
     elif name == 'setTableSource':
@@ -235,6 +248,9 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'setJobState':
         query = 'UPDATE "Recipients" SET "State"=? WHERE "JobId"=?;'
 
+    elif name == 'setBatchState':
+        query = 'UPDATE "Recipients" SET "State"=? WHERE "BatchId"=?;'
+
 # Function creation Queries
     # IspDb Function Queries
     elif name == 'createGetDomain':
@@ -317,17 +333,21 @@ CREATE PROCEDURE "GetAttachments"(IN "Id" INTEGER)
 
     elif name == 'createGetServer':
         query = """\
-CREATE PROCEDURE "GetServer"(IN "User" VARCHAR(320))
+CREATE PROCEDURE "GetServer"(IN "User" VARCHAR(320),
+                             IN "TimeOut" INTEGER)
   SPECIFIC "GetServer_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
-      "Servers"."Authentication", "Servers"."LoginMode",
+      SELECT "TimeOut" AS "Timeout", "Servers"."Server" AS "ServerName",
+      "Servers"."Port", "ConnectionType"."Connection" AS "ConnectionType",
+      "AuthenticationType"."Authentication" AS "AuthenticationType",
       "Users"."LoginName", "Users"."Password"
       FROM "Servers"
       JOIN "Users" ON "Servers"."Server"="Users"."Server" AND "Servers"."Port"="Users"."Port"
+      JOIN "ConnectionType" ON "Servers"."Connection"="ConnectionType"."Type"
+      JOIN "AuthenticationType" ON "Servers"."Authentication"="AuthenticationType"."Type"
       WHERE "Users"."User"="User"
       FOR READ ONLY;
     OPEN "Result";
@@ -528,7 +548,7 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
     elif name == 'getAttachments':
         query = 'CALL "GetAttachments"(?)'
     elif name == 'getServer':
-        query = 'CALL "GetServer"(?)'
+        query = 'CALL "GetServer"(?,?)'
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':

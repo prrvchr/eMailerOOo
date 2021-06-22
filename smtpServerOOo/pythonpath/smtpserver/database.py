@@ -56,6 +56,7 @@ from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
 from .dbtool import getKeyMapFromResult
 from .dbtool import getObjectFromResult
+from .dbtool import getRowDict
 from .dbtool import getSequenceFromResult
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
@@ -299,13 +300,14 @@ class DataBase(unohelper.Base):
         call.close()
         return attachments
 
-    def getServer(self, user):
+    def getServer(self, user, timeout):
         server = None
         call = self._getCall('getServer')
         call.setString(1, user)
+        call.setInt(2, timeout)
         result = call.executeQuery()
         if result.next():
-            server = getObjectFromResult(result)
+            server = getRowDict(result)
         call.close()
         return server
 
@@ -313,6 +315,13 @@ class DataBase(unohelper.Base):
         call = self._getCall('setJobState')
         call.setInt(1, state)
         call.setInt(2, jobid)
+        result = call.executeUpdate()
+        call.close()
+
+    def setBatchState(self, batchid, state):
+        call = self._getCall('setBatchState')
+        call.setInt(1, state)
+        call.setInt(2, batchid)
         result = call.executeUpdate()
         call.close()
 

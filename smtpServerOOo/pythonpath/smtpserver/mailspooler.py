@@ -33,18 +33,30 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.mail.MailServiceType import SMTP
+
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
+from com.sun.star.uno import Exception as UnoException
+
+
+from .unotool import createService
+from .unotool import getConfiguration
 from .unotool import getConnectionMode
 from .unotool import getFileSequence
 from .unotool import getSimpleFile
 
+from smtpserver import getMail
 from smtpserver import getDocument
 from smtpserver import saveDocumentAs
+from smtpserver import Authenticator
+from smtpserver import CurrentContext
 
 from .logger import Logger
+from .logger import Pool
 
 from .configuration import g_dns
+from .configuration import g_identifier
 
 from threading import Thread
 from threading import Event
@@ -58,11 +70,14 @@ class MailSpooler(unohelper.Base):
         self._count = 0
         self._disposed = Event()
         self._batch = None
+        self._server = None
         self._sender = None
         self._attachments = ()
         self._server = None
         self._thread = None
-        self._logger = Logger(ctx, 'MailSpooler', 'MailSpooler')
+        configuration = getConfiguration(ctx, g_identifier, False)
+        self._timeout = configuration.getByName('ConnectTimeout')
+        self._logger = Pool(ctx).getLogger('MailSpooler')
         self._logger.setDebugMode(True)
 
 # Procedures called by MailServiceSpooler
@@ -91,79 +106,110 @@ class MailSpooler(unohelper.Base):
     def _run(self, *jobs):
         try:
             print("MailSpooler._run()1 begin ****************************************")
+            sender = None
+            attachments = ()
+            url = ''
+            count = 0
+            self._server = None
             for job in jobs:
                 if self._disposed.is_set():
                     print("MailSpooler._run() 2 break")
                     break
-                self._count = 0
-                state = self._getSendState(job)
+                self._logMessage(INFO, 121, job)
+                recipient = self.DataBase.getRecipient(job)
+                batch = recipient.BatchId
+                if self._batch != batch:
+                    try:
+                        sender, attachments, url = self._canSetBatch(job, batch)
+                    except UnoException as e:
+                        self.DataBase.setBatchState(batch, 2)
+                        self._logger.logMessage(INFO, e.Message)
+                        print("MailSpooler._run() 3 break")
+                        break
+                state = self._getSendState(job, sender, recipient, attachments, url)
                 self.DataBase.setJobState(job, state)
                 resource = 110 + state
                 self._logMessage(INFO, resource, job)
+            if self._server is not None:
+                print("MailSpooler._run() 4 disconnect")
+                self._server.disconnect()
             #self.DataBase.dispose()
-            print("MailSpooler._run() 3 canceled *******************************************")
+            print("MailSpooler._run() 5 canceled *******************************************")
         except Exception as e:
             msg = "MailSpooler _run(): Error: %s" % traceback.print_exc()
             print(msg)
 
-    def _getSendState(self, job):
+    def _getSendState(self, job, sender, recipient, attachments, url):
         print("MailSpooler._send() 1")
-        self._logMessage(INFO, 121, job)
-        recipient = self.DataBase.getRecipient(job)
-        batch = recipient.BatchId
-        if self._batch != batch:
-            if not self._canSetBatch(job, batch):
-                return 2
-        if self._sender.DataSource is not None:
+        if sender.DataSource is not None:
             # TODO: need to merge the document
-            self._url = saveDocumentAs(self._ctx, self._document, 'html')
+            url = saveDocumentAs(self._ctx, self._document, 'html')
+        print("MailSpooler._send() 2 %s - %s - %s - %s - %s - %s - %s - %s" % (sender.Sender, sender.Subject, sender.Document , sender.DataSource , sender.Query , recipient.Recipient , recipient.Identifier , attachments))
+        mail = getMail(self._ctx, sender.Sender, recipient.Recipient, sender.Subject, url, True)
+        if attachments:
+            self._sendMailWithAttachments(mail, attachments)
+        else:
+            self._sendMail(mail)
 
-        print("MailSpooler._send() 2 %s - %s - %s - %s - %s - %s - %s - %s" % (self._sender.Sender, self._sender.Subject, self._sender.Document , self._sender.DataSource , self._sender.Query , recipient.Recipient , recipient.Identifier , self._attachments))
-        print("MailSpooler._send() 3 %s - %s - %s - %s - %s - %s - %s" % (self._server.Server, self._server.Port, self._server.Connection , self._server.Authentication , self._server.LoginMode , self._server.LoginName , self._server.Password))
+
 
         print("MailSpooler._send() 4")
         return 1
 
+    def _sendMailWithAttachments(self, recipient, body):
+        print("MailSpooler._sendMailWithAttachments() 1")
+        pass
+
+
+    def _sendMail(self, mail):
+        print("MailSpooler._sendMail() 1")
+        self._server.sendMailMessage(mail)
 
     def _canSetBatch(self, job, batch):
-        self._sender = self.DataBase.getSender(batch)
-        url = self._sender.Document
-        if not self._isUrl(url):
-            format = (job, url)
-            self._logMessage(INFO, 131, format)
-            return False
-        self._attachments = self.DataBase.getAttachments(batch)
-        if not self._isAttachments(job):
-            return False
-        self._server = self.DataBase.getServer(self._sender.Sender)
-        if not self._isServer(job, self._sender.Sender):
-            return False
-        self._document = getDocument(self._ctx, self._sender.Document)
-        if self._sender.DataSource is None:
-            self._url = saveDocumentAs(self._ctx, self._document, 'html')
+        url = ''
+        sender = self.DataBase.getSender(batch)
+        doc = sender.Document
+        self._checkUrl(doc, job, 131)
+        attachments = self.DataBase.getAttachments(batch)
+        self._checkAttachments(job, attachments, 132)
+        server = self.DataBase.getServer(sender.Sender, self._timeout)
+        self._checkServer(job, sender, server)
+        self._document = getDocument(self._ctx, doc)
+        if sender.DataSource is None:
+            url = saveDocumentAs(self._ctx, self._document, 'html')
         self._batch = batch
-        return True
+        return sender, attachments, url
 
     def _getUrlContent(self, url):
         return getFileSequence(self._ctx, url)
 
-    def _isUrl(self, url):
-        return getSimpleFile(self._ctx).exists(url)
+    def _checkUrl(self, url, job, resource):
+        if not getSimpleFile(self._ctx).exists(url):
+            format = (job, url)
+            msg = self._logger.getMessage(resource, format)
+            raise UnoException(msg)
 
-    def _isAttachments(self, job):
-        for url in self._attachments:
-            if not self._isUrl(url):
-                format = (job, url)
-                self._logMessage(INFO, 141, format)
-                return False
-        return True
+    def _checkAttachments(self, job, attachments, resource):
+        for url in attachments:
+            self._checkUrl(url, job, resource)
 
-    def _isServer(self, job, sender):
-        if self._server is None:
-            format = (job, sender)
-            self._logMessage(INFO, 151, format)
-            return False
-        return True
+    def _checkServer(self, job, sender, server):
+        if server is None:
+            format = (job, sender.Sender)
+            msg = self._logger.getMessage(141, format)
+            raise UnoException(msg)
+        context = CurrentContext(server)
+        authenticator = Authenticator(server)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        try:
+            self._server = createService(self._ctx, service).create(SMTP)
+            self._server.connect(context, authenticator)
+        except UnoException as e:
+            smtpserver = '%s:%s' % (server['ServerName'], server['Port'])
+            format = (job, sender.Sender, smtpserver, e.Message)
+            msg = self._logger.getMessage(142, format)
+            raise UnoException(msg)
+        print("MailSpooler_isServer() ******************************")
 
     def _logMessage(self, level, resource, format=None):
         msg = self._logger.getMessage(resource, format)

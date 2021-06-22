@@ -40,6 +40,7 @@ from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
 from smtpserver import Logger
 from smtpserver import LogHandler
+from smtpserver import Pool
 
 from smtpserver import logMessage
 
@@ -66,7 +67,8 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
         self._model.initSpooler(self.initView)
         #handler = LogHandler()
-        self._logger = Logger(ctx, 'MailSpooler')
+        self._logger = Pool(ctx).getLogger('MailSpooler')
+        self._logger.addListener(self)
 
     @property
     def HandlerEnabled(self):
@@ -143,12 +145,12 @@ class SpoolerManager(unohelper.Base):
         url = self._logger.getLoggerUrl()
         length, sequence = getFileSequence(self._ctx, url)
         text = sequence.value.decode('utf-8')
-        self._view.setActivityLog(text)
+        self._view.setActivityLog(text, length)
 
     def clearLog(self):
         print("SpoolerManager.clearLog()")
         self._logger.clearLogger()
-        self._view.setActivityLog('')
+        self.refreshLog()
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

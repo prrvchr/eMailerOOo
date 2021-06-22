@@ -29,10 +29,13 @@
 
 from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 
+from .unotool import createService
 from .unotool import getDesktop
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getUrl
+
+from .mailerlib import MailTransferable
 
 import traceback
 
@@ -57,6 +60,12 @@ def getDocumentFilter(extension, format):
         filters = {}
     filter = filters.get(format, None)
     return filter
+
+def getMail(ctx, sender, recipient, subject, data, html=False):
+    service = 'com.sun.star.mail.MailMessage2'
+    body = MailTransferable(ctx, data, html)
+    arguments = (recipient, sender, subject, body)
+    return createService(ctx, service, *arguments)
 
 def getNamedExtension(name):
     part1, dot, part2 = name.rpartition('.')

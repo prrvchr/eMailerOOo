@@ -59,15 +59,15 @@ class MergerManager(unohelper.Base,
         self._disabled = False
         addressbooks = self._model.getAvailableAddressBooks()
         self._view = MergerView(ctx, self, parent, addressbooks)
-        addressbook = self._model.getDocumentAddressBook()
-        #if addressbook in addressbooks:
-            #self._view.setPageStep(1)
+        addressbook = self._model.getDefaultAddressBook()
+        if addressbook in addressbooks:
+            self._view.setPageStep(1)
             # TODO: We must disable the handler "ChangeAddressBook"
             # TODO: otherwise it activates twice
-            #self._disableHandler()
-            #self._view.selectAddressBook(addressbook)
-        #else:
-        self._view.enableAddressBook(True)
+            self._disableHandler()
+            self._view.selectAddressBook(addressbook)
+        else:
+            self._view.enableAddressBook(True)
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):

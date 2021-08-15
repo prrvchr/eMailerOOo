@@ -52,7 +52,7 @@ class IspdbManager(unohelper.Base):
         return self._view.getWindow()
 
     def activatePage(self):
-        pass
+        self._view.setEmailFocus()
 
     def commitPage(self, reason):
         email = self._view.getEmail()

@@ -183,8 +183,15 @@ class MergerModel(MailModel):
     def getAvailableAddressBooks(self):
         return self._dbcontext.getElementNames()
 
-    def getDocumentAddressBook(self):
+    def getDefaultAddressBook(self):
         addressbook = ''
+        if self._loadAddressBook():
+            addressbook = self._getDocumentAddressBook(addressbook)
+        return addressbook
+
+    def _loadAddressBook(self):
+        return self._configuration.getByName('MergerLoadDataSource')
+    def _getDocumentAddressBook(self, addressbook):
         service = 'com.sun.star.text.TextDocument'
         if self._document.supportsService(service):
             service = 'com.sun.star.document.Settings'

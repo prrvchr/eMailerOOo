@@ -109,7 +109,7 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            connection = self._getConnection()
+            connection = self.getConnection()
             self._statement = connection.createStatement()
         return self._statement.getConnection()
 
@@ -122,7 +122,7 @@ class DataBase(unohelper.Base):
             connection.close()
             print("smtpServer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
 
-    def _getConnection(self, user='', password=''):
+    def getConnection(self, user='', password=''):
         connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
         return connection
 
@@ -262,28 +262,33 @@ class DataBase(unohelper.Base):
         return status
 
 # Procedures called by the MailSpooler
-    def getSpoolerJobs(self, state):
+    def getSpoolerJobs(self, connection, state=0):
         jobid = []
-        call = self._getCall('getSpoolerJobs')
+        call = self._getDataBaseCall(connection, 'getSpoolerJobs')
         call.setInt(1, state)
         result = call.executeQuery()
         jobids = getSequenceFromResult(result)
         call.close()
         return jobids
 
-    def getRecipient(self, job):
+    def getRecipient(self, connection, job):
+        print("DataBase.getRecipient() 1")
         recipient = None
-        call = self._getCall('getRecipient')
+        call = self._getDataBaseCall(connection, 'getRecipient')
+        print("DataBase.getRecipient() 2")
         call.setInt(1, job)
         result = call.executeQuery()
+        print("DataBase.getRecipient() 3")
         if result.next():
+            print("DataBase.getRecipient() 4")
             recipient = getObjectFromResult(result)
         call.close()
+        print("DataBase.getRecipient() 5")
         return recipient
 
-    def getSender(self, batch):
+    def getSender(self, connection, batch):
         sender = None
-        call = self._getCall('getSender')
+        call = self._getDataBaseCall(connection, 'getSender')
         call.setInt(1, batch)
         result = call.executeQuery()
         if result.next():
@@ -291,18 +296,22 @@ class DataBase(unohelper.Base):
         call.close()
         return sender
 
-    def getAttachments(self, batch):
+    def getAttachments(self, connection, batch):
         attachments = ()
-        call = self._getCall('getAttachments')
+        print("DataBase.getAttachments() 1")
+        call = self._getDataBaseCall(connection, 'getAttachments')
         call.setInt(1, batch)
+        print("DataBase.getAttachments() 2")
         result = call.executeQuery()
+        print("DataBase.getAttachments() 3")
         attachments = getSequenceFromResult(result)
         call.close()
+        print("DataBase.getAttachments() 4")
         return attachments
 
-    def getServer(self, user, timeout):
+    def getServer(self, connection, user, timeout):
         server = None
-        call = self._getCall('getServer')
+        call = self._getDataBaseCall(connection, 'getServer')
         call.setString(1, user)
         call.setInt(2, timeout)
         result = call.executeQuery()
@@ -311,15 +320,15 @@ class DataBase(unohelper.Base):
         call.close()
         return server
 
-    def setJobState(self, jobid, state):
-        call = self._getCall('setJobState')
+    def setJobState(self, connection, jobid, state):
+        call = _getDataBaseCall(connection, 'setJobState')
         call.setInt(1, state)
         call.setInt(2, jobid)
         result = call.executeUpdate()
         call.close()
 
-    def setBatchState(self, batchid, state):
-        call = self._getCall('setBatchState')
+    def setBatchState(self, connection, batchid, state):
+        call = self._getDataBaseCall(connection, 'setBatchState')
         call.setInt(1, state)
         call.setInt(2, batchid)
         result = call.executeUpdate()
@@ -375,7 +384,10 @@ class DataBase(unohelper.Base):
         return error
 
     def _getCall(self, name, format=None):
-        return getDataSourceCall(self._ctx, self.Connection, name, format)
+        return self._getDataBaseCall(self.Connection, name, format)
+
+    def _getDataBaseCall(self, connection, name, format=None):
+        return getDataSourceCall(self._ctx, connection, name, format)
 
     def _getPreparedCall(self, name):
         # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)

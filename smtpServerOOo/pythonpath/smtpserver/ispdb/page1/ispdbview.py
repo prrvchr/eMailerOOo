@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from smtpserver import getContainerWindow
@@ -49,6 +50,10 @@ class IspdbView(unohelper.Base):
 
     def getEmail(self):
         return self._getEmail().Text.strip()
+
+# IspdbView setter methods
+    def setEmailFocus(self):
+        self._getEmail().setFocus()
 
 # IspdbView private getter control methods
     def _getEmail(self):

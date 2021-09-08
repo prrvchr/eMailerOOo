@@ -24,19 +24,21 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_XMailServiceSpooler_idl__
-#define __com_sun_star_mail_XMailServiceSpooler_idl__
+#ifndef __com_sun_star_mail_XSpoolerService_idl__
+#define __com_sun_star_mail_XSpoolerService_idl__
 
 #include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/mail/XSpoolerListener.idl>
 
 module com { module sun { module star { module mail {
 
-interface XMailServiceSpooler: com::sun::star::uno::XInterface
+interface XSpoolerService: com::sun::star::uno::XInterface
 {
 
     void start();
     void stop();
     boolean isStarted();
+
     long addJob([in] string Sender,
                 [in] string Subject,
                 [in] string Document,
@@ -47,11 +49,19 @@ interface XMailServiceSpooler: com::sun::star::uno::XInterface
                      [in] string Document,
                      [in] string DataSource,
                      [in] string Query,
+                     [in] string Table,
+                     [in] string Identifier,
+                     [in] string Bookmark,
                      [in] sequence<string> Recipients,
-                     [in] sequence<string> Identifiers,
+                     [in] sequence<string> Indexes,
                      [in] sequence<string> Attachments);
-    boolean removeJob([in] long Id);
-    long getJobState([in] long Id);
+
+    boolean removeJobs([in] sequence<long> JobIds);
+    long getJobState([in] long JobId);
+    sequence<long> getJobIds([in] long BatchId);
+
+    void addListener([in] XSpoolerListener Listener);
+    void removeListener([in] XSpoolerListener Listener);
 
 };
 

@@ -69,24 +69,25 @@
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewHtml" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label9" dlg:tab-index="20" dlg:left="10" dlg:top="120" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailWindow.Label9.HelpText" dlg:value="&amp;MailWindow.Label9.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton6" dlg:tab-index="21" dlg:left="60" dlg:top="120" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton6.HelpText" dlg:value="&amp;MailWindow.CommandButton6.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddAttachments" script:language="UNO"/>
-    </dlg:button>
-    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="22" dlg:left="105" dlg:top="123" dlg:width="60" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox2.HelpText" dlg:value="&amp;MailWindow.CheckBox2.Label" dlg:valign="center" dlg:checked="false"/>
-    <dlg:button dlg:id="CommandButton7" dlg:tab-index="23" dlg:disabled="true" dlg:left="185" dlg:top="120" dlg:width="40" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton7.HelpText" dlg:value="&amp;MailWindow.CommandButton7.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveAttachments" script:language="UNO"/>
-    </dlg:button>
-    <dlg:checkbox dlg:id="CheckBox3" dlg:tab-index="24" dlg:left="230" dlg:top="123" dlg:width="50" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox3.HelpText" dlg:value="&amp;MailWindow.CheckBox3.Label" dlg:valign="center" dlg:checked="false"/>
-    <dlg:menulist dlg:id="ListBox3" dlg:tab-index="25" dlg:left="10" dlg:top="140" dlg:width="215" dlg:height="54" dlg:help-text="&amp;MailWindow.ListBox3.HelpText" dlg:multiselection="true">
+    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="21" dlg:left="105" dlg:top="123" dlg:width="60" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox2.HelpText" dlg:value="&amp;MailWindow.CheckBox2.Label" dlg:valign="center" dlg:checked="false"/>
+    <dlg:checkbox dlg:id="CheckBox3" dlg:tab-index="22" dlg:page="2" dlg:left="175" dlg:top="123" dlg:width="50" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox3.HelpText" dlg:value="&amp;MailWindow.CheckBox3.Label" dlg:valign="center" dlg:checked="false"/>
+    <dlg:checkbox dlg:id="CheckBox4" dlg:tab-index="23" dlg:left="230" dlg:top="123" dlg:width="50" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox4.HelpText" dlg:value="&amp;MailWindow.CheckBox4.Label" dlg:valign="center" dlg:checked="false"/>
+    <dlg:menulist dlg:id="ListBox3" dlg:tab-index="24" dlg:left="10" dlg:top="140" dlg:width="215" dlg:height="54" dlg:help-text="&amp;MailWindow.ListBox3.HelpText" dlg:multiselection="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAttachments" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:button dlg:id="CommandButton8" dlg:tab-index="26" dlg:disabled="true" dlg:left="230" dlg:top="140" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton8.HelpText" dlg:value="&amp;MailWindow.CommandButton8.Label">
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="25" dlg:left="230" dlg:top="140" dlg:width="24" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton6.HelpText" dlg:value="&amp;MailWindow.CommandButton6.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddAttachments" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton7" dlg:tab-index="26" dlg:disabled="true" dlg:left="256" dlg:top="140" dlg:width="24" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton7.HelpText" dlg:value="&amp;MailWindow.CommandButton7.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveAttachments" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton8" dlg:tab-index="27" dlg:disabled="true" dlg:left="230" dlg:top="160" dlg:width="24" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton8.HelpText" dlg:value="&amp;MailWindow.CommandButton8.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveBefore" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton9" dlg:tab-index="27" dlg:disabled="true" dlg:left="230" dlg:top="160" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton9.HelpText" dlg:value="&amp;MailWindow.CommandButton9.Label">
+    <dlg:button dlg:id="CommandButton9" dlg:tab-index="28" dlg:disabled="true" dlg:left="256" dlg:top="160" dlg:width="24" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton9.HelpText" dlg:value="&amp;MailWindow.CommandButton9.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveAfter" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton10" dlg:tab-index="28" dlg:disabled="true" dlg:left="230" dlg:top="180" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton10.HelpText" dlg:value="&amp;MailWindow.CommandButton10.Label">
+    <dlg:button dlg:id="CommandButton10" dlg:tab-index="29" dlg:disabled="true" dlg:left="230" dlg:top="180" dlg:width="50" dlg:height="14" dlg:help-text="&amp;MailWindow.CommandButton10.HelpText" dlg:value="&amp;MailWindow.CommandButton10.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewPdf" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

@@ -51,6 +51,9 @@ class MailView(unohelper.Base):
     def isRecipientsValid(self):
         raise NotImplementedError('Need to be implemented!')
 
+    def getCurrentRecipient(self):
+        raise NotImplementedError('Need to be implemented!')
+
     def getSender(self):
         return self._getSenders().getSelectedItem()
 
@@ -69,7 +72,6 @@ class MailView(unohelper.Base):
 
     def getAttachments(self):
         attachments = self._getAttachments().getItems()
-        print("MailView.getAttachments() 1 ******************************** %s" % (attachments, ))
         return attachments
 
     def getSelectedAttachment(self):
@@ -90,6 +92,10 @@ class MailView(unohelper.Base):
 
     def getSaveAttachments(self):
         state = self._getSaveAttachments().Model.State
+        return bool(state)
+
+    def getMergeAttachments(self):
+        state = self._getMergeAttachments().Model.State
         return bool(state)
 
 # MailView setter methods
@@ -229,8 +235,11 @@ class MailView(unohelper.Base):
     def _getAttachmentAsPdf(self):
         return self._window.getControl('CheckBox2')
 
-    def _getSaveAttachments(self):
+    def _getMergeAttachments(self):
         return self._window.getControl('CheckBox3')
+
+    def _getSaveAttachments(self):
+        return self._window.getControl('CheckBox4')
 
     def _getRemoveSender(self):
         return self._window.getControl('CommandButton2')

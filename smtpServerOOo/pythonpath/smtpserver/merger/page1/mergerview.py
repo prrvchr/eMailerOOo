@@ -90,12 +90,19 @@ class MergerView(unohelper.Base):
     def hasEmail(self):
         return self._getEmail().getItemCount() > 0
 
-    # Index getter method
-    def getIndex(self):
-        return self._getIndex().getItem(0)
+    # Identifier getter method
+    def getIdentifier(self):
+        return self._getIdentifier().getItem(0)
 
-    def hasIndex(self):
-        return self._getIndex().getItemCount() > 0
+    def hasIdentifier(self):
+        return self._getIdentifier().getItemCount() > 0
+
+    # Bookmark getter method
+    def getBookmark(self):
+        return self._getBookmark().getItem(0)
+
+    def hasBookmark(self):
+        return self._getBookmark().getItemCount() > 0
 
 # MergerView setter methods
     def setPageStep(self, step):
@@ -116,8 +123,10 @@ class MergerView(unohelper.Base):
         self._getRemoveEmail().Model.Enabled = enabled
         self._getBefore().Model.Enabled = enabled
         self._getAfter().Model.Enabled = enabled
-        self._getAddIndex().Model.Enabled = enabled
-        self._getRemoveIndex().Model.Enabled = enabled
+        self._getAddIdentifier().Model.Enabled = enabled
+        self._getRemoveIdentifier().Model.Enabled = enabled
+        self._getAddBookmark().Model.Enabled = enabled
+        self._getRemoveBookmark().Model.Enabled = enabled
 
     def updateProgress(self, value, message):
         if not self.isDisposed():
@@ -147,8 +156,8 @@ class MergerView(unohelper.Base):
     def setTable(self, table):
         self._getTable().selectItem(table, True)
 
-    def setIndexLabel(self, text):
-        self._getIndexLabel().Text = text
+    def setColumnLabel(self, text):
+        self._getColumnLabel().Text = text
 
     def initColumns(self, columns):
         control= self._getColumn()
@@ -212,30 +221,51 @@ class MergerView(unohelper.Base):
         if position != -1:
             control.selectItemPos(position, True)
 
-    # Index column methods
-    def setIndex(self, index, exist):
-        indexes = () if index is None else (index, )
-        self._getIndex().Model.StringItemList = indexes
-        if exist:
-            self.enableAddIndex(index is None)
-            self.enableRemoveIndex(index is not None)
-        else:
-            self.enableAddIndex(False)
-            self.enableRemoveIndex(False)
+    # Identifier column methods
+    def setIdentifier(self, identifier, exist):
+        identifiers = () if identifier is None else (identifier, )
+        add = identifier is None if exist else False
+        remove = identifier is not None if exist else False
+        self._getIdentifier().Model.StringItemList = identifiers
+        self.enableAddIdentifier(add)
+        self.enableRemoveIdentifier(remove)
 
-    def addIndex(self, index):
-        self._getIndex().Model.insertItemText(0, index)
-        self.enableRemoveIndex(True)
+    def addIdentifier(self, identifier):
+        self._getIdentifier().Model.insertItemText(0, identifier)
+        self.enableRemoveIdentifier(True)
 
-    def removeIndex(self, enabled):
-        self._getIndex().Model.removeItem(0)
-        self.enableAddIndex(enabled)
+    def removeIdentifier(self, enabled):
+        self._getIdentifier().Model.removeItem(0)
+        self.enableAddIdentifier(enabled)
 
-    def enableAddIndex(self, enabled):
-        self._getAddIndex().Model.Enabled = enabled
+    def enableAddIdentifier(self, enabled):
+        self._getAddIdentifier().Model.Enabled = enabled
 
-    def enableRemoveIndex(self, enabled):
-        self._getRemoveIndex().Model.Enabled = enabled
+    def enableRemoveIdentifier(self, enabled):
+        self._getRemoveIdentifier().Model.Enabled = enabled
+
+    # Bookmark column methods
+    def setBookmark(self, bookmark, exist):
+        bookmarks = () if bookmark is None else (bookmark, )
+        add = bookmark is None if exist else False
+        remove = bookmark is not None if exist else False
+        self._getBookmark().Model.StringItemList = bookmarks
+        self.enableAddBookmark(add)
+        self.enableRemoveBookmark(remove)
+
+    def addBookmark(self, bookmark):
+        self._getBookmark().Model.insertItemText(0, bookmark)
+        self.enableRemoveBookmark(True)
+
+    def removeBookmark(self, enabled):
+        self._getBookmark().Model.removeItem(0)
+        self.enableAddBookmark(enabled)
+
+    def enableAddBookmark(self, enabled):
+        self._getAddBookmark().Model.Enabled = enabled
+
+    def enableRemoveBookmark(self, enabled):
+        self._getRemoveBookmark().Model.Enabled = enabled
 
 # MergerView private setter methods
     def _enableBox(self, enabled):
@@ -247,7 +277,9 @@ class MergerView(unohelper.Base):
         self._enableListBox(control, enabled)
         control = self._getEmail()
         self._enableListBox(control, enabled)
-        control = self._getIndex()
+        control = self._getIdentifier()
+        self._enableListBox(control, enabled)
+        control = self._getBookmark()
         self._enableListBox(control, enabled)
 
     def _enableComboBox(self, control, enabled):
@@ -259,11 +291,6 @@ class MergerView(unohelper.Base):
         control.Model.Enabled = enabled
         if not enabled:
             control.Model.StringItemList = ()
-
-    def _removeIndex(self, control, add):
-        self.enableRemoveIndex(False)
-        control.Model.removeItem(0)
-        self.enableAddIndex(add)
 
 # MergerView private getter control methods
     def _getAddressBook(self):
@@ -278,8 +305,11 @@ class MergerView(unohelper.Base):
     def _getEmail(self):
         return self._window.getControl('ListBox4')
 
-    def _getIndex(self):
+    def _getIdentifier(self):
         return self._window.getControl('ListBox5')
+
+    def _getBookmark(self):
+        return self._window.getControl('ListBox6')
 
     def _getQuery(self):
         return self._window.getControl('ComboBox1')
@@ -308,11 +338,17 @@ class MergerView(unohelper.Base):
     def _getAfter(self):
         return self._window.getControl('CommandButton7')
 
-    def _getAddIndex(self):
+    def _getAddIdentifier(self):
         return self._window.getControl('CommandButton8')
 
-    def _getRemoveIndex(self):
+    def _getRemoveIdentifier(self):
         return self._window.getControl('CommandButton9')
+
+    def _getAddBookmark(self):
+        return self._window.getControl('CommandButton10')
+
+    def _getRemoveBookmark(self):
+        return self._window.getControl('CommandButton11')
 
     def _getProgressMessage(self):
         return self._window.getControl('Label6')
@@ -320,5 +356,5 @@ class MergerView(unohelper.Base):
     def _getMessage(self):
         return self._window.getControl('Label8')
 
-    def _getIndexLabel(self):
-        return self._window.getControl('Label13')
+    def _getColumnLabel(self):
+        return self._window.getControl('Label14')

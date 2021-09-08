@@ -36,6 +36,8 @@ from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
+from com.sun.star.mail import XSpoolerListener
+
 from collections import OrderedDict
 import traceback
 
@@ -165,7 +167,23 @@ class DispatchListener(unohelper.Base,
     # XDispatchResultListener
     def dispatchFinished(self, notification):
         if notification.State == SUCCESS:
-            self._manager.addJob(notification.Result)
+            self._manager.documentAdded(notification.Result)
+
+    def disposing(self, source):
+        pass
+
+
+class SpoolerListener(unohelper.Base,
+                      XSpoolerListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XSpoolerListener
+    def started(self, source):
+        self._manager.started()
+
+    def stopped(self, source):
+        self._manager.stopped()
 
     def disposing(self, source):
         pass

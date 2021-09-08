@@ -58,6 +58,7 @@ from .dbtool import getKeyMapFromResult
 from .dbtool import getObjectFromResult
 from .dbtool import getRowDict
 from .dbtool import getSequenceFromResult
+from .dbtool import getValueFromResult
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
 
@@ -230,20 +231,52 @@ class DataBase(unohelper.Base):
         call.close()
         return id
 
-    def insertMergeJob(self, sender, subject, document, datasource, query, recipients, identifiers, attachments):
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments):
         call = self._getCall('insertMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
         call.setString(3, document)
         call.setString(4, datasource)
         call.setString(5, query)
-        call.setArray(6, recipients)
-        call.setArray(7, identifiers)
-        call.setArray(8, attachments)
+        call.setString(6, table)
+        call.setString(7, identifier)
+        call.setString(8, bookmark)
+        call.setArray(9, recipients)
+        call.setArray(10, indexes)
+        call.setArray(11, attachments)
         status = call.executeUpdate()
-        id = call.getInt(9)
+        id = call.getInt(12)
         call.close()
         return id
+
+    def deleteJob(self, jobs):
+        call = self._getCall('deleteJobs')
+        call.setArray(1, jobs)
+        status = call.executeUpdate()
+        print("DataBase.deleteJob() %s" % status)
+        call.close()
+        return True
+
+    def getJobState(self, job):
+        state = 3
+        call = self._getCall('getJobState')
+        call.setInt(1, job)
+        result = call.executeQuery()
+        if result.next():
+            state = getValueFromResult(result)
+        call.close()
+        return state
+
+    def getJobIds(self, batch):
+        jobs = ()
+        call = self._getCall('getJobIds')
+        call.setInt(1, batch)
+        result = call.executeQuery()
+        if result.next():
+            values = getValueFromResult(result)
+            jobs = () if values is None else values.getArray(None)
+        call.close()
+        return jobs
 
 # Procedures called by the Mailer
     def getSenders(self):
@@ -320,14 +353,25 @@ class DataBase(unohelper.Base):
         call.close()
         return server
 
-    def setJobState(self, connection, jobid, state):
-        call = _getDataBaseCall(connection, 'setJobState')
+    def getBookmark(self, connection, format, identifier):
+        bookmark = None
+        call = self._getDataBaseCall(connection, 'getBookmark', format)
+        call.setString(1, identifier)
+        result = call.executeQuery()
+        if result.next():
+            bookmark = getValueFromResult(result)
+        call.close()
+        return bookmark
+
+    def setJobState(self, connection, state, timestamp, jobid):
+        call = self._getDataBaseCall(connection, 'setJobState')
         call.setInt(1, state)
-        call.setInt(2, jobid)
+        call.setTimestamp(2, timestamp)
+        call.setInt(3, jobid)
         result = call.executeUpdate()
         call.close()
 
-    def setBatchState(self, connection, batchid, state):
+    def setBatchState(self, connection, state, batchid):
         call = self._getDataBaseCall(connection, 'setBatchState')
         call.setInt(1, state)
         call.setInt(2, batchid)

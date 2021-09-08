@@ -263,6 +263,7 @@ def getQueries():
             ('createMergeUser', None),
             ('createInsertJob', None),
             ('createInsertMergeJob', None),
+            ('createDeleteJobs', None),
             ('createGetRecipient', None),
             ('createGetSender', None),
             ('createGetAttachments', None),

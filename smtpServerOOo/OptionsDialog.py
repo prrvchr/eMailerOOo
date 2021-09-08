@@ -82,7 +82,7 @@ class OptionsDialog(unohelper.Base,
         try:
             self._ctx = ctx
             self._stringResource = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
-            service = 'com.sun.star.mail.MailServiceSpooler'
+            service = 'com.sun.star.mail.SpoolerService'
             self._spooler = createService(ctx, service)
             datasource = DataSource(ctx)
             self._model = IspdbModel(ctx, datasource, True)

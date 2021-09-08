@@ -33,15 +33,16 @@ from .unotool import createService
 from .unotool import getDesktop
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
+from .unotool import getTypeDetection
 from .unotool import getUrl
-
-from .mailerlib import MailTransferable
 
 import traceback
 
 
 def getDocument(ctx, url):
-    properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+    properties = {'Hidden': True,
+                  'OpenNewView': True,
+                  'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
     descriptor = getPropertyValueSet(properties)
     document = getDesktop(ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
     return document
@@ -61,9 +62,8 @@ def getDocumentFilter(extension, format):
     filter = filters.get(format, None)
     return filter
 
-def getMail(ctx, sender, recipient, subject, data, html=False):
+def getMail(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage2'
-    body = MailTransferable(ctx, data, html)
     arguments = (recipient, sender, subject, body)
     return createService(ctx, service, *arguments)
 
@@ -90,6 +90,59 @@ def saveDocumentAs(ctx, document, format):
         if url is not None:
             url = url.Main
     return url
+
+def saveTempDocument(document, url, name, format=None):
+    descriptor = {'Overwrite': True}
+    title, extension = getNamedExtension(name)
+    if extension is None:
+        extension = _getDocumentExtension(document)
+    filter = getDocumentFilter(extension, format)
+    if filter is not None:
+        descriptor['FilterName'] = filter
+    print("mailtool.saveTempDocument() %s - %s" % (format, filter))
+    document.storeToURL(url, getPropertyValueSet(descriptor))
+    return name if format is None else '%s.%s' % (title, format)
+
+def saveDocumentTmp(ctx, document, format=None):
+    url = None
+    descriptor = {'Overwrite': True}
+    name, extension = getNamedExtension(document.Title)
+    if extension is None:
+        extension = _getDocumentExtension(document)
+    filter = getDocumentFilter(extension, format)
+    if filter is not None:
+        descriptor['FilterName'] = filter
+    print("mailtool.saveDocumentTmp() %s - %s" % (format, filter))
+    temp = getPathSettings(ctx).Temp
+    if format is None:
+        url = '%s/%s' % (temp, document.Title)
+    else:
+        url = '%s/%s.%s' % (temp, name, format)
+    document.storeToURL(url, getPropertyValueSet(descriptor))
+    url = getUrl(ctx, url)
+    return url
+
+def getAttachmentType(ctx, url):
+    service = 'com.sun.star.document.TypeDetection'
+    detection = createService(ctx, service)
+    type = detection.queryTypeByURL(url)
+    if detection.hasByName(type):
+        types = detection.getByName(type)
+        for type in types:
+            if type.Name == 'MediaType':
+                return type.Value
+    return 'application/octet-stream'
+
+def getUrlMimeType(detection, url):
+    mimetype = 'application/octet-stream'
+    name = detection.queryTypeByURL(url)
+    if detection.hasByName(name):
+        types = detection.getByName(name)
+        for t in types:
+            print("mailertool.getUrlMimeType() %s - %s" % (t.Name, t.Value))
+            if t.Name == 'MediaType':
+                mimetype = t.Value
+    return mimetype
 
 def _getDocumentExtension(document):
     identifier = document.getIdentifier()

@@ -238,6 +238,15 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getSpoolerJobs':
         query = 'SELECT "JobId" FROM "Spooler" WHERE "State" = ? ORDER BY "JobId";'
 
+    elif name == 'getBookmark':
+        query = 'SELECT "%s" FROM "%s" WHERE "%s" = ?;' % format
+
+    elif name == 'getJobState':
+        query = 'SELECT "State" FROM "Recipients" WHERE "JobId" = ?;'
+
+    elif name == 'getJobIds':
+        query = 'SELECT ARRAY_AGG("JobId") FROM "Recipients" WHERE "BatchId" = ?;'
+
 # Delete Queries
     # Mail Delete Queries
     elif name == 'deleteUser':
@@ -246,7 +255,7 @@ def getSqlQuery(ctx, name, format=None):
 # Update Queries
     # MailSpooler Update Queries
     elif name == 'setJobState':
-        query = 'UPDATE "Recipients" SET "State"=? WHERE "JobId"=?;'
+        query = 'UPDATE "Recipients" SET "State"=?, "TimeStamp"=? WHERE "JobId"=?;'
 
     elif name == 'setBatchState':
         query = 'UPDATE "Recipients" SET "State"=? WHERE "BatchId"=?;'
@@ -260,6 +269,19 @@ CREATE FUNCTION "GetDomain"("User" VARCHAR(320))
   SPECIFIC "GetDomain_1"
   RETURN SUBSTRING("User" FROM POSITION('@' IN "User") + 1);
 """
+
+# Delete Procedure Queries
+    # SpoolerService Delete Procedure Queries
+    elif name == 'createDeleteJobs':
+        query = """\
+CREATE PROCEDURE "DeleteJobs"(IN "Jobs" INTEGER ARRAY)
+  SPECIFIC "DeleteJobs_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DELETE FROM "Recipients" WHERE "JobId" IN (UNNEST ("Jobs"));
+    DELETE FROM "Senders" WHERE "BatchId" IN (SELECT "BatchId" FROM "Senders"
+    EXCEPT SELECT "BatchId" FROM "Recipients");
+  END;"""
 
 # Select Procedure Queries
     # IspDb Select Procedure Queries
@@ -297,7 +319,7 @@ CREATE PROCEDURE "GetRecipient"(IN "Id" INTEGER)
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Recipient", "Identifier", "BatchId" From "Recipients"
+      SELECT "Recipient", "Index", "BatchId" From "Recipients"
       WHERE "JobId"="Id"
       FOR READ ONLY;
     OPEN "Result";
@@ -311,7 +333,10 @@ CREATE PROCEDURE "GetSender"(IN "Id" INTEGER)
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Sender", "Subject", "Document", "DataSource", "Query" FROM "Senders"
+      SELECT "Sender", "Subject", "Document", "DataSource",
+      "Query", "Table", "Identifier", "Bookmark",
+      CASE WHEN "DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
+      FROM "Senders"
       WHERE "BatchId"="Id"
       FOR READ ONLY;
     OPEN "Result";
@@ -376,7 +401,7 @@ CREATE PROCEDURE "GetJobMail"(IN "Job" INTEGER)
   END;"""
 
 # Insert Procedure Queries
-    # MailServiceSpooler Insert Procedure Queries
+    # SpoolerService Insert Procedure Queries
     elif name == 'createInsertJob':
         query = """\
 CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
@@ -407,7 +432,7 @@ CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
     SET "Id" = "BatchId";
   END;"""
 
-    # MailServiceSpooler Insert Procedure Queries
+    # SpoolerService Insert Procedure Queries
     elif name == 'createInsertMergeJob':
         query = """\
 CREATE PROCEDURE "InsertMergeJob"(IN "Sender" VARCHAR(320),
@@ -415,28 +440,31 @@ CREATE PROCEDURE "InsertMergeJob"(IN "Sender" VARCHAR(320),
                                   IN "Document" VARCHAR(512),
                                   IN "DataSource" VARCHAR(512),
                                   IN "Query" VARCHAR(512),
+                                  IN "Table" VARCHAR(512),
+                                  IN "Identifier" VARCHAR(512),
+                                  IN "Bookmark" VARCHAR(512),
                                   IN "Recipients" VARCHAR(320) ARRAY,
-                                  IN "Identifiers" VARCHAR(128) ARRAY,
+                                  IN "Indexes" VARCHAR(128) ARRAY,
                                   IN "Attachments" VARCHAR(512) ARRAY,
                                   OUT "Id" INTEGER)
   SPECIFIC "InsertMergeJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
     DECLARE "BatchId" INTEGER DEFAULT 0;
-    DECLARE "Index" INTEGER DEFAULT 1;
-    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query")
-    VALUES ("Sender","Subject","Document", "DataSource","Query");
+    DECLARE "I" INTEGER DEFAULT 1;
+    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query","Table","Identifier","Bookmark")
+    VALUES ("Sender","Subject","Document","DataSource","Query","Table","Identifier","Bookmark");
     SET "BatchId" = IDENTITY();
-    WHILE "Index" <= CARDINALITY("Recipients") DO
-      INSERT INTO "Recipients" ("BatchId","Recipient","Identifier")
-      VALUES ("BatchId","Recipients"["Index"],"Identifiers"["Index"]);
-      SET "Index" = "Index" + 1;
+    WHILE "I" <= CARDINALITY("Recipients") DO
+      INSERT INTO "Recipients" ("BatchId","Recipient","Index")
+      VALUES ("BatchId","Recipients"["I"],"Indexes"["I"]);
+      SET "I" = "I" + 1;
     END WHILE;
-    SET "Index" = 1;
-    WHILE "Index" <= CARDINALITY("Attachments") DO
+    SET "I" = 1;
+    WHILE "I" <= CARDINALITY("Attachments") DO
       INSERT INTO "Attachments" ("BatchId","Attachment")
-      VALUES ("BatchId","Attachments"["Index"]);
-      SET "Index" = "Index" + 1;
+      VALUES ("BatchId","Attachments"["I"]);
+      SET "I" = "I" + 1;
     END WHILE;
     SET "Id" = "BatchId";
   END;"""
@@ -549,10 +577,12 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
         query = 'CALL "GetAttachments"(?)'
     elif name == 'getServer':
         query = 'CALL "GetServer"(?,?)'
+    elif name == 'deleteJobs':
+        query = 'CALL "DeleteJobs"(?)'
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':
-        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateServer':
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':

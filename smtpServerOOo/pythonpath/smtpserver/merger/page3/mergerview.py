@@ -47,6 +47,14 @@ class MergerView(MailView):
             identifiers.append(control.Model.getItemData(index))
         return tuple(recipients), tuple(identifiers)
 
+    def getCurrentRecipient(self):
+        index = None
+        control = self._getMergerRecipients()
+        position = control.getSelectedItemPos()
+        if position != -1:
+            index = control.Model.getItemData(position)
+        return index
+
 # MergerView setter methods
     def setMergerRecipient(self, recipients, message):
         self._getMergerMessage().Text = message

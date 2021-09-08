@@ -42,6 +42,7 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpserver import MailTransferable
 from smtpserver import createService
 from smtpserver import getConnectionMode
 from smtpserver import getMail
@@ -125,19 +126,29 @@ class DataSource(unohelper.Base,
     def removeSender(self, sender):
         return self.DataBase.deleteUser(sender)
 
-# Procedures called by the MailServiceSpooler
+# Procedures called by the SpoolerService
     def insertJob(self, sender, subject, document, recipient, attachment):
         recipients = Array('VARCHAR', recipient)
         attachments = Array('VARCHAR', attachment)
         id = self.DataBase.insertJob(sender, subject, document, recipients, attachments)
         return id
 
-    def insertMergeJob(self, sender, subject, document, datasource, query, recipient, identifier, attachment):
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipient, index, attachment):
         recipients = Array('VARCHAR', recipient)
-        identifiers = Array('VARCHAR', identifier)
+        indexes = Array('VARCHAR', index)
         attachments = Array('VARCHAR', attachment)
-        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
+        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments)
         return id
+
+    def deleteJob(self, job):
+        jobs = Array('INTEGER', job)
+        return self.DataBase.deleteJob(jobs)
+
+    def getJobState(self, job):
+        return self.DataBase.getJobState(job)
+
+    def getJobIds(self, batch):
+        return self.DataBase.getJobIds(batch)
 
 # Procedures called internally by Ispdb
     def _getSmtpConfig(self, email, url, progress, updateModel):
@@ -212,7 +223,8 @@ class DataSource(unohelper.Base,
         else:
             progress(75)
             if server.isConnected():
-                mail = getMail(self._ctx, sender, recipient, subject, message)
+                body = MailTransferable(self._ctx, message, False)
+                mail = getMail(self._ctx, sender, recipient, subject, body)
                 print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
                 try:
                     server.sendMailMessage(mail)

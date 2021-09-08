@@ -146,13 +146,15 @@ class MergerManager(unohelper.Base,
         ascending = self._view.getRecipientSort()
         self._model.setRecipientOrder(titles, ascending)
 
-    def changeGrid1Selection(self, selected):
+    def changeGrid1Selection(self, selected, index):
         self._view.enableAdd(selected)
+        if index != -1:
+            self._model.setAddressRecord(index)
 
     def changeGrid2Selection(self, selected, index):
         self._view.enableRemove(selected)
-        if selected:
-            self._model.setDocumentRecord(index)
+        if index != -1:
+            self._model.setRecipientRecord(index)
 
     def addItem(self):
         rows = self._view.getSelectedAddress()

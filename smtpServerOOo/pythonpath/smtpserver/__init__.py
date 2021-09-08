@@ -50,6 +50,7 @@ from .logger import setLoggerSetting
 
 from .unotool import createService
 from .unotool import executeDispatch
+from .unotool import executeFrameDispatch
 from .unotool import executeShell
 from .unotool import getConfiguration
 from .unotool import getConnectionMode
@@ -80,7 +81,10 @@ from .mailertool import getDocument
 from .mailertool import getDocumentFilter
 from .mailertool import getMail
 from .mailertool import getNamedExtension
+from .mailertool import getUrlMimeType
 from .mailertool import saveDocumentAs
+from .mailertool import saveDocumentTmp
+from .mailertool import saveTempDocument
 
 from .oauth2lib import getOAuth2
 from .oauth2lib import getOAuth2Token

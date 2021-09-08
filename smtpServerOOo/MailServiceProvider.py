@@ -130,7 +130,7 @@ class SmtpService(unohelper.Base,
         if isDebugMode():
             msg = getMessage(ctx, g_message, 121)
             logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
-        self.ctx = ctx
+        self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
@@ -157,8 +157,8 @@ class SmtpService(unohelper.Base,
 
     def connect(self, context, authenticator):
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 131)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', 'connect()')
+            msg = getMessage(self._ctx, g_message, 131)
+            logMessage(self._ctx, INFO, msg, 'SmtpService', 'connect()')
         if self.isConnected():
             raise AlreadyConnectedException()
         if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
@@ -169,23 +169,23 @@ class SmtpService(unohelper.Base,
         error = self._setServer(context, server)
         if error is not None:
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 132, error.Message)
-                logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'connect()')
+                msg = getMessage(self._ctx, g_message, 132, error.Message)
+                logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'connect()')
             raise error
         authentication = context.getValueByName('AuthenticationType').title()
         if authentication != 'None':
             error = self._doLogin(authentication, authenticator, server)
             if error is not None:
                 if isDebugMode():
-                    msg = getMessage(self.ctx, g_message, 133, error.Message)
-                    logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'connect()')
+                    msg = getMessage(self._ctx, g_message, 133, error.Message)
+                    logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'connect()')
                 raise error
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 134)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', 'connect()')
+            msg = getMessage(self._ctx, g_message, 134)
+            logMessage(self._ctx, INFO, msg, 'SmtpService', 'connect()')
 
     def _setServer(self, context, host):
         error = None
@@ -193,58 +193,58 @@ class SmtpService(unohelper.Base,
         timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType').title()
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 141, connection)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+            msg = getMessage(self._ctx, g_message, 141, connection)
+            logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
         try:
             if connection == 'Ssl':
                 if isDebugMode():
-                    msg = getMessage(self.ctx, g_message, 142, timeout)
-                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+                    msg = getMessage(self._ctx, g_message, 142, timeout)
+                    logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP_SSL(timeout=timeout)
             else:
                 if isDebugMode():
-                    msg = getMessage(self.ctx, g_message, 143, timeout)
-                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+                    msg = getMessage(self._ctx, g_message, 143, timeout)
+                    logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP(timeout=timeout)
             if isDebugMode():
                 server.set_debuglevel(1)
             code, reply = getReply(*server.connect(host=host, port=port))
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 144, (host, port, code, reply))
-                logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+                msg = getMessage(self._ctx, g_message, 144, (host, port, code, reply))
+                logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
             if code != 220:
-                msg = getMessage(self.ctx, g_message, 146, reply)
+                msg = getMessage(self._ctx, g_message, 146, reply)
                 error = ConnectException(msg, self)
             elif connection == 'Tls':
                 code, reply = getReply(*server.starttls())
                 if isDebugMode():
-                    msg = getMessage(self.ctx, g_message, 145, (code, reply))
-                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+                    msg = getMessage(self._ctx, g_message, 145, (code, reply))
+                    logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 if code != 220:
-                    msg = getMessage(self.ctx, g_message, 146, reply)
+                    msg = getMessage(self._ctx, g_message, 146, reply)
                     error = ConnectException(msg, self)
         except smtplib.SMTPConnectError as e:
-            msg = getMessage(self.ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
             error = ConnectException(msg, self)
         except smtplib.SMTPException as e:
-            msg = getMessage(self.ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
             error = UnknownHostException(msg, self)
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
             error = MailException(msg, self)
         else:
             self._server = server
         if isDebugMode() and error is None: 
-            msg = getMessage(self.ctx, g_message, 147, (connection, reply))
-            logMessage(self.ctx, INFO, msg, 'SmtpService', '_setServer()')
+            msg = getMessage(self._ctx, g_message, 147, (connection, reply))
+            logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
         return error
 
     def _doLogin(self, authentication, authenticator, server):
         error = None
         user = authenticator.getUserName()
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 151, authentication)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+            msg = getMessage(self._ctx, g_message, 151, authentication)
+            logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         try:
             if authentication == 'Login':
                 password = authenticator.getPassword()
@@ -254,24 +254,24 @@ class SmtpService(unohelper.Base,
                 code, reply = getReply(*self._server.login(user, password))
                 if isDebugMode():
                     pwd = '*' * len(password)
-                    msg = getMessage(self.ctx, g_message, 152, (user, pwd, code, reply))
-                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+                    msg = getMessage(self._ctx, g_message, 152, (user, pwd, code, reply))
+                    logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
             elif authentication == 'Oauth2':
-                token = getToken(self.ctx, self, server, user, True)
+                token = getToken(self._ctx, self, server, user, True)
                 self._server.ehlo_or_helo_if_needed()
                 code, reply = getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
                 if code != 235:
-                    msg = getMessage(self.ctx, g_message, 154, reply)
+                    msg = getMessage(self._ctx, g_message, 154, reply)
                     error = AuthenticationFailedException(msg, self)
                 if isDebugMode():
-                    msg = getMessage(self.ctx, g_message, 153, (code, reply))
-                    logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+                    msg = getMessage(self._ctx, g_message, 153, (code, reply))
+                    logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 154, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 154, getExceptionMessage(e))
             error = AuthenticationFailedException(msg, self)
         if isDebugMode() and error is None:
-            msg = getMessage(self.ctx, g_message, 155, (authentication, reply))
-            logMessage(self.ctx, INFO, msg, 'SmtpService', '_doLogin()')
+            msg = getMessage(self._ctx, g_message, 155, (authentication, reply))
+            logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         return error
 
     def isConnected(self):
@@ -280,16 +280,16 @@ class SmtpService(unohelper.Base,
     def disconnect(self):
         if self.isConnected():
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 171)
-                logMessage(self.ctx, INFO, msg, 'SmtpService', 'disconnect()')
+                msg = getMessage(self._ctx, g_message, 171)
+                logMessage(self._ctx, INFO, msg, 'SmtpService', 'disconnect()')
             self._server.quit()
             self._server = None
             self._context = None
             for listener in self._listeners:
                 listener.disconnected(self._notify)
             if isDebugMode():
-                msg = getMessage(self.ctx, g_message, 172)
-                logMessage(self.ctx, INFO, msg, 'SmtpService', 'disconnect()')
+                msg = getMessage(self._ctx, g_message, 172)
+                logMessage(self._ctx, INFO, msg, 'SmtpService', 'disconnect()')
 
     def getCurrentConnectionContext(self):
         return self._context
@@ -301,8 +301,8 @@ class SmtpService(unohelper.Base,
         sendername = message.SenderName
         subject = message.Subject
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 161, subject)
-            logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+            msg = getMessage(self._ctx, g_message, 161, subject)
+            logMessage(self._ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
         ccrecipients = message.getCcRecipients()
         bccrecipients = message.getBccRecipients()
         attachments = message.getAttachments()
@@ -354,12 +354,12 @@ class SmtpService(unohelper.Base,
             msg['Cc'] = COMMASPACE.join(ccrecipients)
         if message.ReplyToAddress != '':
             msg['Reply-To'] = message.ReplyToAddress
-        mailerstring = "LibreOffice via Caolan's mailmerge component"
+        mailerstring = "LibreOffice via smtpMailerOOo component"
         try:
-            configuration = getConfiguration(self.ctx, '/org.openoffice.Setup/Product')
+            configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')
             version = configuration.getByName('ooSetupVersion')
-            mailerstring = "%s %s via Caolan's mailmerge component" % (name, version)
+            mailerstring = "%s %s via via smtpMailerOOo component" % (name, version)
         except:
             pass
         msg['X-Mailer'] = mailerstring
@@ -396,37 +396,37 @@ class SmtpService(unohelper.Base,
         try:
             refused = self._server.sendmail(sendermail, truerecipients, msg.as_string())
         except smtplib.SMTPSenderRefused as e:
-            msg = getMessage(self.ctx, g_message, 162, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 162, (subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         except smtplib.SMTPRecipientsRefused as e:
-            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
             # TODO: return SendMailMessageFailedException in place of MailException
             # TODO: error = SendMailMessageFailedException(msg, self)
             error = MailException(msg, self)
         except smtplib.SMTPDataError as e:
-            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         else:
             if len(refused) > 0:
                 for address, result in refused.items():
                     code, reply = getReply(*result)
-                    msg = getMessage(self.ctx, g_message, 164, (subject, address, code, reply))
-                    logMessage(self.ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
+                    msg = getMessage(self._ctx, g_message, 164, (subject, address, code, reply))
+                    logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
             elif isDebugMode():
-                msg = getMessage(self.ctx, g_message, 165, subject)
-                logMessage(self.ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+                msg = getMessage(self._ctx, g_message, 165, subject)
+                logMessage(self._ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
         if error is not None:
-            logMessage(self.ctx, SEVERE, error.Message, 'SmtpService', 'sendMailMessage()')
+            logMessage(self._ctx, SEVERE, error.Message, 'SmtpService', 'sendMailMessage()')
             raise error
 
 
 class ImapService(unohelper.Base,
                   XMailService2):
     def __init__(self, ctx):
-        self.ctx = ctx
+        self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
@@ -449,9 +449,9 @@ class ImapService(unohelper.Base,
         return self._supportedauthentication
 
     def connect(self, context, authenticator):
-        #xConnectionContext = self.ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.ConnectionContext", self.ctx)
+        #xConnectionContext = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.ConnectionContext", self._ctx)
         #xConnectionContext.setPropertyValue("MailServiceType", IMAP)
-        #xAuthenticator = self.ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.Authenticator", self.ctx)
+        #xAuthenticator = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.Authenticator", self._ctx)
         self._context = context
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
@@ -474,7 +474,7 @@ class ImapService(unohelper.Base,
                 self._server.login(user, password)
         elif authentication == 'Oauth2':
             user = authenticator.getUserName()
-            token = getToken(self.ctx, self, server, user)
+            token = getToken(self._ctx, self, server, user)
             self._server.authenticate('XOAUTH2', lambda x: token)
         for listener in self._listeners:
             listener.connected(self._notify)
@@ -497,7 +497,7 @@ class ImapService(unohelper.Base,
 class Pop3Service(unohelper.Base,
                   XMailService2):
     def __init__(self, ctx):
-        self.ctx = ctx
+        self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login')
@@ -519,9 +519,9 @@ class Pop3Service(unohelper.Base,
         return self._supportedauthentication
 
     def connect(self, context, authenticator):
-        #xConnectionContext = self.ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.ConnectionContext", self.ctx)
+        #xConnectionContext = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.ConnectionContext", self._ctx)
         #xConnectionContext.setPropertyValue("MailServiceType", POP3)
-        #xAuthenticator = self.ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.Authenticator", self.ctx)
+        #xAuthenticator = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.Authenticator", self._ctx)
         self._context = context
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
@@ -569,28 +569,28 @@ class MailServiceProvider(unohelper.Base,
         if isDebugMode():
             msg = getMessage(ctx, g_message, 101)
             logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
-        self.ctx = ctx
+        self._ctx = ctx
         if isDebugMode():
             msg = getMessage(ctx, g_message, 102)
             logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
 
     def create(self, mailtype):
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 111, mailtype.value)
-            logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
+            msg = getMessage(self._ctx, g_message, 111, mailtype.value)
+            logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
         if mailtype == SMTP:
-            service = SmtpService(self.ctx)
+            service = SmtpService(self._ctx)
         elif mailtype == POP3:
-            service = Pop3Service(self.ctx)
+            service = Pop3Service(self._ctx)
         elif mailtype == IMAP:
-            service = ImapService(self.ctx)
+            service = ImapService(self._ctx)
         else:
             e = self._getNoMailServiceProviderException(113, mailtype)
-            logMessage(self.ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
+            logMessage(self._ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
             raise e
         if isDebugMode():
-            msg = getMessage(self.ctx, g_message, 112, mailtype.value)
-            logMessage(self.ctx, INFO, msg, 'MailServiceProvider', 'create()')
+            msg = getMessage(self._ctx, g_message, 112, mailtype.value)
+            logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
         return service
 
     # XServiceInfo
@@ -603,7 +603,7 @@ class MailServiceProvider(unohelper.Base,
 
     def _getNoMailServiceProviderException(self, code, format):
         e = NoMailServiceProviderException()
-        e.Message = getMessage(self.ctx, g_message, code, format)
+        e.Message = getMessage(self._ctx, g_message, code, format)
         e.Context = self
         return e
 
@@ -611,7 +611,7 @@ class MailServiceProvider(unohelper.Base,
 class MailMessage(unohelper.Base,
                   XMailMessage):
     def __init__(self, ctx, to='', sender='', subject='', body=None, attachment=None):
-        self.ctx = ctx
+        self._ctx = ctx
         self._recipients = [to]
         self._ccrecipients = []
         self._bccrecipients = []

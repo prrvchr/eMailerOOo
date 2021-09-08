@@ -415,7 +415,7 @@ def getRowResult(result, index=(0,), separator=' '):
             sequence.append(separator.join(values))
     return tuple(sequence)
 
-def getValueFromResult(result, index, default=None):
+def getValueFromResult(result, index=1, default=None):
     # TODO: 'TINYINT' is buggy: don't use it
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
@@ -440,7 +440,7 @@ def getValueFromResult(result, index, default=None):
         value = result.getTime(index)
     elif dbtype == 'DATE':
         value = result.getDate(index)
-    elif dbtype == 'ARRAY':
+    elif dbtype.endswith('ARRAY'):
         value = result.getArray(index)
     else:
         value = default

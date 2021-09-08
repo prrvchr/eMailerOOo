@@ -117,11 +117,17 @@ class WindowHandler(unohelper.Base,
                 print("PageHandler.callHandlerMethod() MoveAfter ***************")
                 self._manager.moveAfter()
                 handled = True
-            elif method == 'AddIndex':
-                self._manager.addIndex()
+            elif method == 'AddIdentifier':
+                self._manager.addIdentifier()
                 handled = True
-            elif method == 'RemoveIndex':
-                self._manager.removeIndex()
+            elif method == 'RemoveIdentifier':
+                self._manager.removeIdentifier()
+                handled = True
+            elif method == 'AddBookmark':
+                self._manager.addBookmark()
+                handled = True
+            elif method == 'RemoveBookmark':
+                self._manager.removeBookmark()
                 handled = True
             return handled
         except Exception as e:
@@ -142,5 +148,7 @@ class WindowHandler(unohelper.Base,
                 'RemoveEmail',
                 'MoveBefore',
                 'MoveAfter',
-                'AddIndex',
-                'RemoveIndex')
+                'AddIdentifier',
+                'RemoveIdentifier',
+                'AddBookmark',
+                'RemoveBookmark')

@@ -156,7 +156,8 @@ class Grid1Handler(unohelper.Base,
         try:
             control = event.Source
             selected = control.hasSelectedRows()
-            self._manager.changeGrid1Selection(selected)
+            index = control.getSelectedRows()[0] if selected else -1
+            self._manager.changeGrid1Selection(selected, index)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)

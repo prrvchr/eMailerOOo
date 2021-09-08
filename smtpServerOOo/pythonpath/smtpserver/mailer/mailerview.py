@@ -34,3 +34,6 @@ class MailerView(MailView):
 
     def isRecipientsValid(self):
         return self._getMailerRecipients().getItemCount() > 0
+
+    def getCurrentRecipient(self):
+        return None

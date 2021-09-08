@@ -38,8 +38,6 @@ from smtpserver import executeDispatch
 from smtpserver import getFileSequence
 from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
-from smtpserver import Logger
-from smtpserver import LogHandler
 from smtpserver import Pool
 
 from smtpserver import logMessage
@@ -47,6 +45,7 @@ from smtpserver import logMessage
 from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
+from .spoolerhandler import SpoolerListener
 
 
 g_message = 'spoolermanager'
@@ -62,13 +61,15 @@ class SpoolerManager(unohelper.Base):
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
         self._view = SpoolerView(ctx, self, parent)
-        service = 'com.sun.star.mail.MailServiceSpooler'
+        service = 'com.sun.star.mail.SpoolerService'
         self._spooler = createService(ctx, service)
+        self._listener = SpoolerListener(self)
+        self._spooler.addListener(self._listener)
         self._refreshSpoolerState()
         self._model.initSpooler(self.initView)
-        #handler = LogHandler()
-        self._logger = Pool(ctx).getLogger('MailSpooler')
+        self._logger = Pool(ctx).getLogger('SpoolerLogger')
         self._logger.addListener(self)
+        self.refreshLog()
 
     @property
     def HandlerEnabled(self):
@@ -88,6 +89,13 @@ class SpoolerManager(unohelper.Base):
         return self._model.getGridModels(titles, width)
 
 # SpoolerManager setter method
+    def started(self):
+        self._refreshSpoolerView(1)
+
+    def stopped(self):
+        self._model.executeRowSet()
+        self._refreshSpoolerView(0)
+
     def initView(self, titles, orders):
         with self._lock:
             if not self._model.isDisposed():
@@ -103,8 +111,12 @@ class SpoolerManager(unohelper.Base):
 
     def dispose(self):
         with self._lock:
+            print("SpoolerManager.dispose() 1 ***************************")
+            self._spooler.removeListener(self._listener)
+            self._logger.removeListener(self)
             self._model.dispose()
             self._view.dispose()
+            print("SpoolerManager.dispose() 2 ***************************")
 
     def setGridColumnModel(self, titles, reset):
         self._model.setGridColumnModel(titles, reset)
@@ -119,12 +131,13 @@ class SpoolerManager(unohelper.Base):
         listener = DispatchListener(self)
         executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
 
-    def addJob(self, path):
+    def documentAdded(self, path):
         self._model.Path = path
         self._model.executeRowSet()
 
     def removeDocument(self):
-        self._model.executeRowSet()
+        rows = self._view.getGridRows()
+        self._model.removeRows(rows)
 
     def toogleRemove(self, enabled):
         self._view.enableButtonRemove(enabled)
@@ -134,26 +147,27 @@ class SpoolerManager(unohelper.Base):
             self._spooler.stop()
         else:
             self._spooler.start()
-        self._refreshSpoolerState()
 
     def closeSpooler(self):
         self._model.save()
         self._view.endDialog()
 
     def refreshLog(self):
-        print("SpoolerManager.refreshLog()")
         url = self._logger.getLoggerUrl()
         length, sequence = getFileSequence(self._ctx, url)
         text = sequence.value.decode('utf-8')
-        self._view.setActivityLog(text, length)
+        self._view.refreshLog(text, length)
 
     def clearLog(self):
-        print("SpoolerManager.clearLog()")
-        self._logger.clearLogger()
+        msg = self._logger.getMessage(201)
+        self._logger.clearLogger(msg)
         self.refreshLog()
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):
         state = int(self._spooler.isStarted())
+        self._refreshSpoolerView(state)
+
+    def _refreshSpoolerView(self, state):
         label = self._model.getSpoolerState(state)
         self._view.setSpoolerState(label)

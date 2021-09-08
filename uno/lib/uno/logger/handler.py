@@ -42,15 +42,21 @@ from com.sun.star.logging.LogLevel import OFF
 
 from com.sun.star.logging import XLogHandler
 
+from ..unotool import createService
+
 
 class LogHandler(unohelper.Base,
                  XLogHandler):
-    def __init__(self):
+    def __init__(self, ctx, callback, level=ALL):
         self._encoding = 'UTF-8'
-        self._formatter = None
-        self._level = ALL
+        service = 'com.sun.star.logging.PlainTextFormatter'
+        self._formatter = createService(ctx, service)
+        self._level = level
         self._listener = []
+        self._buffers = ''
+        self._callback = callback
 
+# XLogHandler
     @property
     def Encoding(self):
         return self._encoding
@@ -73,13 +79,20 @@ class LogHandler(unohelper.Base,
     def Level(self, value):
         self._level = value
 
-# XLogHandler
     def flush(self):
         print("LogHandler.flush()")
+        self._buffers = ''
 
     def publish(self, record):
-        print("LogHandler.publish() %s" % record.Message)
-        return True
+        if record.Level >= self._level:
+            print("LogHandler.publish() 1 %s" % record.Message)
+            self._buffers = self._formatter.format(record)
+            print("LogHandler.publish() 2 %s" % self._buffers)
+            self._callback(self._buffers)
+            return True
+        else:
+            print("LogHandler.NOT publish() %s" % record.Message)
+            return False
 
 # XComponent <- XLogHandler
     def dispose(self):
@@ -94,3 +107,12 @@ class LogHandler(unohelper.Base,
     def removeEventListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
+
+# Private getter method
+    def _getBuffer(self, record):
+        buffer = self._formatter.format(record)
+        print("LogHandler._getBuffer() 1 %s" % buffer)
+        if self._buffered:
+            self._buffers += buffer
+        else:
+            self._buffers = buffer

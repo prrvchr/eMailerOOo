@@ -49,6 +49,7 @@ from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 
 from smtpserver import createService
 from smtpserver import executeDispatch
+from smtpserver import executeFrameDispatch
 from smtpserver import getConfiguration
 from smtpserver import getDesktop
 from smtpserver import getDocument
@@ -118,7 +119,6 @@ class MergerModel(MailModel):
         self._tables = ()
         self._table = None
         self._query = None
-        self._index = None
         self._changed = False
         self._disposed = False
         self._similar = False
@@ -130,7 +130,7 @@ class MergerModel(MailModel):
                            'TabTitle': 'MergerTab%s.Title',
                            'Progress': 'MergerPage1.Label6.Label.%s',
                            'Error': 'MergerPage1.Label8.Label.%s',
-                           'Index': 'MergerPage1.Label13.Label.%s',
+                           'Index': 'MergerPage1.Label14.Label.%s',
                            'Message': 'MergerTab2.Label1.Label',
                            'Recipient': 'MailWindow.Label4.Label',
                            'PickerTitle': 'Mail.FilePicker.Title',
@@ -214,7 +214,7 @@ class MergerModel(MailModel):
             queries = label = message = None
             self._tables = ()
             self._query = self._table = None
-            self._command = self._subcommand = self._index = None
+            self._command = self._subcommand = None
             progress(10)
             # TODO: If an addressbook has been loaded we need to close the connection
             # TODO: and dispose all components who use the connection
@@ -381,8 +381,7 @@ class MergerModel(MailModel):
     def _addQuery(self, name, command):
         query = self._createQuery(command)
         if self._similar:
-            index = self.getIndex()
-            filters = self._getIndexFilters(index)
+            filters = self._getQueryFilters()
             self._composer.setQuery(query.Command)
             self._composer.setStructuredFilter(filters)
             query.Command = self._composer.getQuery()
@@ -394,12 +393,18 @@ class MergerModel(MailModel):
         query.Command = command
         return query
 
-    def _getIndexFilters(self, index):
-        filters = ((), )
-        if index is not None:
-            filter = getPropertyValue(index, 'IS NULL', 0, SQLNULL)
-            filters = ((filter, ), )
-        return filters
+    def _getQueryFilters(self):
+        f = []
+        identifier = self.getIdentifier()
+        if identifier is not None:
+            filter = self._getIdentifierFilter(identifier)
+            f.append(filter)
+        bookmark = self.getBookmark()
+        if bookmark is not None:
+            filter = self._getBookmarkFilter(bookmark)
+            f.append(filter)
+        filters = tuple(f)
+        return (filters, )
 
     def _removeSubQuery(self, query):
         name = self._getSubQueryName(query)
@@ -476,54 +481,109 @@ class MergerModel(MailModel):
             filters.append((filter, ))
         return tuple(filters)
 
-    # Index methods
-    def getIndex(self):
+    # Identifier methods
+    def getIdentifier(self):
         filters = self._composer.getStructuredFilter()
-        index = self._getFiltersIndex(filters)
-        return index
+        operator = self._getIdentifierOperator()
+        identifier = self._getFiltersName(filters, operator)
+        return identifier
 
-    def addIndex(self, query, index):
-        filter = getPropertyValue(index, 'IS NULL', 0, SQLNULL)
-        filters = (filter, )
-        self._setIndex(query, filters)
+    def addIdentifier(self, query, identifier):
+        filter = self._getIdentifierFilter(identifier)
+        self._setFilter(query, filter)
 
-    def removeIndex(self, query, table):
-        filters = ()
-        self._setIndex(query, filters)
+    def removeIdentifier(self, query, table, identifier):
+        filter = self._getIdentifierFilter(identifier)
+        self._setFilter(query, filter, False)
         enabled = self.canAddColumn(table)
         return enabled
 
-    # Index private shared methods
-    def _getFiltersIndex(self, filters):
-        index = None
+    def _getIdentifierFilter(self, identifier):
+        operator = self._getIdentifierOperator()
+        filter = getPropertyValue(identifier, 'IS NULL', 0, operator)
+        return filter
+
+    def _getIdentifierOperator(self):
+        return SQLNULL
+
+    # Bookmark methods
+    def getBookmark(self):
+        filters = self._composer.getStructuredFilter()
+        operator = self._getBookmarkOperator()
+        bookmark = self._getFiltersName(filters, operator)
+        return bookmark
+
+    def addBookmark(self, query, bookmark):
+        filter = self._getBookmarkFilter(bookmark)
+        self._setFilter(query, filter)
+
+    def removeBookmark(self, query, table, bookmark):
+        filter = self._getBookmarkFilter(bookmark)
+        self._setFilter(query, filter, False)
+        enabled = self.canAddColumn(table)
+        return enabled
+
+    def _getBookmarkFilter(self, bookmark):
+        operator = self._getBookmarkOperator()
+        filter = getPropertyValue(bookmark, '0', 0, operator)
+        return filter
+
+    def _getBookmarkOperator(self):
+        return EQUAL
+
+    # Index and Bookmark private shared methods
+    def _getFiltersName(self, filters, operator):
+        name = None
         if len(filters) > 0:
             for filter in filters[0]:
-                index = filter.Name
-        return index
+                if filter.Handle == operator:
+                    name = filter.Name
+                    break
+        return name
 
-    def _setIndex(self, query, filter):
+    def _setFilter(self, query, filter, add=True):
         if self._similar:
-            self._setQueriesIndex(filter)
-        else:
-            self._setQueryIndex(query, filter)
+            self._setQueriesFilter(query, filter, add)
+        self._setQueryFilter(query, filter, add)
+        self._setRowSetFilter(self._recipient, self._composer)
         self._addressbook.DatabaseDocument.store()
 
-    def _setQueriesIndex(self, filter):
+    def _setQueriesFilter(self, query, filter, add):
         for name in self._queries.getElementNames():
-            if not name.startswith(self._prefix):
-                self._setQueryIndex(name, filter)
+            if not name.startswith(self._prefix) and name != query:
+                self._setQueryFilter(name, filter, add)
 
-    def _setQueryIndex(self, name, filter):
-        filters = (filter, )
+    def _setQueryFilter(self, name, filter, add):
+        query = self._queries.getByName(name)
+        self._composer.setQuery(query.Command)
+        filters = self._getQueryFilter(filter, add)
         self._composer.setStructuredFilter(filters)
-        self._setRowSetFilter(self._recipient, self._composer)
-        self._setQueryCommand(name, self._composer)
+        query.Command = self._composer.getQuery()
 
-    # Email and Index shared methods
+    def _getQueryFilter(self, filter, add):
+        filters = list(self._composer.getStructuredFilter())
+        if len(filters) > 0:
+            f = list(filters[0])
+            filters[0] = self._getFirstFilter(f, filter, add)
+        elif add:
+            filters.append((filter, ))
+        return tuple(filters)
+
+    def _getFirstFilter(self, filters, filter, add):
+        if add:
+            if filter not in filters:
+                filters.append(filter)
+        else:
+            for f in reversed(filters):
+                if f.Handle == filter.Handle:
+                    filters.remove(f)
+        return filters
+
+    # Email, Index and Bookmark shared methods
     def canAddColumn(self, table):
         return True if self._similar else table == self._getSubComposerTable()
 
-    # Email and Index private shared methods
+    # Email private shared methods
     def _setQueryCommand(self, name, composer):
         command = composer.getQuery()
         self._queries.getByName(name).Command = command
@@ -551,7 +611,7 @@ class MergerModel(MailModel):
             elif self._command != command:
                 Thread(target=self._executeRecipient).start()
             if self._changed:
-                self._index = None
+                self._resultset = None
                 Thread(target=self._executeRowset).start()
         else:
             self._table = table
@@ -571,11 +631,7 @@ class MergerModel(MailModel):
         rowset = self._getRowSet(self.Connection, TABLE)
         rowset.Command = self._table
         rowset.execute()
-        #sql = getSqlQuery(self._ctx, 'getQueryCommand', self._table)
-        #statement = self.Connection.createStatement()
         self._resultset = rowset.createResultSet()
-        self._setDocumentRecord()
-        #self._resultset = statement.executeQuery(sql)
 
 # Procedures called by WizardPage2
     def getPageInfos(self, init=False):
@@ -662,11 +718,15 @@ class MergerModel(MailModel):
     def removeItem(self, *args):
         Thread(target=self._removeItem, args=args).start()
 
-    def setDocumentRecord(self, index):
-        if index != self._index:
-            self._index = index
-            self._setDocumentRecord()
-            #Thread(target=self._setDocumentRecord).start()
+    def setAddressRecord(self, index):
+        if self._resultset is not None:
+            row = self._getIndexRow(self._address, index)
+            self._setDocumentRecord(self._document, row)
+
+    def setRecipientRecord(self, index):
+        if self._resultset is not None:
+            row = self._getIndexRow(self._recipient, index)
+            self._setDocumentRecord(self._document, row)
 
     def getMailingMessage(self):
         message = self._getMailingMessage()
@@ -751,19 +811,19 @@ class MergerModel(MailModel):
         print("MergerModel._updateItem() %s\n%s\n%s" % (self._recipient.RowCount, self._recipient.Command, self._subcomposer.getQuery()))
 
     def _getFilters(self, rowset, rows, add):
-        index = self.getIndex()
+        identifier = self.getIdentifier()
         filters = self._getComposerFilter(self._composer)
         for row in rows:
             rowset.absolute(row +1)
-            self._updateFilters(rowset, index, filters, add)
+            self._updateFilters(rowset, identifier, filters, add)
         return tuple(filters)
 
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
         return list(filters)
 
-    def _updateFilters(self, rowset, index, filters, add):
-        filter = self._getRowSetFilter(rowset, index)
+    def _updateFilters(self, rowset, identifier, filters, add):
+        filter = self._getRowSetFilter(rowset, identifier)
         if add:
             if filter not in filters:
                 filters.append(filter)
@@ -778,52 +838,48 @@ class MergerModel(MailModel):
         filters = (filter, )
         return filters
 
-    def _setDocumentRecord(self):
+    def _setDocumentRecord(self, document, row):
         url = None
-        if self._document.supportsService('com.sun.star.text.TextDocument'):
+        if document.supportsService('com.sun.star.text.TextDocument'):
             url = '.uno:DataSourceBrowser/InsertContent'
-        elif self._document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+        elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
             url = '.uno:DataSourceBrowser/InsertColumns'
         if url is not None:
-            descriptor = self._getDataDescriptor()
-            executeDispatch(self._ctx, url, descriptor)
+            descriptor = self._getDataDescriptor(row)
+            frame = document.CurrentController.Frame
+            executeFrameDispatch(self._ctx, frame, url, descriptor)
 
-    def _getDataDescriptor(self):
-        #bookmark = self._getBookmark(index)
+    def _getDataDescriptor(self, row):
         # TODO: We need early initialization to reduce loading time
+        # TODO: The cursor is not present during initialization to avoid any display
         properties = {'ActiveConnection': self.Connection,
                       'Command': self._table,
                       'CommandType': TABLE,
-                      'BookmarkSelection': False}
- #                     'DataSourceName': self._addressbook.Name,
-        if self._index is not None:
-            # TODO: The cursor is not present during initialization to avoid any display
-            properties['Cursor'] = self._resultset
-            row = self._getIndexRow()
-            properties['Selection'] = (row, )
+                      'BookmarkSelection': False,
+                      'DataSourceName': self._addressbook.Name,
+                      'Cursor': self._resultset,
+                      'Selection': (row, )}
         descriptor = getPropertyValueSet(properties)
         return descriptor
 
-    def _getIndexRow(self):
-        i = self._recipient.getMetaData().getColumnCount()
-        self._recipient.absolute(self._index +1)
-        row = getValueFromResult(self._recipient, i)
-        print("MergerModel._getIndexRow() %s" % row)
+    def _getIndexRow(self, rowset, index):
+        row = 0
+        bookmark = self.getBookmark()
+        if bookmark is not None:
+            i = rowset.findColumn(bookmark)
+            rowset.absolute(index +1)
+            row = getValueFromResult(rowset, i)
         return row
-
-    def _getBookmark(self, index):
-        bookmark = uno.createUnoStruct('com.sun.star.sdbc.Bookmark')
-        i = self._recipient.getMetaData().getColumnCount()
-        self._recipient.absolute(index +1)
-        bookmark.Identifier = getValueFromResult(self._recipient, 1)
-        bookmark.Value = getValueFromResult(self._recipient, i)
 
 # Procedures called by WizardPage3
     def getUrl(self):
         return self._document.URL
 
     def getDocumentInfo(self):
-        return self.getUrl(), self._addressbook.Name, self._query
+        name = self._addressbook.Name
+        identifier = self.getIdentifier()
+        bookmark = self.getBookmark()
+        return self.getUrl(), name, self._query, self._table, identifier, bookmark
 
     def getDocument(self, url=None):
         if url is None:
@@ -841,9 +897,9 @@ class MergerModel(MailModel):
     def getRecipients(self):
         emails = self.getEmails()
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
-        index = self.getIndex()
+        identifier = self.getIdentifier()
         filter = self._composer.getFilter()
-        format = (columns, index, self._table, filter)
+        format = (columns, identifier, self._table, filter)
         query = getSqlQuery(self._ctx, 'getRecipientQuery', format)
         result = self._statement.executeQuery(query)
         recipients = getObjectSequenceFromResult(result)
@@ -851,6 +907,20 @@ class MergerModel(MailModel):
 
     def getTotal(self, total):
         return self._getRecipientMessage(total)
+
+    def mergeDocument(self, document, url, index):
+        if self._hasMergeMark(url) and self._resultset is not None:
+            bookmark = self._getBookmark(index)
+            if bookmark is not None:
+                self._setDocumentRecord(document, bookmark)
+
+    def _getBookmark(self, index):
+        format = (self.getBookmark(), self._table, self.getIdentifier())
+        bookmark = self._datasource.DataBase.getBookmark(self.Connection, format, index)
+        return bookmark
+
+    def _hasMergeMark(self, url):
+        return url.endswith('#merge&pdf') or url.endswith('#merge')
 
 # Private procedures called by WizardPage3
     def _initView(self, handler, initView, initRecipient):

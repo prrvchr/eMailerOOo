@@ -37,6 +37,8 @@ from com.sun.star.uno import XCurrentContext
 from .unotool import createService
 from .unotool import getFileSequence
 
+from .mailertool import getAttachmentType
+
 import traceback
 
 
@@ -65,47 +67,46 @@ class CurrentContext(unohelper.Base,
 
 class MailTransferable(unohelper.Base,
                        XTransferable):
-    def __init__(self, ctx, data, html=False):
+    def __init__(self, ctx, data, html=None):
         print("MailTransferable.__init__() 1")
         self._ctx = ctx
         self._data = data
         self._html = html
-        self._htmlmimetype = 'text/html;charset=utf-8'
-        self._textmimetype = 'text/plain;charset=utf-16'
-        print("MailTransferable.__init__() 2")
+        self.texttype = 'text/plain; charset=utf-16'
+        if html is None:
+            self._mimetype = getAttachmentType(ctx, data)
+        elif html:
+            self._mimetype = 'text/html; charset=utf-8'
+        else:
+            self._mimetype = self.texttype
+        print("MailTransferable.__init__() 2 %s" % self._mimetype)
 
 # XTransferable
     def getTransferData(self, flavor):
         #mri = createService(self._ctx, 'mytools.Mri')
         #mri.inspect(flavor)
-        if flavor.MimeType == self._textmimetype:
+        if flavor.MimeType == self.texttype:
             print("MailTransferable.getTransferData() 1")
             data = self._data
-        elif flavor.MimeType == self._htmlmimetype:
-            print("MailTransferable.getTransferData() 2")
+        else:
+            print("MailTransferable.getTransferData() 2 %s" % flavor.MimeType)
             lenght, sequence = getFileSequence(self._ctx, self._data)
             data = sequence
-        else:
-            print("MailTransferable.getTransferData() 3")
-            data = ''
         return data
 
     def getTransferDataFlavors(self):
         flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
-        if self._html:
-            flavor.MimeType = self._htmlmimetype
+        flavor.MimeType = self._mimetype
+        if self._html is None:
+            flavor.HumanPresentableName = 'E-Documents'
+        elif self._html:
             flavor.HumanPresentableName = 'HTML-Documents'
         else:
-            flavor.MimeType = self._textmimetype
             flavor.HumanPresentableName = 'Unicode text'
-        print("MailTransferable.getTransferDataFlavors() 1")
+        print("MailTransferable.getTransferDataFlavors() 1 %s" % flavor.MimeType)
         return (flavor,)
 
     def isDataFlavorSupported(self, flavor):
-        support = False
-        if flavor.MimeType == self._textmimetype:
-            support = not self._html
-        if flavor.MimeType == self._htmlmimetype:
-            support = self._html
-        print("MailTransferable.isDataFlavorSupported() 1 %s" % support)
+        support = flavor.MimeType == self._mimetype
+        print("MailTransferable.isDataFlavorSupported() 1 %s - %s - %s" % (flavor.MimeType, flavor.DataType, support))
         return support

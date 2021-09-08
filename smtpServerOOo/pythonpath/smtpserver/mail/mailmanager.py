@@ -137,8 +137,11 @@ class MailManager(unohelper.Base):
             executeShell(self._ctx, url)
 
     def viewPdf(self):
+        index = self._view.getCurrentRecipient()
         attachment = self._view.getSelectedAttachment()
-        document= self._model.getDocument(attachment)
+        document = self._model.getDocument(attachment)
+        if index is not  None:
+            self._model.mergeDocument(document, attachment, index)
         url = self._model.saveDocumentAs(document, 'pdf')
         self._closeDocument(document)
         if url is not None:
@@ -150,7 +153,7 @@ class MailManager(unohelper.Base):
         self._view.enableMoveBefore(enabled)
         enabled = selected and max(positions) < index
         self._view.enableMoveAfter(enabled)
-        enabled = selected and item.endswith('#pdf')
+        enabled = selected and item.endswith('pdf')
         self._view.enableViewPdf(enabled)
 
     def moveAttachments(self, offset):
@@ -167,10 +170,10 @@ class MailManager(unohelper.Base):
         path = self._model.Path
         urls, path = getFileUrl(self._ctx, title, path, (), True)
         self._model.Path = path
-        print("MailManager.addAttachments() %s" % (urls, ))
         if urls is not None:
+            merge = self._view.getMergeAttachments()
             pdf = self._view.getAttachmentAsPdf()
-            attachments = self._model.parseAttachments(urls, pdf)
+            attachments = self._model.parseAttachments(urls, merge, pdf)
             self._view.addAttachments(attachments)
 
     def removeAttachments(self):

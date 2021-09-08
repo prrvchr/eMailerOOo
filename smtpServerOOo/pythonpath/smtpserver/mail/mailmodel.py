@@ -78,11 +78,11 @@ class MailModel(unohelper.Base):
     def saveDocumentAs(self, document, format):
         return saveDocumentAs(self._ctx, document, format)
 
-    def parseAttachments(self, attachments, pdf):
+    def parseAttachments(self, attachments, merge, pdf):
         urls = []
         transformer = getUrlTransformer(self._ctx)
         for attachment in attachments:
-            url = self._parseAttachment(transformer, attachment, pdf)
+            url = self._parseAttachment(transformer, attachment, merge, pdf)
             urls.append(url)
         return tuple(urls)
 
@@ -95,6 +95,9 @@ class MailModel(unohelper.Base):
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
+    def mergeDocument(self, document, url, index):
+        raise NotImplementedError('Need to be implemented!')
+
 # MailModel setter methods
     def dispose(self):
         self._disposed = True
@@ -104,6 +107,9 @@ class MailModel(unohelper.Base):
 
     def setDocumentSubject(self, document, subject):
         document.DocumentProperties.Subject = subject
+
+    def mergeDocument(self, document, index):
+        pass
 
 # MailModel StringRessoure methods
     def getFilePickerTitle(self):
@@ -159,11 +165,12 @@ class MailModel(unohelper.Base):
             return True
         return False
 
-    def _parseAttachment(self, transformer, attachment, pdf):
+    def _parseAttachment(self, transformer, attachment, merge, pdf):
         url = parseUrl(transformer, attachment)
-        if pdf:
-            self._addPdfMark(url)
-        return transformer.getPresentation(url, False)
+        if merge or pdf:
+            url = self._getUrlParameter(transformer, url, merge, pdf)
+        location = transformer.getPresentation(url, False)
+        return location
 
     def _hasPdfFilter(self, extension):
         filter = getDocumentFilter(extension, 'pdf')
@@ -190,7 +197,13 @@ class MailModel(unohelper.Base):
             uno.getConstantByName("com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT"),
             value)
 
-    def _addPdfMark(self, url):
+    def _getUrlParameter(self, transformer, url, merge, pdf):
+        marks = []
+        if merge:
+            marks.append('merge')
         name, extension = getNamedExtension(url.Name)
-        if self._hasPdfFilter(extension):
-            url.Complete += '#pdf'
+        if pdf and self._hasPdfFilter(extension):
+            marks.append('pdf')
+        url.Mark = '&'.join(marks)
+        success, url = transformer.assemble(url)
+        return url

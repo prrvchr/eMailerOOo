@@ -43,6 +43,7 @@ from smtpserver import getConfiguration
 from smtpserver import getMessage
 from smtpserver import getPathSettings
 from smtpserver import getStringResource
+from smtpserver import getValueFromResult
 from smtpserver import logMessage
 from smtpserver import g_identifier
 from smtpserver import g_extension
@@ -116,6 +117,7 @@ class SpoolerModel(unohelper.Base):
 
     def getSpoolerState(self, state):
         resource = self._resources.get('State') % state
+        print("SpoolerModel.getSpoolerState() %s" % resource)
         return self._resolver.resolveString(resource)
 
 # SpoolerModel setter methods
@@ -132,6 +134,13 @@ class SpoolerModel(unohelper.Base):
 
     def setGridColumnModel(self, titles, reset):
         self._column.setModel(self._rowset, titles, reset)
+
+    def removeRows(self, rows):
+        jobs = self._getRowsJobs(rows)
+        print("SpoolerModel.removeRows() 1 %s" % (jobs,))
+        if self.DataSource.deleteJob(jobs):
+            print("SpoolerModel.removeRows() 2")
+            self._rowset.execute()
 
     def executeRowSet(self):
         # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
@@ -158,6 +167,14 @@ class SpoolerModel(unohelper.Base):
         rowset.CommandType = COMMAND
         rowset.FetchSize = g_fetchsize
         return rowset
+
+    def _getRowsJobs(self, rows):
+        jobs = []
+        i = self._rowset.findColumn('JobId')
+        for row in rows:
+            self._rowset.absolute(row +1)
+            jobs.append(getValueFromResult(self._rowset, i))
+        return tuple(jobs)
 
     def _getQueryComposer(self, command):
         service = 'com.sun.star.sdb.SingleSelectQueryComposer'

@@ -32,7 +32,8 @@ import unohelper
 
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XInitialization
-from com.sun.star.mail import XMailServiceSpooler
+
+from com.sun.star.mail import XSpoolerService
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -43,11 +44,9 @@ from smtpserver import TerminateListener
 
 from smtpserver import executeDispatch
 from smtpserver import getDesktop
-from smtpserver import getMessage
-from smtpserver import logMessage
 from smtpserver import g_identifier
 
-g_service = 'MailServiceSpooler'
+g_service = 'SpoolerService'
 
 import traceback
 
@@ -56,22 +55,20 @@ g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = 'com.sun.star.mail.%s' % g_service
 
 
-class MailServiceSpooler(unohelper.Base,
-                         XServiceInfo,
-                         XMailServiceSpooler):
+class SpoolerService(unohelper.Base,
+                     XServiceInfo,
+                     XSpoolerService):
     def __init__(self, ctx):
-        #msg = getMessage(ctx, g_service, 101)
-        #logMessage(ctx, INFO, msg, g_service, '__init__()')
         self._ctx = ctx
         self._datasource = DataSource(ctx)
-        #msg = getMessage(ctx, g_service, 102)
-        #logMessage(ctx, INFO, msg, g_service, '__init__()')
         if self.Spooler is None:
-            print("MailServiceSpooler.__init__() 1")
+            print("SpoolerService.__init__() 1")
             self._datasource.waitForDataBase()
-            print("MailServiceSpooler.__init__() 2")
-            spooler = MailSpooler(ctx, self._datasource.DataBase)
-            MailServiceSpooler._spooler = spooler
+            print("SpoolerService.__init__() 2")
+            event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+            event.Source = self
+            spooler = MailSpooler(ctx, self._datasource.DataBase, event)
+            SpoolerService._spooler = spooler
             listener = TerminateListener(spooler)
             getDesktop(ctx).addTerminateListener(listener)
 
@@ -79,9 +76,9 @@ class MailServiceSpooler(unohelper.Base,
 
     @property
     def Spooler(self):
-        return MailServiceSpooler._spooler
+        return SpoolerService._spooler
 
-    # XMailServiceSpooler
+    # XSpoolerService
     def start(self):
         self.Spooler.start()
 
@@ -93,29 +90,38 @@ class MailServiceSpooler(unohelper.Base,
 
     def addJob(self, sender, subject, document, recipients, attachments):
         try:
-            print("MailServiceSpooler.addJob() %s - %s - %s - %s - %s" % (sender, subject, document, recipients, attachments))
-            jobid = self._datasource.insertJob(sender, subject, document, recipients, attachments)
-            print("MailServiceSpooler.addJob() %s" % jobid)
-            return jobid
+            print("SpoolerService.addJob() %s - %s - %s - %s - %s" % (sender, subject, document, recipients, attachments))
+            batchid = self._datasource.insertJob(sender, subject, document, recipients, attachments)
+            print("SpoolerService.addJob() %s" % batchid)
+            return batchid
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
-    def addMergeJob(self, sender, subject, document, datasource, query, recipients, identifiers, attachments):
+    def addMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipients, identifiers, attachments):
         try:
-            print("MailServiceSpooler.addMergeJob() %s - %s - %s - %s - %s - %s - %s" % (sender, subject, document, datasource, recipients, identifiers, attachments))
-            jobid = self._datasource.insertMergeJob(sender, subject, document, datasource, query, recipients, identifiers, attachments)
-            print("MailServiceSpooler.addMergeJob() %s" % jobid)
-            return jobid
+            print("SpoolerService.addMergeJob() %s - %s - %s - %s - %s - %s - %s - %s - %s - %s - %s" % (sender, subject, document, datasource, query, table, identifier, bookmark, recipients, identifiers, attachments))
+            batchid = self._datasource.insertMergeJob(sender, subject, document, datasource, query, table, identifier, bookmark, recipients, identifiers, attachments)
+            print("SpoolerService.addMergeJob() %s" % batchid)
+            return batchid
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
-    def removeJob(self, jobid):
-        pass
- 
+    def removeJobs(self, jobids):
+        return self._datasource.deleteJob(jobids)
+
     def getJobState(self, jobid):
-        pass
+        return self._datasource.getJobState(jobid)
+
+    def getJobIds(self, batchid):
+        return self._datasource.getJobIds(batchid)
+
+    def addListener(self, listener):
+        self.Spooler.addListener(listener)
+
+    def removeListener(self, listener):
+        self.Spooler.removeListener(listener)
 
     # XServiceInfo
     def supportsService(self, service):
@@ -126,6 +132,6 @@ class MailServiceSpooler(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(MailServiceSpooler,                        # UNO object class
+g_ImplementationHelper.addImplementation(SpoolerService,                            # UNO object class
                                          g_ImplementationName,                      # Implementation name
                                         (g_ImplementationName,))                    # List of implemented services

@@ -24,17 +24,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_MailServiceSpooler_idl__
-#define __com_sun_star_mail_MailServiceSpooler_idl__
+#ifndef __com_sun_star_mail_XSpoolerListener_idl__
+#define __com_sun_star_mail_XSpoolerListener_idl__
 
-#include <com/sun/star/mail/XMailServiceSpooler.idl>
+#include <com/sun/star/lang/XEventListener.idl>
+#include <com/sun/star/lang/EventObject.idl>
 
 module com { module sun { module star { module mail {
 
-service MailServiceSpooler: XMailServiceSpooler
+interface XSpoolerListener: com::sun::star::lang::XEventListener
 {
 
-    create();
+    void started([in] com::sun::star::lang::EventObject Event);
+    void stopped([in] com::sun::star::lang::EventObject Event);
 
 };
 

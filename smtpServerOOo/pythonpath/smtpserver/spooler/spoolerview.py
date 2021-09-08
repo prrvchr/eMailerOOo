@@ -73,6 +73,13 @@ class SpoolerView(unohelper.Base):
         width = self._getGrid().Model.Width
         return width
 
+    def getGridRows(self):
+        rows = ()
+        control = self._getGrid()
+        if control.hasSelectedRows():
+            rows = control.getSelectedRows()
+        return rows
+
     def getSortDirection(self):
         ascending = not bool(self._getSortDirection().Model.State)
         return ascending
@@ -124,12 +131,13 @@ class SpoolerView(unohelper.Base):
     def showGridColumnHeader(self, enabled):
         self._getGrid().Model.ShowColumnHeader = enabled
 
-    def setActivityLog(self, text, length):
+    def refreshLog(self, text, length):
         control = self._getActivityLog()
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection')
+        selection.Min = length
+        selection.Max = length
         control.Text = text
-        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
         control.setSelection(selection)
-
 
 # SpoolerView private setter methods
     def _initListBox(self, control, columns):

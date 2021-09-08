@@ -63,13 +63,12 @@ class MailerManager(MailManager):
             sender = self._view.getSender()
             recipients = self._view.getRecipients()
             url = self._model.getUrl()
-            service = 'com.sun.star.mail.MailServiceSpooler'
+            service = 'com.sun.star.mail.SpoolerService'
             spooler = createService(self._ctx, service)
             id = spooler.addJob(sender, subject, url, recipients, attachments)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
-
 
 # MailerManager private setter methods
     def _closeDocument(self, document):

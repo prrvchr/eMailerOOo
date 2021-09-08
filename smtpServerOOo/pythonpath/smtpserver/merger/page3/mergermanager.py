@@ -100,12 +100,12 @@ class MergerManager(MailManager,
     def sendDocument(self):
         subject, attachments = self._getSavedDocumentProperty()
         sender = self._view.getSender()
-        recipients, identifiers = self._view.getRecipients()
-        url, datasource, query = self._model.getDocumentInfo()
+        recipients, indexes = self._view.getRecipients()
+        url, datasource, query, table, identifier, bookmark = self._model.getDocumentInfo()
         print("MergerManager.sendDocument() %s: %s - %s - %s - %s" % (sender, subject, url, datasource, query))
-        service = 'com.sun.star.mail.MailServiceSpooler'
+        service = 'com.sun.star.mail.SpoolerService'
         spooler = createService(self._ctx, service)
-        id = spooler.addMergeJob(sender, subject, url, datasource, query, recipients, identifiers, attachments)
+        id = spooler.addMergeJob(sender, subject, url, datasource, query, table, identifier, bookmark, recipients, indexes, attachments)
 
 # MergerManager private setter methods
     def _closeDocument(self, document):

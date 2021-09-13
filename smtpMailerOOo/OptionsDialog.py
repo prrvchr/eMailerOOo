@@ -38,28 +38,28 @@ from com.sun.star.frame import XDispatchResultListener
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import DataSource
-from smtpserver import IspdbModel
+from smtpmailer import DataSource
+from smtpmailer import IspdbModel
 
-from smtpserver import getFileSequence
-from smtpserver import getStringResource
-from smtpserver import getResourceLocation
-from smtpserver import getUrl
-from smtpserver import getDialog
-from smtpserver import createService
-from smtpserver import getPropertyValueSet
-from smtpserver import executeDispatch
+from smtpmailer import getFileSequence
+from smtpmailer import getStringResource
+from smtpmailer import getResourceLocation
+from smtpmailer import getUrl
+from smtpmailer import getDialog
+from smtpmailer import createService
+from smtpmailer import getPropertyValueSet
+from smtpmailer import executeDispatch
 
-from smtpserver import Pool
-#from smtpserver import getLoggerUrl
-#from smtpserver import getLoggerSetting
-#from smtpserver import setLoggerSetting
-#from smtpserver import clearLogger
-#from smtpserver import logMessage
-#from smtpserver import getMessage
+from smtpmailer import Pool
+#from smtpmailer import getLoggerUrl
+#from smtpmailer import getLoggerSetting
+#from smtpmailer import setLoggerSetting
+#from smtpmailer import clearLogger
+#from smtpmailer import logMessage
+#from smtpmailer import getMessage
 
-from smtpserver import g_extension
-from smtpserver import g_identifier
+from smtpmailer import g_extension
+from smtpmailer import g_identifier
 
 g_message = 'Logger'
 

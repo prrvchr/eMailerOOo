@@ -38,7 +38,7 @@ from com.sun.star.task import XAsyncJob
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import g_identifier
+from smtpmailer import g_identifier
 
 g_service = 'SpoolerJob'
 

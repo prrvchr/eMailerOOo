@@ -31,7 +31,7 @@
   oor:name="Addons">
   <node oor:name="AddonUI">
     <node oor:name="AddonMenu">
-      <node oor:name="com.gmail.prrvchr.extensions.smtpServerOOo" oor:op="replace">
+      <node oor:name="com.gmail.prrvchr.extensions.smtpMailerOOo" oor:op="replace">
         <prop oor:name="Title" oor:type="xs:string">
           <value xml:lang="en">Sending emails</value>
           <value xml:lang="fr">Envoi de courriels</value>

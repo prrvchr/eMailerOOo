@@ -38,11 +38,11 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpserver import SmtpDispatch
+from smtpmailer import SmtpDispatch
 
-from smtpserver import getMessage
-from smtpserver import logMessage
-from smtpserver import g_identifier
+from smtpmailer import getMessage
+from smtpmailer import logMessage
+from smtpmailer import g_identifier
 
 import traceback
 

@@ -29,14 +29,14 @@
 &apos;                                Copyright 2015-2020 Pierre Vacher
 
 REM =======================================================================================================================
-REM ===                             The smtpServerOOo library is a part of a personnal project.                             ===
-REM ===                     Full documentation is available on https://github.com/prrvchr/smtpServerOOo                     ===
+REM ===                             The smtpMailerOOo library is a part of a personnal project.                             ===
+REM ===                     Full documentation is available on https://github.com/prrvchr/smtpMailerOOo                     ===
 REM =======================================================================================================================
 
-&apos;    smtpServerOOo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+&apos;    smtpMailerOOo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 &apos;    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 &apos;
-&apos;    smtpServerOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
+&apos;    smtpMailerOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
 &apos;
 &apos;    1) The Mozilla Public License, v. 2.0. If a copy of the MPL was not
 &apos;    distributed with this file, you can obtain one at http://mozilla.org/MPL/2.0/.

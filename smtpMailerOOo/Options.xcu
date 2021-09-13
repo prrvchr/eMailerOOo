@@ -30,7 +30,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="com.gmail.prrvchr.extensions"
-  oor:name="smtpServerOOo">
+  oor:name="smtpMailerOOo">
     <prop oor:name="ConnectTimeout" oor:op="fuse">
         <value>15</value>
     </prop>

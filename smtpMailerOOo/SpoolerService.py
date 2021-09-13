@@ -39,13 +39,13 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
-from smtpserver import DataSource
-from smtpserver import MailSpooler
-from smtpserver import Pool
+from smtpmailer import DataSource
+from smtpmailer import MailSpooler
+from smtpmailer import Pool
 
-from smtpserver import getConnectionMode
-from smtpserver import g_identifier
-from smtpserver import g_dns
+from smtpmailer import getConnectionMode
+from smtpmailer import g_identifier
+from smtpmailer import g_dns
 
 g_service = 'SpoolerService'
 

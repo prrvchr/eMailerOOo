@@ -25,6 +25,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE library:library PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "library.dtd">
-<library:library xmlns:library="http://openoffice.org/2000/library" library:name="smtpServerOOo" library:readonly="false" library:passwordprotected="false">
+<library:library xmlns:library="http://openoffice.org/2000/library" library:name="smtpMailerOOo" library:readonly="false" library:passwordprotected="false">
  <library:element library:name="_License"/>
 </library:library>

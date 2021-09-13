@@ -30,14 +30,15 @@
 # General configuration
 g_extension = 'smtpMailerOOo'
 g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
-g_logger = '%s.Logger' % g_identifier
-g_wizard_paths = (1, 2, 3)
-g_wizard_page = 2
-
-# Mailer Wizard configuration
-g_default_columns = ['Resource']
-g_column_index = 0
-#g_column_filters = (0, 1, 4)
-g_column_filters = ('HomeEmail', 'WorkEmail', 'OtherEmail')
-g_table_index = 0
+# Ispdb roadmap wizard paths (Online and Offline)
+g_ispdb_paths = ((1, 2, 3, 4), (1, 2, 3))
+g_ispdb_page = -1
+# Merger roadmap wizard paths
+g_merger_paths = (1, 2, 3)
+g_merger_page = -1
+# Grid RowSet.FetchSize
 g_fetchsize = 500
+# Resource strings files folder
+g_resource = 'resource'
+# Internet DNS connection
+g_dns = ('1.1.1.1', 53)

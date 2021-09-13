@@ -30,104 +30,229 @@
 import uno
 import unohelper
 
+from com.sun.star.util import XCloseListener
+from com.sun.star.datatransfer import XTransferable
+
+from com.sun.star.uno import Exception as UnoException
+
+from com.sun.star.mail.MailServiceType import SMTP
+
+from com.sun.star.ucb.ConnectionMode import OFFLINE
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpmailer import MailTransferable
+from smtpmailer import createService
+from smtpmailer import getConnectionMode
+from smtpmailer import getMail
+from smtpmailer import getMessage
+from smtpmailer import getUrl
+from smtpmailer import logMessage
+from smtpmailer import setDebugMode
+
 from .database import DataBase
 
-from unolib import createService
+from .dbtool import Array
 
-from .logger import setDebugMode
-from .logger import logMessage
-from .logger import getMessage
+from .dataparser import DataParser
 
 from threading import Thread
-
 import traceback
+import time
 
 
-class DataSource(unohelper.Base):
-    def __init__(self, ctx, *args):
+class DataSource(unohelper.Base,
+                 XCloseListener):
+    def __init__(self, ctx):
         print("DataSource.__init__() 1")
-        self.ctx = ctx
-        self._dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+        self._ctx = ctx
+        self._dbname = 'SmtpMailer'
         if not self._isInitialized():
             print("DataSource.__init__() 2")
-            DataSource._Init = Thread(target=self._initDataBase)
-            DataSource._Init.start()
+            DataSource._init = Thread(target=self._initDataBase)
+            DataSource._init.start()
         print("DataSource.__init__() 3")
 
-    _Init = None
-    _Call = None
-    _DataBase = None
+    _init = None
+    _database = None
 
     @property
     def DataBase(self):
-        return DataSource._DataBase
+        return DataSource._database
 
-    def getAvailableDataSources(self):
-        return self._dbcontext.getElementNames()
+    def dispose(self):
+        self.waitForDataBase()
+        self.DataBase.dispose()
 
-    def setDataSource(self, *args):
-        init = Thread(target=self._setDataSource, args=args)
-        init.start()
+    # XCloseListener
+    def queryClosing(self, source, ownership):
+        self.DataBase.shutdownDataBase()
+        msg = "DataBase  '%s' closing ... Done" % self._dbname
+        logMessage(self._ctx, INFO, msg, 'DataSource', 'queryClosing()')
+        print(msg)
+    def notifyClosing(self, source):
+        pass
 
-    def setRowSet(self, *args):
-        DataSource._Call = Thread(target=self._setRowSet, args=args)
-        DataSource._Call.start()
+# Procedures called by Ispdb
+    def saveUser(self, *args):
+        self.DataBase.mergeUser(*args)
 
-    def initPage2(self, *args):
-        init = Thread(target=self._initPage2, args=args)
-        init.start()
+    def saveServer(self, new, provider, host, port, server):
+        if new:
+            self.DataBase.mergeProvider(provider)
+            self.DataBase.mergeServer(provider, server)
+        else:
+            self.DataBase.updateServer(host, port, server)
 
-    def executeRecipient(self, *args):
-        init = Thread(target=self._executeRecipient, args=args)
-        init.start()
+    def waitForDataBase(self):
+        DataSource._init.join()
 
-    def executeAddress(self, *args):
-        init = Thread(target=self._executeAddress, args=args)
-        init.start()
+    def getSmtpConfig(self, *args):
+        Thread(target=self._getSmtpConfig, args=args).start()
 
-    def executeRowSet(self, *args):
-        init = Thread(target=self._executeRowSet, args=args)
-        init.start()
+    def smtpConnect(self, *args):
+        setDebugMode(self._ctx, True)
+        Thread(target=self._smtpConnect, args=args).start()
 
-# Procedures called internally
+    def smtpSend(self, *args):
+        setDebugMode(self._ctx, True)
+        Thread(target=self._smtpSend, args=args).start()
+
+# Procedures called by the Mailer
+    def getSenders(self, *args):
+        Thread(target=self._getSenders, args=args).start()
+
+    def removeSender(self, sender):
+        return self.DataBase.deleteUser(sender)
+
+# Procedures called by the SpoolerService
+    def insertJob(self, sender, subject, document, recipient, attachment):
+        recipients = Array('VARCHAR', recipient)
+        attachments = Array('VARCHAR', attachment)
+        id = self.DataBase.insertJob(sender, subject, document, recipients, attachments)
+        return id
+
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipient, index, attachment):
+        recipients = Array('VARCHAR', recipient)
+        indexes = Array('VARCHAR', index)
+        attachments = Array('VARCHAR', attachment)
+        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments)
+        return id
+
+    def deleteJob(self, job):
+        jobs = Array('INTEGER', job)
+        return self.DataBase.deleteJob(jobs)
+
+    def getJobState(self, job):
+        return self.DataBase.getJobState(job)
+
+    def getJobIds(self, batch):
+        return self.DataBase.getJobIds(batch)
+
+# Procedures called internally by Ispdb
+    def _getSmtpConfig(self, email, url, progress, updateModel):
+        progress(5)
+        url = getUrl(self._ctx, url)
+        progress(10)
+        mode = getConnectionMode(self._ctx, url.Server)
+        progress(20)
+        self.waitForDataBase()
+        progress(40)
+        user, servers = self.DataBase.getSmtpConfig(email)
+        if len(servers) > 0:
+            progress(100, 1)
+        elif mode == OFFLINE:
+            progress(100, 2)
+        else:
+            progress(60)
+            service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+            request = createService(self._ctx, service)
+            response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
+            if response.IsPresent:
+                progress(80)
+                servers = self.DataBase.setSmtpConfig(response.Value)
+                progress(100, 3)
+            else:
+                progress(100, 4)
+        updateModel(user, servers, mode)
+
+    def _getIspdbConfig(self, request, url, domain):
+        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter.Method = 'GET'
+        parameter.Url = '%s%s' % (url, domain)
+        parameter.NoAuth = True
+        #parameter.NoVerify = True
+        response = request.getRequest(parameter, DataParser()).execute()
+        return response
+
+    def _smtpConnect(self, context, authenticator, progress, callback):
+        progress(0)
+        step = 2
+        progress(5)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        progress(25)
+        server = createService(self._ctx, service).create(SMTP)
+        progress(50)
+        try:
+            server.connect(context, authenticator)
+        except UnoException as e:
+            progress(100)
+        else:
+            progress(75)
+            if server.isConnected():
+                server.disconnect()
+                step = 4
+                progress(100)
+            else:
+                progress(100)
+        setDebugMode(self._ctx, False)
+        callback(step)
+
+    def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, setStep):
+        step = 3
+        progress(5)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        progress(25)
+        server = createService(self._ctx, service).create(SMTP)
+        progress(50)
+        try:
+            server.connect(context, authenticator)
+        except UnoException as e:
+            print("DataSoure._smtpSend() 1 Error: %s" % e.Message)
+        else:
+            progress(75)
+            if server.isConnected():
+                body = MailTransferable(self._ctx, message, False)
+                mail = getMail(self._ctx, sender, recipient, subject, body)
+                print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
+                try:
+                    server.sendMailMessage(mail)
+                except UnoException as e:
+                    print("DataSoure._smtpSend() 3 Error: %s - %s" % (e.Message, traceback.print_exc()))
+                else:
+                    step = 5
+                server.disconnect()
+        progress(100)
+        setDebugMode(self._ctx, False)
+        setStep(step)
+
+# Procedures called internally by the Mailer
+    def _getSenders(self, callback):
+        self.waitForDataBase()
+        senders = self.DataBase.getSenders()
+        callback(senders)
+
+# Procedures called internally by the Spooler
+    def _initSpooler(self, callback):
+        self.waitForDataBase()
+        callback()
+
+# Private methods
     def _isInitialized(self):
-        return DataSource._Init is not None
+        return DataSource._init is not None
 
     def _initDataBase(self):
-        DataSource._DataBase = DataBase(self.ctx)
-
-    def _waitForDataBase(self):
-        DataSource._Init.join()
-
-    def _waitForRowSet(self):
-        DataSource._Call.join()
-
-    def _setDataSource(self, progress, *args):
-        progress(5)
-        self._waitForDataBase()
-        progress(10)
-        self.DataBase.setDataSource(self._dbcontext, progress, *args)
-
-    def _setRowSet(self, callback, *args):
-        if self.DataBase.setRowSet(*args):
-            callback()
-
-    def _initPage2(self, callback, *args):
-        self._waitForRowSet()
-        self.DataBase.initPage2(*args)
-        callback()
-
-    def _executeRecipient(self, callback, *args):
-        self.DataBase.executeRecipient(*args)
-        callback()
-
-    def _executeAddress(self, callback, *args):
-        self.DataBase.executeAddress(*args)
-        callback()
-
-    def _executeRowSet(self, callback, *args):
-        self.DataBase.executeRowSet(*args)
-        callback()
+        time.sleep(0.5)
+        database = DataBase(self._ctx, self._dbname)
+        DataSource._database = database

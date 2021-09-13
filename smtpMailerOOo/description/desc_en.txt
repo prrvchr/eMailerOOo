@@ -1,1 +1,1 @@
-Mail merge finally possible in LibreOffice / OpenOffice.
+An SMTP client supporting Mozilla IspDB and OAuth2 for LibreOffice / OpenOffice.

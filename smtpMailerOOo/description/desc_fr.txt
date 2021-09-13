@@ -1,1 +1,1 @@
-Le publipostage par courriel enfin possible dans LibreOffice / OpenOffice.
+Un client SMTP prenant en charge Mozilla IspDB et OAuth2 pour LibreOffice / OpenOffice.

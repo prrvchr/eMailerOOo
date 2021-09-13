@@ -30,27 +30,44 @@
 import uno
 import unohelper
 
-from com.sun.star.sdbc import SQLException
-
-from com.sun.star.sdb.CommandType import COMMAND
-from com.sun.star.sdb.CommandType import QUERY
-from com.sun.star.sdb.CommandType import TABLE
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+from com.sun.star.sdb.CommandType import QUERY
 
+from .unolib import KeyMap
 
-from .griddatamodel import GridDataModel
+from .unotool import createService
+from .unotool import getDateTime
+from .unotool import getResourceLocation
+from .unotool import getSimpleFile
+from .unotool import parseDateTime
 
-from unolib import getPropertyValueSet
-from unolib import createService
+from .dbqueries import getSqlQuery
 
-from .wizardtools import getOrders
-from .wizardtools import getOrder
-from .dbtools import getValueFromResult
+from .dbconfig import g_folder
+from .dbconfig import g_jar
 
-from .configuration import g_extension
-from .configuration import g_fetchsize
+from .dbtool import checkDataBase
+from .dbtool import createDataSource
+from .dbtool import createStaticTable
+from .dbtool import getConnectionInfo
+from .dbtool import getDataBaseConnection
+from .dbtool import getDataSource
+from .dbtool import getDataSourceCall
+from .dbtool import getDataSourceConnection
+from .dbtool import getKeyMapFromResult
+from .dbtool import getObjectFromResult
+from .dbtool import getRowDict
+from .dbtool import getSequenceFromResult
+from .dbtool import getValueFromResult
+from .dbtool import executeQueries
+from .dbtool import executeSqlQueries
+
+from .dbinit import getStaticTables
+from .dbinit import getQueries
+from .dbinit import getTablesAndStatements
+
+from .configuration import g_identifier
 
 from .logger import logMessage
 from .logger import getMessage
@@ -60,340 +77,372 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx):
-        print("DataBase.__init__() 1")
-        self.ctx = ctx
-        self._orders = []
-        self._statement = None
-        self._address = self._getRowSet()
-        self._recipient = self._getRowSet()
-        self._addressModel = GridDataModel(self.ctx, self._address)
-        self._recipientModel = GridDataModel(self.ctx, self._recipient)
-        print("DataBase.__init__() 2")
+    def __init__(self, ctx, dbname):
+        try:
+            print("smtpMailer.DataBase.__init__() 1")
+            self._ctx = ctx
+            self._dbname = dbname
+            self._statement = None
+            self._embedded = False
+            time.sleep(0.2)
+            print("smtpMailer.DataBase.__init__() 2")
+            url = getResourceLocation(ctx, g_identifier, g_folder)
+            self._url = url + '/' + dbname
+            if self._embedded:
+                self._path = url + '/' + g_jar
+            else:
+                self._path = None
+            odb = self._url + '.odb'
+            exist = getSimpleFile(ctx).exists(odb)
+            print("smtpMailer.DataBase.__init__() 3")
+            if not exist:
+                print("smtpMailer.DataBase.__init__() 4")
+                connection = getDataSourceConnection(ctx, self._url)
+                error = self._createDataBase(connection)
+                if error is None:
+                    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
+                connection.close()
+                print("smtpMailer.DataBase.__init__() 5")
+            print("smtpMailer.DataBase.__init__() 6")
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
     @property
     def Connection(self):
+        if self._statement is None:
+            connection = self.getConnection()
+            self._statement = connection.createStatement()
         return self._statement.getConnection()
-    @property
-    def Address(self):
-        return self._addressModel
-    @property
-    def Recipient(self):
-        return self._recipientModel
 
-    def getRecipient(self):
-        return self._recipient
+    def dispose(self):
+        if self._statement is not None:
+            connection = self._statement.getConnection()
+            self._statement.dispose()
+            self._statement = None
+            #connection.getParent().dispose()
+            connection.close()
+            print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
+
+    def getConnection(self, user='', password=''):
+        connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
+        return connection
 
 # Procedures called by the DataSource
-    def setDataSource(self, dbcontext, progress, datasource, names, callback):
-        time.sleep(0.2)
-        step = 2
-        tables, table, emails, keys, msg = None, None, None, None, None
-        database = self._getDatabase(dbcontext, datasource)
-        progress(20)
-        try:
-            if database.IsPasswordRequired:
-                handler = createService(self.ctx, 'com.sun.star.task.InteractionHandler')
-                connection = database.connectWithCompletion(handler)
-            else:
-                connection = database.getConnection('', '')
-        except SQLException as e:
-            query = None
-            msg = e.Message
-        else:
-            progress(30)
-            self._statement = connection.createStatement()
-            document, form = self._getForm(False)
-            progress(40)
-            emails = self._getDocumentList(document, 'EmailColumns')
-            keys = self._getDocumentList(document, 'IndexColumns')
-            progress(50)
-            if form is not None:
-                form.close()
-            progress(60)
-            tbls = self.Connection.getTables()
-            query = self._getQueryComposer(progress, names)
-            tables = tbls.getElementNames()
-            table = query.getTables().getByIndex(0)
-            step = 3
-        progress(100)
-        callback(step, tables, table, emails, keys, msg)
-        time.sleep(0.2)
-        if query is not None:
-            self._orders = getOrders(query.getOrder())
-            filter = query.getFilter()
-            self._initRowSet(datasource, tbls.getByIndex(0), filter)
-
-    def initPage2(self, keys):
-        print("DataBase.initPage2() 1: '%s' - %s" % (self._recipient.Filter, keys))
-        self._setRowSetFilter(keys)
-        self._executeRowSet()
-        print("DataBase.initPage2() 2: '%s'" % self._recipient.Filter)
-
-    def setRowSet(self, loaded, address, recipient, emails, keys):
-        if not loaded:
-            address = self.Connection.getTables().getByIndex(0).Name
-        self._address.Filter = self._getNotNullFilter(address, emails)
-        column = self._getRowSetColumns(keys)
-        self._recipient.Command = self._getRowSetCommand(recipient, column)
-        if loaded:
-            self._setRowSetFilter(keys)
-            self._executeRowSet()
-        return loaded
-
-    def getTableColumns(self, name):
-        columns = self.Connection.getTables().getByName(name).getColumns().getElementNames()
-        return columns
-
-    def getTableName(self):
-        return self.Connection.getTables().getByIndex(0).Name
-
-    def getAddressRows(self):
-        return range(self._address.RowCount)
-
-    def getOrderIndex(self, columns):
-        index = []
-        for column in columns:
-            if column in self._orders:
-                index.append(columns.index(column))
-        return tuple(index)
-
-    def isConnected(self):
-        return self._statement is not None
-
     def getDataSource(self):
-        return self.Connection.getParent().DatabaseDocument.DataSource
+        return self.Connection.getParent()
 
-    def executeRecipient(self, indexes, filters=(), filter=''):
-        if len(filters) != 0:
-            filter = ' OR '.join(filters)
+    def shutdownDataBase(self):
+        if self._exist:
+            query = getSqlQuery(self._ctx, 'shutdown')
         else:
-            filter = self._getNullFilter(indexes)
-        self._recipient.ApplyFilter = False
-        self._recipient.Filter = filter
-        self._recipient.ApplyFilter = True
-        print("DataBase.executeRecipient()1 ************** %s" % self._recipient.ActiveCommand)
-        self._recipient.execute()
-        print("DataBase.executeRecipient()2 ************** %s" % filter)
+            query = getSqlQuery(self._ctx, 'shutdownCompact')
+        self._statement.execute(query)
 
-    def executeAddress(self, emails, table, keys):
-        column = self._getRowSetColumns(keys)
-        self._address.Command = self._getRowSetCommand(table, column)
-        self._address.Filter = self._getNotNullFilter(table, emails, True)
-        self._address.ApplyFilter = True
-        self._address.execute()
+# Procedures called by the Server
+    def getSmtpConfig(self, email):
+        domain = email.partition('@')[2]
+        user = KeyMap()
+        servers = []
+        call = self._getCall('getServers')
+        call.setString(1, email)
+        call.setString(2, domain)
+        result = call.executeQuery()
+        user.setValue('Server', call.getString(3))
+        user.setValue('Port', call.getShort(4))
+        user.setValue('LoginName', call.getString(5))
+        user.setValue('Password', call.getString(6))
+        user.setValue('Domain', domain)
+        while result.next():
+            servers.append(getKeyMapFromResult(result))
+        call.close()
+        return user, servers
 
-    # TODO: XRowset.Order should be treated as a stack where:
-    # TODO: adding is done at the end and removing will keep order.
-    def executeRowSet(self, address, recipient, columns, keys):
-        print("DataBase.executeRowSet() 1")
-        orders = getOrders(self._recipient.Order)
-        print("DataBase.executeRowSet() 2: %s - %s" % (orders, columns))
-        for order in reversed(self._orders):
-            if order not in columns:
-                self._orders.remove(order)
-        for column in columns:
-            if column not in self._orders:
-                self._orders.append(column)
-        print("DataBase.executeRowSet() 3: %s" % (self._orders, ))
-        self._setRowSetCommand(address, recipient, keys)
-        self._setRowSetOrder()
-        self._executeRowSet()
-        print("DataBase.executeRowSet() 4")
+    def setSmtpConfig(self, config):
+        timestamp = parseDateTime()
+        provider = config.getValue('Provider')
+        name = config.getValue('DisplayName')
+        shortname = config.getValue('DisplayShortName')
+        self._mergeProvider(provider, name, shortname, timestamp)
+        domains = config.getValue('Domains')
+        self._mergeDomain(provider, domains, timestamp)
+        call = self._getMergeServerCall(provider)
+        i = 1
+        servers = config.getValue('Servers')
+        for server in servers:
+            print("DataBase.setSmtpConfig() server: %s" % i)
+            i += 1
+            self._callMergeServer(call, server, timestamp)
+        call.close()
+        return servers
 
-    def getAddressFilters(self, indexes, rows, recipients):
-        filters = []
-        for row in rows:
-            self._address.absolute(row + 1)
-            filter = self._getFilters(self._address, indexes)
-            if filter not in recipients:
-                filters.append(filter)
-        print("DataBase.getAddressFilters() %s - %s)" % (self._address.RowCount, filters))
-        return tuple(filters)
+    def mergeProvider(self, provider):
+        timestamp = parseDateTime()
+        self._mergeProvider(provider, provider, provider, timestamp)
 
-    def getRecipientFilters(self, indexes, rows=()):
-        filters = []
-        if self._recipient.RowCount > 0:
-            self._recipient.beforeFirst()
-            while self._recipient.next():
-                row = self._recipient.Row -1
-                if row not in rows:
-                    filters.append(self._getFilters(self._recipient, indexes))
-        print("DataBase.getRecipientFilters() %s - %s)" % (self._recipient.RowCount, filters))
-        return tuple(filters)
+    def mergeServer(self, provider, server):
+        timestamp = parseDateTime()
+        call = self._getMergeServerCall(provider)
+        self._callMergeServer(call, server, timestamp)
+        call.close()
+
+    def updateServer(self, host, port, server):
+        timestamp = parseDateTime()
+        call = self._getCall('updateServer')
+        call.setString(1, host)
+        call.setShort(2, port)
+        call.setString(3, server.getValue('Server'))
+        call.setShort(4, server.getValue('Port'))
+        call.setByte(5, server.getValue('Connection'))
+        call.setByte(6, server.getValue('Authentication'))
+        call.setTimestamp(7, timestamp)
+        result = call.executeUpdate()
+        print("DataBase.updateServer() %s" % result)
+        call.close()
+
+    def mergeUser(self, email, user):
+        timestamp = parseDateTime()
+        call = self._getCall('mergeUser')
+        call.setString(1, email)
+        call.setString(2, user.getValue('Server'))
+        call.setShort(3, user.getValue('Port'))
+        call.setString(4, user.getValue('LoginName'))
+        call.setString(5, user.getValue('Password'))
+        call.setTimestamp(6, timestamp)
+        result = call.executeUpdate()
+        print("DataBase.mergeUser() %s" % result)
+        call.close()
+
+# Procedures called by the Spooler
+    def getSpoolerViewQuery(self):
+        return getSqlQuery(self._ctx, 'getSpoolerViewQuery')
+
+    def getViewQuery(self):
+        return getSqlQuery(self._ctx, 'getViewQuery')
+
+    def insertJob(self, sender, subject, document, recipients, attachments):
+        call = self._getCall('insertJob')
+        call.setString(1, sender)
+        call.setString(2, subject)
+        call.setString(3, document)
+        call.setArray(4, recipients)
+        call.setArray(5, attachments)
+        status = call.executeUpdate()
+        id = call.getInt(6)
+        call.close()
+        return id
+
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments):
+        call = self._getCall('insertMergeJob')
+        call.setString(1, sender)
+        call.setString(2, subject)
+        call.setString(3, document)
+        call.setString(4, datasource)
+        call.setString(5, query)
+        call.setString(6, table)
+        call.setString(7, identifier)
+        call.setString(8, bookmark)
+        call.setArray(9, recipients)
+        call.setArray(10, indexes)
+        call.setArray(11, attachments)
+        status = call.executeUpdate()
+        id = call.getInt(12)
+        call.close()
+        return id
+
+    def deleteJob(self, jobs):
+        call = self._getCall('deleteJobs')
+        call.setArray(1, jobs)
+        status = call.executeUpdate()
+        print("DataBase.deleteJob() %s" % status)
+        call.close()
+        return True
+
+    def getJobState(self, job):
+        state = 3
+        call = self._getCall('getJobState')
+        call.setInt(1, job)
+        result = call.executeQuery()
+        if result.next():
+            state = getValueFromResult(result)
+        call.close()
+        return state
+
+    def getJobIds(self, batch):
+        jobs = ()
+        call = self._getCall('getJobIds')
+        call.setInt(1, batch)
+        result = call.executeQuery()
+        if result.next():
+            values = getValueFromResult(result)
+            jobs = () if values is None else values.getArray(None)
+        call.close()
+        return jobs
+
+# Procedures called by the Mailer
+    def getSenders(self):
+        senders = []
+        call = self._getCall('getSenders')
+        result = call.executeQuery()
+        senders = getSequenceFromResult(result)
+        call.close()
+        return tuple(senders)
+
+    def deleteUser(self, user):
+        call = self._getCall('deleteUser')
+        call.setString(1, user)
+        status = call.executeUpdate()
+        call.close()
+        return status
+
+# Procedures called by the MailSpooler
+    def getSpoolerJobs(self, connection, state=0):
+        print("DataBase.getSpoolerJobs() 1")
+        jobid = []
+        print("DataBase.getSpoolerJobs() 2")
+        call = self._getDataBaseCall(connection, 'getSpoolerJobs')
+        print("DataBase.getSpoolerJobs() 3")
+        call.setInt(1, state)
+        print("DataBase.getSpoolerJobs() 4")
+        result = call.executeQuery()
+        print("DataBase.getSpoolerJobs() 5")
+        jobids = getSequenceFromResult(result)
+        print("DataBase.getSpoolerJobs() 6")
+        call.close()
+        print("DataBase.getSpoolerJobs() 7")
+        return jobids
+
+    def getRecipient(self, connection, job):
+        print("DataBase.getRecipient() 1")
+        recipient = None
+        call = self._getDataBaseCall(connection, 'getRecipient')
+        print("DataBase.getRecipient() 2")
+        call.setInt(1, job)
+        result = call.executeQuery()
+        print("DataBase.getRecipient() 3")
+        if result.next():
+            print("DataBase.getRecipient() 4")
+            recipient = getObjectFromResult(result)
+        call.close()
+        print("DataBase.getRecipient() 5")
+        return recipient
+
+    def getSender(self, connection, batch):
+        sender = None
+        call = self._getDataBaseCall(connection, 'getSender')
+        call.setInt(1, batch)
+        result = call.executeQuery()
+        if result.next():
+            sender = getObjectFromResult(result)
+        call.close()
+        return sender
+
+    def getAttachments(self, connection, batch):
+        attachments = ()
+        print("DataBase.getAttachments() 1")
+        call = self._getDataBaseCall(connection, 'getAttachments')
+        call.setInt(1, batch)
+        print("DataBase.getAttachments() 2")
+        result = call.executeQuery()
+        print("DataBase.getAttachments() 3")
+        attachments = getSequenceFromResult(result)
+        call.close()
+        print("DataBase.getAttachments() 4")
+        return attachments
+
+    def getServer(self, connection, user, timeout):
+        server = None
+        call = self._getDataBaseCall(connection, 'getServer')
+        call.setString(1, user)
+        call.setInt(2, timeout)
+        result = call.executeQuery()
+        if result.next():
+            server = getRowDict(result)
+        call.close()
+        return server
+
+    def getBookmark(self, connection, format, identifier):
+        bookmark = None
+        call = self._getDataBaseCall(connection, 'getBookmark', format)
+        call.setString(1, identifier)
+        result = call.executeQuery()
+        if result.next():
+            bookmark = getValueFromResult(result)
+        call.close()
+        return bookmark
+
+    def setJobState(self, connection, state, jobid):
+        call = self._getDataBaseCall(connection, 'setJobState')
+        call.setInt(1, state)
+        call.setTimestamp(2, getDateTime())
+        call.setInt(3, jobid)
+        result = call.executeUpdate()
+        call.close()
+
+    def setBatchState(self, connection, state, batchid):
+        call = self._getDataBaseCall(connection, 'setBatchState')
+        call.setInt(1, state)
+        call.setTimestamp(2, getDateTime())
+        call.setInt(3, batchid)
+        result = call.executeUpdate()
+        call.close()
+
+# Procedures called internally by the Server
+    def _mergeProvider(self, provider, name, shortname, timestamp):
+        call = self._getCall('mergeProvider')
+        call.setString(1, provider)
+        call.setString(2, name)
+        call.setString(3, shortname)
+        call.setTimestamp(4, timestamp)
+        result = call.executeUpdate()
+        call.close()
+
+    def _mergeDomain(self, provider, domains, timestamp):
+        call = self._getMergeDomainCall(provider)
+        for domain in domains:
+            call.setString(2, domain)
+            call.setTimestamp(3, timestamp)
+            result = call.executeUpdate()
+        call.close()
+
+    def _getMergeServerCall(self, provider):
+        call = self._getCall('mergeServer')
+        call.setString(1, provider)
+        return call
+
+    def _getMergeDomainCall(self, provider):
+        call = self._getCall('mergeDomain')
+        call.setString(1, provider)
+        return call
+
+    def _callMergeServer(self, call, server, timestamp):
+        call.setString(2, server.getValue('Server'))
+        call.setShort(3, server.getValue('Port'))
+        call.setByte(4, server.getValue('Connection'))
+        call.setByte(5, server.getValue('Authentication'))
+        call.setByte(6, server.getValue('LoginMode'))
+        call.setTimestamp(7, timestamp)
+        result = call.executeUpdate()
 
 # Procedures called internally
-    def _getRowSet(self):
-        rowset = createService(self.ctx, 'com.sun.star.sdb.RowSet')
-        rowset.CommandType = COMMAND
-        rowset.FetchSize = g_fetchsize
-        return rowset
+    def _createDataBase(self, connection):
+        version, error = checkDataBase(self._ctx, connection)
+        if error is None:
+            statement = connection.createStatement()
+            createStaticTable(self._ctx, statement, getStaticTables(), True)
+            tables, statements = getTablesAndStatements(self._ctx, connection, version)
+            executeSqlQueries(statement, tables)
+            executeQueries(self._ctx, statement, getQueries())
+            statement.close()
+        return error
 
-    def _getDatabase(self, dbcontext, datasource):
-        database = None
-        if dbcontext.hasByName(datasource):
-            database = dbcontext.getByName(datasource)
-        return database
+    def _getCall(self, name, format=None):
+        return self._getDataBaseCall(self.Connection, name, format)
 
-    def _getForm(self, create, name='smtpMailerOOo'):
-        doc, form = None, None
-        forms = self.Connection.getParent().DatabaseDocument.getFormDocuments()
-        if forms.hasByName(name):
-            form = forms.getByName(name)
-        elif create:
-            form = self._createForm(forms, name)
-        if form is not None:
-            args = getPropertyValueSet({'ActiveConnection': self.Connection,
-                                        'OpenMode': 'openDesign',
-                                        'Hidden': True})
-            doc = forms.loadComponentFromURL(name, '', 0, args)
-        return doc, form
+    def _getDataBaseCall(self, connection, name, format=None):
+        return getDataSourceCall(self._ctx, connection, name, format)
 
-    def _createForm(self, forms, name):
-        service = 'com.sun.star.sdb.DocumentDefinition'
-        args = getPropertyValueSet({'Name': name, 'ActiveConnection': self.Connection})
-        form = forms.createInstanceWithArguments(service, args)
-        forms.insertByName(name, form)
-        form = forms.getByName(name)
-        return form
-
-    def _getDocumentList(self, document, property):
-        items = ()
-        value = self._getDocumentValue(document, property)
-        if value is not None:
-            items = tuple(value.split(','))
-        return items
-
-    def _getDocumentValue(self, document, property, default=None):
-        value = default
-        print("DataBase._getDocumentValue() %s" % (property, ))
-        if document is not None:
-            properties = document.DocumentProperties.UserDefinedProperties
-            if properties.PropertySetInfo.hasPropertyByName(property):
-                print("DataBase._getDocumentValue() getProperty")
-                value = properties.getPropertyValue(property)
-            elif default is not None:
-                self._setDocumentValue(document, property, default)
-        return value
-
-    def _setDocumentValue(self, document, property, value):
-        print("DataBase._setDocumentValue() %s - %s" % (property, value))
-        properties = document.DocumentProperties.UserDefinedProperties
-        if properties.PropertySetInfo.hasPropertyByName(property):
-            print("DataBase._setDocumentValue() setProperty")
-            properties.setPropertyValue(property, value)
-        else:
-            print("DataBase._setDocumentValue() addProperty")
-            properties.addProperty(property,
-            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.MAYBEVOID') +
-            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.BOUND') +
-            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.REMOVABLE') +
-            uno.getConstantByName('com.sun.star.beans.PropertyAttribute.MAYBEDEFAULT'),
-            value)
-
-    def _getQueryComposer(self, progress, names):
-        composer = self.Connection.createInstance('com.sun.star.sdb.SingleSelectQueryComposer')
-        progress(70)
-        query = self._getQuery(names, False)
-        progress(80)
-        composer.setQuery(query.Command)
-        print("DataBase._getQueryComposer() %s - %s" % (query.UpdateTableName, query.Command))
-        progress(90)
-        return composer
-
-    def _getQuery(self, names, create, default=g_extension):
-        print("DataBase._getQuery() '%s'" % (names, ))
-        queries = self.getDataSource().getQueryDefinitions()
-        for name in names:
-            if queries.hasByName(name):
-                query = queries.getByName(name)
-                break
-        else:
-            query = createService(self.ctx, 'com.sun.star.sdb.QueryDefinition')
-            if create:
-                queries.insertByName(default, query)
-            else:
-                table = self.Connection.getTables().getByIndex(0)
-                column = table.getColumns().getByIndex(0).Name
-                format = {'Table': table.Name, 'Column': column}
-                query.Command = self._getQueryCommand(format)
-                query.UpdateTableName = table.Name
-        return query
-
-    def _initRowSet(self, datasource, table, filter):
-        self._address.DataSourceName = datasource
-        self._recipient.DataSourceName = datasource
-        column = getOrder(self._orders)
-        self._address.Command = self._getRowSetCommand(table.Name, column)
-        self._recipient.Filter = filter
-        self._setRowSetOrder()
-
-    def _setRowSetCommand(self, address, recipient, keys):
-        column = self._getRowSetColumns(keys)
-        self._address.Command = self._getRowSetCommand(address, column)
-        self._recipient.Command = self._getRowSetCommand(recipient, column)
-
-    def _setRowSetOrder(self):
-        order = getOrder(self._orders)
-        self._address.Order = order
-        self._recipient.Order = order
-
-    def _setRowSetFilter(self, indexes):
-        if self._recipient.Filter == '':
-            self._recipient.ApplyFilter = False
-            self._recipient.Filter = self._getNullFilter(indexes)
-            self._recipient.ApplyFilter = True
-
-    def _executeRowSet(self):
-        self._address.execute()
-        self._recipient.execute()
-
-    def _addFilter(self, filters, any=False):
-        separator = ' OR ' if any else ' AND '
-        filter = separator.join(filters)
-        if len(filters) > 1:
-            filter = '(%s)' % filter
-        return filter
-
-    def _getFilters(self, rowset, indexes):
-        filters = []
-        columns = rowset.Columns.ElementNames
-        for column in indexes:
-            if column in columns:
-                filter = '"%s"' % column
-                i = rowset.findColumn(column)
-                filter = "%s = '%s'" % (filter, getValueFromResult(rowset, i))
-                filters.append(filter)
-        return self._addFilter(filters)
-
-    def _getNullFilter(self, indexes):
-        filters = []
-        for column in indexes:
-            filter = '"%s" IS NULL' % column
-            filters.append(filter)
-        return self._addFilter(filters)
-
-    def _getNotNullFilter(self, table, emails, any=False):
-        filters = []
-        columns = self.Connection.getTables().getByName(table).getColumns().getElementNames()
-        for column in emails:
-            if column in columns:
-                filters.append('"%s" IS NOT NULL' % column)
-        filter = self._addFilter(filters, any)
-        print("PageModel._getFilter() %s" % filter)
-        return filter
-
-    def _getQueryCommand(self, format):
-        query = 'SELECT "%(Column)s" FROM "%(Table)s" ORDER BY "%(Column)s"' % format
-        return query
-
-    def _getRowSetColumns(self, keys):
-        columns = []
-        for key in keys:
-            if key not in self._orders:
-                columns.append(key)
-        return getOrder(self._orders + columns)
-
-    def _getRowSetCommand(self, table, column):
-        query = 'SELECT %s FROM "%s"' % (column, table)
-        return query
+    def _getPreparedCall(self, name):
+        # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)
+        # TODO: it trow a: java.lang.IncompatibleClassChangeError
+        return self.Connection.prepareCommand(name, QUERY)

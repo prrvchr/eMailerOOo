@@ -1,15 +1,4 @@
 #!/bin/bash
-<<<<<<< HEAD
-
-./rdb/make_rdb.sh
-
-cd ./smtpMailerOOo/
-zip -0 smtpMailerOOo.zip mimetype
-zip -r smtpMailerOOo.zip *
-cd ..
-
-mv ./smtpMailerOOo/smtpMailerOOo.zip ./smtpMailerOOo.oxt
-=======
 <<COMMENT
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -37,10 +26,9 @@ mv ./smtpMailerOOo/smtpMailerOOo.zip ./smtpMailerOOo.oxt
 COMMENT
 ./rdb/make_rdb.sh
 
-cd ./smtpServerOOo/
-zip -0 smtpServerOOo.zip mimetype
-zip -r smtpServerOOo.zip *
+cd ./smtpMailerOOo/
+zip -0 smtpMailerOOo.zip mimetype
+zip -r smtpMailerOOo.zip *
 cd ..
 
-mv ./smtpServerOOo/smtpServerOOo.zip ./smtpServerOOo.oxt
->>>>>>> smtpServerOOo/main
+mv ./smtpMailerOOo/smtpMailerOOo.zip ./smtpMailerOOo.oxt

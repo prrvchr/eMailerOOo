@@ -27,8 +27,6 @@
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
 
-**This extension is under development and is not yet available ... Thank you for your patience.**
-
 # version [0.0.1](https://prrvchr.github.io/smtpMailerOOo#historical)
 
 ## Introduction:
@@ -84,14 +82,23 @@ Restart LibreOffice / OpenOffice after installation.
 ### Introduction:
 
 To be able to use the email merge feature using mailing lists, it is necessary to have a datasource with tables having the following columns:
-- One or more columns of email addresses. Its columns will be selected from a list and if this selection is not unique, then the first non-null email address will be used.
+- One or more columns of email addresses. These columns will be selected from a list and if this selection is not unique, then the first non-null email address will be used.
 - A primary key column to uniquely identify records. This column must be of type SQL VARCHAR.
 - A row number column or ROWNUM which corresponds to the row number in the result set of an SQL command.
+In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 
-If you do not have such a data source then I invite you to install the [gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.
-This extension will allow you to use your Android phone (your address book) as a datasource.
+If you do not have such a datasource then I invite you to install the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.
+This extension will allow you to use your Android phone (your phone contacts) as a datasource.
 
 ### Merging emails to mailing lists:
+
+To be able to post emails to a mailing list, you must first open a Writer document in LibreOffice / OpenOffice.  
+This Writer document can include merge fields (insertable by the command: Insert -> Field -> More fields -> Database -> Mail merge fields), this is even necessary if you want to be able to customize the content of the email.  
+Its merge fields should only reference the **main table** of the data source.
+
+In LibreOffice / OpenOffice Writer document go to: Tools -> Add-ons -> Envoi de courriel -> Publiposter un document
+
+![smtpMailerOOo screenshot 1](smtpMailerOOo-1.png)
 
 ## Historical:
 

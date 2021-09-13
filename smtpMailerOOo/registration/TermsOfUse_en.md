@@ -1,6 +1,6 @@
 **Use of this software also subjects you to our [Data Protection Policy](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en).**
 
-Regarding installation, configuration and use, please consult the [documentation](https://prrvchr.github.io/smtpMailerOOo).
+Regarding installation, configuration and use, please consult the [documentation](https://prrvchr.github.io/smtpMailerOOo/).
 
 # Terms Of Use
 

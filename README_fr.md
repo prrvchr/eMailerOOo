@@ -27,8 +27,6 @@
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_fr)
 
-**Cette extension est en cours de développement et n'est pas encore disponible ... Merci de votre patience.**
-
 # version [0.0.1](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
 
 ## Introduction:
@@ -84,14 +82,23 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 ### Introduction:
 
 Pour pouvoir utiliser la fonctionnalité de publipostage d'emails en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
-- Une ou plusieurs colonnes d'adresses électroniques. Ses colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
+- Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
 - Une colonne de clé primaire pour identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
 - Une colonne de numéro de ligne ou ROWNUM qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
+De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
-Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).
-Cette extension vous permettra d'utiliser votre téléphone Android (votre carnet d'adresses) comme source de données.
+Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).
+Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
 
 ### Publipostage de courriels à des listes de diffusion:
+
+Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez d'abord ouvrir un document Writer dans LibreOffice / OpenOffice.  
+Ce document Writer peut inclure des champs de fusion (insérables par la commande: Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
+Ses champs de fusion doivent uniquement faire référence à la **table principale** de la source de données.
+
+Dans un document LibreOffice / OpenOffice Writer aller à: Tools -> Add-ons -> Envoi de courriel -> Publiposter un document
+
+![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
 
 ## Historique:
 

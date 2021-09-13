@@ -96,7 +96,7 @@ To be able to post emails to a mailing list, you must first open a Writer docume
 This Writer document can include merge fields (insertable by the command: Insert -> Field -> More fields -> Database -> Mail merge fields), this is even necessary if you want to be able to customize the content of the email.  
 Its merge fields should only reference the **main table** of the data source.
 
-In LibreOffice / OpenOffice Writer document go to: Tools -> Add-ons -> Envoi de courriel -> Publiposter un document
+In LibreOffice / OpenOffice Writer document go to: Tools -> Add-Ons -> Sending emails -> Merge a document
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1.png)
 

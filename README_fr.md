@@ -96,7 +96,7 @@ Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous deve
 Ce document Writer peut inclure des champs de fusion (insérables par la commande: Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
 Ses champs de fusion doivent uniquement faire référence à la **table principale** de la source de données.
 
-Dans un document LibreOffice / OpenOffice Writer aller à: Outils -> Add-ons -> Envoi de courriels -> Publiposter un document
+Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
 

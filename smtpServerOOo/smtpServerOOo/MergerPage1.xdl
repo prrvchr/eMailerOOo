@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MergerPage1" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MergerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MergerPage1.Title" dlg:withtitlebar="false">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+    <dlg:style dlg:style-id="1" dlg:border="none"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="5" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine1.HelpText" dlg:value="&amp;MergerPage1.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label1.HelpText" dlg:value="&amp;MergerPage1.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="25" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label2.HelpText" dlg:value="&amp;MergerPage1.Label2.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:disabled="true" dlg:left="75" dlg:top="25" dlg:width="100" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox1.HelpText" dlg:value="&amp;MergerPage1.ListBox1.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBook" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="4" dlg:disabled="true" dlg:left="185" dlg:top="25" dlg:width="95" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton1.HelpText" dlg:value="&amp;MergerPage1.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewAddressBook" script:language="UNO"/>
+    </dlg:button>
+    <dlg:text dlg:id="Label3" dlg:tab-index="5" dlg:left="10" dlg:top="45" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label3.HelpText" dlg:value="&amp;MergerPage1.Label3.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:disabled="true" dlg:left="75" dlg:top="45" dlg:width="80" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox2.HelpText" dlg:value="&amp;MergerPage1.ListBox2.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookTable" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="165" dlg:top="45" dlg:width="30" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label4.HelpText" dlg:value="&amp;MergerPage1.Label4.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox3" dlg:tab-index="8" dlg:disabled="true" dlg:left="200" dlg:top="45" dlg:width="80" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox3.HelpText" dlg:value="&amp;MergerPage1.ListBox3.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookColumn" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:fixedline dlg:id="FixedLine2" dlg:tab-index="9" dlg:left="0" dlg:top="69" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine2.HelpText" dlg:value="&amp;MergerPage1.FixedLine2.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:page="1" dlg:left="5" dlg:top="70" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label5.HelpText" dlg:value="&amp;MergerPage1.Label5.Label" dlg:valign="center"/>
+    <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="11" dlg:page="1" dlg:left="8" dlg:top="90" dlg:width="273" dlg:height="14" dlg:help-text="&amp;MergerPage1.ProgressBar1.HelpText" dlg:value="0"/>
+    <dlg:text dlg:id="Label6" dlg:tab-index="12" dlg:page="1" dlg:left="10" dlg:top="110" dlg:width="270" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label6.HelpText" dlg:value="&amp;MergerPage1.Label6.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label7" dlg:tab-index="13" dlg:page="2" dlg:left="5" dlg:top="70" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label7.HelpText" dlg:value="&amp;MergerPage1.Label7.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label8" dlg:tab-index="14" dlg:page="2" dlg:left="10" dlg:top="90" dlg:width="270" dlg:height="80" dlg:help-text="&amp;MergerPage1.Label8.HelpText" dlg:multiline="true" dlg:value="&amp;MergerPage1.Label8.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label9" dlg:tab-index="15" dlg:page="3" dlg:left="5" dlg:top="70" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label9.HelpText" dlg:value="&amp;MergerPage1.Label9.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label10" dlg:tab-index="16" dlg:page="3" dlg:left="10" dlg:top="90" dlg:width="60" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label10.HelpText" dlg:value="&amp;MergerPage1.Label10.Label" dlg:valign="center"/>
+    <dlg:combobox dlg:id="ComboBox1" dlg:tab-index="17" dlg:page="3" dlg:left="75" dlg:top="90" dlg:width="100" dlg:height="14" dlg:help-text="&amp;MergerPage1.ComboBox1.HelpText" dlg:value="&amp;MergerPage1.ComboBox1.Text" dlg:spin="true">
+      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EditQuery" script:language="UNO"/>
+      <script:event script:event-name="on-keydown" script:macro-name="vnd.sun.star.UNO:EnterQuery" script:language="UNO"/>
+    </dlg:combobox>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="18" dlg:page="3" dlg:disabled="true" dlg:left="185" dlg:top="90" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton2.HelpText" dlg:value="&amp;MergerPage1.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddQuery" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="19" dlg:page="3" dlg:disabled="true" dlg:left="235" dlg:top="90" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton3.HelpText" dlg:value="&amp;MergerPage1.CommandButton3.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveQuery" script:language="UNO"/>
+    </dlg:button>
+    <dlg:fixedline dlg:id="FixedLine3" dlg:tab-index="20" dlg:page="3" dlg:left="0" dlg:top="114" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine3.HelpText" dlg:value="&amp;MergerPage1.FixedLine3.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label11" dlg:tab-index="21" dlg:page="3" dlg:left="5" dlg:top="115" dlg:width="200" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label11.HelpText" dlg:value="&amp;MergerPage1.Label11.Label" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label12" dlg:tab-index="22" dlg:page="3" dlg:left="10" dlg:top="125" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label12.HelpText" dlg:value="&amp;MergerPage1.Label12.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label13" dlg:tab-index="23" dlg:page="3" dlg:left="10" dlg:top="135" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label13.HelpText" dlg:value="&amp;MergerPage1.Label13.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox4" dlg:tab-index="24" dlg:page="3" dlg:disabled="true" dlg:left="10" dlg:top="150" dlg:width="90" dlg:height="45" dlg:help-text="&amp;MergerPage1.ListBox4.HelpText" dlg:value="&amp;MergerPage1.ListBox4.Text">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeEmail" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="25" dlg:page="3" dlg:disabled="true" dlg:left="105" dlg:top="150" dlg:width="30" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton4.HelpText" dlg:value="&amp;MergerPage1.CommandButton4.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddEmail" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="26" dlg:page="3" dlg:disabled="true" dlg:left="105" dlg:top="180" dlg:width="30" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton5.HelpText" dlg:value="&amp;MergerPage1.CommandButton5.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveEmail" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="27" dlg:page="3" dlg:disabled="true" dlg:left="136" dlg:top="150" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton6.HelpText" dlg:value="&amp;MergerPage1.CommandButton6.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveBefore" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton7" dlg:tab-index="28" dlg:page="3" dlg:disabled="true" dlg:left="136" dlg:top="180" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton7.HelpText" dlg:value="&amp;MergerPage1.CommandButton7.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveAfter" script:language="UNO"/>
+    </dlg:button>
+    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="29" dlg:page="3" dlg:left="155" dlg:top="125" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label14.HelpText" dlg:value="&amp;MergerPage1.Label14.Label.0" dlg:valign="center"/>
+    <dlg:text dlg:id="Label15" dlg:tab-index="30" dlg:page="3" dlg:left="155" dlg:top="135" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label15.HelpText" dlg:value="&amp;MergerPage1.Label15.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox5" dlg:tab-index="31" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="150" dlg:width="90" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox5.HelpText" dlg:value="&amp;MergerPage1.ListBox5.Text"/>
+    <dlg:button dlg:id="CommandButton8" dlg:tab-index="32" dlg:page="3" dlg:disabled="true" dlg:left="250" dlg:top="150" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton8.HelpText" dlg:value="&amp;MergerPage1.CommandButton8.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddIdentifier" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton9" dlg:tab-index="33" dlg:page="3" dlg:disabled="true" dlg:left="266" dlg:top="150" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton9.HelpText" dlg:value="&amp;MergerPage1.CommandButton9.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveIdentifier" script:language="UNO"/>
+    </dlg:button>
+    <dlg:text dlg:id="Label16" dlg:tab-index="34" dlg:page="3" dlg:left="155" dlg:top="165" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label16.HelpText" dlg:value="&amp;MergerPage1.Label16.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox6" dlg:tab-index="35" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="180" dlg:width="90" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox6.HelpText" dlg:value="&amp;MergerPage1.ListBox6.Text"/>
+    <dlg:button dlg:id="CommandButton10" dlg:tab-index="36" dlg:page="3" dlg:disabled="true" dlg:left="250" dlg:top="180" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton10.HelpText" dlg:value="&amp;MergerPage1.CommandButton10.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddBookmark" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton11" dlg:tab-index="37" dlg:page="3" dlg:disabled="true" dlg:left="266" dlg:top="180" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton11.HelpText" dlg:value="&amp;MergerPage1.CommandButton11.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveBookmark" script:language="UNO"/>
+    </dlg:button>
+  </dlg:bulletinboard>
+</dlg:window>

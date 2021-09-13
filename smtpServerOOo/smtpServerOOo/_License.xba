@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="_License" script:language="StarBasic">
+&apos;                                Copyright 2015-2020 Pierre Vacher
+
+REM =======================================================================================================================
+REM ===                             The smtpServerOOo library is a part of a personnal project.                             ===
+REM ===                     Full documentation is available on https://github.com/prrvchr/smtpServerOOo                     ===
+REM =======================================================================================================================
+
+&apos;    smtpServerOOo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+&apos;    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+&apos;
+&apos;    smtpServerOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
+&apos;
+&apos;    1) The Mozilla Public License, v. 2.0. If a copy of the MPL was not
+&apos;    distributed with this file, you can obtain one at http://mozilla.org/MPL/2.0/.
+&apos;
+&apos;    2) The GNU Lesser General Public License as published by
+&apos;    the Free Software Foundation, either version 3 of the License, or
+&apos;    (at your option) any later version. If a copy of the LGPL was not
+&apos;    distributed with this file, see http://www.gnu.org/licenses/.
+
+Sub Main
+
+End Sub
+
+</script:module>

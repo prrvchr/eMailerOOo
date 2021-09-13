@@ -79,6 +79,20 @@ Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts t�
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
+## Utilisation:
+
+### Introduction:
+
+Pour pouvoir utiliser la fonctionnalité de publipostage d'emails en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
+- Une ou plusieurs colonnes d'adresses électroniques. Ses colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
+- Une colonne de clé primaire pour identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
+- Une colonne de numéro de ligne ou ROWNUM qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
+
+Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).
+Cette extension vous permettra d'utiliser votre téléphone Android (votre carnet d'adresses) comme source de données.
+
+### Publipostage de courriels à des listes de diffusion:
+
 ## Historique:
 
 **Ce qui reste à faire:**

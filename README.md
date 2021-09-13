@@ -79,6 +79,20 @@ This extension is only needed if you want to use your personal phone contacts (A
 
 Restart LibreOffice / OpenOffice after installation.
 
+## Use:
+
+### Introduction:
+
+To be able to use the email merge feature using mailing lists, it is necessary to have a datasource with tables having the following columns:
+- One or more columns of email addresses. Its columns will be selected from a list and if this selection is not unique, then the first non-null email address will be used.
+- A primary key column to uniquely identify records. This column must be of type SQL VARCHAR.
+- A row number column or ROWNUM which corresponds to the row number in the result set of an SQL command.
+
+If you do not have such a data source then I invite you to install the [gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.
+This extension will allow you to use your Android phone (your address book) as a datasource.
+
+### Merging emails to mailing lists:
+
 ## Historical:
 
 What remains to be done:

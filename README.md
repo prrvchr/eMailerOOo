@@ -85,6 +85,7 @@ To be able to use the email merge feature using mailing lists, it is necessary t
 - One or more columns of email addresses. These columns will be selected from a list and if this selection is not unique, then the first non-null email address will be used.
 - A primary key column to uniquely identify records. This column must be of type SQL VARCHAR.
 - A row number column or ROWNUM which corresponds to the row number in the result set of an SQL command.
+
 In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 
 If you do not have such a datasource then I invite you to install the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.

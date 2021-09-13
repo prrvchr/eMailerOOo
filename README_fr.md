@@ -85,6 +85,7 @@ Pour pouvoir utiliser la fonctionnalité de publipostage d'emails en utilisant d
 - Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
 - Une colonne de clé primaire pour identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
 - Une colonne de numéro de ligne ou ROWNUM qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
+
 De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
 Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).

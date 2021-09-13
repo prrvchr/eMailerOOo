@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .configuration import g_dns
 from .configuration import g_extension
 from .configuration import g_fetchsize
 from .configuration import g_identifier
@@ -111,9 +112,9 @@ from .wizard import Wizard
 
 from .smtpdispatch import SmtpDispatch
 
-from .mailspooler import MailSpooler
-
 from .listener import TerminateListener
+
+from .mailspooler import MailSpooler
 
 from .ispdb import IspdbModel
 

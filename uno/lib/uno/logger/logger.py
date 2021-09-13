@@ -110,13 +110,6 @@ class Logger(unohelper.Base):
     def removeLogHandler(self, handler):
         self._logger.removeLogHandler(handler)
 
-    def addListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
-
     def setDebugMode(self, mode):
         if mode:
             self._setDebugModeOn()
@@ -228,8 +221,9 @@ class Logger(unohelper.Base):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        self._settings = self._getLoggerSetting()
-        self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
+        if not self.isDebugMode():
+            self._settings = self._getLoggerSetting()
+            self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
 
     def _setDebugModeOff(self):
         if self.isDebugMode():

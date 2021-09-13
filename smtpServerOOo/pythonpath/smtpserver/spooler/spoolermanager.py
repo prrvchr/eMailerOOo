@@ -33,13 +33,14 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpserver import Pool
+from smtpserver import LogHandler
+
 from smtpserver import createService
 from smtpserver import executeDispatch
 from smtpserver import getFileSequence
 from smtpserver import getMessage
 from smtpserver import getPropertyValueSet
-from smtpserver import Pool
-
 from smtpserver import logMessage
 
 from .spoolermodel import SpoolerModel
@@ -68,7 +69,8 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
         self._model.initSpooler(self.initView)
         self._logger = Pool(ctx).getLogger('SpoolerLogger')
-        self._logger.addListener(self)
+        self._handler = LogHandler(ctx, self.refreshLog)
+        self._logger.addLogHandler(self._handler)
         self.refreshLog()
 
     @property
@@ -94,6 +96,8 @@ class SpoolerManager(unohelper.Base):
 
     def stopped(self):
         self._model.executeRowSet()
+        # TODO: We dont have the last line of the Logger through the LogHandler
+        self.refreshLog()
         self._refreshSpoolerView(0)
 
     def initView(self, titles, orders):
@@ -113,7 +117,7 @@ class SpoolerManager(unohelper.Base):
         with self._lock:
             print("SpoolerManager.dispose() 1 ***************************")
             self._spooler.removeListener(self._listener)
-            self._logger.removeListener(self)
+            self._logger.removeLogHandler(self._handler)
             self._model.dispose()
             self._view.dispose()
             print("SpoolerManager.dispose() 2 ***************************")

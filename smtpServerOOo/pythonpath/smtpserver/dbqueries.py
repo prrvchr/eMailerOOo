@@ -258,7 +258,7 @@ def getSqlQuery(ctx, name, format=None):
         query = 'UPDATE "Recipients" SET "State"=?, "TimeStamp"=? WHERE "JobId"=?;'
 
     elif name == 'setBatchState':
-        query = 'UPDATE "Recipients" SET "State"=? WHERE "BatchId"=?;'
+        query = 'UPDATE "Recipients" SET "State"=?, "TimeStamp"=? WHERE "BatchId"=?;'
 
 # Function creation Queries
     # IspDb Function Queries

@@ -30,15 +30,7 @@
 import uno
 import unohelper
 
-from com.sun.star.logging.LogLevel import SEVERE
-from com.sun.star.logging.LogLevel import WARNING
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import CONFIG
-from com.sun.star.logging.LogLevel import FINE
-from com.sun.star.logging.LogLevel import FINER
-from com.sun.star.logging.LogLevel import FINEST
 from com.sun.star.logging.LogLevel import ALL
-from com.sun.star.logging.LogLevel import OFF
 
 from com.sun.star.logging import XLogHandler
 
@@ -52,8 +44,7 @@ class LogHandler(unohelper.Base,
         service = 'com.sun.star.logging.PlainTextFormatter'
         self._formatter = createService(ctx, service)
         self._level = level
-        self._listener = []
-        self._buffers = ''
+        self._listeners = []
         self._callback = callback
 
 # XLogHandler
@@ -69,7 +60,6 @@ class LogHandler(unohelper.Base,
         return self._formatter
     @Formatter.setter
     def Formatter(self, value):
-        print("LogHandler.Formatter.setter()")
         self._formatter = value
 
     @property
@@ -80,19 +70,11 @@ class LogHandler(unohelper.Base,
         self._level = value
 
     def flush(self):
-        print("LogHandler.flush()")
-        self._buffers = ''
+        pass
 
     def publish(self, record):
-        if record.Level >= self._level:
-            print("LogHandler.publish() 1 %s" % record.Message)
-            self._buffers = self._formatter.format(record)
-            print("LogHandler.publish() 2 %s" % self._buffers)
-            self._callback(self._buffers)
-            return True
-        else:
-            print("LogHandler.NOT publish() %s" % record.Message)
-            return False
+        self._callback()
+        return True
 
 # XComponent <- XLogHandler
     def dispose(self):
@@ -107,12 +89,3 @@ class LogHandler(unohelper.Base,
     def removeEventListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
-
-# Private getter method
-    def _getBuffer(self, record):
-        buffer = self._formatter.format(record)
-        print("LogHandler._getBuffer() 1 %s" % buffer)
-        if self._buffered:
-            self._buffers += buffer
-        else:
-            self._buffers = buffer

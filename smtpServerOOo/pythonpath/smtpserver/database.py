@@ -37,6 +37,7 @@ from com.sun.star.sdb.CommandType import QUERY
 from .unolib import KeyMap
 
 from .unotool import createService
+from .unotool import getDateTime
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import parseDateTime
@@ -296,12 +297,19 @@ class DataBase(unohelper.Base):
 
 # Procedures called by the MailSpooler
     def getSpoolerJobs(self, connection, state=0):
+        print("DataBase.getSpoolerJobs() 1")
         jobid = []
+        print("DataBase.getSpoolerJobs() 2")
         call = self._getDataBaseCall(connection, 'getSpoolerJobs')
+        print("DataBase.getSpoolerJobs() 3")
         call.setInt(1, state)
+        print("DataBase.getSpoolerJobs() 4")
         result = call.executeQuery()
+        print("DataBase.getSpoolerJobs() 5")
         jobids = getSequenceFromResult(result)
+        print("DataBase.getSpoolerJobs() 6")
         call.close()
+        print("DataBase.getSpoolerJobs() 7")
         return jobids
 
     def getRecipient(self, connection, job):
@@ -363,10 +371,10 @@ class DataBase(unohelper.Base):
         call.close()
         return bookmark
 
-    def setJobState(self, connection, state, timestamp, jobid):
+    def setJobState(self, connection, state, jobid):
         call = self._getDataBaseCall(connection, 'setJobState')
         call.setInt(1, state)
-        call.setTimestamp(2, timestamp)
+        call.setTimestamp(2, getDateTime())
         call.setInt(3, jobid)
         result = call.executeUpdate()
         call.close()
@@ -374,7 +382,8 @@ class DataBase(unohelper.Base):
     def setBatchState(self, connection, state, batchid):
         call = self._getDataBaseCall(connection, 'setBatchState')
         call.setInt(1, state)
-        call.setInt(2, batchid)
+        call.setTimestamp(2, getDateTime())
+        call.setInt(3, batchid)
         result = call.executeUpdate()
         call.close()
 

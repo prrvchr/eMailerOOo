@@ -35,8 +35,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.mail.MailServiceType import SMTP
 
-from com.sun.star.ucb.ConnectionMode import OFFLINE
-
 from com.sun.star.sdb.CommandType import TABLE
 
 from com.sun.star.uno import Exception as UnoException
@@ -54,11 +52,12 @@ from .unotool import getSimpleFile
 from .unotool import getTempFile
 from .unotool import getTypeDetection
 from .unotool import getUriFactory
-from .unotool import getDateTime
 
 from smtpserver import MailTransferable
+from smtpserver import TerminateListener
 
 from smtpserver import getMail
+from smtpserver import getDesktop
 from smtpserver import getDocument
 from smtpserver import getUrl
 from smtpserver import getUrlMimeType
@@ -74,91 +73,113 @@ from .configuration import g_dns
 from .configuration import g_identifier
 from .configuration import g_fetchsize
 
-from multiprocessing import Process, Queue, cpu_count
-from threading import Thread
+#from multiprocessing.context import ForkProcess as Process
+from threading import Thread as Process
+from threading import Condition
 from threading import Event
 import traceback
 import time
 
 
-class MailSpooler(unohelper.Base):
-    def __init__(self, ctx, database, event):
+class MailSpooler(Process):
+    def __init__(self, ctx, database, logger, listeners):
+        Process.__init__(self)
         self._ctx = ctx
         self._database = database
+        self._lock = Condition()
         self._disposed = Event()
-        self._server = None
-        self._thread = None
-        self._descriptor = {}
-        self._listeners = []
-        self._event = event
+        self._disposed.clear()
+        self._listeners = listeners
+        #self._listener = TerminateListener(self)
+        #self._terminated = False
+        #getDesktop(ctx).addTerminateListener(self._listener)
         configuration = getConfiguration(ctx, g_identifier, False)
         self._timeout = configuration.getByName('ConnectTimeout')
-        self._logger = Pool(ctx).getLogger('SpoolerLogger')
-        self._logger.setDebugMode(True)
+        self._logger = logger
 
-# Procedures called by SpoolerService
-    def stop(self):
-        if self.isStarted():
-            self._disposed.set()
-            self._thread.join()
-
-    def start(self):
-        if not self.isStarted():
-            self._logger.logResource(INFO, 101)
-            if self._isOffLine():
-                self._logger.logResource(INFO, 102)
-            else:
-                self._logger.logResource(INFO, 103)
-                self._disposed.clear()
-                self._thread = Thread(target=self._run)
-                self._thread.start()
-                self._started()
-
-    def isStarted(self):
-        return self._thread is not None and self._thread.is_alive()
-
-    def addListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
-
-# Private methods
-    def _run(self):
+# Process
+    def run(self):
         try:
+            print("MailSpooler._run() **********************************")
             connection = self._database.getConnection()
+            print("MailSpooler._run() 1")
             jobs = self._database.getSpoolerJobs(connection)
+            print("MailSpooler._run() 2")
             total = len(jobs)
             if total > 0:
+                print("MailSpooler._run() 3")
                 self._logger.logResource(INFO, 111, total)
-                self._server = None
                 count = self._send(connection, jobs)
                 format = (count, total)
+                print("MailSpooler._run() 4")
                 self._logger.logResource(INFO, 112, format)
             else:
+                print("MailSpooler._run() 5")
                 self._logger.logResource(INFO, 113)
+            print("MailSpooler._run() 6")
             connection.close()
         except UnoException as e:
             msg = self._logger.getMessage(114, e.Message)
             print(msg)
             self._logger.logMessage(INFO, msg)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+        print("MailSpooler._run() 7")
         self._logger.logResource(INFO, 115)
+        print("MailSpooler._run() 8")
         self._stopped()
+        #if not self._terminated:
+        #    getDesktop(self._ctx).removeTerminateListener(self._listener)
+        print("MailSpooler._run() 9")
 
-    def _started(self):
-        for listener in self._listeners:
-            listener.started(self._event)
+# Procedures called by SpoolerService
+    def clearDisposed(self):
+        self._disposed.clear()
 
+    def setDisposed(self):
+        self._disposed.set()
+
+    def addListener(self, listener):
+        with self._lock:
+            print("MailSpooler.addListener()")
+            self._listeners.append(listener)
+
+    def removeListener(self, listener):
+        with self._lock:
+            if listener in self._listeners:
+                print("MailSpooler.removeListener()")
+                self._listeners.remove(listener)
+
+    def started(self):
+        with self._lock:
+            event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+            for listener in self._listeners:
+                listener.started(event)
+
+# Procedures called by TerminateListener
+    def stop(self):
+        print("MailSpooler.stop() 1")
+        if self.is_alive():
+            print("MailSpooler.stop() 2")
+            self._terminated = True
+            self._disposed.set()
+            print("MailSpooler.stop() 3")
+            self.join()
+        print("MailSpooler.stop() 4")
+
+# Private methods
     def _stopped(self):
-        for listener in self._listeners:
-            listener.stopped(self._event)
+        with self._lock:
+            event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+            for listener in self._listeners:
+                listener.stopped(event)
 
     def _send(self, connection, jobs):
         print("MailSpooler._send()1 begin ****************************************")
         sf = getSimpleFile(self._ctx)
         uf = getUriFactory(self._ctx)
-        sender = url = batch = None
+        server = config = datasource = sender = url = batchid = None
         urls = ()
         count = 0
         for job in jobs:
@@ -168,60 +189,84 @@ class MailSpooler(unohelper.Base):
             self._logger.logResource(INFO, 121, job)
             recipient = self._database.getRecipient(connection, job)
             print("MailSpooler._send() 3 batch %s" % recipient.BatchId)
-            if batch != recipient.BatchId:
+            if batchid != recipient.BatchId:
                 try:
-                    sender, urls, url = self._getBatchParameters(uf, sf, connection, recipient.BatchId, job, recipient.Index)
+                    batch = recipient.BatchId
+                    index = recipient.Index
+                    newsender = self._database.getSender(connection, batch)
+                    sender, datasource = self._getSender(sender, newsender, datasource, sf, job)
+                    print("MailSpooler._send() 4 %s" % (sender, ))
+                    if self._disposed.is_set():
+                        print("MailSpooler._send() 3 break")
+                        break
+                    self._disposeUrls(urls, url)
+                    attachments = self._database.getAttachments(connection, batch)
+                    urls, url = self._getUrls(uf, sf, attachments, sender, datasource, job, index)
+                    if self._disposed.is_set():
+                        print("MailSpooler._send() 4 break")
+                        break
+                    newconfig = self._database.getServer(connection, sender.Sender, self._timeout)
+                    server, config = self._getServer(server, config, newconfig, sender, job)
                     print("MailSpooler._send() 4 %s" % url.Main)
                 except UnoException as e:
                     print("MailSpooler._send() 5 break %s" % e.Message)
-                    self._database.setBatchState(connection, 2, recipient.BatchId)
+                    self._database.setJobState(connection, 2, job)
                     msg = self._logger.getMessage(122, e.Message)
                     self._logger.logMessage(INFO, msg)
                     print("MailSpooler._send() 6 break %s" % msg)
                     continue
                 else:
                     print("MailSpooler._send() 6")
-                    batch = recipient.BatchId
+                    batchid = batch
             elif sender.Merge:
-                descriptor = self._getDataDescriptor(sender, recipient.Index)
+                descriptor = self._getDataDescriptor(datasource, sender, index)
                 url.merge(descriptor)
                 print("MailSpooler._send() 7")
+            mail = self._getMail(sender, recipient, url)
+            self._addAttachments(mail, urls, datasource, sender, index)
             if self._disposed.is_set():
                 print("MailSpooler._send() 8 break")
                 break
-            state = self._getSendState(uf, sf, job, sender, recipient, urls, url)
-            timestamp = getDateTime()
-            self._database.setJobState(connection, state, timestamp, job)
-            resource = 122 + state
-            self._logger.logResource(INFO, resource, job)
-            count += 1 if state == 1 else 0
+            server.sendMailMessage(mail)
+            self._database.setJobState(connection, 1, job)
+            self._logger.logResource(INFO, 123, job)
+            count += 1
             print("MailSpooler._send() 9")
-        if self._server is not None:
-            print("MailSpooler._send() 10 disconnect")
-            self._server.disconnect()
-            self._server = None
+        self._dispose(server, datasource, urls, url)
         print("MailSpooler._send() 11 end.........................")
         return count
 
-    def _getSendState(self, uf, sf, job, sender, recipient, urls, url):
-        state = 2
+    def _dispose(self, server, datasource, urls, url):
+        self._disconnect(server)
+        self._disposeDataSource(datasource)
+        self._disposeUrls(urls, url)
+
+    def _disconnect(self, server):
+        if server is not None:
+            server.disconnect()
+
+    def _disposeDataSource(self, datasource):
+        if datasource is not None:
+            datasource['ActiveConnection'].close()
+
+    def _disposeUrls(self, urls, url):
+        if url is not None:
+            url.dispose()
+        for url in urls:
+            url.dispose()
+
+    def _getMail(self, sender, recipient, url):
         body = MailTransferable(self._ctx, url.Main, True)
         mail = getMail(self._ctx, sender.Sender, recipient.Recipient, sender.Subject, body)
-        if urls:
-            state = self._sendMailWithAttachments(uf, sf, sender, mail, urls, job, recipient.Index)
-        else:
-            state = self._sendMail(mail)
-        return state
+        return mail
 
-    def _sendMailWithAttachments(self, uf, sf, sender, mail, urls, job, index):
+    def _addAttachments(self, mail, urls, datasource, sender, index):
         for url in urls:
             print("MailSpooler._sendMailWithAttachments() 1 %s" % url.Main)
             if sender.Merge and url.Merge:
-                descriptor = self._getDataDescriptor(sender, index)
+                descriptor = self._getDataDescriptor(datasource, sender, index)
                 url.merge(descriptor)
             mail.addAttachment(self._getAttachment(url))
-        self._server.sendMailMessage(mail)
-        return 1
 
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
@@ -229,43 +274,59 @@ class MailSpooler(unohelper.Base):
         attachment.ReadableName = url.Name
         return attachment
 
-    def _sendMail(self, mail):
-        self._server.sendMailMessage(mail)
-        return 1
+    def _getSender(self, old, new, datasource, sf, job):
+        self._checkSender(sf, new, job)
+        if self._isNewDataSource(old, new, datasource):
+            self._disposeDataSource(datasource)
+            datasource = self._getDescriptor(new)
+        return new, datasource
 
-    def _getBatchParameters(self, uf, sf, connection, batch, job, index):
-        urls = ()
-        sender = self._database.getSender(connection, batch)
+    def _checkSender(self, sf, sender, job):
         if sender is None:
             raise self._getUnoException(131, job)
         self._checkUrl(sf, sender.Document, job, 132)
-        uri = uf.parse(sender.Document)
-        if sender.Merge:
-            self._descriptor = self._getDescriptor(sender)
-            descriptor = self._getDataDescriptor(sender, index)
-        else:
-            descriptor = False
-        url = MailUrl(self._ctx, uri, sender.Merge, False, descriptor)
-        urls = self._getMailUrls(uf, sf, connection, batch, job)
-        server = self._database.getServer(connection, sender.Sender, self._timeout)
-        self._checkServer(job, sender, server)
-        return sender, urls, url
 
-    def _getDataDescriptor(self, sender, index):
-        bookmark = self._getBookmark(sender, index)
-        self._descriptor['Selection'] = (bookmark, )
-        descriptor = getPropertyValueSet(self._descriptor)
+    def _isNewDataSource(self, old, new, datasource):
+        if not new.Merge:
+            isnew = False
+        elif old is None or datasource is None:
+            isnew = True
+        else:
+            isnew =  any((old.DataSource != new.DataSource,
+                          old.Table != new.Table,
+                          old.Identifier != new.Identifier,
+                          old.Bookmark != new.Bookmark))
+        return isnew
+
+    def _getUrls(self, uf, sf, attachments, sender, datasource, job, index):
+        descriptor = False
+        if sender.Merge:
+            descriptor = self._getDataDescriptor(datasource, sender, index)
+        uri = uf.parse(sender.Document)
+        url = MailUrl(self._ctx, uri, sender.Merge, False, descriptor)
+        urls = self._getMailUrl(uf, sf, attachments, job)
+        return urls, url
+
+    def _getServer(self, server, old, new, sender, job):
+        if old != new:
+            self._disconnect(server)
+            server = self._getSmtpServer(sender, new, job)
+        return server, new
+
+    def _getDataDescriptor(self, datasource, sender, index):
+        connection = datasource['ActiveConnection']
+        bookmark = self._getBookmark(connection, sender, index)
+        datasource['Selection'] = (bookmark, )
+        descriptor = getPropertyValueSet(datasource)
         return descriptor
 
-    def _getBookmark(self, sender, index):
-        connection = self._descriptor['ActiveConnection']
+    def _getBookmark(self, connection, sender, index):
         format = (sender.Bookmark, sender.Table, sender.Identifier)
         bookmark = self._database.getBookmark(connection, format, index)
         return bookmark
 
-    def _getMailUrls(self, uf, sf, connection, batch, job):
+    def _getMailUrl(self, uf, sf, attachments, job):
         urls = []
-        attachments = self._database.getAttachments(connection, batch)
         for attachment in attachments:
             url = uf.parse(attachment)
             merge, pdf = self._getUrlMark(url)
@@ -289,30 +350,27 @@ class MailSpooler(unohelper.Base):
             format = (job, url)
             raise self._getUnoException(resource, format)
 
-    def _checkServer(self, job, sender, server):
-        if server is None:
+    def _getSmtpServer(self, sender, config, job):
+        if config is None:
             format = (job, sender.Sender)
             raise self._getUnoException(151, format)
-        context = CurrentContext(server)
-        authenticator = Authenticator(server)
+        context = CurrentContext(config)
+        authenticator = Authenticator(config)
         service = 'com.sun.star.mail.MailServiceProvider2'
         try:
-            self._server = createService(self._ctx, service).create(SMTP)
-            self._server.connect(context, authenticator)
+            server = createService(self._ctx, service).create(SMTP)
+            server.connect(context, authenticator)
         except UnoException as e:
             smtpserver = '%s:%s' % (server['ServerName'], server['Port'])
             format = (job, sender.Sender, smtpserver, e.Message)
             raise self._getUnoException(152, format)
+        return server
 
     def _getUnoException(self, resource, format=None):
         e = UnoException()
         e.Message = self._logger.getMessage(resource, format)
         e.Context = self
         return e
-
-    def _isOffLine(self):
-        mode = getConnectionMode(self._ctx, *g_dns)
-        return mode == OFFLINE
 
     def _getDescriptor(self, sender):
         datasource = self._getDocumentDataSource(sender.DataSource)
@@ -326,8 +384,6 @@ class MailSpooler(unohelper.Base):
                       'BookmarkSelection': False,
                       'Cursor': rowset.createResultSet()}
         return descriptor
-
-        self._descriptor = self._getDescriptor(connection, sender, rowset)
 
     def _getDocumentDataSource(self, name):
         service = 'com.sun.star.sdb.DatabaseContext'
@@ -361,8 +417,7 @@ class MailUrl(unohelper.Base):
         self._pdf = pdf
         self._url = url.UriReference
         name = url.getPathSegment(url.PathSegmentCount -1)
-        self._name = name
-        self._title = name
+        self._name = self._title = name
         if self._isTemp():
             self._temp = getTempFile(ctx).Uri
             self._document = getDocument(ctx, self._url)
@@ -370,6 +425,8 @@ class MailUrl(unohelper.Base):
                 self._title = self._saveTempDocument()
             elif self._html:
                 self.merge(descriptor)
+        else:
+            self._temp = self._document = None
 
     @property
     def Merge(self):
@@ -389,6 +446,11 @@ class MailUrl(unohelper.Base):
         self._setDocumentRecord(descriptor)
         self._title = self._saveTempDocument()
 
+    def dispose(self):
+        if self._isTemp():
+            self._document.close(True)
+            self._temp = None
+
 # Private Procedures call
     def _isTemp(self):
         return any((self._merge, self._html, self._pdf))
@@ -404,9 +466,9 @@ class MailUrl(unohelper.Base):
             executeFrameDispatch(self._ctx, frame, url, descriptor)
 
     def _saveTempDocument(self):
-        format = None
+        filter = None
         if self._html:
-            format = 'html'
+            filter = 'html'
         elif self._pdf:
-            format = 'pdf'
-        return saveTempDocument(self._document, self._temp, self._name, format)
+            filter = 'pdf'
+        return saveTempDocument(self._document, self._temp, self._name, filter)

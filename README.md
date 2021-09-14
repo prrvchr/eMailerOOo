@@ -32,7 +32,7 @@
 ## Introduction:
 
 **smtpMailerOOo** is part of a [Suite](https://prrvchr.github.io/) of [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) and/or [OpenOffice](https://www.openoffice.org/fr/Telecharger/) extensions allowing to offer you innovative services in these office suites.  
-This extension allows you to send electronic mail in LibreOffice / OpenOffice, by a new smtp Client who act like a server.
+This extension allows you to send documents in LibreOffice / OpenOffice as an email, possibly by mail merge, to your telephone contacts.
 
 Being free software I encourage you:
 - To duplicate its [source code](https://github.com/prrvchr/smtpMailerOOo).

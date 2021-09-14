@@ -93,9 +93,13 @@ This extension will allow you to use your Android phone (your phone contacts) as
 
 ### Merging emails to mailing lists:
 
+#### Requirement:
+
 To be able to post emails to a mailing list, you must first open a Writer document in LibreOffice / OpenOffice.  
 This Writer document can include merge fields (insertable by the command: Insert -> Field -> More fields -> Database -> Mail merge fields), this is even necessary if you want to be able to customize the content of the email.  
 These merge fields should only reference the **main table** of the data source.
+
+#### Merging
 
 In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 

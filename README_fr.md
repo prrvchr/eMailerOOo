@@ -36,10 +36,10 @@ Cette extension vous permet d'envoyer du courrier électronique dans LibreOffice
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/smtpMailerOOo).
-- A apporter des modifications, des corrections, des ameliorations.
+- A apporter des modifications, des corrections, des améliorations.
 - D'ouvrir un [dysfonctionnement](https://github.com/prrvchr/smtpMailerOOo/issues/new) si nécessaire.
 
-Bref, à participer au developpement de cette extension.
+Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
 ## Prérequis:
@@ -81,7 +81,7 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ### Introduction:
 
-Pour pouvoir utiliser la fonctionnalité de publipostage d'emails en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
+Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
 - Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
 - Une colonne de clé primaire pour identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
 - Une colonne de numéro de ligne ou ROWNUM qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
@@ -96,7 +96,7 @@ Cette extension vous permettra d'utiliser votre téléphone Android (vos contact
 #### Prérequis:
 
 Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez d'abord ouvrir un document Writer dans LibreOffice / OpenOffice.  
-Ce document Writer peut inclure des champs de fusion (insérables par la commande: Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
+Ce document Writer peut inclure des champs de fusion (insérables par la commande: **Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage**), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
 Ces champs de fusion doivent uniquement faire référence à la **table principale** de la source de données.
 
 #### Publipostage:

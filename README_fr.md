@@ -95,7 +95,9 @@ Cette extension vous permettra d'utiliser votre téléphone Android (vos contact
 
 #### Prérequis:
 
-Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez d'abord ouvrir un document Writer dans LibreOffice / OpenOffice.  
+Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez:
+- Disposer d'une source de données comme décrit dans l'introduction précédente.
+- Ouvrir un document Writer dans LibreOffice / OpenOffice.  
 Ce document Writer peut inclure des champs de fusion (insérables par la commande: **Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage**), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
 Ces champs de fusion doivent uniquement faire référence à la **table principale** de la source de données.
 

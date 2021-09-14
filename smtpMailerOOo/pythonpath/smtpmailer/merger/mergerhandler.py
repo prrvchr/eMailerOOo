@@ -29,26 +29,23 @@
 
 import unohelper
 
-from com.sun.star.sdbc import XRowSetListener
+from com.sun.star.frame import XDispatchResultListener
 
 import traceback
 
 
-class RecipientHandler(unohelper.Base,
-                       XRowSetListener):
-    def __init__(self, manager):
-        self._manager = manager
+class DispatchListener(unohelper.Base,
+                       XDispatchResultListener):
+    def __init__(self, model):
+        self._model = model
 
-    # XRowSetListener
-    def disposing(self, event):
-        pass
-    def cursorMoved(self, event):
-        pass
-    def rowChanged(self, event):
-        pass
-    def rowSetChanged(self, event):
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
         try:
-            self._manager.changeRecipient()
+            self._model.saveDocumentFinished(notification.Result)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
+
+    def disposing(self, source):
+        pass

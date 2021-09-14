@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from .mergerhandler import DispatchListener
+
 from com.sun.star.beans import PropertyValue
 
 from com.sun.star.logging.LogLevel import INFO
@@ -75,6 +77,8 @@ from smtpmailer import ColumnModel
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
 from smtpmailer import g_fetchsize
+
+from .mergerhandler import DispatchListener
 
 from collections import OrderedDict
 from six import string_types
@@ -123,6 +127,7 @@ class MergerModel(MailModel):
         self._disposed = False
         self._similar = False
         self._temp = False
+        self._saved = False
         self._lock = Condition()
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'MergerPage%s.Step',
@@ -191,6 +196,7 @@ class MergerModel(MailModel):
 
     def _loadAddressBook(self):
         return self._configuration.getByName('MergerLoadDataSource')
+
     def _getDocumentAddressBook(self, addressbook):
         service = 'com.sun.star.text.TextDocument'
         if self._document.supportsService(service):
@@ -876,10 +882,22 @@ class MergerModel(MailModel):
         return self._document.URL
 
     def getDocumentInfo(self):
-        name = self._addressbook.Name
+        datasource = self._addressbook.Name
         identifier = self.getIdentifier()
         bookmark = self.getBookmark()
-        return self.getUrl(), name, self._query, self._table, identifier, bookmark
+        return self.getUrl(), datasource, self._query, self._table, identifier, bookmark
+
+    def saveDocument(self):
+        self._saved = True
+        if not self._document.hasLocation():
+            frame = self._document.CurrentController.Frame
+            url = '.uno:Save'
+            listener = DispatchListener(self)
+            executeFrameDispatch(self._ctx, frame, url, (), listener)
+        return self._saved
+
+    def saveDocumentFinished(self, saved):
+        self._saved = saved
 
     def getDocument(self, url=None):
         if url is None:

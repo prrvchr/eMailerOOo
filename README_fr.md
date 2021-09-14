@@ -83,7 +83,7 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
 - Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
-- Une colonne de clé primaire pour identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
+- Une colonne de clé primaire permettant d'identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
 - Une colonne de numéro de ligne ou ROWNUM qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
 
 De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
@@ -107,6 +107,10 @@ Ces champs de fusion doivent uniquement faire référence à la **table principa
 Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
+
+Le chargement de l'assistant de publipostage devrait apparaître :
+
+![smtpMailerOOo screenshot 2](smtpMailerOOo-2_fr.png)
 
 ## Historique:
 

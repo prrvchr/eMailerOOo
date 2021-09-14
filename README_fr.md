@@ -108,7 +108,7 @@ Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
 
-Le chargement de l'assistant de publipostage devrait apparaître :
+Le chargement de la source de données de l'assistant **Publipostage de courriels** devrait apparaître :
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2_fr.png)
 

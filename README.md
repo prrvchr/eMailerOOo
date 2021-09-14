@@ -108,7 +108,7 @@ In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1.png)
 
-The mail merge wizard loading should appear:
+The datasource load for the **Email merging** wizard should appear: 
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2.png)
 

@@ -191,17 +191,15 @@ class MailSpooler(Process):
             print("MailSpooler._send() 3 batch %s" % recipient.BatchId)
             if batchid != recipient.BatchId:
                 try:
-                    batch = recipient.BatchId
-                    index = recipient.Index
-                    newsender = self._database.getSender(connection, batch)
+                    newsender = self._database.getSender(connection, recipient.BatchId)
                     sender, datasource = self._getSender(sender, newsender, datasource, sf, job)
                     print("MailSpooler._send() 4 %s" % (sender, ))
                     if self._disposed.is_set():
                         print("MailSpooler._send() 3 break")
                         break
                     self._disposeUrls(urls, url)
-                    attachments = self._database.getAttachments(connection, batch)
-                    urls, url = self._getUrls(uf, sf, attachments, sender, datasource, job, index)
+                    attachments = self._database.getAttachments(connection, recipient.BatchId)
+                    urls, url = self._getUrls(uf, sf, attachments, sender, datasource, job, recipient.Index)
                     if self._disposed.is_set():
                         print("MailSpooler._send() 4 break")
                         break
@@ -217,13 +215,13 @@ class MailSpooler(Process):
                     continue
                 else:
                     print("MailSpooler._send() 6")
-                    batchid = batch
+                    batchid = recipient.BatchId
             elif sender.Merge:
-                descriptor = self._getDataDescriptor(datasource, sender, index)
+                descriptor = self._getDataDescriptor(datasource, sender, recipient.Index)
                 url.merge(descriptor)
                 print("MailSpooler._send() 7")
             mail = self._getMail(sender, recipient, url)
-            self._addAttachments(mail, urls, datasource, sender, index)
+            self._addAttachments(mail, urls, datasource, sender, recipient.Index)
             if self._disposed.is_set():
                 print("MailSpooler._send() 8 break")
                 break
@@ -262,7 +260,7 @@ class MailSpooler(Process):
 
     def _addAttachments(self, mail, urls, datasource, sender, index):
         for url in urls:
-            print("MailSpooler._sendMailWithAttachments() 1 %s" % url.Main)
+            print("MailSpooler._addAttachments() %s - %s" % (url.Name, url.Main))
             if sender.Merge and url.Merge:
                 descriptor = self._getDataDescriptor(datasource, sender, index)
                 url.merge(descriptor)
@@ -445,6 +443,7 @@ class MailUrl(unohelper.Base):
     def merge(self, descriptor):
         self._setDocumentRecord(descriptor)
         self._title = self._saveTempDocument()
+        print("MailUrl.merge() %s - %s" % (self.Name, self.Main))
 
     def dispose(self):
         if self._isTemp():

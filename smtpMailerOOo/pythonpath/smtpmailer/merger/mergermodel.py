@@ -319,10 +319,10 @@ class MergerModel(MailModel):
         similar = True
         tables = self.Connection.getTables()
         if tables.hasElements():
-            columns = tables.getByIndex(0).getColumns().getElementNames()
+            columns = self._getTableColumns(tables.getByIndex(0).Name)
             for index in range(1, tables.getCount()):
-                table = tables.getByIndex(index)
-                if columns != table.getColumns().getElementNames():
+                table = tables.getByIndex(index).Name
+                if columns != self._getTableColumns(table):
                     similar = False
                     break
         return similar, tables.getElementNames()
@@ -989,7 +989,14 @@ class MergerModel(MailModel):
 
     # Table private methods
     def _getTableColumns(self, table):
+        composer = self.Connection.getComposer(TABLE, table)
+        columns = composer.getColumns().getElementNames()
+        return columns
+
+    def _getTableColumns1(self, table):
         table = self.Connection.getTables().getByName(table)
+        mri = createService(self._ctx, 'mytools.Mri')
+        mri.inspect(self.Connection)
         columns = table.getColumns().getElementNames()
         return columns
 

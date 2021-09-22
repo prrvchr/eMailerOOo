@@ -47,8 +47,8 @@ from .page4 import IspdbManager as WizardPage4
 import traceback
 
 
-class IspdbWizard(unohelper.Base,
-                   XWizardController):
+class IspdbController(unohelper.Base,
+                      XWizardController):
     def __init__(self, ctx, wizard, datasource, close):
         self._ctx = ctx
         self._wizard = wizard

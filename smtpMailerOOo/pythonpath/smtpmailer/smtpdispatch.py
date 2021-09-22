@@ -53,8 +53,8 @@ from smtpmailer import g_ispdb_paths
 from smtpmailer import g_merger_page
 from smtpmailer import g_merger_paths
 
-from .ispdb import IspdbWizard
-from .merger import MergerWizard
+from .ispdb import IspdbController
+from .merger import MergerController
 from .sender import SenderModel
 from .sender import SenderManager
 from .spooler import SpoolerManager
@@ -115,7 +115,7 @@ class SmtpDispatch(unohelper.Base,
                 if argument.Name == 'Close':
                     close = argument.Value
             wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
-            controller = IspdbWizard(self._ctx, wizard, self.DataSource, close)
+            controller = IspdbController(self._ctx, wizard, self.DataSource, close)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
@@ -136,7 +136,7 @@ class SmtpDispatch(unohelper.Base,
         try:
             manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
             if manager.execute() == OK:
-                pass
+                manager.save()
             manager.dispose()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -173,11 +173,12 @@ class SmtpDispatch(unohelper.Base,
         try:
             msg = "Wizard Loading ..."
             wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
-            controller = MergerWizard(self._ctx, wizard, self.DataSource)
+            controller = MergerController(self._ctx, wizard, self.DataSource)
             arguments = (g_merger_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
+                controller.save()
                 msg +=  " Merging SMTP email OK..."
             controller.dispose()
             print(msg)

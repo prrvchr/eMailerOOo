@@ -112,6 +112,12 @@ Le chargement de la source de données de l'assistant **Publipostage de courriel
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2_fr.png)
 
+Les captures d'écran suivantes utilisent l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) comme source de données. Si vous utilisez votre propre source de données, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
+
+![smtpMailerOOo screenshot 3](smtpMailerOOo-3_fr.png)
+
+![smtpMailerOOo screenshot 4](smtpMailerOOo-4_fr.png)
+
 ## Historique:
 
 **Ce qui reste à faire:**

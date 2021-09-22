@@ -46,12 +46,15 @@ from .page3 import MergerManager as WizardPage3
 import traceback
 
 
-class MergerWizard(unohelper.Base,
-                   XWizardController):
+class MergerController(unohelper.Base,
+                       XWizardController):
     def __init__(self, ctx, wizard, datasource):
         self._ctx = ctx
         self._wizard = wizard
         self._model = MergerModel(ctx, datasource)
+
+    def save(self):
+        self._model.save()
 
     def dispose(self):
         self._model.dispose()

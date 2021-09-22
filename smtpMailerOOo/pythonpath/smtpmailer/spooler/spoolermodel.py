@@ -36,7 +36,7 @@ from com.sun.star.sdb.CommandType import COMMAND
 from com.sun.star.sdb.CommandType import QUERY
 
 from smtpmailer import GridModel
-from smtpmailer import ColumnModel
+from smtpmailer import GridColumn
 
 from smtpmailer import createService
 from smtpmailer import getConfiguration
@@ -62,15 +62,15 @@ class SpoolerModel(unohelper.Base):
         self._diposed = False
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
-        self._column = ColumnModel(ctx)
         self._rowset = self._getRowSet()
         self._composer = None
         self._configuration = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Title': 'SpoolerDialog.Title',
                            'State': 'SpoolerDialog.Label2.Label.%s',
-                           'TabTitle': 'SpoolerTab%s.Title',
-                           'GridColumn': 'SpoolerTab1.Grid1.Column.%s'}
+                           'TabTitle': 'SpoolerTab%s.Title'}
+        resource = 'SpoolerTab1.Grid1.Column.%s'
+        self._grid = GridColumn(ctx, self._rowset, resource, 'SpoolerGridColumns', 8)
 
     @property
     def DataSource(self):
@@ -93,7 +93,9 @@ class SpoolerModel(unohelper.Base):
         self._composer = self._getQueryComposer(command)
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = command
-        titles = self._getQueryColumnTitles()
+        # TODO: GridColumn and GridModel needs a RowSet already executed!!!
+        self.executeRowSet()
+        titles = self._grid.getColumnTitles()
         orders = self._getQueryOrder()
         initView(titles, orders)
 
@@ -101,10 +103,10 @@ class SpoolerModel(unohelper.Base):
     def isDisposed(self):
         return self._diposed
 
-    def getGridModels(self, titles, width):
+    def getGridModels(self):
+        # TODO: GridModel needs a RowSet already executed!!!
         data = GridModel(self._rowset)
-        widths = self._getColumnsWidth()
-        column = self._column.getModel(self._rowset, widths, titles, width, 2)
+        column = self._grid.getColumnModel()
         return data, column
 
     def getDialogTitle(self):
@@ -126,14 +128,11 @@ class SpoolerModel(unohelper.Base):
         self.DataSource.dispose()
 
     def save(self):
-        widths = self._column.getWidths()
-        self._saveGridColumn(widths)
-        command = self._composer.getQuery()
-        self._saveQueryCommand(command)
-        self._configuration.commitChanges()
+        self._grid.saveColumnwidths()
+        self._saveQueryCommand()
 
     def setGridColumnModel(self, titles, reset):
-        self._column.setModel(self._rowset, titles, reset)
+        self._grid.setColumnModel(titles, reset)
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
@@ -197,31 +196,12 @@ class SpoolerModel(unohelper.Base):
     def _getQueryOrder(self):
         return self._composer.getOrderColumns().createEnumeration()
 
-    def _getQueryColumnTitles(self):
-        columns = self._composer.getColumns().getElementNames()
-        titles = self._getColumnTitles(columns)
-        return titles
-
-    def _getColumnTitles(self, columns):
-        titles = OrderedDict()
-        for column in columns:
-            resource = self._resources.get('GridColumn') % column
-            titles[column] = self._resolver.resolveString(resource)
-        return titles
-
     def _getQueryCommand(self):
         command = self._configuration.getByName('SpoolerQueryCommand')
         return command
 
-    def _getColumnsWidth(self):
-        columns = self._configuration.getByName('SpoolerGridColumns')
-        widths = json.loads(columns, object_pairs_hook=OrderedDict)
-        return widths
-
 # SpoolerModel private setter methods
-    def _saveGridColumn(self, widths):
-        columns = json.dumps(widths)
-        self._configuration.replaceByName('SpoolerGridColumns', columns)
-
-    def _saveQueryCommand(self, command):
+    def _saveQueryCommand(self):
+        command = self._composer.getQuery()
         self._configuration.replaceByName('SpoolerQueryCommand', command)
+        self._configuration.commitChanges()

@@ -87,8 +87,8 @@ class SpoolerManager(unohelper.Base):
     def getDialogTitle(self):
         return self._model.getDialogTitle()
 
-    def getGridModels(self, titles, width):
-        return self._model.getGridModels(titles, width)
+    def getGridModels(self):
+        return self._model.getGridModels()
 
 # SpoolerManager setter method
     def started(self):
@@ -103,15 +103,17 @@ class SpoolerManager(unohelper.Base):
     def initView(self, titles, orders):
         with self._lock:
             if not self._model.isDisposed():
-                # TODO: Attention: order is very important here
-                # TODO: to have fonctionnal columns in the GridColumnModel
-                self._view.initGrid(self, titles)
-                self._model.executeRowSet()
+                # TODO: Warning: RowSet must already be executed
+                # TODO: to have functional columns in the GridColumnModel
+                self._view.initGrid(self)
                 self._view.initColumnsList(titles)
                 self._enabled = False
                 self._view.initOrdersList(titles, orders)
                 self._enabled = True
                 self._view.initButtons()
+
+    def save(self):
+        self._model.save()
 
     def dispose(self):
         with self._lock:

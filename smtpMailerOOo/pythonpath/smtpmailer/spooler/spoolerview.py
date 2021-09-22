@@ -61,6 +61,7 @@ class SpoolerView(unohelper.Base):
         self._tab2.setVisible(True)
         title = manager.getDialogTitle()
         self._dialog.setTitle(title)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
 
 # SpoolerView getter methods
     def execute(self):
@@ -68,10 +69,6 @@ class SpoolerView(unohelper.Base):
 
     def getParent(self):
         return self._dialog.getPeer()
-
-    def getGridWidth(self):
-        width = self._getGrid().Model.Width
-        return width
 
     def getGridRows(self):
         rows = ()
@@ -85,10 +82,9 @@ class SpoolerView(unohelper.Base):
         return ascending
 
 # SpoolerView setter methods
-    def initGrid(self, manager, titles):
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
-        data, column = manager.getGridModels(titles, rectangle.Width)
-        grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
+    def initGrid(self, manager):
+        data, column = manager.getGridModels()
+        grid = self._createGrid(self._tab1, data, column, 'Grid1')
         handler = GridHandler(manager)
         grid.addSelectionListener(handler)
 
@@ -219,19 +215,19 @@ class SpoolerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[id]
 
-    def _createGrid(self, page, data, column, name, rectangle):
-        model = self._getGridModel(page, data, column, name, rectangle)
+    def _createGrid(self, page, data, column, name):
+        model = self._getGridModel(page, data, column, name)
         page.Model.insertByName(name, model)
         return page.getControl(name)
 
-    def _getGridModel(self, page, data, column, name, rectangle):
+    def _getGridModel(self, page, data, column, name):
         service = 'com.sun.star.awt.grid.UnoControlGridModel'
         model = page.Model.createInstance(service)
         model.Name = name
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Height = rectangle.Height
-        model.Width = rectangle.Width
+        model.PositionX = self._rectangle.X
+        model.PositionY = self._rectangle.Y
+        model.Height = self._rectangle.Height
+        model.Width = self._rectangle.Width
         model.GridDataModel = data
         model.ColumnModel = column
         model.SelectionModel = MULTI

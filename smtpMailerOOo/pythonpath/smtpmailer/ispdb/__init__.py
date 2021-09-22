@@ -27,5 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .ispdbwizard import IspdbWizard
+from .ispdbcontroller import IspdbController
 from .ispdbmodel import IspdbModel

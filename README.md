@@ -112,6 +112,14 @@ The datasource load for the **Email merging** wizard should appear:
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2.png)
 
+The following screenshots use the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
+
+![smtpMailerOOo screenshot 3](smtpMailerOOo-3.png)
+
+
+![smtpMailerOOo screenshot 4](smtpMailerOOo-4.png)
+
+
 ## Historical:
 
 What remains to be done:

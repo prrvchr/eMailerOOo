@@ -55,6 +55,9 @@ class GridModel(unohelper.Base,
         if rowset is not None:
             handler = GridHandler(self)
             rowset.addRowSetListener(handler)
+            resultset = rowset.createResultSet()
+            if resultset is not None:
+                self._setRowSetData(rowset, resultset)
 
 # XWeak
     def queryAdapter(self):
@@ -130,7 +133,12 @@ class GridModel(unohelper.Base,
 
 # GridModel setter methods
     def setRowSetData(self, rowset):
-        self._resultset = rowset.createResultSet()
+        resultset = rowset.createResultSet()
+        self._setRowSetData(rowset, resultset)
+
+# GridModel private methods
+    def _setRowSetData(self, rowset, resultset):
+        self._resultset = resultset
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
         self.ColumnCount = rowset.getMetaData().getColumnCount()
@@ -145,7 +153,6 @@ class GridModel(unohelper.Base,
         elif self.RowCount > 0:
             self._changeData(0, rowcount -1)
 
-# GridModel private methods
     def _removeRow(self, firstrow, lastrow):
         event = self._getGridDataEvent(firstrow, lastrow)
         previous = None

@@ -63,7 +63,7 @@ class MergerManager(unohelper.Base,
         address = AddressHandler(self)
         recipient = RecipientHandler(self)
         print("mergerManager.__init__() 2")
-        self._model.initGrid(address, recipient, self.initGrid1, self.initGrid2)
+        self._model.initGrid(table, address, recipient, self.initGrid1, self.initGrid2)
         print("mergerManager.__init__() 3")
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
@@ -107,18 +107,24 @@ class MergerManager(unohelper.Base,
         return advance
 
 # MergerManager getter methods
-    def getGridModel(self, tab, width, factor):
-        return self._model.getGridModel(tab, width, factor)
+    def getGridModels(self, tab):
+        return self._model.getGridModels(tab)
 
     def getTabTitle(self, tab):
         return self._model.getTabTitle(tab)
 
 # MergerManager setter methods
-    def initGrid1(self, columns, orders):
-        self._view.updateColumn1(columns, orders)
+    def initGrid1(self, titles, orders):
+        self._view.initGrid1(self)
+        self._view.initColumn1(titles)
+        self._disableHandler()
+        self._view.initOrder1(titles, orders)
 
-    def initGrid2(self, columns, orders):
-        self._view.updateColumn2(columns, orders)
+    def initGrid2(self, titles, orders):
+        self._view.initGrid2(self)
+        self._view.initColumn2(titles)
+        self._disableHandler()
+        self._view.initOrder2(titles, orders)
 
     def setAddressTable(self, table):
         self._model.setAddressTable(table)

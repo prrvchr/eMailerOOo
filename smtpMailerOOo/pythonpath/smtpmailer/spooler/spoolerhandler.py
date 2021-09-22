@@ -90,10 +90,6 @@ class Tab1Handler(unohelper.Base,
                         titles[name] = title
                 else:
                     reset = True
-                    for position in range(control.getItemCount()):
-                        name = control.Model.getItemData(position)
-                        title = control.Model.getItemText(position)
-                        titles[name] = title
                 self._manager.setGridColumnModel(titles, reset)
                 handled = True
             elif method == 'ChangeOrder':

@@ -27,4 +27,4 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .mergerwizard import MergerWizard
+from .mergercontroller import MergerController

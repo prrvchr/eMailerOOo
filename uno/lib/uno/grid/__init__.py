@@ -28,4 +28,4 @@
 """
 
 from .gridmodel import GridModel
-from .columnmodel import ColumnModel
+from .gridcolumn import GridColumn

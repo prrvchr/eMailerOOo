@@ -99,7 +99,7 @@ from .dbqueries import getSqlQuery
 from .unolib import KeyMap
 
 from .grid import GridModel
-from .grid import ColumnModel
+from .grid import GridColumn
 
 from .mail import MailModel
 from .mail import MailManager

@@ -59,19 +59,9 @@ class MergerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
-        data, column = manager.getGridModel(1, rectangle.Width, 2)
-        grid = self._createGrid(self._tab1, data, column, 'Grid1', rectangle)
-        handler = Grid1Handler(manager)
-        grid.addSelectionListener(handler)
-        data, column = manager.getGridModel(2, rectangle.Width, 2)
-        grid = self._createGrid(self._tab2, data, column, 'Grid1', rectangle)
-        handler = Grid2Handler(manager)
-        grid.addSelectionListener(handler)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
         self._initTables(tables, enabled)
         self.setMessage(message)
-        #self._getTable().Model.StringItemList = tables
-        print("MergerView.__init__()")
 
 # MergerView getter methods
     def getWindow(self):
@@ -101,6 +91,18 @@ class MergerView(unohelper.Base):
         return rows
 
 # MergerView setter methods
+    def initGrid1(self, manager):
+        data, column = manager.getGridModels(1)
+        grid = self._createGrid(self._tab1, data, column, 'Grid1')
+        handler = Grid1Handler(manager)
+        grid.addSelectionListener(handler)
+
+    def initGrid2(self, manager):
+        data, column = manager.getGridModels(2)
+        grid = self._createGrid(self._tab2, data, column, 'Grid2')
+        handler = Grid2Handler(manager)
+        grid.addSelectionListener(handler)
+
     def setTable(self, table):
         self._getTable().selectItem(table, True)
 
@@ -115,8 +117,10 @@ class MergerView(unohelper.Base):
         control.Model.StringItemList = tables
         control.Model.Enabled = enabled
 
-    def updateColumn1(self, columns, orders):
+    def initColumn1(self, columns):
         self._getAddressColumn().Model.StringItemList = columns
+
+    def initOrder1(self, columns, orders):
         control = self._getAddressOrder()
         control.Model.StringItemList = columns
         while orders.hasMoreElements():
@@ -124,8 +128,10 @@ class MergerView(unohelper.Base):
             index = columns.index(column.Name)
             control.selectItemPos(index, True)
 
-    def updateColumn2(self, columns, orders):
+    def initColumn2(self, columns):
         self._getRecipientColumn().Model.StringItemList = columns
+
+    def initOrder2(self, columns, orders):
         control = self._getRecipientOrder()
         control.Model.StringItemList = columns
         while orders.hasMoreElements():
@@ -217,19 +223,19 @@ class MergerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[i]
 
-    def _createGrid(self, page, data, column, name, rectangle):
-        model = self._getGridModel(page, data, column, name, rectangle)
+    def _createGrid(self, page, data, column, name):
+        model = self._getGridModel(page, data, column, name)
         page.Model.insertByName(name, model)
         return page.getControl(name)
 
-    def _getGridModel(self, page, data, column, name, rectangle):
+    def _getGridModel(self, page, data, column, name):
         service = 'com.sun.star.awt.grid.UnoControlGridModel'
         model = page.Model.createInstance(service)
         model.Name = name
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Height = rectangle.Height
-        model.Width = rectangle.Width
+        model.PositionX = self._rectangle.X
+        model.PositionY = self._rectangle.Y
+        model.Height = self._rectangle.Height
+        model.Width = self._rectangle.Width
         model.GridDataModel = data
         model.ColumnModel = column
         model.SelectionModel = MULTI

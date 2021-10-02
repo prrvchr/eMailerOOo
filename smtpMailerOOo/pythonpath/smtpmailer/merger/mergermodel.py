@@ -184,8 +184,11 @@ class MergerModel(MailModel):
         print("MergerModel.save() 1")
         if self._grid1 is not None:
             self._grid1.saveColumnWidths()
+            query = self._getSubQueryName(self._query)
+            self._saveOrders(self._subcomposer, self._address, query)
         if self._grid2 is not None:
             self._grid2.saveColumnWidths()
+            self._saveOrders(self._composer, self._recipient, self._query)
         print("MergerModel.save() 2")
 
 # Procedures called by WizardPage1
@@ -339,9 +342,9 @@ class MergerModel(MailModel):
     def setQuery(self, query):
         subquery = self._getSubQueryName(query)
         self._recipient.Command = subquery
-        self._setComposerCommand(query, self._composer)
+        self._setComposerCommand(self._composer, query)
         self._setRowSet(self._recipient, self._composer)
-        self._setComposerCommand(subquery, self._subcomposer)
+        self._setComposerCommand(self._subcomposer, subquery)
         self._setRowSet(self._address, self._subcomposer)
         table = self._getSubComposerTable()
         return table
@@ -362,8 +365,8 @@ class MergerModel(MailModel):
     def _getSubQueryName(self, query):
         return self._prefix + query
 
-    def _setComposerCommand(self, name, composer):
-        command = self._queries.getByName(name).Command
+    def _setComposerCommand(self, composer, query):
+        command = self._queries.getByName(query).Command
         composer.setQuery(command)
 
     def _addSubQuery(self, name, table):
@@ -887,6 +890,12 @@ class MergerModel(MailModel):
 
     def _setRowSetOrder(self, rowset, composer):
         rowset.Order = composer.getOrder()
+
+    def _saveOrders(self, composer, rowset, query):
+        composer.setOrder(rowset.Order)
+        self._queries.getByName(query).Command = composer.getQuery()
+        self._addressbook.DatabaseDocument.store()
+        print("MergerModel._saveOrders() : %s" % composer.getQuery())
 
 # MergerModel StringRessoure methods
     def getPageStep(self, pageid):

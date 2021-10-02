@@ -116,8 +116,7 @@ class SpoolerModel(unohelper.Base):
 
     def save(self):
         self._grid.saveColumnWidths()
-        orders = self._grid.getOrders()
-        self._configuration.replaceByName('SpoolerOrders', orders)
+        self._configuration.replaceByName('SpoolerOrders', self._rowset.Order)
         self._configuration.commitChanges()
 
     def removeRows(self, rows):

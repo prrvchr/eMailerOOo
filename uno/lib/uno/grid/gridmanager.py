@@ -40,8 +40,8 @@ from ..dbtool import isSimilar
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
-from .gridview import GridView
 from .griddata import GridData
+from .gridview import GridView
 
 import json
 from threading import Thread
@@ -81,19 +81,10 @@ class GridManager(unohelper.Base):
     def getSelectedRows(self):
         return self._view.getSelectedRows()
 
-    def getColumnModel(self):
-        return self._model
-
-    def getOrders(self):
-        return self._composer.Order
-
 # GridManager setter methods
     def dispose(self):
         self._model.dispose()
         self._grid.dispose()
-
-    def setSimilar(self, similar):
-        self._similar = similar
 
     def addSelectionListener(self, listener):
         self._view.getGrid().addSelectionListener(listener)
@@ -234,9 +225,6 @@ class GridManager(unohelper.Base):
         self._view.initColumns(self._url, self._columns, identifiers)
         orders = self._composer.getOrderColumns().createEnumeration()
         self._view.initOrders(self._url, self._columns, orders)
-
-    def _getColumnCount(self):
-        return len(self._columns)
 
     def _initModel(self, widths, identifiers):
         # TODO: ColumnWidth should be assigned after all columns have 

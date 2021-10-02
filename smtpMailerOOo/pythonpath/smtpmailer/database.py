@@ -93,8 +93,7 @@ class DataBase(unohelper.Base):
             else:
                 self._path = None
             odb = self._url + '.odb'
-            sf = getSimpleFile(ctx)
-            exist = sf.exists(odb)
+            exist = getSimpleFile(ctx).exists(odb)
             print("smtpMailer.DataBase.__init__() 3")
             if not exist:
                 print("smtpMailer.DataBase.__init__() 4")

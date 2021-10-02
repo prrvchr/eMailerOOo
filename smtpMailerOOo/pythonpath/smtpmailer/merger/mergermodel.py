@@ -593,12 +593,12 @@ class MergerModel(MailModel):
         loaded = self._name != name
         changed = False if self._similar else self._table != table
         self._changed = loaded or changed
-        if self._name is not None:
-            print("MergerModel.commitPage1() ***************************")
+        if self._isPage2Loaded():
             # TODO: This will only be executed if WizardPage2 has already been loaded
+            print("MergerModel.commitPage1() ***************************")
             if self._changed:
                 self._grid1.saveColumnWidths()
-                self._grid1.saveColumnWidths()
+                self._grid2.saveColumnWidths()
             self._table = table
             if self._subcommand != subcommand:
                 if not changed:
@@ -634,6 +634,9 @@ class MergerModel(MailModel):
         rowset.Command = self._table
         rowset.execute()
         self._resultset = rowset.createResultSet()
+
+    def _isPage2Loaded(self):
+        return self._grid2 is not None
 
 # Procedures called by WizardPage2
     def getPageInfos(self, init=False):

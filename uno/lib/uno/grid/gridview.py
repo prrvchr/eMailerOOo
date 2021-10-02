@@ -152,7 +152,6 @@ class GridView(unohelper.Base):
 
     def _setWindow(self, possize, step):
         model = self._window.Model
-        width = model.Width
         model.PositionX = possize.X
         model.PositionY = possize.Y
         model.Height = possize.Height

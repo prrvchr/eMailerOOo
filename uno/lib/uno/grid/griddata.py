@@ -37,27 +37,21 @@ from com.sun.star.awt.grid import XMutableGridDataModel
 
 from ..dbtool import getValueFromResult
 
-from .gridhandler import GridHandler
+from .gridhandler import RowSetListener
 
 import traceback
 
 
-class GridModel(unohelper.Base,
-                XWeak,
-                XAdapter,
-                XMutableGridDataModel):
-    def __init__(self, rowset=None):
+class GridData(unohelper.Base,
+               XWeak,
+               XAdapter,
+               XMutableGridDataModel):
+    def __init__(self):
         self._events = []
         self._listeners = []
         self._resultset = None
         self.RowCount = 0
         self.ColumnCount = 0
-        if rowset is not None:
-            handler = GridHandler(self)
-            rowset.addRowSetListener(handler)
-            resultset = rowset.createResultSet()
-            if resultset is not None:
-                self._setRowSetData(rowset, resultset)
 
 # XWeak
     def queryAdapter(self):
@@ -78,7 +72,7 @@ class GridModel(unohelper.Base,
 # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
-        return getValueFromResult(self._resultset, column +1)
+        return  getValueFromResult(self._resultset, column +1)
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
     def getRowHeading(self, row):
@@ -133,12 +127,7 @@ class GridModel(unohelper.Base,
 
 # GridModel setter methods
     def setRowSetData(self, rowset):
-        resultset = rowset.createResultSet()
-        self._setRowSetData(rowset, resultset)
-
-# GridModel private methods
-    def _setRowSetData(self, rowset, resultset):
-        self._resultset = resultset
+        self._resultset = rowset.createResultSet()
         rowcount = self.RowCount
         self.RowCount = rowset.RowCount
         self.ColumnCount = rowset.getMetaData().getColumnCount()
@@ -153,6 +142,7 @@ class GridModel(unohelper.Base,
         elif self.RowCount > 0:
             self._changeData(0, rowcount -1)
 
+# GridModel private methods
     def _removeRow(self, firstrow, lastrow):
         event = self._getGridDataEvent(firstrow, lastrow)
         previous = None

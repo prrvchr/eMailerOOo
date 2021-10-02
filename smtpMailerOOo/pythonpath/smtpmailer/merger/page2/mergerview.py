@@ -39,8 +39,6 @@ from smtpmailer import g_extension
 
 from .mergerhandler import Tab1Handler
 from .mergerhandler import Tab2Handler
-from .mergerhandler import Grid1Handler
-from .mergerhandler import Grid2Handler
 
 import traceback
 
@@ -59,50 +57,24 @@ class MergerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 275, 130)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 2, 25, 277, 152)
         self._initTables(tables, enabled)
         self.setMessage(message)
 
 # MergerView getter methods
+    def getGridParents(self):
+        return self._tab1.getPeer(), self._tab2.getPeer()
+
+    def getGridPosSize(self):
+        return self._rectangle
+
     def getWindow(self):
         return self._window
 
-    # Table getter methods
     def getTable(self):
         return self._getTable().getSelectedItem()
 
-    # Address getter methods
-    def getAddressSort(self):
-        state = self._getAddressSort().Model.State
-        return not bool(state)
-
-    def getSelectedAddress(self):
-        return self._getAddress().getSelectedRows()
-
-    # Recipient getter methods
-    def getRecipientSort(self):
-        state = self._getRecipientSort().Model.State
-        return not bool(state)
-
-    def getSelectedRecipient(self):
-        control = self._getRecipient()
-        rows = control.getSelectedRows()
-        control.deselectAllRows()
-        return rows
-
 # MergerView setter methods
-    def initGrid1(self, manager):
-        data, column = manager.getGridModels(1)
-        grid = self._createGrid(self._tab1, data, column, 'Grid1')
-        handler = Grid1Handler(manager)
-        grid.addSelectionListener(handler)
-
-    def initGrid2(self, manager):
-        data, column = manager.getGridModels(2)
-        grid = self._createGrid(self._tab2, data, column, 'Grid2')
-        handler = Grid2Handler(manager)
-        grid.addSelectionListener(handler)
-
     def setTable(self, table):
         self._getTable().selectItem(table, True)
 
@@ -111,33 +83,6 @@ class MergerView(unohelper.Base):
         control.Model.StringItemList = tables
         control.selectItem(table, True)
         control.Model.Enabled = enabled
-
-    def _initTables(self, tables, enabled):
-        control = self._getTable()
-        control.Model.StringItemList = tables
-        control.Model.Enabled = enabled
-
-    def initColumn1(self, columns):
-        self._getAddressColumn().Model.StringItemList = columns
-
-    def initOrder1(self, columns, orders):
-        control = self._getAddressOrder()
-        control.Model.StringItemList = columns
-        while orders.hasMoreElements():
-            column = orders.nextElement()
-            index = columns.index(column.Name)
-            control.selectItemPos(index, True)
-
-    def initColumn2(self, columns):
-        self._getRecipientColumn().Model.StringItemList = columns
-
-    def initOrder2(self, columns, orders):
-        control = self._getRecipientOrder()
-        control.Model.StringItemList = columns
-        while orders.hasMoreElements():
-            column = orders.nextElement()
-            index = columns.index(column.Name)
-            control.selectItemPos(index, True)
 
     def enableAdd(self, enabled):
         self._getAdd().Model.Enabled = enabled
@@ -158,41 +103,17 @@ class MergerView(unohelper.Base):
     def _getTable(self):
         return self._tab1.getControl('ListBox1')
 
-    def _getAddressColumn(self):
-        return self._tab1.getControl('ListBox2')
-
-    def _getAddressOrder(self):
-        return self._tab1.getControl('ListBox3')
-
-    def _getAddress(self):
-        return self._tab1.getControl('Grid1')
-
     def _getAddAll(self):
         return self._tab1.getControl('CommandButton1')
 
     def _getAdd(self):
         return self._tab1.getControl('CommandButton2')
 
-    def _getAddressSort(self):
-        return self._tab1.getControl('CheckBox1')
-
-    def _getRecipientColumn(self):
-        return self._tab2.getControl('ListBox1')
-
-    def _getRecipientOrder(self):
-        return self._tab2.getControl('ListBox2')
-
-    def _getRecipient(self):
-        return self._tab2.getControl('Grid1')
-
     def _getRemoveAll(self):
         return self._tab2.getControl('CommandButton1')
 
     def _getRemove(self):
         return self._tab2.getControl('CommandButton2')
-
-    def _getRecipientSort(self):
-        return self._tab2.getControl('CheckBox1')
 
     def _getMessage(self):
         return self._tab2.getControl('Label1')
@@ -223,23 +144,7 @@ class MergerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[i]
 
-    def _createGrid(self, page, data, column, name):
-        model = self._getGridModel(page, data, column, name)
-        page.Model.insertByName(name, model)
-        return page.getControl(name)
-
-    def _getGridModel(self, page, data, column, name):
-        service = 'com.sun.star.awt.grid.UnoControlGridModel'
-        model = page.Model.createInstance(service)
-        model.Name = name
-        model.PositionX = self._rectangle.X
-        model.PositionY = self._rectangle.Y
-        model.Height = self._rectangle.Height
-        model.Width = self._rectangle.Width
-        model.GridDataModel = data
-        model.ColumnModel = column
-        model.SelectionModel = MULTI
-        model.ShowColumnHeader = True
-        #model.ShowRowHeader = True
-        model.BackgroundColor = 16777215
-        return model
+    def _initTables(self, tables, enabled):
+        control = self._getTable()
+        control.Model.StringItemList = tables
+        control.Model.Enabled = enabled

@@ -62,8 +62,6 @@ class DialogHandler(unohelper.Base,
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
-
-
     def getSupportedMethodNames(self):
         return ('ToogleSpooler',
                 'Close')
@@ -78,31 +76,7 @@ class Tab1Handler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'ChangeColumn':
-                titles = OrderedDict()
-                control = event.Source
-                positions = control.getSelectedItemsPos()
-                if positions:
-                    reset = False
-                    for position in positions:
-                        name = control.Model.getItemData(position)
-                        title = control.Model.getItemText(position)
-                        titles[name] = title
-                else:
-                    reset = True
-                self._manager.setGridColumnModel(titles, reset)
-                handled = True
-            elif method == 'ChangeOrder':
-                if self._manager.HandlerEnabled:
-                    orders = []
-                    control = event.Source
-                    positions = control.getSelectedItemsPos()
-                    for position in positions:
-                        order = control.Model.getItemData(position)
-                        orders.append(order)
-                    self._manager.changeOrder(orders)
-                handled = True
-            elif method == 'Add':
+            if method == 'Add':
                 self._manager.addDocument()
                 handled = True
             elif method == 'Remove':
@@ -114,9 +88,7 @@ class Tab1Handler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeColumn',
-                'ChangeOrder',
-                'Add',
+        return ('Add',
                 'Remove')
 
 
@@ -139,20 +111,6 @@ class Tab2Handler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('ClearLog',
                 'RefreshLog')
-
-
-class GridHandler(unohelper.Base,
-                  XGridSelectionListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XGridSelectionListener
-    def selectionChanged(self, event):
-        enabled = event.Source.hasSelectedRows()
-        self._manager.toogleRemove(enabled)
-
-    def disposing(self, source):
-        pass
 
 
 class DispatchListener(unohelper.Base,

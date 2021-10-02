@@ -40,7 +40,6 @@ from smtpmailer import g_extension
 from .spoolerhandler import DialogHandler
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
-from .spoolerhandler import GridHandler
 
 
 class SpoolerView(unohelper.Base):
@@ -61,7 +60,7 @@ class SpoolerView(unohelper.Base):
         self._tab2.setVisible(True)
         title = manager.getDialogTitle()
         self._dialog.setTitle(title)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 4, 25, 390, 130)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 2, 25, 392, 132)
 
 # SpoolerView getter methods
     def execute(self):
@@ -70,38 +69,14 @@ class SpoolerView(unohelper.Base):
     def getParent(self):
         return self._dialog.getPeer()
 
-    def getGridRows(self):
-        rows = ()
-        control = self._getGrid()
-        if control.hasSelectedRows():
-            rows = control.getSelectedRows()
-        return rows
+    def getGridParent(self):
+        return self._tab1.getPeer()
 
-    def getSortDirection(self):
-        ascending = not bool(self._getSortDirection().Model.State)
-        return ascending
+    def getGridPosSize(self):
+        return self._rectangle
 
 # SpoolerView setter methods
-    def initGrid(self, manager):
-        data, column = manager.getGridModels()
-        grid = self._createGrid(self._tab1, data, column, 'Grid1')
-        handler = GridHandler(manager)
-        grid.addSelectionListener(handler)
-
-    def initColumnsList(self, columns):
-        control = self.getColumnsList()
-        self._initListBox(control, columns)
-
-    def initOrdersList(self, columns, orders):
-        control = self.getOrdersList()
-        self._initListBox(control, columns)
-        items = control.Model.StringItemList
-        while orders.hasMoreElements():
-            column = orders.nextElement()
-            index = items.index(columns[column.Name])
-            control.selectItemPos(index, True)
-
-    def initButtons(self):
+    def initView(self):
         self._enableButtonStartSpooler(True)
         self._enableButtonCancel(True)
         self._enableButtonClose(True)
@@ -118,14 +93,6 @@ class SpoolerView(unohelper.Base):
 
     def dispose(self):
         self._dialog.dispose()
-        #self._tab1.dispose()
-        #self._tab2.dispose()
-        #self._dialog = None
-        #self._tab1 = None
-        #self._tab2 = None
-
-    def showGridColumnHeader(self, enabled):
-        self._getGrid().Model.ShowColumnHeader = enabled
 
     def refreshLog(self, text, length):
         control = self._getActivityLog()
@@ -136,13 +103,6 @@ class SpoolerView(unohelper.Base):
         control.setSelection(selection)
 
 # SpoolerView private setter methods
-    def _initListBox(self, control, columns):
-        index = 0
-        for column, name in columns.items():
-            control.Model.insertItemText(index, name)
-            control.Model.setItemData(index, column)
-            index += 1
-
     def _enableButtonStartSpooler(self, enabled):
         self._getButtonStartSpooler().Model.Enabled = enabled
 
@@ -165,12 +125,6 @@ class SpoolerView(unohelper.Base):
     def _getButtonClose(self):
         return self._dialog.getControl('CommandButton3')
 
-    def _getGrid(self):
-        return self._tab1.getControl('Grid1')
-
-    def _getSortDirection(self):
-        return self._tab1.getControl('CheckBox1')
-
     def _getButtonAdd(self):
         return self._tab1.getControl('CommandButton1')
 
@@ -179,12 +133,6 @@ class SpoolerView(unohelper.Base):
 
     def _getLabelState(self):
         return self._dialog.getControl('Label2')
-
-    def getColumnsList(self):
-        return self._tab1.getControl('ListBox1')
-
-    def getOrdersList(self):
-        return self._tab1.getControl('ListBox2')
 
     def _getActivityLog(self):
         return self._tab2.getControl('TextField1')
@@ -214,24 +162,3 @@ class SpoolerView(unohelper.Base):
         index = model.getCount()
         model.insertByIndex(index, page)
         return tab.getControls()[id]
-
-    def _createGrid(self, page, data, column, name):
-        model = self._getGridModel(page, data, column, name)
-        page.Model.insertByName(name, model)
-        return page.getControl(name)
-
-    def _getGridModel(self, page, data, column, name):
-        service = 'com.sun.star.awt.grid.UnoControlGridModel'
-        model = page.Model.createInstance(service)
-        model.Name = name
-        model.PositionX = self._rectangle.X
-        model.PositionY = self._rectangle.Y
-        model.Height = self._rectangle.Height
-        model.Width = self._rectangle.Width
-        model.GridDataModel = data
-        model.ColumnModel = column
-        model.SelectionModel = MULTI
-        model.ShowColumnHeader = True
-        #model.ShowRowHeader = True
-        model.BackgroundColor = 16777215
-        return model

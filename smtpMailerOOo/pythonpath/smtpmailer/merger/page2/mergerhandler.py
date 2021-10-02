@@ -31,10 +31,8 @@ import uno
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.sdbc import XRowSetListener
 
-from collections import OrderedDict
 import traceback
 
 
@@ -55,28 +53,6 @@ class Tab1Handler(unohelper.Base,
                     table = control.getSelectedItem()
                     self._manager.setAddressTable(table)
                 handled = True
-            elif method == 'ChangeAddressColumn':
-                titles = OrderedDict()
-                control = event.Source
-                positions = control.getSelectedItemsPos()
-                if positions:
-                    reset = False
-                    for position in positions:
-                        title = control.Model.getItemText(position)
-                        titles[title] = title
-                else:
-                    reset = True
-                self._manager.setAddressColumn(titles, reset)
-                handled = True
-            elif method == 'ChangeAddressOrder':
-                orders = []
-                control = event.Source
-                positions = control.getSelectedItemsPos()
-                for position in positions:
-                    order = control.Model.getItemText(position)
-                    orders.append(order)
-                self._manager.setAddressOrder(orders)
-                handled = True
             elif method == 'Add':
                 self._manager.addItem()
                 handled = True
@@ -90,8 +66,6 @@ class Tab1Handler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('ChangeAddressTable',
-                'ChangeAddressColumn',
-                'ChangeAddressOrder',
                 'Add',
                 'AddAll')
 
@@ -106,29 +80,7 @@ class Tab2Handler(unohelper.Base,
         try:
             handled = False
             # TODO: During WizardPage initialization the listener must be disabled...
-            if method == 'ChangeRecipientColumn':
-                titles = OrderedDict()
-                control = event.Source
-                positions = control.getSelectedItemsPos()
-                if positions:
-                    reset = False
-                    for position in positions:
-                        title = control.Model.getItemText(position)
-                        titles[title] = title
-                else:
-                    reset = True
-                self._manager.setRecipientColumn(titles, reset)
-                handled = True
-            elif method == 'ChangeRecipientOrder':
-                orders = []
-                control = event.Source
-                positions = control.getSelectedItemsPos()
-                for position in positions:
-                    order = control.Model.getItemText(position)
-                    orders.append(order)
-                self._manager.setRecipientOrder(orders)
-                handled = True
-            elif method == 'Remove':
+            if method == 'Remove':
                 self._manager.removeItem()
                 handled = True
             elif method == 'RemoveAll':
@@ -140,50 +92,8 @@ class Tab2Handler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeRecipientColumn',
-                'ChangeRecipientOrder',
-                'Remove',
+        return ('Remove',
                 'RemoveAll')
-
-
-class Grid1Handler(unohelper.Base,
-                   XGridSelectionListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XGridSelectionListener
-    def selectionChanged(self, event):
-        try:
-            control = event.Source
-            selected = control.hasSelectedRows()
-            index = control.getSelectedRows()[0] if selected else -1
-            self._manager.changeGrid1Selection(selected, index)
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-
-    def disposing(self, event):
-        pass
-
-
-class Grid2Handler(unohelper.Base,
-                   XGridSelectionListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XGridSelectionListener
-    def selectionChanged(self, event):
-        try:
-            control = event.Source
-            selected = control.hasSelectedRows()
-            index = control.getSelectedRows()[0] if selected else -1
-            self._manager.changeGrid2Selection(selected, index)
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-
-    def disposing(self, event):
-        pass
 
 
 class AddressHandler(unohelper.Base,
@@ -200,8 +110,7 @@ class AddressHandler(unohelper.Base,
         pass
     def rowSetChanged(self, event):
         try:
-            enabled = event.Source.RowCount > 0
-            self._manager.changeAddressRowSet(enabled)
+            self._manager.changeAddressRowSet(event.Source)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
@@ -221,8 +130,7 @@ class RecipientHandler(unohelper.Base,
         pass
     def rowSetChanged(self, event):
         try:
-            enabled = event.Source.RowCount > 0
-            self._manager.changeRecipientRowSet(enabled)
+            self._manager.changeRecipientRowSet(event.Source)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)

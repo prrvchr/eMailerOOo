@@ -64,7 +64,7 @@ class MergerManager(MailManager,
         self._view = MergerView(ctx, self, parent, 2)
         self._model.getSenders(self.initSenders)
         handler = RecipientHandler(self)
-        self._model.initView(handler, self.initView, self.initRecipients)
+        self._model.initPage3(handler, self.initView, self.initRecipients)
 
 # XWizardPage
     @property

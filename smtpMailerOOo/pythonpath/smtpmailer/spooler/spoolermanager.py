@@ -35,6 +35,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpmailer import Pool
 from smtpmailer import LogHandler
+from smtpmailer import GridListener
+from smtpmailer import RowSetListener
 
 from smtpmailer import createService
 from smtpmailer import executeDispatch
@@ -64,13 +66,16 @@ class SpoolerManager(unohelper.Base):
         self._view = SpoolerView(ctx, self, parent)
         service = 'com.sun.star.mail.SpoolerService'
         self._spooler = createService(ctx, service)
-        self._listener = SpoolerListener(self)
-        self._spooler.addListener(self._listener)
+        self._spoolerlistener = SpoolerListener(self)
+        self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
-        self._model.initSpooler(self.initView)
+        parent = self._view.getGridParent()
+        possize = self._view.getGridPosSize()
+        listener = GridListener(self)
+        self._model.initSpooler(possize, parent, listener, self.initView)
         self._logger = Pool(ctx).getLogger('SpoolerLogger')
-        self._handler = LogHandler(ctx, self.refreshLog)
-        self._logger.addLogHandler(self._handler)
+        self._loghandler = LogHandler(ctx, self.refreshLog)
+        self._logger.addLogHandler(self._loghandler)
         self.refreshLog()
 
     @property
@@ -87,10 +92,19 @@ class SpoolerManager(unohelper.Base):
     def getDialogTitle(self):
         return self._model.getDialogTitle()
 
-    def getGridModels(self):
-        return self._model.getGridModels()
-
 # SpoolerManager setter method
+    def initView(self, rowset):
+        with self._lock:
+            if not self._model.isDisposed():
+                rowset.addRowSetListener(RowSetListener(self))
+                self._view.initView()
+
+    def setRowSetData(self, rowset):
+        self._model.setGridData(rowset)
+
+    def changeGridSelection(self, selected, index, grid):
+        self._view.enableButtonRemove(selected)
+
     def started(self):
         self._refreshSpoolerView(1)
 
@@ -100,36 +114,17 @@ class SpoolerManager(unohelper.Base):
         self.refreshLog()
         self._refreshSpoolerView(0)
 
-    def initView(self, titles, orders):
-        with self._lock:
-            if not self._model.isDisposed():
-                # TODO: Warning: RowSet must already be executed
-                # TODO: to have functional columns in the GridColumnModel
-                self._view.initGrid(self)
-                self._view.initColumnsList(titles)
-                self._enabled = False
-                self._view.initOrdersList(titles, orders)
-                self._enabled = True
-                self._view.initButtons()
-
     def save(self):
         self._model.save()
 
     def dispose(self):
         with self._lock:
             print("SpoolerManager.dispose() 1 ***************************")
-            self._spooler.removeListener(self._listener)
-            self._logger.removeLogHandler(self._handler)
+            self._spooler.removeListener(self._spoolerlistener)
+            self._logger.removeLogHandler(self._loghandler)
             self._model.dispose()
             self._view.dispose()
             print("SpoolerManager.dispose() 2 ***************************")
-
-    def setGridColumnModel(self, titles, reset):
-        self._model.setGridColumnModel(titles, reset)
-
-    def changeOrder(self, orders):
-        ascending = self._view.getSortDirection()
-        self._model.setRowSetOrder(orders, ascending)
 
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path,
@@ -142,11 +137,8 @@ class SpoolerManager(unohelper.Base):
         self._model.executeRowSet()
 
     def removeDocument(self):
-        rows = self._view.getGridRows()
+        rows = self._model.getGridSelectedRows()
         self._model.removeRows(rows)
-
-    def toogleRemove(self, enabled):
-        self._view.enableButtonRemove(enabled)
 
     def toogleSpooler(self):
         if self._spooler.isStarted():
@@ -155,7 +147,6 @@ class SpoolerManager(unohelper.Base):
             self._spooler.start()
 
     def closeSpooler(self):
-        self._model.save()
         self._view.endDialog()
 
     def refreshLog(self):

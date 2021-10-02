@@ -39,6 +39,8 @@ from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from smtpmailer import GridListener
+
 from smtpmailer import getMessage
 from smtpmailer import logMessage
 
@@ -60,10 +62,12 @@ class MergerManager(unohelper.Base,
         tables, table, enabled, message = self._model.getPageInfos(True)
         self._view = MergerView(ctx, self, parent, tables, enabled, message)
         print("mergerManager.__init__() 1")
-        address = AddressHandler(self)
-        recipient = RecipientHandler(self)
+        possize = self._view.getGridPosSize()
+        parent1, parent2 = self._view.getGridParents()
+        listener1 = GridListener(self, 1)
+        listener2 = GridListener(self, 2)
         print("mergerManager.__init__() 2")
-        self._model.initGrid(table, address, recipient, self.initGrid1, self.initGrid2)
+        self._model.initPage2(table, possize, parent1, parent2, listener1, listener2, self.initPage)
         print("mergerManager.__init__() 3")
         # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
         self._disableHandler()
@@ -107,63 +111,40 @@ class MergerManager(unohelper.Base,
         return advance
 
 # MergerManager getter methods
-    def getGridModels(self, tab):
-        return self._model.getGridModels(tab)
-
     def getTabTitle(self, tab):
         return self._model.getTabTitle(tab)
 
 # MergerManager setter methods
-    def initGrid1(self, titles, orders):
-        self._view.initGrid1(self)
-        self._view.initColumn1(titles)
-        self._disableHandler()
-        self._view.initOrder1(titles, orders)
+    def initPage(self, rowset1, rowset2):
+        rowset1.addRowSetListener(AddressHandler(self))
+        rowset2.addRowSetListener(RecipientHandler(self))
 
-    def initGrid2(self, titles, orders):
-        self._view.initGrid2(self)
-        self._view.initColumn2(titles)
-        self._disableHandler()
-        self._view.initOrder2(titles, orders)
+    def changeAddressRowSet(self, rowset):
+        self._model.setGrid1Data(rowset)
+        enabled = rowset.RowCount > 0
+        self._view.enableAddAll(enabled)
+
+    def changeRecipientRowSet(self, rowset):
+        self._model.setGrid2Data(rowset)
+        enabled = rowset.RowCount > 0
+        self._view.enableRemoveAll(enabled)
+        self._wizard.updateTravelUI()
 
     def setAddressTable(self, table):
         self._model.setAddressTable(table)
 
-    def changeRecipientRowSet(self, enabled):
-        self._model.changeRecipientRowSet()
-        self._view.enableRemoveAll(enabled)
-        self._wizard.updateTravelUI()
-
-    def changeAddressRowSet(self, enabled):
-        self._model.changeAddressRowSet()
-        self._view.enableAddAll(enabled)
-
-    def setAddressColumn(self, titles, reset):
-        self._model.setAddressColumn(titles, reset)
-
-    def setAddressOrder(self, titles):
-        ascending = self._view.getAddressSort()
-        self._model.setAddressOrder(titles, ascending)
-
-    def setRecipientColumn(self, titles, reset):
-        self._model.setRecipientColumn(titles, reset)
-
-    def setRecipientOrder(self, titles):
-        ascending = self._view.getRecipientSort()
-        self._model.setRecipientOrder(titles, ascending)
-
-    def changeGrid1Selection(self, selected, index):
-        self._view.enableAdd(selected)
-        if index != -1:
-            self._model.setAddressRecord(index)
-
-    def changeGrid2Selection(self, selected, index):
-        self._view.enableRemove(selected)
-        if index != -1:
-            self._model.setRecipientRecord(index)
+    def changeGridSelection(self, selected, index, grid):
+        if grid == 1:
+            self._view.enableAdd(selected)
+            if index != -1:
+                self._model.setAddressRecord(index)
+        elif grid == 2:
+            self._view.enableRemove(selected)
+            if index != -1:
+                self._model.setRecipientRecord(index)
 
     def addItem(self):
-        rows = self._view.getSelectedAddress()
+        rows = self._model.getGrid1SelectedRows()
         self._model.addItem(rows)
 
     def addAllItem(self):
@@ -171,7 +152,7 @@ class MergerManager(unohelper.Base,
         self._model.addItem(rows)
 
     def removeItem(self):
-        rows = self._view.getSelectedRecipient()
+        rows = self._model.getGrid2SelectedRows()
         self._model.removeItem(rows)
 
     def removeAllItem(self):

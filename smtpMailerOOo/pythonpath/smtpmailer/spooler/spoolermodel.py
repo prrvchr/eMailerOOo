@@ -32,11 +32,10 @@ import unohelper
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
-from com.sun.star.sdb.CommandType import COMMAND
-from com.sun.star.sdb.CommandType import QUERY
 
-from smtpmailer import GridModel
-from smtpmailer import GridColumn
+from com.sun.star.sdb.CommandType import TABLE
+
+from smtpmailer import GridManager
 
 from smtpmailer import createService
 from smtpmailer import getConfiguration
@@ -63,14 +62,13 @@ class SpoolerModel(unohelper.Base):
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
         self._rowset = self._getRowSet()
-        self._composer = None
+        self._grid = None
         self._configuration = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Title': 'SpoolerDialog.Title',
                            'State': 'SpoolerDialog.Label2.Label.%s',
                            'TabTitle': 'SpoolerTab%s.Title'}
-        resource = 'SpoolerTab1.Grid1.Column.%s'
-        self._grid = GridColumn(ctx, self._rowset, resource, 'SpoolerGridColumns', 8)
+        self._resource = 'SpoolerTab1.Grid1.Column.%s'
 
     @property
     def DataSource(self):
@@ -83,31 +81,12 @@ class SpoolerModel(unohelper.Base):
     def Path(self, path):
         self._path = path
 
-# SpoolerModel threaded callback methods
-    def initSpooler(self, *args):
-        Thread(target=self._initSpooler, args=args).start()
-
-    def _initSpooler(self, initView):
-        self.DataSource.waitForDataBase()
-        command = self._getQueryCommand()
-        self._composer = self._getQueryComposer(command)
-        self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
-        self._rowset.Command = command
-        # TODO: GridColumn and GridModel needs a RowSet already executed!!!
-        self.executeRowSet()
-        titles = self._grid.getColumnTitles()
-        orders = self._getQueryOrder()
-        initView(titles, orders)
-
 # SpoolerModel getter methods
+    def getGridSelectedRows(self):
+        return self._grid.getSelectedRows()
+
     def isDisposed(self):
         return self._diposed
-
-    def getGridModels(self):
-        # TODO: GridModel needs a RowSet already executed!!!
-        data = GridModel(self._rowset)
-        column = self._grid.getColumnModel()
-        return data, column
 
     def getDialogTitle(self):
         resource = self._resources.get('Title')
@@ -123,16 +102,23 @@ class SpoolerModel(unohelper.Base):
         return self._resolver.resolveString(resource)
 
 # SpoolerModel setter methods
+    def initSpooler(self, *args):
+        Thread(target=self._initSpooler, args=args).start()
+
+    def setGridData(self, rowset):
+        self._grid.setRowSetData(rowset)
+
     def dispose(self):
         self._diposed = True
+        if self._grid is not None:
+            self._grid.dispose()
         self.DataSource.dispose()
 
     def save(self):
-        self._grid.saveColumnwidths()
-        self._saveQueryCommand()
-
-    def setGridColumnModel(self, titles, reset):
-        self._grid.setColumnModel(titles, reset)
+        self._grid.saveColumnWidths()
+        orders = self._grid.getOrders()
+        self._configuration.replaceByName('SpoolerOrders', orders)
+        self._configuration.commitChanges()
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
@@ -147,23 +133,11 @@ class SpoolerModel(unohelper.Base):
         self._rowset.ApplyFilter = False
         self._rowset.execute()
 
-    def setRowSetOrder(self, orders, ascending):
-        olds, news = self._getComposerOrder(orders)
-        self._composer.Order = ''
-        for order in olds:
-            self._composer.appendOrderByColumn(order, order.IsAscending)
-        columns = self._composer.getColumns()
-        for order in news:
-            column = columns.getByName(order)
-            self._composer.appendOrderByColumn(column, ascending)
-        self._rowset.Command = self._composer.getQuery()
-        self._rowset.execute()
-
 # SpoolerModel private getter methods
     def _getRowSet(self):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
-        rowset.CommandType = COMMAND
+        rowset.CommandType = TABLE
         rowset.FetchSize = g_fetchsize
         return rowset
 
@@ -175,33 +149,22 @@ class SpoolerModel(unohelper.Base):
             jobs.append(getValueFromResult(self._rowset, i))
         return tuple(jobs)
 
-    def _getQueryComposer(self, command):
-        service = 'com.sun.star.sdb.SingleSelectQueryComposer'
-        composer = self.DataSource.DataBase.Connection.createInstance(service)
-        # TODO: For the SingleSelectQueryComposer to be able to parse the Order, the ORDER BY
-        # TODO: sort criteria must be in the SQL query.Command and not in the query.Order
-        composer.setQuery(command)
-        return composer
+    def _getQueryTable(self):
+        table = self._configuration.getByName('SpoolerTable')
+        return table
 
-    def _getComposerOrder(self, news):
-        olds = []
-        enumeration = self._getQueryOrder()
-        while enumeration.hasMoreElements():
-            column = enumeration.nextElement()
-            if column.Name in news:
-                olds.append(column)
-                news.remove(column.Name)
-        return olds, news
-
-    def _getQueryOrder(self):
-        return self._composer.getOrderColumns().createEnumeration()
-
-    def _getQueryCommand(self):
-        command = self._configuration.getByName('SpoolerQueryCommand')
-        return command
+    def _getQueryOrders(self):
+        orders = self._configuration.getByName('SpoolerOrders')
+        return orders
 
 # SpoolerModel private setter methods
-    def _saveQueryCommand(self):
-        command = self._composer.getQuery()
-        self._configuration.replaceByName('SpoolerQueryCommand', command)
-        self._configuration.commitChanges()
+    def _initSpooler(self, possize, parent, listener, initView):
+        self.DataSource.waitForDataBase()
+        self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
+        self._rowset.Command = self._getQueryTable()
+        self._rowset.Order = self._getQueryOrders()
+        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'SpoolerColumns', self._resource, 9)
+        self._grid.addSelectionListener(listener)
+        initView(self._rowset)
+        # TODO: GridColumn and GridModel needs a RowSet already executed!!!
+        self.executeRowSet()

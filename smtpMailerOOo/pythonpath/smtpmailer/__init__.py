@@ -93,13 +93,16 @@ from .oauth2lib import getOAuth2Token
 from .dbtool import getObjectSequenceFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import getValueFromResult
+from .dbtool import getTableColumns
+from .dbtool import getTablesInfos
 
 from .dbqueries import getSqlQuery
 
 from .unolib import KeyMap
 
-from .grid import GridModel
-from .grid import GridColumn
+from .grid import GridManager
+from .grid import GridListener
+from .grid import RowSetListener
 
 from .mail import MailModel
 from .mail import MailManager

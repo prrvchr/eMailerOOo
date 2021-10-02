@@ -65,14 +65,14 @@ from smtpmailer import getObjectSequenceFromResult
 from smtpmailer import getSimpleFile
 from smtpmailer import getSqlQuery
 from smtpmailer import getStringResource
+from smtpmailer import getTableColumns
+from smtpmailer import getTablesInfos
 from smtpmailer import getUrl
 from smtpmailer import getValueFromResult
 from smtpmailer import logMessage
 
+from smtpmailer import GridManager
 from smtpmailer import MailModel
-
-from smtpmailer import GridModel
-from smtpmailer import GridColumn
 
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
@@ -106,10 +106,8 @@ class MergerModel(MailModel):
         self._queries = None
         self._address = self._getRowSet(TABLE)
         self._recipient = self._getRowSet(QUERY)
-        self._grid1 = GridModel()
-        self._grid2 = GridModel()
-        self._column1 = GridColumn(ctx, self._address, None, 'MergerGrid1Columns', 8, True)
-        self._column2 = GridColumn(ctx, self._recipient, None, 'MergerGrid2Columns', 8, True)
+        self._grid1 = None
+        self._grid2 = None
         self._resultset = None
         self._composer = None
         self._subcomposer = None
@@ -171,15 +169,24 @@ class MergerModel(MailModel):
 
 # Procedures called by WizardController
     def dispose(self):
+        print("MergerModel.dispose() 1")
         if self._isConnectionNotClosed():
             self._closeConnection()
         self._datasource.dispose()
+        if self._grid1 is not None:
+            self._grid1.dispose()
+        if self._grid2 is not None:
+            self._grid2.dispose()
         self._disposed = True
+        print("MergerModel.dispose() 2")
 
     def save(self):
-        if self._name is not None:
-            self._column1.saveColumnwidths()
-            self._column2.saveColumnwidths()
+        print("MergerModel.save() 1")
+        if self._grid1 is not None:
+            self._grid1.saveColumnWidths()
+        if self._grid2 is not None:
+            self._grid2.saveColumnWidths()
+        print("MergerModel.save() 2")
 
 # Procedures called by WizardPage1
     # AddressBook methods
@@ -256,7 +263,7 @@ class MergerModel(MailModel):
                 self._composer = connection.createInstance(service)
                 self._subcomposer = connection.createInstance(service)
                 progress(60)
-                self._similar, self._tables = self._getTablesInfos()
+                self._similar, self._tables = getTablesInfos(connection)
                 progress(70)
                 self._address.ActiveConnection = connection
                 self._recipient.ActiveConnection = connection
@@ -307,18 +314,6 @@ class MergerModel(MailModel):
         url = '%s/%s.odb' % (temp, addressbook)
         return url
 
-    def _getTablesInfos(self):
-        similar = True
-        tables = self.Connection.getTables()
-        if tables.hasElements():
-            columns = self._getTableColumns(tables.getByIndex(0).Name)
-            for index in range(1, tables.getCount()):
-                table = tables.getByIndex(index).Name
-                if columns != self._getTableColumns(table):
-                    similar = False
-                    break
-        return similar, tables.getElementNames()
-
     def _getQueries(self):
         names = self._queries.getElementNames()
         queries = [name for name in names if self._hasSubQuery(names, name)]
@@ -330,7 +325,7 @@ class MergerModel(MailModel):
 
     # AddressBook Table methods
     def setAddressBookTable(self, table):
-        columns = self._getTableColumns(table)
+        columns = getTableColumns(self.Connection, table)
         return columns
 
     # Query methods
@@ -596,14 +591,16 @@ class MergerModel(MailModel):
         changed = False if self._similar else self._table != table
         self._changed = loaded or changed
         if self._name is not None:
+            print("MergerModel.commitPage1() ***************************")
             # TODO: This will only be executed if WizardPage2 has already been loaded
             if self._changed:
-                self._saveColumnWidth(1)
-                self._saveColumnWidth(2)
+                self._grid1.saveColumnWidths()
+                self._grid1.saveColumnWidths()
             self._table = table
             if self._subcommand != subcommand:
                 if not changed:
                     # Update Grid Address only for a change of filters
+                    self._address.Command = table
                     Thread(target=self._executeAddress).start()
                 Thread(target=self._executeRecipient).start()
             elif self._command != command:
@@ -627,8 +624,6 @@ class MergerModel(MailModel):
     def _executeRecipient(self):
         print("MergerModel._executeRecipient() *********************************")
         self._recipient.execute()
-        if self._changed:
-            self._initGridColumnModel(self._recipient, 2)
 
     def _executeRowset(self):
         rowset = self._getRowSet(TABLE)
@@ -645,42 +640,20 @@ class MergerModel(MailModel):
         message = self._getMailingMessage()
         return self._tables, self._table, self._similar, message
 
-    def getGridModels(self, tab):
-        # TODO: com.sun.star.awt.grid.GridColumnModel must be initialized 
-        # TODO: before its assignment at com.sun.star.awt.grid.UnoControlGridModel !!!
-        if tab == 1:
-            grid = self._grid1
-            column = self._column1.getColumnModel()
-        elif tab == 2:
-            grid = self._grid2
-            column = self._column2.getColumnModel()
-        return grid, column
+    def initPage2(self, *args):
+        Thread(target=self._initPage2, args=args).start()
 
-    def initGrid(self, table, address, recipient, *initGrid):
-        self._address.Command = table
-        self._address.addRowSetListener(address)
-        self._recipient.addRowSetListener(recipient)
-        Thread(target=self._initGrid, args=initGrid).start()
+    def setGrid1Data(self, rowset):
+        self._grid1.setRowSetData(rowset)
 
-    def _initGrid(self, initGrid1, initGrid2):
-        self._address.execute()
-        orders = self._subcomposer.getOrderColumns().createEnumeration()
-        columns = self._column1.getColumns()
-        initGrid1(columns, orders)
-        self._recipient.execute()
-        orders = self._composer.getOrderColumns().createEnumeration()
-        columns = self._column2.getColumns()
-        initGrid2(columns, orders)
-        self._executeRowset()
+    def setGrid2Data(self, rowset):
+        self._grid2.setRowSetData(rowset)
 
-    def changeAddressRowSet(self):
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(self._address)
-        self._grid1.setRowSetData(self._address)
+    def getGrid1SelectedRows(self):
+        return self._grid1.getSelectedRows()
 
-    def changeRecipientRowSet(self):
-        print("MergerModel.changeRecipientRowSet() %s" % self._recipient.RowCount)
-        self._grid2.setRowSetData(self._recipient)
+    def getGrid2SelectedRows(self):
+        return self._grid2.getSelectedRows()
 
     def isChanged(self):
         return self._changed
@@ -693,23 +666,10 @@ class MergerModel(MailModel):
             self._address.Command = table
             Thread(target=self._executeAddress).start()
 
-    def setAddressColumn(self, *args):
-        Thread(target=self._setAddressColumn, args=args).start()
-
-    def setAddressOrder(self, *args):
-        Thread(target=self._setAddressOrder, args=args).start()
-
     def getAddressCount(self):
         return self._address.RowCount
 
-    def setRecipientColumn(self, *args):
-        Thread(target=self._setRecipientColumn, args=args).start()
-
-    def setRecipientOrder(self, *args):
-        Thread(target=self._setRecipientOrder, args=args).start()
-
     def getRecipientCount(self):
-        print("MergerModel.getRecipientCount() %s\n%s" % (self._recipient.RowCount, self._recipient.Command))
         return self._recipient.RowCount
 
     def addItem(self, *args):
@@ -733,48 +693,16 @@ class MergerModel(MailModel):
         return message
 
 # Private procedures called by WizardPage2
-    def _setAddressColumn(self, titles, reset):
-        print("MergerModel._setAddressColumn() %s" % (titles, ))
-        self._column1.setColumnModel(titles, reset)
-
-    def _setAddressOrder(self, orders, ascending):
-        self._setComposerOrder(self._subcomposer, orders, ascending)
-        name = self._getSubQueryName(self._query)
-        self._queries.getByName(name).Command = self._subcomposer.getQuery()
-        self._addressbook.DatabaseDocument.store()
-        self._address.Order = self._subcomposer.getOrder()
+    def _initPage2(self, table, possize, parent1, parent2, listener1, listener2, initPage):
+        self._address.Command = table
+        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, 'MergerGrid1', None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, 'MergerGrid2', None, 8, True)
+        self._grid1.addSelectionListener(listener1)
+        self._grid2.addSelectionListener(listener2)
+        initPage(self._address, self._recipient)
         self._address.execute()
-
-    def _setRecipientColumn(self, titles, reset):
-        print("MergerModel._setRecipientColumn() %s" % (titles, ))
-        self._column2.setColumnModel(titles, reset)
-
-    def _setRecipientOrder(self, orders, ascending):
-        self._setComposerOrder(self._composer, orders, ascending)
-        self._queries.getByName(self._query).Command = self._composer.getQuery()
-        self._addressbook.DatabaseDocument.store()
-        self._recipient.Order = self._composer.getOrder()
         self._recipient.execute()
-
-    def _setComposerOrder(self, composer, orders, ascending):
-        olds, news = self._getComposerOrder(composer, orders)
-        composer.setOrder('')
-        for order in olds:
-            composer.appendOrderByColumn(order, order.IsAscending)
-        columns = composer.getColumns()
-        for order in news:
-            column = columns.getByName(order)
-            composer.appendOrderByColumn(column, ascending)
-
-    def _getComposerOrder(self, composer, news):
-        olds = []
-        enumeration = composer.getOrderColumns().createEnumeration()
-        while enumeration.hasMoreElements():
-            column = enumeration.nextElement()
-            if column.Name in news:
-                olds.append(column)
-                news.remove(column.Name)
-        return olds, news
+        self._executeRowset()
 
     def _addItem(self, rows):
         self._updateItem(self._address, rows, True)
@@ -853,6 +781,9 @@ class MergerModel(MailModel):
         return row
 
 # Procedures called by WizardPage3
+    def initPage3(self, *args):
+        Thread(target=self._initPage3, args=args).start()
+
     def getUrl(self):
         return self._document.URL
 
@@ -884,9 +815,6 @@ class MergerModel(MailModel):
     def setUrl(self, url):
         pass
 
-    def initView(self, *args):
-        Thread(target=self._initView, args=args).start()
-
     def getRecipients(self):
         emails = self.getEmails()
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
@@ -916,7 +844,7 @@ class MergerModel(MailModel):
         return url.endswith('#merge&pdf') or url.endswith('#merge')
 
 # Private procedures called by WizardPage3
-    def _initView(self, handler, initView, initRecipient):
+    def _initPage3(self, handler, initView, initRecipient):
         self._recipient.addRowSetListener(handler)
         initView(self._document)
         recipients = self.getRecipients()
@@ -959,17 +887,6 @@ class MergerModel(MailModel):
 
     def _setRowSetOrder(self, rowset, composer):
         rowset.Order = composer.getOrder()
-
-    # Table private methods
-    def _getTableColumns(self, table):
-        # TODO: Needed for gContactOOo. We can't use:
-        # TODO: table = self.Connection.getTables().getByName(table)
-        # TODO: colums = table.getColumns().getElementNames()
-        # TODO: It does not work with any schema other than PUBLIC in the database!!!
-        # TODO: It returns an empty list of columns...
-        composer = self.Connection.getComposer(TABLE, table)
-        columns = composer.getColumns().getElementNames()
-        return columns
 
 # MergerModel StringRessoure methods
     def getPageStep(self, pageid):

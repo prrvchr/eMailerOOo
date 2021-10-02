@@ -43,4 +43,5 @@
   <library:element library:name="MergerTab2"/>
   <library:element library:name="SenderDialog"/>
   <library:element library:name="MailWindow"/>
+  <library:element library:name="GridWindow"/>
 </library:library>

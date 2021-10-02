@@ -32,6 +32,8 @@ import uno
 from com.sun.star.sdbc import SQLException
 from com.sun.star.sdbc import SQLWarning
 
+from com.sun.star.sdb.CommandType import TABLE
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -85,6 +87,37 @@ def getDataSource(ctx, url):
     datasource = dbcontext.getByName(location)
     return datasource
 
+def getTablesInfos(connection):
+    tables = connection.getTables()
+    similar = _isSimilar(connection, tables)
+    return similar, tables.getElementNames()
+
+def isSimilar(connection):
+    tables = connection.getTables()
+    similar = _isSimilar(connection, tables)
+    return similar
+
+def getTableColumns(connection, table):
+    # TODO: Needed for gContactOOo. We can't use:
+    # TODO: table = self.Connection.getTables().getByName(table)
+    # TODO: colums = table.getColumns().getElementNames()
+    # TODO: It does not work with any schema other than PUBLIC in the database!!!
+    # TODO: It returns an empty list of columns...
+    composer = connection.getComposer(TABLE, table)
+    columns = composer.getColumns().getElementNames()
+    return columns
+
+def _isSimilar(connection, tables):
+    similar = True
+    if tables.hasElements():
+        table = tables.getByIndex(0).Name
+        columns = getTableColumns(connection, table)
+        for index in range(1, tables.getCount()):
+            table = tables.getByIndex(index).Name
+            if columns != getTableColumns(connection, table):
+                similar = False
+                break
+    return similar
 
 def getDataBaseConnection(ctx, url, info):
     service = 'com.sun.star.sdbc.DriverManager'

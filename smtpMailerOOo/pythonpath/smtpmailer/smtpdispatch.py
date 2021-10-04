@@ -136,7 +136,7 @@ class SmtpDispatch(unohelper.Base,
         try:
             manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
             if manager.execute() == OK:
-                manager.save()
+                manager.saveGrid()
             manager.dispose()
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -178,7 +178,7 @@ class SmtpDispatch(unohelper.Base,
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
-                controller.save()
+                controller.saveGrids()
                 msg +=  " Merging SMTP email OK..."
             controller.dispose()
             print(msg)

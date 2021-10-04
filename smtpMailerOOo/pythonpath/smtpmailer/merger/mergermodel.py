@@ -180,15 +180,12 @@ class MergerModel(MailModel):
         self._disposed = True
         print("MergerModel.dispose() 2")
 
-    def save(self):
+    def saveGrids(self):
         print("MergerModel.save() 1")
         if self._grid1 is not None:
             self._grid1.saveColumnWidths()
-            query = self._getSubQueryName(self._query)
-            self._saveOrders(self._subcomposer, self._address, query)
         if self._grid2 is not None:
             self._grid2.saveColumnWidths()
-            self._saveOrders(self._composer, self._recipient, self._query)
         print("MergerModel.save() 2")
 
 # Procedures called by WizardPage1
@@ -599,14 +596,9 @@ class MergerModel(MailModel):
                 self._changed = True
                 self._resultset = None
                 # The RowSet self._address will be executed in Page2 with setAddressTable()
-                # but we are resetting the grid here for display purposes
-                self._grid1.resetGrid()
-                self._grid2.resetGrid()
                 Thread(target=self._executeResultSet).start()
             elif self._query != query:
                 self._changed = True
-                self._grid1.resetGrid()
-                self._grid2.resetGrid()
                 args = (self._recipient, )
             elif self._subcommand != subcommand:
                 # Update Grid Address only for a change of filters
@@ -892,12 +884,6 @@ class MergerModel(MailModel):
 
     def _setRowSetOrder(self, rowset, composer):
         rowset.Order = composer.getOrder()
-
-    def _saveOrders(self, composer, rowset, query):
-        composer.setOrder(rowset.Order)
-        self._queries.getByName(query).Command = composer.getQuery()
-        self._addressbook.DatabaseDocument.store()
-        print("MergerModel._saveOrders() : %s" % composer.getQuery())
 
 # MergerModel StringRessoure methods
     def getPageStep(self, pageid):

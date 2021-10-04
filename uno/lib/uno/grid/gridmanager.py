@@ -35,8 +35,6 @@ from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 
-from ..dbtool import isSimilar
-
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
@@ -59,13 +57,11 @@ class GridManager(unohelper.Base):
         if resource is not None:
             self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._name = config
-        self._widths = {}
-        if config is not None:
-            self._config = getConfiguration(ctx, g_identifier, True)
-            self._widths = self._getConfigWidths()
+        self._configuration = getConfiguration(ctx, g_identifier, True)
+        widths = self._configuration.getByName(self._getConfigWidthName())
+        self._widths = json.loads(widths, object_pairs_hook=OrderedDict)
         self._max = maxi
         self._multi = multi
-        self._similar = True
         self._rowset = rowset
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
         service = 'com.sun.star.awt.grid.DefaultGridColumnModel'
@@ -96,44 +92,32 @@ class GridManager(unohelper.Base):
     def showControls(self, state):
         self._view.setWindowPosSize(state)
 
-    def resetGrid(self):
-        self._view.showGridColumnHeader(False)
-        self._grid.resetRowSetData()
-
     def setRowSetData(self, rowset):
-        name = self._view.getGrid().Model.Name
         connection = rowset.ActiveConnection
         datasource = connection.Parent
         query = rowset.UpdateTableName
         if self._isDataSourceChanged(datasource, query):
-            print("GridManager.setRowSetData() 1 %s" % datasource.Name)
-            if self._datasource is not None:
-                self.saveWidths()
+            if self._isGridLoaded():
+                self._saveWidths()
+            # We can hide GridColumnHeader and reset GridDataModel
+            # but after saving GridColumnModel Widths
+            self._view.showGridColumnHeader(False)
+            self._grid.resetRowSetData()
             self._composer = self._getComposer(connection, rowset)
-            if self._multi:
-                self._similar = isSimilar(connection)
             self._columns = self._getColumns(rowset.getMetaData())
-            identifiers = self._initColumnModel(datasource)
+            identifiers = self._initColumnModel(datasource.Name, query)
             self._initColumns(identifiers)
             self._datasource = datasource
             self._query = query
             self._view.showGridColumnHeader(True)
         self._grid.setRowSetData(rowset)
 
-    def saveWidths(self):
-        width = self._getColumnWidths()
-        if not self._multi:
-            self._widths = width
-        elif self._datasource is not None:
-            name = self._getDataSourceName(self._datasource)
-            self._widths[name] = width
-
     def saveColumnWidths(self):
-        self.saveWidths()
-        columns = json.dumps(self._widths)
+        self._saveWidths()
         name = self._getConfigWidthName()
-        self._config.replaceByName(name, columns)
-        self._config.commitChanges()
+        widths = json.dumps(self._widths)
+        self._configuration.replaceByName(name, widths)
+        self._configuration.commitChanges()
 
     def setColumn(self, identifier, add, reset, index):
         self._view.deselectColumn(index)
@@ -156,19 +140,29 @@ class GridManager(unohelper.Base):
         return image.endswith(self._view.getUnSelected())
 
     def setOrder(self, identifier, add, index):
-        self._setOrder(identifier, add, index)
-        Thread(target=self._executeRowSet).start()
+        args = self._setOrder(identifier, add, index)
+        Thread(target=self._executeRowSet, args=args).start()
 
 # GridManager private methods
     def _isDataSourceChanged(self, datasource, query):
         return self._datasource != datasource or self._query != query
 
-    def _getDataSourceName(self, datasource):
-        if self._similar:
-            name = datasource.Name
+    def _isGridLoaded(self):
+        return self._composer is not None
+
+    def _saveWidths(self):
+        widths = self._getColumnWidths()
+        if self._multi:
+            name = self._getDataSourceName(self._datasource.Name, self._query)
+            self._widths[name] = widths
         else:
-            table = self._composer.getTables().getByIndex(0).Name
-            name = '%s.%s' % (datasource.Name, table)
+            self._widths = widths
+
+    def _getDataSourceName(self, datasource, query):
+        if self._multi:
+            name = '%s.%s' % (datasource, query)
+        else:
+            name = datasource
         return name
 
     def _resetColumn(self):
@@ -200,13 +194,17 @@ class GridManager(unohelper.Base):
             self._addOrder(identifier)
         else:
             self._removeOrder(identifier)
+        self._view.setOrders(self._url, self._getOrders())
         order = self._composer.getOrder()
-        self._rowset.Order = order
+        return (order, )
+
+    def _executeRowSet(self, order):
         if self._query:
             self._saveQueryOrder(order)
         else:
             self._saveConfigOrder(order)
-        self._view.setOrders(self._url, self._getOrders())
+        self._rowset.Order = order
+        self._rowset.execute()
 
     def _saveQueryOrder(self, order):
         query = self._datasource.getQueryDefinitions().getByName(self._query)
@@ -217,11 +215,8 @@ class GridManager(unohelper.Base):
 
     def _saveConfigOrder(self, order):
         name = self._getConfigOrderName()
-        self._config.replaceByName(name, self._rowset.Order)
-        self._config.commitChanges()
-
-    def _executeRowSet(self):
-        self._rowset.execute()
+        self._configuration.replaceByName(name, order)
+        self._configuration.commitChanges()
 
     def _addOrder(self, identifier):
         ascending = self._view.getSortDirection()
@@ -255,19 +250,17 @@ class GridManager(unohelper.Base):
         return columns
 
     def _getComposer(self, connection, rowset):
-        name = self._view.getGrid().Model.Name
         composer = connection.getComposer(rowset.CommandType, rowset.Command)
         composer.setCommand(rowset.Command, rowset.CommandType)
         composer.setOrder(rowset.Order)
         return composer
 
-    def _initColumnModel(self, datasource):
+    def _initColumnModel(self, datasource, query):
         # TODO: ColumnWidth should be assigned after all columns have 
         # TODO: been added to the GridColumnModel
         self._removeColumns()
-        widths = self._getSavedWidths(datasource)
+        widths = self._getSavedWidths(datasource, query)
         identifiers = self._getIdentifiers(widths)
-        name = self._view.getGrid().Model.Name
         if widths:
             for identifier in widths:
                 self._createColumn(identifier)
@@ -283,10 +276,10 @@ class GridManager(unohelper.Base):
         orders = self._composer.getOrderColumns().createEnumeration()
         self._view.initOrders(self._url, self._columns, orders)
 
-    def _getSavedWidths(self, datasource):
+    def _getSavedWidths(self, datasource, query):
         widths = {}
         if self._multi:
-            name = self._getDataSourceName(datasource)
+            name = self._getDataSourceName(datasource, query)
             if name in self._widths:
                 widths = self._widths[name]
         else:
@@ -349,15 +342,8 @@ class GridManager(unohelper.Base):
 
     def _getColumnWidths(self):
         widths = OrderedDict()
-        if self._datasource is not None:
-            for column in self._model.getColumns():
-                widths[column.Identifier] = column.ColumnWidth
-        return widths
-
-    def _getConfigWidths(self):
-        name = self._getConfigWidthName()
-        config = self._config.getByName(name)
-        widths = json.loads(config, object_pairs_hook=OrderedDict)
+        for column in self._model.getColumns():
+            widths[column.Identifier] = column.ColumnWidth
         return widths
 
     def _getDefaultIdentifiers(self):

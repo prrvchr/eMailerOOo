@@ -129,7 +129,6 @@ class GridData(unohelper.Base,
     def resetRowSetData(self):
         rowcount = self.RowCount
         self.RowCount = 0
-        self.ColumnCount = 0
         if self.RowCount < rowcount:
             self._removeRow(self.RowCount, rowcount -1)
 

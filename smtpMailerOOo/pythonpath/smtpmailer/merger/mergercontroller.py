@@ -53,8 +53,8 @@ class MergerController(unohelper.Base,
         self._wizard = wizard
         self._model = MergerModel(ctx, datasource)
 
-    def save(self):
-        self._model.save()
+    def saveGrids(self):
+        self._model.saveGrids()
 
     def dispose(self):
         self._model.dispose()

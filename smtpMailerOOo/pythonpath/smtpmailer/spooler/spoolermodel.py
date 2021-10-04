@@ -114,7 +114,7 @@ class SpoolerModel(unohelper.Base):
             self._grid.dispose()
         self.DataSource.dispose()
 
-    def save(self):
+    def saveGrid(self):
         self._grid.saveColumnWidths()
 
     def removeRows(self, rows):

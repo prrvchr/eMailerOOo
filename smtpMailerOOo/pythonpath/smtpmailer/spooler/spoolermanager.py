@@ -116,8 +116,8 @@ class SpoolerManager(unohelper.Base):
         self.refreshLog()
         self._refreshSpoolerView(0)
 
-    def save(self):
-        self._model.save()
+    def saveGrid(self):
+        self._model.saveGrid()
 
     def dispose(self):
         with self._lock:

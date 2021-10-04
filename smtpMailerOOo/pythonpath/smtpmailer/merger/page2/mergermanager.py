@@ -59,23 +59,17 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, table, enabled, message = self._model.getPageInfos(True)
+        tables, table, enabled, message = self._model.getPageInfos()
         self._view = MergerView(ctx, self, parent, tables, enabled, message)
-        print("mergerManager.__init__() 1")
         possize = self._view.getGridPosSize()
         parent1, parent2 = self._view.getGridParents()
-        listener1 = GridListener(self, 1)
-        listener2 = GridListener(self, 2)
-        print("mergerManager.__init__() 2")
-        self._model.initPage2(table, possize, parent1, parent2, listener1, listener2, self.initPage)
-        print("mergerManager.__init__() 3")
-        # TODO: We must disable the handler "ChangeAddressBook" otherwise it activates twice
+        self._model.initPage2(table, possize, parent1, parent2, self.initPage)
+        # FIXME: We must disable the handler "ChangeAddressBook"
+        # FIXME: otherwise it activates twice
         self._disableHandler()
-        print("mergerManager.__init__() 4")
         self._view.setTable(table)
-        print("mergerManager.__init__() 5")
 
-    # TODO: One shot disabler handler
+    # FIXME: One shot disabler handler
     def isHandlerEnabled(self):
         enabled = True
         if self._disabled:
@@ -93,11 +87,12 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
+        print("MergerManager.activatePage() %s" % self._model.isChanged())
         if self._model.isChanged():
             tables, table, enabled, message = self._model.getPageInfos()
             self._view.setMessage(message)
-            # TODO: We must disable the handler "ChangeAddressTable"
-            # TODO: otherwise it activates twice
+            # FIXME: We must disable the handler "ChangeAddressTable"
+            # FIXME: otherwise it activates twice
             self._disableHandler()
             self._view.initTables(tables, table, enabled)
 
@@ -115,7 +110,9 @@ class MergerManager(unohelper.Base,
         return self._model.getTabTitle(tab)
 
 # MergerManager setter methods
-    def initPage(self, rowset1, rowset2):
+    def initPage(self, grid1, grid2, rowset1, rowset2):
+        grid1.addSelectionListener(GridListener(self, 1))
+        grid2.addSelectionListener(GridListener(self, 2))
         rowset1.addRowSetListener(AddressHandler(self))
         rowset2.addRowSetListener(RecipientHandler(self))
 

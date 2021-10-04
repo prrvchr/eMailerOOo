@@ -93,26 +93,24 @@ def getTablesInfos(connection):
     return similar, tables.getElementNames()
 
 def isSimilar(connection):
-    tables = connection.getTables()
-    similar = _isSimilar(connection, tables)
-    return similar
+    return _isSimilar(connection, connection.getTables())
 
 def getTableColumns(connection, table):
-    # TODO: Needed for gContactOOo. We can't use:
-    # TODO: table = self.Connection.getTables().getByName(table)
-    # TODO: colums = table.getColumns().getElementNames()
-    # TODO: It does not work with any schema other than PUBLIC in the database!!!
-    # TODO: It returns an empty list of columns...
+    # FIXME Needed for gContactOOo. We can't use:
+    # FIXME table = connection.getTables().getByName(table)
+    # FIXME colums = table.getColumns().getElementNames()
+    # FIXME It does not work with any schema other than PUBLIC in the database!!!
+    # FIXME It returns an empty list of columns...
     composer = connection.getComposer(TABLE, table)
-    columns = composer.getColumns().getElementNames()
-    return columns
+    return composer.getColumns().getElementNames()
 
 def _isSimilar(connection, tables):
     similar = True
-    if tables.hasElements():
+    count = tables.getCount()
+    if count > 1:
         table = tables.getByIndex(0).Name
         columns = getTableColumns(connection, table)
-        for index in range(1, tables.getCount()):
+        for index in range(1, count):
             table = tables.getByIndex(index).Name
             if columns != getTableColumns(connection, table):
                 similar = False

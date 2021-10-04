@@ -230,8 +230,8 @@ class MergerModel(MailModel):
             self._query = self._table = None
             self._command = self._subcommand = None
             progress(10)
-            # TODO: If an addressbook has been loaded we need to close the connection
-            # TODO: and dispose all components who use the connection
+            # FIXME: If an addressbook has been loaded we need to close the connection
+            # FIXME: and dispose all components who use the connection
             if self._isConnectionNotClosed():
                 self._closeConnection()
             progress(20)
@@ -258,7 +258,6 @@ class MergerModel(MailModel):
                 message = self._getErrorMessage(0, format)
             else:
                 progress(50)
-                print("MergerModel._setAddressBook() **************************")
                 #mri = createService(self._ctx, 'mytools.Mri')
                 #mri.inspect(connection)
                 self._addressbook = datasource
@@ -297,9 +296,9 @@ class MergerModel(MailModel):
         return datasource
 
     def _getTempDataSource(self, sf, addressbook, location):
-        # TODO: We can undo all changes if the wizard is canceled
-        # TODO: or abort the Wizard while keeping the work already done
-        # TODO: The wizard must be modified to take into account the Cancel button
+        # FIXME: We can undo all changes if the wizard is canceled
+        # FIXME: or abort the Wizard while keeping the work already done
+        # FIXME: The wizard must be modified to take into account the Cancel button
         url = self._getTempUrl(addressbook)
         if not sf.exists(url):
             sf.copy(location, url)
@@ -341,11 +340,13 @@ class MergerModel(MailModel):
 
     def setQuery(self, query):
         subquery = self._getSubQueryName(query)
-        self._recipient.Command = subquery
-        self._setComposerCommand(self._composer, query)
-        self._setRowSet(self._recipient, self._composer)
+        self._address.UpdateTableName = subquery
         self._setComposerCommand(self._subcomposer, subquery)
         self._setRowSet(self._address, self._subcomposer)
+        self._recipient.Command = subquery
+        self._recipient.UpdateTableName = query
+        self._setComposerCommand(self._composer, query)
+        self._setRowSet(self._recipient, self._composer)
         table = self._getSubComposerTable()
         return table
 
@@ -590,63 +591,63 @@ class MergerModel(MailModel):
         table = self._getSubComposerTable()
         command = self._composer.getQuery()
         subcommand = self._subcomposer.getQuery()
-        loaded = self._name != name
-        changed = False if self._similar else self._table != table
-        self._changed = loaded or changed
         if self._isPage2Loaded():
-            # TODO: This will only be executed if WizardPage2 has already been loaded
-            print("MergerModel.commitPage1() ***************************")
-            if self._changed:
-                self._grid1.saveColumnWidths()
-                self._grid2.saveColumnWidths()
-            self._table = table
-            if self._subcommand != subcommand:
-                if not changed:
-                    # Update Grid Address only for a change of filters
-                    self._address.Command = table
-                    Thread(target=self._executeAddress).start()
-                Thread(target=self._executeRecipient).start()
-            elif self._command != command:
-                Thread(target=self._executeRecipient).start()
-            if self._changed:
+            # This will only be executed if WizardPage2 has already been loaded
+            args = None
+            changed = False if self._similar else self._table != table
+            if self._name != name or changed:
+                self._changed = True
                 self._resultset = None
-                Thread(target=self._executeRowset).start()
-        else:
-            self._table = table
+                # The RowSet self._address will be executed in Page2 with setAddressTable()
+                # but we are resetting the grid here for display purposes
+                self._grid1.resetGrid()
+                self._grid2.resetGrid()
+                Thread(target=self._executeResultSet).start()
+            elif self._query != query:
+                self._changed = True
+                self._grid1.resetGrid()
+                self._grid2.resetGrid()
+                args = (self._recipient, )
+            elif self._subcommand != subcommand:
+                # Update Grid Address only for a change of filters
+                self._address.Command = table
+                args = (self._address, self._recipient)
+            elif self._command != command:
+                args = (self._recipient, )
+            if args is not None:
+                Thread(target=self._executeRowSet, args=args).start()
+        self._name = name
         self._query = query
+        self._table = table
         self._command = command
         self._subcommand = subcommand
 
-    def _executeAddress(self):
-        command = self._address.Command
-        datasource = self._address.ActiveConnection.Parent.Name
-        print("MergerModel._executeAddress() 1 Command: %s - DataSource: %s" % (command, datasource))
-        self._address.execute()
-        print("MergerModel._executeAddress() 2 RowCount: %s" % self._address.RowCount)
+    def _executeRowSet(self, *rowsets):
+        for rowset in rowsets:
+            rowset.execute()
+            print("MergerModel._executeRowSet() RowCount: %s" % rowset.RowCount)
 
-    def _executeRecipient(self):
-        print("MergerModel._executeRecipient() *********************************")
+    def _executeResultSet(self):
         self._recipient.execute()
-
-    def _executeRowset(self):
+        print("MergerModel._executeResultSet() 1 RowCount: %s" % self._recipient.RowCount)
         rowset = self._getRowSet(TABLE)
         rowset.ActiveConnection = self.Connection
         rowset.Command = self._table
         rowset.execute()
+        print("MergerModel._executeResultSet() 2 RowCount: %s" % rowset.RowCount)
         self._resultset = rowset.createResultSet()
 
     def _isPage2Loaded(self):
-        return self._grid2 is not None
+        return self._grid1 is not None
 
 # Procedures called by WizardPage2
-    def getPageInfos(self, init=False):
-        if init:
-            self._changed = False
-        self._name = self._addressbook.Name
+    def getPageInfos(self):
         message = self._getMailingMessage()
         return self._tables, self._table, self._similar, message
 
     def initPage2(self, *args):
+        # We must prevent a second execution of self._address in setAddressTable()
+        self._changed = False
         Thread(target=self._initPage2, args=args).start()
 
     def setGrid1Data(self, rowset):
@@ -665,10 +666,8 @@ class MergerModel(MailModel):
         return self._changed
 
     def setAddressTable(self, table):
-        print("MergerModel.setAddressTable() 1")
         if self.isChanged() or self._address.Command != table:
             self._changed = False
-            print("MergerModel.setAddressTable() 2")
             self._address.Command = table
             Thread(target=self._executeAddress).start()
 
@@ -699,16 +698,17 @@ class MergerModel(MailModel):
         return message
 
 # Private procedures called by WizardPage2
-    def _initPage2(self, table, possize, parent1, parent2, listener1, listener2, initPage):
+    def _initPage2(self, table, possize, parent1, parent2, initPage):
         self._address.Command = table
-        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, 'MergerGrid1', None, 8, True)
-        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, 'MergerGrid2', None, 8, True)
-        self._grid1.addSelectionListener(listener1)
-        self._grid2.addSelectionListener(listener2)
-        initPage(self._address, self._recipient)
+        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, 'MergerGrid1', None, 8, True, 'Grid1')
+        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, 'MergerGrid2', None, 8, True, 'Grid2')
+        initPage(self._grid1, self._grid2, self._address, self._recipient)
+        self._executeAddress()
+        self._executeResultSet()
+
+    def _executeAddress(self):
         self._address.execute()
-        self._recipient.execute()
-        self._executeRowset()
+        print("MergerModel._executeAddress() RowCount: %s" % self._address.RowCount)
 
     def _addItem(self, rows):
         self._updateItem(self._address, rows, True)
@@ -747,7 +747,7 @@ class MergerModel(MailModel):
 
     def _getRowSetFilter(self, rowset, name):
         i = rowset.findColumn(name)
-        # TODO: The value of the filter MUST be enclosed in single quotes!!!
+        # FIXME: The value of the filter MUST be enclosed in single quotes!!!
         value = "'" + getValueFromResult(rowset, i) + "'"
         filter = getPropertyValue(name, value, 0, EQUAL)
         filters = (filter, )
@@ -765,13 +765,13 @@ class MergerModel(MailModel):
             executeFrameDispatch(self._ctx, frame, url, descriptor)
 
     def _getDataDescriptor(self, row):
-        # TODO: We need early initialization to reduce loading time
-        # TODO: The cursor is not present during initialization to avoid any display
+        # FIXME: We need early initialization to reduce loading time
+        # FIXME: The cursor is not present during initialization to avoid any display
         properties = {'ActiveConnection': self.Connection,
                       'Command': self._table,
                       'CommandType': TABLE,
                       'BookmarkSelection': False,
-                      'DataSourceName': self._addressbook.Name,
+                      'DataSourceName': self._name,
                       'Cursor': self._resultset,
                       'Selection': (row, )}
         descriptor = getPropertyValueSet(properties)
@@ -794,10 +794,9 @@ class MergerModel(MailModel):
         return self._document.URL
 
     def getDocumentInfo(self):
-        datasource = self._addressbook.Name
         identifier = self.getIdentifier()
         bookmark = self.getBookmark()
-        return self.getUrl(), datasource, self._query, self._table, identifier, bookmark
+        return self.getUrl(), self._name, self._query, self._table, identifier, bookmark
 
     def saveDocument(self):
         self._saved = True

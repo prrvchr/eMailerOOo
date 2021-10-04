@@ -39,9 +39,9 @@ from .gridhandler import WindowHandler
 
 
 class GridView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, possize, step=1):
+    def __init__(self, ctx, name, manager, parent, possize, step=1):
         self._ctx = ctx
-        self._name = 'Grid1'
+        self._name = name
         self._up = 20
         handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'GridWindow')
@@ -86,13 +86,13 @@ class GridView(unohelper.Base):
 
     def initColumns(self, url, columns, identifiers):
         control = self._getColumn()
-        image = self._getUnSelected(url)
-        self._initListBox(control, columns, image)
+        unselected = self._getUnSelected(url)
+        self._initListBox(control, columns, unselected)
         indexes = tuple(columns.keys())
-        image = self._getSelected(url)
+        selected = self._getSelected(url)
         for identifier in identifiers:
             index = indexes.index(identifier)
-            control.Model.setItemImage(index, image)
+            control.Model.setItemImage(index, selected)
 
     def deselectColumn(self, index):
         self._getColumn().selectItemPos(index, False)
@@ -110,13 +110,15 @@ class GridView(unohelper.Base):
 
     def initOrders(self, url, columns, orders):
         control = self._getOrder()
-        image = self._getUnSelected(url)
-        self._initListBox(control, columns, image)
+        unselected = self._getUnSelected(url)
+        self._initListBox(control, columns, unselected)
         indexes = tuple(columns.keys())
+        ascending = self._getAscending(url)
+        descending = self._getDescending(url)
         while orders.hasMoreElements():
             order = orders.nextElement()
             index = indexes.index(order.Name)
-            image = self._getAscending(url) if order.IsAscending else self._getDescending(url)
+            image = ascending if order.IsAscending else descending
             control.Model.setItemImage(index, image)
 
     def deselectOrder(self, index):
@@ -143,12 +145,11 @@ class GridView(unohelper.Base):
         model.Height = model.Height - diff
 
     def _initListBox(self, control, columns, image):
-        index = 0
+        control.Model.removeAllItems()
         for identifier, title in columns.items():
-            control.Model.insertItemText(index, title)
+            index = control.Model.ItemCount
+            control.Model.insertItem(index, title, image)
             control.Model.setItemData(index, identifier)
-            control.Model.setItemImage(index, image)
-            index += 1
 
     def _setWindow(self, possize, step):
         model = self._window.Model

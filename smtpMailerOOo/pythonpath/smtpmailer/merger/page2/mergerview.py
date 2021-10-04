@@ -80,6 +80,7 @@ class MergerView(unohelper.Base):
 
     def initTables(self, tables, table, enabled):
         control = self._getTable()
+        control.Model.removeAllItems()
         control.Model.StringItemList = tables
         control.selectItem(table, True)
         control.Model.Enabled = enabled

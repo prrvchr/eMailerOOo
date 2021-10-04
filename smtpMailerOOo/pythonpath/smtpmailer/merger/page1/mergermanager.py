@@ -62,14 +62,14 @@ class MergerManager(unohelper.Base,
         addressbook = self._model.getDefaultAddressBook()
         if addressbook in addressbooks:
             self._view.setPageStep(1)
-            # TODO: We must disable the handler "ChangeAddressBook"
-            # TODO: otherwise it activates twice
+            # FIXME: We must disable the handler "ChangeAddressBook"
+            # FIXME: otherwise it activates twice
             self._disableHandler()
             self._view.selectAddressBook(addressbook)
         else:
             self._view.enableAddressBook(True)
 
-    # TODO: One shot disabler handler
+    # FIXME: One shot disabler handler
     def isHandlerEnabled(self):
         enabled = True
         if self._disabled:
@@ -124,8 +124,8 @@ class MergerManager(unohelper.Base,
         elif step == 3:
             self._view.enablePage(True)
             self._view.setColumnLabel(label)
-            # TODO: We must disable the handler "ChangeAddressBookTable"
-            # TODO: otherwise it activates twice
+            # FIXME: We must disable the handler "ChangeAddressBookTable"
+            # FIXME: otherwise it activates twice
             self._disableHandler()
             self._view.initTables(tables)
             self._view.initQuery(queries)
@@ -136,21 +136,21 @@ class MergerManager(unohelper.Base,
         url = '.uno:AutoPilotAddressDataSource'
         executeDispatch(self._ctx, url)
         #url = '.uno:AddressBookSource'
-        # TODO: Update the list of AddressBooks and keep the selection if possible
+        # FIXME: Update the list of AddressBooks and keep the selection if possible
         addressbook = self._view.getAddressBook()
         addressbooks = self._model.getAvailableAddressBooks()
         self._view.initAddressBook(addressbooks)
         if addressbook in addressbooks:
-            # TODO: We must disable the handler "ChangeAddressBook"
-            # TODO: otherwise it activates twice
+            # FIXME: We must disable the handler "ChangeAddressBook"
+            # FIXME: otherwise it activates twice
             self._disableHandler()
             self._view.selectAddressBook(addressbook)
 
     # Table setter methods
     def changeAddressBookTable(self, table):
         columns = self._model.setAddressBookTable(table)
-        # TODO: We must disable the handler "ChangeAddressBookColumn"
-        # TODO: otherwise it activates twice
+        # FIXME: We must disable the handler "ChangeAddressBookColumn"
+        # FIXME: otherwise it activates twice
         self._disableHandler()
         self._view.initColumns(columns)
 
@@ -172,8 +172,8 @@ class MergerManager(unohelper.Base,
         if exist:
             table = self._model.setQuery(query)
             if self._view.getTable() != table:
-                # TODO: We must disable the handler "ChangeAddressBookTable"
-                # TODO: otherwise it activates twice
+                # FIXME: We must disable the handler "ChangeAddressBookTable"
+                # FIXME: otherwise it activates twice
                 self._disableHandler()
                 self._view.setTable(table)
             identifier = self._model.getIdentifier()

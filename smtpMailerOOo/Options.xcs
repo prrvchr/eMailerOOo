@@ -38,7 +38,7 @@
         <prop oor:name="SpoolerColumns" oor:type="xs:string"/>
         <prop oor:name="SpoolerOrders" oor:type="xs:string"/>
         <prop oor:name="MergerLoadDataSource" oor:type="xs:boolean"/>
-        <prop oor:name="MergerGrid1" oor:type="xs:string"/>
-        <prop oor:name="MergerGrid2" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid1Columns" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
     </component>
 </oor:component-schema>

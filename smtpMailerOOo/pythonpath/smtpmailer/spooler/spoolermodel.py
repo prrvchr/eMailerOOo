@@ -116,8 +116,6 @@ class SpoolerModel(unohelper.Base):
 
     def save(self):
         self._grid.saveColumnWidths()
-        self._configuration.replaceByName('SpoolerOrders', self._rowset.Order)
-        self._configuration.commitChanges()
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
@@ -162,7 +160,7 @@ class SpoolerModel(unohelper.Base):
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
         self._rowset.Order = self._getQueryOrders()
-        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'SpoolerColumns', self._resource, 9)
+        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'Spooler', self._resource, 9)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!

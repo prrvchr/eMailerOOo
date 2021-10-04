@@ -51,12 +51,15 @@ class GridManager(unohelper.Base):
     def __init__(self, ctx, rowset, parent, possize, config, resource=None, maxi=None, multi=False, name='Grid1'):
         self._ctx = ctx
         self._factor = 5
+        # We need to save the DataSource Name to be able to save
+        # Columns Widths after DataSource is disposed
+        self._name = None
         self._datasource = None
         self._query = None
         self._resource = resource
         if resource is not None:
             self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._name = config
+        self._config = config
         self._configuration = getConfiguration(ctx, g_identifier, True)
         widths = self._configuration.getByName(self._getConfigWidthName())
         self._widths = json.loads(widths, object_pairs_hook=OrderedDict)
@@ -107,8 +110,9 @@ class GridManager(unohelper.Base):
             self._columns = self._getColumns(rowset.getMetaData())
             identifiers = self._initColumnModel(datasource.Name, query)
             self._initColumns(identifiers)
-            self._datasource = datasource
+            self._name = datasource.Name
             self._query = query
+            self._datasource = datasource
             self._view.showGridColumnHeader(True)
         self._grid.setRowSetData(rowset)
 
@@ -153,7 +157,7 @@ class GridManager(unohelper.Base):
     def _saveWidths(self):
         widths = self._getColumnWidths()
         if self._multi:
-            name = self._getDataSourceName(self._datasource.Name, self._query)
+            name = self._getDataSourceName(self._name, self._query)
             self._widths[name] = widths
         else:
             self._widths = widths
@@ -252,7 +256,11 @@ class GridManager(unohelper.Base):
     def _getComposer(self, connection, rowset):
         composer = connection.getComposer(rowset.CommandType, rowset.Command)
         composer.setCommand(rowset.Command, rowset.CommandType)
-        composer.setOrder(rowset.Order)
+        if self._multi:
+            composer.Order = rowset.Order
+        else:
+            name = self._getConfigOrderName()
+            composer.Order = self._configuration.getByName(name)
         return composer
 
     def _initColumnModel(self, datasource, query):
@@ -358,7 +366,7 @@ class GridManager(unohelper.Base):
         return title
 
     def _getConfigWidthName(self):
-        return '%s%s' % (self._name, 'Columns')
+        return '%s%s' % (self._config, 'Columns')
 
     def _getConfigOrderName(self):
-        return '%s%s' % (self._name, 'Orders')
+        return '%s%s' % (self._config, 'Orders')

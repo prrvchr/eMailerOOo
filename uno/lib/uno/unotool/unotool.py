@@ -174,21 +174,21 @@ def getResourceLocation(ctx, identifier, path=None):
         location += '/%s' % path
     return location
 
-def getConfiguration(ctx, nodepath, update=False, locale=False):
+def getConfiguration(ctx, path, update=False, language=None):
     service = 'com.sun.star.configuration.ConfigurationProvider'
     provider = createService(ctx, service)
-    service = 'com.sun.star.configuration.ConfigurationUpdateAccess' if update else \
-              'com.sun.star.configuration.ConfigurationAccess'
-    path = uno.createUnoStruct('com.sun.star.beans.NamedValue')
-    path.Name = 'nodepath'
-    path.Value = nodepath
-    if locale:
-        code = uno.createUnoStruct('com.sun.star.beans.NamedValue')
-        code.Name = 'Locale'
-        code.Value = getCurrentLocale(ctx)
-        arguments = (path, code)
+    service = 'com.sun.star.configuration.Configuration'
+    service += 'UpdateAccess' if update else 'Access'
+    nodepath = uno.createUnoStruct('com.sun.star.beans.NamedValue')
+    nodepath.Name = 'nodepath'
+    nodepath.Value = path
+    if language is None:
+        arguments = (nodepath, )
     else:
-        arguments = (path, )
+        locale = uno.createUnoStruct('com.sun.star.beans.NamedValue')
+        locale.Name = 'Locale'
+        locale.Value = language
+        arguments = (nodepath, locale)
     return provider.createInstanceWithArguments(service, arguments)
 
 def getCurrentLocale(ctx):

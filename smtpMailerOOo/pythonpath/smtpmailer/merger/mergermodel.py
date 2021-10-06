@@ -316,11 +316,36 @@ class MergerModel(MailModel):
     def _getQueries(self):
         names = self._queries.getElementNames()
         queries = [name for name in names if self._hasSubQuery(names, name)]
-        return tuple(queries)
+        return self._getQueryTables(queries)
 
     def _hasSubQuery(self, names, name):
+        hasquery = False
         subquery = self._getSubQueryName(name)
-        return not name.startswith(self._prefix) and subquery in names
+        if not name.startswith(self._prefix) and subquery in names:
+            hasquery = self._checkQueries(name, subquery)
+        return hasquery
+
+    def _checkQueries(self, query, subquery):
+        return self._checkQuery(query, subquery) and self._checkSubQuery(subquery)
+ 
+    def _checkQuery(self, query, subquery):
+        self._composer.setCommand(query, QUERY)
+        tables = self._composer.getTables()
+        return tables.hasElements() and tables.getByIndex(0).Name == subquery
+
+    def _checkSubQuery(self, subquery):
+        self._subcomposer.setCommand(subquery, QUERY)
+        tables = self._subcomposer.getTables()
+        return tables.hasElements()
+
+    def _getQueryTables(self, queries):
+        tables = {}
+        for query in queries:
+            subquery = self._getSubQueryName(query)
+            self._composer.setCommand(subquery, QUERY)
+            table = self._composer.getTables().getByIndex(0).Name
+            tables[query] = table
+        return tables
 
     # AddressBook Table methods
     def setAddressBookTable(self, table):
@@ -328,12 +353,10 @@ class MergerModel(MailModel):
         return columns
 
     # Query methods
-    def validateQuery(self, query):
-        valid = False
-        if query != '' and query not in self._tables:
-            queries = self._queries.getElementNames()
-            valid = not query.startswith(self._prefix) and query not in queries
-        return valid
+    def isQueryValid(self, query):
+        return all((query != '',
+                    query not in self._tables,
+                    not query.startswith(self._prefix)))
 
     def setQuery(self, query):
         subquery = self._getSubQueryName(query)
@@ -344,10 +367,8 @@ class MergerModel(MailModel):
         self._recipient.UpdateTableName = query
         self._setComposerCommand(self._composer, query)
         self._setRowSet(self._recipient, self._composer)
-        table = self._getSubComposerTable()
-        return table
 
-    def addQuery(self, table, query):
+    def addQuery(self, query, table):
         name = self._getSubQueryName(query)
         self._addSubQuery(name, table)
         command = getSqlQuery(self._ctx, 'getQueryCommand', name)
@@ -369,21 +390,29 @@ class MergerModel(MailModel):
 
     def _addSubQuery(self, name, table):
         command = getSqlQuery(self._ctx, 'getQueryCommand', table)
-        query = self._createQuery(command)
-        self._queries.insertByName(name, query)
+        query = self._createQuery(name, command)
+        self._addQueries(name, query)
 
     def _addQuery(self, name, command):
-        query = self._createQuery(command)
+        query = self._createQuery(name, command)
         if self._similar:
             filters = self._getQueryFilters()
-            self._composer.setQuery(query.Command)
+            self._composer.setQuery(command)
             self._composer.setStructuredFilter(filters)
             query.Command = self._composer.getQuery()
-        self._queries.insertByName(name, query)
+        self._addQueries(name, query)
 
-    def _createQuery(self, command):
-        service = 'com.sun.star.sdb.QueryDefinition'
-        query = createService(self._ctx, service)
+    def _addQueries(self, name, query):
+        if not self._queries.hasByName(name):
+            self._queries.insertByName(name, query)
+
+    def _createQuery(self, name, command):
+        # FIXME: If a Query already exist we rewrite it content!!!
+        if self._queries.hasByName(name):
+            query = self._queries.getByName(name)
+        else:
+            service = 'com.sun.star.sdb.QueryDefinition'
+            query = createService(self._ctx, service)
         query.Command = command
         return query
 
@@ -404,9 +433,6 @@ class MergerModel(MailModel):
         name = self._getSubQueryName(query)
         self._queries.removeByName(name)
 
-    def _getSubComposerTable(self):
-        return self._subcomposer.getTables().getByIndex(0).Name
-
     # Email methods
     def getEmails(self):
         emails = []
@@ -422,12 +448,11 @@ class MergerModel(MailModel):
         self._addressbook.DatabaseDocument.store()
         return emails
 
-    def removeEmail(self, query, email, table):
+    def removeEmail(self, query, email):
         name = self._getSubQueryName(query)
         emails = self._removeEmail(name, email)
         self._addressbook.DatabaseDocument.store()
-        enabled = self.canAddColumn(table)
-        return emails, enabled
+        return emails
 
     def moveEmail(self, query, email, position):
         name = self._getSubQueryName(query)
@@ -486,11 +511,9 @@ class MergerModel(MailModel):
         filter = self._getIdentifierFilter(identifier)
         self._setFilter(query, filter)
 
-    def removeIdentifier(self, query, table, identifier):
+    def removeIdentifier(self, query, identifier):
         filter = self._getIdentifierFilter(identifier)
         self._setFilter(query, filter, False)
-        enabled = self.canAddColumn(table)
-        return enabled
 
     def _getIdentifierFilter(self, identifier):
         operator = self._getIdentifierOperator()
@@ -511,11 +534,9 @@ class MergerModel(MailModel):
         filter = self._getBookmarkFilter(bookmark)
         self._setFilter(query, filter)
 
-    def removeBookmark(self, query, table, bookmark):
+    def removeBookmark(self, query, bookmark):
         filter = self._getBookmarkFilter(bookmark)
         self._setFilter(query, filter, False)
-        enabled = self.canAddColumn(table)
-        return enabled
 
     def _getBookmarkFilter(self, bookmark):
         operator = self._getBookmarkOperator()
@@ -574,8 +595,8 @@ class MergerModel(MailModel):
         return filters
 
     # Email, Index and Bookmark shared methods
-    def canAddColumn(self, table):
-        return True if self._similar else table == self._getSubComposerTable()
+    def isSimilar(self):
+        return self._similar
 
     # Email private shared methods
     def _setQueryCommand(self, name, composer):
@@ -583,9 +604,8 @@ class MergerModel(MailModel):
         self._queries.getByName(name).Command = command
 
     # WizardPage1 commitPage()
-    def commitPage1(self, query):
+    def commitPage1(self, query, table):
         name = self._addressbook.Name
-        table = self._getSubComposerTable()
         command = self._composer.getQuery()
         subcommand = self._subcomposer.getQuery()
         if self._isPage2Loaded():

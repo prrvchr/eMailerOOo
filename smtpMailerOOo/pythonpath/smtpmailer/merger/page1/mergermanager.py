@@ -62,8 +62,8 @@ class MergerManager(unohelper.Base,
         addressbook = self._model.getDefaultAddressBook()
         if addressbook in addressbooks:
             self._view.setPageStep(1)
-            # FIXME: We must disable the handler "ChangeAddressBook"
-            # FIXME: otherwise it activates twice
+            # FIXME: We must disable the "ChangeAddressBook"
+            # FIXME: handler otherwise it activates twice
             self._disableHandler()
             self._view.selectAddressBook(addressbook)
         else:
@@ -92,7 +92,8 @@ class MergerManager(unohelper.Base,
     def commitPage(self, reason):
         try:
             query = self._view.getQuery()
-            self._model.commitPage1(query)
+            table = self._view.getQueryTable()
+            self._model.commitPage1(query, table)
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -124,67 +125,69 @@ class MergerManager(unohelper.Base,
         elif step == 3:
             self._view.enablePage(True)
             self._view.setColumnLabel(label)
-            # FIXME: We must disable the handler "ChangeAddressBookTable"
-            # FIXME: otherwise it activates twice
-            self._disableHandler()
             self._view.initTables(tables)
-            self._view.initQuery(queries)
+            if self._view.initQuery(queries) and tables:
+                # FIXME: We must disable the "ChangeAddressBookTable"
+                # FIXME: handler otherwise it activates twice
+                self._disableHandler()
+                self._view.initTablesSelection()
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
 
     def newAddressBook(self):
         url = '.uno:AutoPilotAddressDataSource'
         executeDispatch(self._ctx, url)
-        #url = '.uno:AddressBookSource'
-        # FIXME: Update the list of AddressBooks and keep the selection if possible
+        # url = '.uno:AddressBookSource'
+        # Update the list of AddressBooks and keep the selection if possible
         addressbook = self._view.getAddressBook()
         addressbooks = self._model.getAvailableAddressBooks()
         self._view.initAddressBook(addressbooks)
         if addressbook in addressbooks:
-            # FIXME: We must disable the handler "ChangeAddressBook"
-            # FIXME: otherwise it activates twice
+            # FIXME: We must disable the "ChangeAddressBook"
+            # FIXME: handler otherwise it activates twice
             self._disableHandler()
             self._view.selectAddressBook(addressbook)
 
     # Table setter methods
     def changeAddressBookTable(self, table):
         columns = self._model.setAddressBookTable(table)
-        # FIXME: We must disable the handler "ChangeAddressBookColumn"
-        # FIXME: otherwise it activates twice
+        # FIXME: We must disable the "ChangeAddressBookColumn"
+        # FIXME: handler otherwise it activates twice
         self._disableHandler()
+        #self._view.updateAddQuery()
         self._view.initColumns(columns)
 
     # Column setter methods
     def changeAddressBookColumn(self, column):
-        enabled = self._view.isQuerySelected()
-        if enabled:
+        enabled = False
+        query = self._view.getQueryTable()
+        if query is not None:
             table = self._view.getTable()
-            enabled = self._model.canAddColumn(table)
+            enabled = self._model.isSimilar() or query == table
         emails = self._view.getEmails()
         self._view.updateAddEmail(emails, enabled)
-        enable = enabled and not self._view.hasIdentifier()
-        self._view.enableAddIdentifier(enable)
-        enable = enabled and not self._view.hasBookmark()
-        self._view.enableAddBookmark(enable)
+        self._view.enableAddIdentifier(enabled)
+        self._view.enableAddBookmark(enabled)
 
     # Query setter methods
-    def editQuery(self, query, exist):
+    def editQuery(self, query, table):
+        exist = table is not None
         if exist:
-            table = self._model.setQuery(query)
+            self._model.setQuery(query)
             if self._view.getTable() != table:
-                # FIXME: We must disable the handler "ChangeAddressBookTable"
-                # FIXME: otherwise it activates twice
+                # FIXME: We must disable the "ChangeAddressBookTable"
+                # FIXME: handler otherwise it activates twice
                 self._disableHandler()
                 self._view.setTable(table)
+            enabled = False
             identifier = self._model.getIdentifier()
             bookmark = self._model.getBookmark()
             emails = self._model.getEmails()
-            enabled = False
         else:
+            enabled = self._model.isQueryValid(query)
             identifier = None
             bookmark = None
             emails = ()
-            enabled = self._model.validateQuery(query)
         self._view.enableAddQuery(enabled)
         self._view.enableRemoveQuery(exist)
         self._view.setBookmark(bookmark, exist)
@@ -195,7 +198,7 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def enterQuery(self, query):
-        if self._model.validateQuery(query):
+        if self._model.isQueryValid(query):
             self._addQuery(query)
             self._wizard.updateTravelUI()
 
@@ -213,8 +216,8 @@ class MergerManager(unohelper.Base,
     # Query private setter methods
     def _addQuery(self, query):
         table = self._view.getTable()
-        self._model.addQuery(table, query)
-        self._view.addQuery(query)
+        self._model.addQuery(query, table)
+        self._view.addQuery(query, table)
         self._view.enableRemoveQuery(False)
 
     # Email column setter methods
@@ -241,8 +244,8 @@ class MergerManager(unohelper.Base,
         self._view.enableAfter(False)
         query = self._view.getQuery()
         email = self._view.getEmail()
-        table = self._view.getTable()
-        emails, enabled = self._model.removeEmail(query, email, table)
+        emails = self._model.removeEmail(query, email)
+        enabled = self._canAddColumn()
         self._view.setEmail(emails)
         self._view.updateAddEmail(emails, enabled)
         self._wizard.updateTravelUI()
@@ -281,9 +284,9 @@ class MergerManager(unohelper.Base,
         self._view.enableAddIdentifier(False)
         self._view.enableRemoveIdentifier(False)
         query = self._view.getQuery()
-        table = self._view.getTable()
         identifier = self._view.getIdentifier()
-        enabled = self._model.removeIdentifier(query, table, identifier)
+        self._model.removeIdentifier(query, identifier)
+        enabled = self._canAddColumn()
         self._view.removeIdentifier(enabled)
         self._wizard.updateTravelUI()
 
@@ -301,8 +304,16 @@ class MergerManager(unohelper.Base,
         self._view.enableAddBookmark(False)
         self._view.enableRemoveBookmark(False)
         query = self._view.getQuery()
-        table = self._view.getTable()
         bookmark = self._view.getBookmark()
-        enabled = self._model.removeBookmark(query, table, bookmark)
+        self._model.removeBookmark(query, bookmark)
+        enabled = self._canAddColumn()
         self._view.removeBookmark(enabled)
         self._wizard.updateTravelUI()
+
+    def _canAddColumn(self):
+        return self._model.isSimilar() or self._isSameTable()
+
+    def _isSameTable(self):
+        table = self._view.getTable()
+        query = self._view.getQueryTable()
+        return table == query

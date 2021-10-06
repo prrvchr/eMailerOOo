@@ -68,14 +68,21 @@ class MergerView(unohelper.Base):
     def getQuery(self):
         return self._getQuery().getText().strip()
 
-    def isQuerySelected(self):
-        selected = False
+    def getQueryTable(self):
+        table = None
         control = self._getQuery()
-        if control.getItemCount() > 0:
-            query = control.getText()
-            queries = control.getItems()
-            selected = query in queries
-        return selected
+        item = control.getText()
+        items = control.getItems()
+        if item in items:
+            index = items.index(item)
+            table = control.Model.getItemData(index)
+        return table
+
+    def isQuerySelected(self):
+        control = self._getQuery()
+        item = control.getText()
+        items = control.getItems()
+        return item in items
 
     # Email getter method
     def getEmail(self):
@@ -148,10 +155,10 @@ class MergerView(unohelper.Base):
         self._getAddressBook().selectItem(addressbook, True)
 
     def initTables(self, tables):
-        control = self._getTable()
-        control.Model.StringItemList = tables
-        if control.getItemCount() > 0:
-            control.selectItemPos(0, True)
+        self._getTable().Model.StringItemList = tables
+
+    def initTablesSelection(self):
+        self._getTable().selectItemPos(0, True)
 
     def setTable(self, table):
         self._getTable().selectItem(table, True)
@@ -162,16 +169,25 @@ class MergerView(unohelper.Base):
     def initColumns(self, columns):
         control= self._getColumn()
         # TODO: We need to reset the control in order the handler been called
-        control.Model.StringItemList = ()
+        control.Model.removeAllItems()
         control.Model.StringItemList = columns
         if control.getItemCount() > 0:
             control.selectItemPos(0, True)
 
     def initQuery(self, queries):
         control = self._getQuery()
-        control.Model.StringItemList = queries
-        query = control.getItem(0) if control.getItemCount() > 0 else ''
-        control.setText(query)
+        control.Model.removeAllItems()
+        for query, table in queries.items():
+            index = control.Model.ItemCount
+            control.Model.insertItemText(index, query)
+            control.Model.setItemData(index, table)
+        query = ''
+        initialized = control.Model.ItemCount > 0
+        if initialized:
+            query = control.Model.getItemText(0)
+        print("MergerView.initQuery() *************************")
+        control.Text = query
+        return not initialized
 
     # Query methods
     def enableAddQuery(self, enabled):
@@ -180,11 +196,12 @@ class MergerView(unohelper.Base):
     def enableRemoveQuery(self, enabled):
         self._getRemoveQuery().Model.Enabled = enabled
 
-    def addQuery(self, query):
+    def addQuery(self, query, table):
         control = self._getQuery()
         control.setText('')
-        count = control.getItemCount()
-        control.addItem(query, count)
+        index = control.Model.ItemCount
+        control.Model.insertItemText(index, query)
+        control.Model.setItemData(index, table)
 
     def removeQuery(self, query):
         self._getRemoveQuery().Model.Enabled = False
@@ -193,8 +210,8 @@ class MergerView(unohelper.Base):
         queries = control.getItems()
         if query in queries:
             control.setText('')
-            position = queries.index(query)
-            control.removeItems(position, 1)
+            index = queries.index(query)
+            control.removeItems(index, 1)
 
     # Email column setter methods
     def enableAddEmail(self, enabled):
@@ -215,11 +232,11 @@ class MergerView(unohelper.Base):
     def enableAfter(self, enabled):
         self._getAfter().Model.Enabled = enabled
 
-    def setEmail(self, emails, position=-1):
+    def setEmail(self, emails, index=-1):
         control = self._getEmail()
         control.Model.StringItemList = emails
-        if position != -1:
-            control.selectItemPos(position, True)
+        if index != -1:
+            control.selectItemPos(index, True)
 
     # Identifier column methods
     def setIdentifier(self, identifier, exist):
@@ -239,6 +256,7 @@ class MergerView(unohelper.Base):
         self.enableAddIdentifier(enabled)
 
     def enableAddIdentifier(self, enabled):
+        enabled = not self.hasIdentifier() if enabled else False
         self._getAddIdentifier().Model.Enabled = enabled
 
     def enableRemoveIdentifier(self, enabled):
@@ -262,6 +280,7 @@ class MergerView(unohelper.Base):
         self.enableAddBookmark(enabled)
 
     def enableAddBookmark(self, enabled):
+        enabled = not self.hasBookmark() if enabled else False
         self._getAddBookmark().Model.Enabled = enabled
 
     def enableRemoveBookmark(self, enabled):
@@ -290,7 +309,7 @@ class MergerView(unohelper.Base):
     def _enableListBox(self, control, enabled):
         control.Model.Enabled = enabled
         if not enabled:
-            control.Model.StringItemList = ()
+            control.Model.removeAllItems()
 
 # MergerView private getter control methods
     def _getAddressBook(self):

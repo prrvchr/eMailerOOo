@@ -134,7 +134,7 @@ Et ajouter les colonnes suivantes:
 - Colonne d'adresse courriel: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
 Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient important puisque le courriel sera envoyé à la première adresse disponible.
-De plus, à l'étape [Sélection des destinataires](https://prrvchr.github.io/smtpMailerOOo/#selection-des-destinataires) de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.
+De plus, à l'étape [Sélection des destinataires](https://prrvchr.github.io/smtpMailerOOo/README_fr#sélection-des-destinataires) de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.
 Assurez-vous donc d'avoir un carnet d'adresses avec des colonnes d'adresses courriel renseignées.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)

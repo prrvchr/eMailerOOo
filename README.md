@@ -106,25 +106,25 @@ These merge fields should only reference the **main table** of the data source.
 
 In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 
-![smtpMailerOOo screenshot 1](smtpMailerOOo-1.png)
+![smtpMailerOOo screenshot 1](smtpMailerOOo-Merger1.png)
 
 #### Data source selection:
 
 The datasource load for the **Email merging** wizard should appear: 
 
-![smtpMailerOOo screenshot 2](smtpMailerOOo-2.png)
+![smtpMailerOOo screenshot 2](smtpMailerOOo-Merger2.png)
 
 The following screenshots use the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
 In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `My Google contacts` is selected.
 
-![smtpMailerOOo screenshot 3](smtpMailerOOo-3.png)
+![smtpMailerOOo screenshot 3](smtpMailerOOo-Merger3.png)
 
 If no mailing list exists, you need to create one, by entering its name and validating with: `ENTER` or the `Add` button.
 
 Make sure when creating the mailing list that the **main table** is always selected.
 
-![smtpMailerOOo screenshot 4](smtpMailerOOo-4.png)
+![smtpMailerOOo screenshot 4](smtpMailerOOo-Merger4.png)
 
 Now that your new mailing list is available in the list, you need to select it.
 
@@ -137,7 +137,7 @@ If several columns of email addresses are selected, then the order becomes relev
 In addition, on [Recipients selection](https://prrvchr.github.io/smtpMailerOOo/#recipients-selection) step of the wizard, in the `Available recipients` tab, only records with at least one email address column entered will be listed.  
 So make sure you have an address book with at least one of the email address columns entered.
 
-![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
+![smtpMailerOOo screenshot 5](smtpMailerOOo-Merger5.png)
 
 This setting is to be made only for new mailing lists.  
 You can now proceed to the next step.
@@ -148,17 +148,17 @@ The recipients are selected using 2 buttons `Add all` and `Add` allowing respect
 - To add all recipients.
 - Add the selection, which can be multiple using the `CTRL` key.
 
-![smtpMailerOOo screenshot 6](smtpMailerOOo-6.png)
+![smtpMailerOOo screenshot 6](smtpMailerOOo-Merger6.png)
 
 Example of multiple selection:
 
-![smtpMailerOOo screenshot 7](smtpMailerOOo-7.png)
+![smtpMailerOOo screenshot 7](smtpMailerOOo-Merger7.png)
 
 The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing respectively:
 - To remove all recipients.
 - Remove the selection, which can be multiple using the `CTRL` key. 
 
-![smtpMailerOOo screenshot 8](smtpMailerOOo-8.png)
+![smtpMailerOOo screenshot 8](smtpMailerOOo-Merger8.png)
 
 If you have selected at least 1 recipient, you can proceed to the next step.
 

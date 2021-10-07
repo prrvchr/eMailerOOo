@@ -106,25 +106,25 @@ Ces champs de fusion doivent uniquement faire référence à la **table principa
 
 Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
-![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
+![smtpMailerOOo screenshot 1](smtpMailerOOo-Merger1_fr.png)
 
 #### Sélection de la source de données:
 
 Le chargement de la source de données de l'assistant **Publipostage de courriels** devrait apparaître :
 
-![smtpMailerOOo screenshot 2](smtpMailerOOo-2_fr.png)
+![smtpMailerOOo screenshot 2](smtpMailerOOo-Merger2_fr.png)
 
 Les captures d'écran suivantes utilisent l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) comme source de données. Si vous utilisez votre propre source de données, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
 Dans la copie d'écran suivante, on peut voir que la source de données gContactOOo s'appelle: `Adresses` et que la **table principale**: `Mes contacts Google` est sélectionnée.
 
-![smtpMailerOOo screenshot 3](smtpMailerOOo-3_fr.png)
+![smtpMailerOOo screenshot 3](smtpMailerOOo-Merger3_fr.png)
 
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
 Assurez-vous lors de la création de liste de diffusion que la **table principale** est toujours bien sélectionnée.
 
-![smtpMailerOOo screenshot 4](smtpMailerOOo-4_fr.png)
+![smtpMailerOOo screenshot 4](smtpMailerOOo-Merger4_fr.png)
 
 Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, vous devez la sélectionner.
 
@@ -137,7 +137,7 @@ Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre de
 De plus, à l'étape [Sélection des destinataires](https://prrvchr.github.io/smtpMailerOOo/README_fr#sélection-des-destinataires) de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
 Assurez-vous donc d'avoir un carnet d'adresses avec au moins une des colonnes d’adresses courriel renseignées.
 
-![smtpMailerOOo screenshot 5](smtpMailerOOo-5_fr.png)
+![smtpMailerOOo screenshot 5](smtpMailerOOo-Merger5_fr.png)
 
 Ce paramètrage ne doit être effectué que pour les nouvelles listes de diffusion.  
 Vous pouvez maintenant passer à l'étape suivante.
@@ -148,17 +148,17 @@ Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `
 - D'ajouter tous les destinataires.
 - D'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
 
-![smtpMailerOOo screenshot 6](smtpMailerOOo-6_fr.png)
+![smtpMailerOOo screenshot 6](smtpMailerOOo-Merger6_fr.png)
 
 Example de la sélection multiple:
 
-![smtpMailerOOo screenshot 7](smtpMailerOOo-7_fr.png)
+![smtpMailerOOo screenshot 7](smtpMailerOOo-Merger7_fr.png)
 
 Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` et `Retirer` permettant respectivement:
 - De retirer tous les destinataires.
 - De retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
 
-![smtpMailerOOo screenshot 8](smtpMailerOOo-8_fr.png)
+![smtpMailerOOo screenshot 8](smtpMailerOOo-Merger8_fr.png)
 
 Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'étape suivante.
 

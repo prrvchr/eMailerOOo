@@ -120,7 +120,7 @@ Dans la copie d'écran suivante, on peut voir que la source de données gContact
 
 ![smtpMailerOOo screenshot 3](smtpMailerOOo-3_fr.png)
 
-Si aucune liste de diffusion n'existe, je doit en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
+Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
 Assurez-vous lors de la création de liste de diffusion que la **table principale** est toujours bien sélectionnée.
 
@@ -129,15 +129,18 @@ Assurez-vous lors de la création de liste de diffusion que la **table principal
 Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, vous devez la sélectionner.
 
 Et ajouter les colonnes suivantes:
-- Colonne de clé primaire: `Resource`
+- Colonne de clef primaire: `Resource`
 - Colonne bookmark: `Bookmark`
-- Colonne d'adresse courriel: `HomeEmail`, `WorkEmail` et `OtherEmail`
+- Colonnes d'adresses électronique: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
 Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient pertinent puisque le courriel sera envoyé à la première adresse disponible.  
 De plus, à l'étape [Sélection des destinataires](https://prrvchr.github.io/smtpMailerOOo/README_fr#sélection-des-destinataires) de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
 Assurez-vous donc d'avoir un carnet d'adresses avec au moins une des colonnes d’adresses courriel renseignées.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5_fr.png)
+
+Ce paramètrage ne doit être effectué que pour les nouvelles listes de diffusion.  
+Vous pouvez maintenant passer à l'étape suivante.
 
 #### Sélection des destinataires:
 

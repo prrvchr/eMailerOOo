@@ -120,7 +120,7 @@ In the following screenshot, we can see that the data source gContactOOo is call
 
 ![smtpMailerOOo screenshot 3](smtpMailerOOo-3.png)
 
-If no mailing list exists, I must create one, by entering its name and validating with: `ENTER` or the `Add` button.
+If no mailing list exists, you need to create one, by entering its name and validating with: `ENTER` or the `Add` button.
 
 Make sure when creating the mailing list that the **main table** is always selected.
 
@@ -131,13 +131,16 @@ Now that your new mailing list is available in the list, you need to select it.
 And add the following columns:
 - Primary key column: `Resource`
 - Bookmark column: `Bookmark`
-- Email address column: `HomeEmail`, `WorkEmail` et `OtherEmail`
+- Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
 In addition, on [Recipients selection](https://prrvchr.github.io/smtpMailerOOo/#recipients-selection) step of the wizard, in the `Available recipients` tab, only records with at least one email address column entered will be listed.  
 So make sure you have an address book with at least one of the email address columns entered.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
+
+This setting is to be made only for new mailing lists.  
+You can now proceed to the next step.
 
 #### Recipients selection:
 

@@ -144,11 +144,23 @@ You can now proceed to the next step.
 
 #### Recipients selection:
 
+The recipients are selected using 2 buttons `Add all` and `Add` allowing respectively:
+- To add all recipients.
+- Add the selection, which can be multiple using the `CTRL` key.
+
 ![smtpMailerOOo screenshot 6](smtpMailerOOo-6.png)
+
+Example of multiple selection:
 
 ![smtpMailerOOo screenshot 7](smtpMailerOOo-7.png)
 
+The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing respectively:
+- To remove all recipients.
+- Remove the selection, which can be multiple using the `CTRL` key. 
+
 ![smtpMailerOOo screenshot 8](smtpMailerOOo-8.png)
+
+If you have selected at least 1 recipient, you can proceed to the next step.
 
 #### Sending options selection:
 

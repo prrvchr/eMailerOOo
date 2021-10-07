@@ -144,11 +144,23 @@ Vous pouvez maintenant passer à l'étape suivante.
 
 #### Sélection des destinataires:
 
+Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `Ajouter` permettant respectivement:
+- D'ajouter tous les destinataires.
+- D'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
+
 ![smtpMailerOOo screenshot 6](smtpMailerOOo-6_fr.png)
+
+Example de la sélection multiple:
 
 ![smtpMailerOOo screenshot 7](smtpMailerOOo-7_fr.png)
 
+Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` et `Retirer` permettant respectivement:
+- De retirer tous les destinataires.
+- De retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
+
 ![smtpMailerOOo screenshot 8](smtpMailerOOo-8_fr.png)
+
+Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'étape suivante.
 
 #### Sélection des options d'envoi:
 

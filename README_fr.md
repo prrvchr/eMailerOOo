@@ -114,9 +114,28 @@ Le chargement de la source de données de l'assistant **Publipostage de courriel
 
 Les captures d'écran suivantes utilisent l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) comme source de données. Si vous utilisez votre propre source de données, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
+Dans la copie d'écran suivante, on peut voir que la source de données gContactOOo s'appelle: `Adresses` et que la **table principale**: `Mes contacts Google` est sélectionnée.
+
 ![smtpMailerOOo screenshot 3](smtpMailerOOo-3_fr.png)
 
+Si aucune liste de diffusion n'existe, je doit en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
+
+Assurez-vous lors de la création de liste de diffusion que la **table principale** est toujours bien sélectionnée.
+
 ![smtpMailerOOo screenshot 4](smtpMailerOOo-4_fr.png)
+
+Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, vous devez la sélectionner.
+
+Et ajouter les colonnes suivantes:
+- Colonne de clé primaire: `Resource`
+- Colonne bookmark: `Bookmark`
+- Colonne d'adresse courriel: `HomeEmail`, `WorkEmail` et `OtherEmail`
+
+Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient important puisque le courriel sera envoyé à la première adresse disponible.
+De plus, à la page 2 de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.
+Assurez-vous donc d'avoir un carnet d'adresses avec des colonnes d'adresses courriel renseignées.
+
+![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
 
 ## Historique:
 

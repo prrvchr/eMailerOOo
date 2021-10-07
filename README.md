@@ -114,11 +114,28 @@ The datasource load for the **Email merging** wizard should appear:
 
 The following screenshots use the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
+In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**:`My Google contacts` is selected.
+
 ![smtpMailerOOo screenshot 3](smtpMailerOOo-3.png)
 
+If no mailing list exists, I must create one, by entering its name and validating with: `ENTER` or the `Add` button.
+
+Make sure when creating the mailing list that the **main table** is always selected.
 
 ![smtpMailerOOo screenshot 4](smtpMailerOOo-4.png)
 
+Now that your new mailing list is available in the list, you need to select it.
+
+And add the following columns:
+- Primary key column: `Resource`
+- Bookmark column: `Bookmark`
+- Email address column: `HomeEmail`, `WorkEmail` et `OtherEmail`
+
+If several columns of email addresses are selected, then the order becomes important since the email will be sent to the first available address.
+In addition, on page 2 of the wizard, in the `Available recipients` tab, only records with at least one email address column entered will be listed.
+So make sure you have an address book with filled in email addresses columns.
+
+![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
 
 ## Historical:
 

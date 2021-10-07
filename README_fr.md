@@ -108,6 +108,8 @@ Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1_fr.png)
 
+#### Sélection de la source de données:
+
 Le chargement de la source de données de l'assistant **Publipostage de courriels** devrait apparaître :
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2_fr.png)
@@ -136,6 +138,8 @@ De plus, à la page 2 de l'assistant, dans l'onglet `Destinataires disponibles`,
 Assurez-vous donc d'avoir un carnet d'adresses avec des colonnes d'adresses courriel renseignées.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
+
+#### Sélection des destinataires:
 
 ## Historique:
 

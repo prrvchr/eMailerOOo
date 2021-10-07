@@ -108,13 +108,15 @@ In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending
 
 ![smtpMailerOOo screenshot 1](smtpMailerOOo-1.png)
 
+#### Data source selection:
+
 The datasource load for the **Email merging** wizard should appear: 
 
 ![smtpMailerOOo screenshot 2](smtpMailerOOo-2.png)
 
 The following screenshots use the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
-In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**:`My Google contacts` is selected.
+In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `My Google contacts` is selected.
 
 ![smtpMailerOOo screenshot 3](smtpMailerOOo-3.png)
 
@@ -136,6 +138,8 @@ In addition, on page 2 of the wizard, in the `Available recipients` tab, only re
 So make sure you have an address book with filled in email addresses columns.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
+
+#### Recipients selection:
 
 ## Historical:
 

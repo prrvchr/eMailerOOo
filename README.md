@@ -144,6 +144,14 @@ You can now proceed to the next step.
 
 #### Recipients selection:
 
+![smtpMailerOOo screenshot 6](smtpMailerOOo-6.png)
+
+![smtpMailerOOo screenshot 7](smtpMailerOOo-7.png)
+
+![smtpMailerOOo screenshot 8](smtpMailerOOo-8.png)
+
+#### Sending options selection:
+
 ## Historical:
 
 What remains to be done:

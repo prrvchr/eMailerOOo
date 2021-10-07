@@ -938,4 +938,4 @@ class MergerModel(MailModel):
 
     def _getMailingMessage(self):
         resource = self._resources.get('Message')
-        return self._resolver.resolveString(resource) % (self._query, self._table)
+        return self._resolver.resolveString(resource) + self._query

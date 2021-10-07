@@ -144,6 +144,14 @@ Vous pouvez maintenant passer à l'étape suivante.
 
 #### Sélection des destinataires:
 
+![smtpMailerOOo screenshot 6](smtpMailerOOo-6_fr.png)
+
+![smtpMailerOOo screenshot 7](smtpMailerOOo-7_fr.png)
+
+![smtpMailerOOo screenshot 8](smtpMailerOOo-8_fr.png)
+
+#### Sélection des options d'envoi:
+
 ## Historique:
 
 **Ce qui reste à faire:**

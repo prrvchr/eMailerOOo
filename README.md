@@ -133,9 +133,9 @@ And add the following columns:
 - Bookmark column: `Bookmark`
 - Email address column: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
-If several columns of email addresses are selected, then the order becomes important since the email will be sent to the first available address.  
+If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
 In addition, on [Recipients selection](https://prrvchr.github.io/smtpMailerOOo/#recipients-selection) step of the wizard, in the `Available recipients` tab, only records with at least one email address column entered will be listed.  
-So make sure you have an address book with filled in email addresses columns.
+So make sure you have an address book with at least one of the email address columns entered.
 
 ![smtpMailerOOo screenshot 5](smtpMailerOOo-5.png)
 

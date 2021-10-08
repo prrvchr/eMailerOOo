@@ -179,7 +179,6 @@ Merci de votre compréhension et de votre patience.
 
 En attendant, si vous souhaitez quand même utiliser votre compte Google comme expéditeur, procédez comme suit:
 - Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
-- Passez votre ordinateur en mode hors ligne (sans connexion internet).
 - Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès, notés précédemment.
 
 #### Sélection du compte:

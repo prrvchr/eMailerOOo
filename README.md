@@ -179,7 +179,6 @@ Thank you for your understanding and your patience.
 
 In the meantime, if you still want to use your Google account as sender, proceed as follows:
 - Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
-- Pass your computer in offline mode (without internet connection).
 - Create a connection configuration with your Google account and enter the connection settings of your access provider, noted precedently.
 
 #### Account selection:

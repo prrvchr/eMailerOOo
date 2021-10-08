@@ -180,7 +180,7 @@ Merci de votre compréhension et de votre patience.
 En attendant, si vous souhaitez quand même utiliser votre compte Google comme expéditeur, procédez comme suit:
 - Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
 - Passez votre ordinateur en mode hors ligne (sans connexion internet).
-- Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès.
+- Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès, notés précédemment.
 
 #### Sélection du compte:
 
@@ -199,6 +199,8 @@ En attendant, si vous souhaitez quand même utiliser votre compte Google comme e
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4_fr.png)
 
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5_fr.png)
+
+Veillez à toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
 
 ## Historique:
 

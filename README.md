@@ -180,7 +180,7 @@ Thank you for your understanding and your patience.
 In the meantime, if you still want to use your Google account as sender, proceed as follows:
 - Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
 - Pass your computer in offline mode (without internet connection).
-- Create a connection configuration with your Google account and enter the connection parameters of your access provider. 
+- Create a connection configuration with your Google account and enter the connection settings of your access provider, noted precedently.
 
 #### Account selection:
 
@@ -199,6 +199,8 @@ In the meantime, if you still want to use your Google account as sender, proceed
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4.png)
 
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5.png)
+
+Always exit the wizard with the `Finish` button to save the connection settings.
 
 ## Historical:
 

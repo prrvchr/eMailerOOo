@@ -164,7 +164,11 @@ Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'éta
 
 #### Sélection des options d'envoi:
 
+Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide du bouton `Ajouter`.
+
 ![smtpMailerOOo Merger screenshot 9](smtpMailerOOo-Merger9_fr.png)
+
+La création du nouvel expéditeur est décrite dans la [Configuration de la connexion](https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion)
 
 ### Configuration de la connexion:
 

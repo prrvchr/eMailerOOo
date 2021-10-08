@@ -164,7 +164,11 @@ If you have selected at least 1 recipient, you can proceed to the next step.
 
 #### Sending options selection:
 
+If this is not already done, you must create a new sender using the `Add` button.
+
 ![smtpMailerOOo Merger screenshot 9](smtpMailerOOo-Merger9.png)
+
+The creation of the new sender is described in the [Configure connection](https://prrvchr.github.io/smtpMailerOOo/#configure-connection)
 
 ### Configure connection:
 

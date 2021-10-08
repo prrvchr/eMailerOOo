@@ -189,7 +189,7 @@ Merci de votre compréhension et de votre patience.
 
 ![smtpMailerOOo Ispdb screenshot 3](smtpMailerOOo-Ispdb3_fr.png)
 
-#### Tester la configuration:
+#### Tester la connexion:
 
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4_fr.png)
 

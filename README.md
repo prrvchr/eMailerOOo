@@ -168,15 +168,28 @@ If this is not already done, you must create a new sender using the `Add` button
 
 ![smtpMailerOOo Merger screenshot 9](smtpMailerOOo-Merger9.png)
 
-The creation of the new sender is described in the [Configure connection](https://prrvchr.github.io/smtpMailerOOo/#configure-connection)
+The creation of the new sender is described in the [Configure connection](https://prrvchr.github.io/smtpMailerOOo/#configure-connection) section.
 
 ### Configure connection:
 
+#### Limitation:
+
+Although the smtpMailerOOo extension is designed to use the Google SMTP servers (smtp.gmail.com) using the OAuth2 protocol, **it is not yet possible to connect to these SMTP servers**, the OAuth2OOo extension being not yet approved by Google.  
+Thank you for your understanding and your patience.
+
+#### Account selection:
+
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1.png)
+
+#### Find the configuration:
 
 ![smtpMailerOOo Ispdb screenshot 2](smtpMailerOOo-Ispdb2.png)
 
+#### Show configuration:
+
 ![smtpMailerOOo Ispdb screenshot 3](smtpMailerOOo-Ispdb3.png)
+
+#### Connection test:
 
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4.png)
 

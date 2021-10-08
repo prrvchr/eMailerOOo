@@ -168,15 +168,28 @@ Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide
 
 ![smtpMailerOOo Merger screenshot 9](smtpMailerOOo-Merger9_fr.png)
 
-La création du nouvel expéditeur est décrite dans la [Configuration de la connexion](https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion)
+La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion](https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion).
 
 ### Configuration de la connexion:
 
+#### Limitations:
+
+Bien que l'extension smtpMailerOOO est conçue pour utiliser les serveurs SMTP de Google (smtp.gmail.com) à l'aide du protocole OAuth2, **il n'est pas encore possible de se connecter à ces serveurs SMTP**, l'extension OAuth2OOo n'étant pas encore approuvé par Google.  
+Merci de votre compréhension et de votre patience.
+
+#### Sélection du compte:
+
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1_fr.png)
+
+#### Trouver la configuration:
 
 ![smtpMailerOOo Ispdb screenshot 2](smtpMailerOOo-Ispdb2_fr.png)
 
+#### Afficher la configuration:
+
 ![smtpMailerOOo Ispdb screenshot 3](smtpMailerOOo-Ispdb3_fr.png)
+
+#### Tester la configuration:
 
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4_fr.png)
 

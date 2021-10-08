@@ -177,6 +177,11 @@ La création du nouvel expéditeur est décrite dans la section [Configuration d
 Bien que l'extension smtpMailerOOO est conçue pour utiliser les serveurs SMTP de Google (smtp.gmail.com) à l'aide du protocole OAuth2, **il n'est pas encore possible de se connecter à ces serveurs SMTP**, l'extension OAuth2OOo n'étant pas encore approuvé par Google.  
 Merci de votre compréhension et de votre patience.
 
+En attendant, si vous souhaitez quand même utiliser votre compte Google comme expéditeur, procédez comme suit:
+- Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
+- Passez votre ordinateur en mode hors ligne (sans connexion internet).
+- Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès.
+
 #### Sélection du compte:
 
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1_fr.png)

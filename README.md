@@ -177,6 +177,11 @@ The creation of the new sender is described in the [Configure connection](https:
 Although the smtpMailerOOo extension is designed to use the Google SMTP servers (smtp.gmail.com) using the OAuth2 protocol, **it is not yet possible to connect to these SMTP servers**, the OAuth2OOo extension being not yet approved by Google.  
 Thank you for your understanding and your patience.
 
+In the meantime, if you still want to use your Google account as sender, proceed as follows:
+- Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
+- Pass your computer in offline mode (without internet connection).
+- Create a connection configuration with your Google account and enter the connection parameters of your access provider. 
+
 #### Account selection:
 
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1.png)

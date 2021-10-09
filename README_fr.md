@@ -198,27 +198,41 @@ En attendant, si vous souhaitez quand même utiliser votre compte Google comme e
 - Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
 - Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès, notés précédemment.
 
-#### Sélection du compte:
+#### Démarrage de l'assistant:
+
+Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
 
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1_fr.png)
 
-#### Trouver la configuration:
+#### Sélection du compte:
 
 ![smtpMailerOOo Ispdb screenshot 2](smtpMailerOOo-Ispdb2_fr.png)
 
-#### Afficher la configuration:
+#### Trouver la configuration:
 
 ![smtpMailerOOo Ispdb screenshot 3](smtpMailerOOo-Ispdb3_fr.png)
 
-#### Tester la connexion:
+#### Afficher la configuration:
 
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4_fr.png)
 
+#### Tester la connexion:
+
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5_fr.png)
+
+![smtpMailerOOo Ispdb screenshot 6](smtpMailerOOo-Ispdb6_fr.png)
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
 
 ### Courriels sortants:
+
+#### Démarrage de l'assistant:
+
+Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
+
+![smtpMailerOOo Spooler screenshot 1](smtpMailerOOo-Spooler1_fr.png)
+
+
 
 ## Historique:
 

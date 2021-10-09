@@ -198,27 +198,39 @@ In the meantime, if you still want to use your Google account as sender, proceed
 - Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
 - Create a connection configuration with your Google account and enter the connection settings of your access provider, noted precedently.
 
-#### Account selection:
+#### Starting the wizard:
+
+In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
 
 ![smtpMailerOOo Ispdb screenshot 1](smtpMailerOOo-Ispdb1.png)
 
-#### Find the configuration:
+#### Account selection:
 
 ![smtpMailerOOo Ispdb screenshot 2](smtpMailerOOo-Ispdb2.png)
 
-#### Show configuration:
+#### Find the configuration:
 
 ![smtpMailerOOo Ispdb screenshot 3](smtpMailerOOo-Ispdb3.png)
 
-#### Connection test:
+#### Show configuration:
 
 ![smtpMailerOOo Ispdb screenshot 4](smtpMailerOOo-Ispdb4.png)
 
+#### Connection test:
+
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5.png)
+
+![smtpMailerOOo Ispdb screenshot 6](smtpMailerOOo-Ispdb6.png)
 
 Always exit the wizard with the `Finish` button to save the connection settings.
 
 ### Outgoing emails:
+
+#### Starting the wizard:
+
+In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
+
+![smtpMailerOOo Spooler screenshot 1](smtpMailerOOo-Spooler1.png)
 
 ## Historical:
 

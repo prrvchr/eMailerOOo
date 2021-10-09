@@ -234,9 +234,18 @@ Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriel
 
 #### Liste des courriels sortants:
 
+Chaque travaux d'envoi possède 3 états différents:
+- État **0**: le courriel est prêt à être envoyé.
+- État **1**: le courriel a été envoyé avec succès.
+- État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le journal d'activité du spouleur.
+
 ![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2_fr.png)
 
+Le spouleur de courriels est arrêté par défaut. ** Il doit être démarré avec le bouton `Démarrer / Arrêter` pour que les courriels en attente soient envoyés**.
+
 #### Journal d'activité du spouleur:
+
+Lorsque le spouleur de courriel est démarré, son activité peut être visualisée dans le journal d'activité.
 
 ![smtpMailerOOo Spooler screenshot 3](smtpMailerOOo-Spooler3_fr.png)
 

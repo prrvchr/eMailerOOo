@@ -234,9 +234,18 @@ In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgo
 
 #### List of outgoing emails:
 
+Each send job has 3 different states:
+- State **0**: the email is ready for sending.
+- State **1**: the email was sent successfully.
+- State **2**: An error occurred while sending the email. You can view the error message in the spooler activity log. 
+
 ![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2.png)
 
+The email spooler is stopped by default. **It must be started with the `Start / Stop` button so that the pending emails are sent**.
+
 #### Spooler activity log:
+
+When the email spooler is started, its activity can be viewed in the activity log.
 
 ![smtpMailerOOo Spooler screenshot 3](smtpMailerOOo-Spooler3.png)
 

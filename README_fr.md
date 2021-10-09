@@ -241,7 +241,7 @@ Chaque travaux d'envoi possède 3 états différents:
 
 ![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2_fr.png)
 
-Le spouleur de courriels est arrêté par défaut. ** Il doit être démarré avec le bouton `Démarrer / Arrêter` pour que les courriels en attente soient envoyés**.
+Le spouleur de courriels est arrêté par défaut. **Il doit être démarré avec le bouton `Démarrer / Arrêter` pour que les courriels en attente soient envoyés**.
 
 #### Journal d'activité du spouleur:
 

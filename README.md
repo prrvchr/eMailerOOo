@@ -91,6 +91,11 @@ In addition, this datasource must have at least one **main table**, including al
 If you do not have such a datasource then I invite you to install the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.  
 This extension will allow you to use your Android phone (your phone contacts) as a datasource.
 
+This mode of use is made up of 3 sections:
+- [Merging emails to mailing lists](https://prrvchr.github.io/smtpMailerOOo/#merging-emails-to-mailing-lists).
+- [Configure connection](https://prrvchr.github.io/smtpMailerOOo/#configure-connection).
+- [Outgoing emails](https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails).
+
 ### Merging emails to mailing lists:
 
 #### Requirement:
@@ -180,7 +185,7 @@ The following screenshot shows 1 attached file which will be merged on the data 
 ![smtpMailerOOo Merger screenshot 11](smtpMailerOOo-Merger11.png)
 
 Make sure to always exit the wizard with the `Finish` button to confirm submitting the send jobs.  
-To submit mailing jobs, please follow the section [Outgoing emails](https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails))
+To submit mailing jobs, please follow the section [Outgoing emails](https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails).
 
 ### Configure connection:
 

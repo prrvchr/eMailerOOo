@@ -91,6 +91,11 @@ De plus, cette source de données doit avoir au moins une **table principale**, 
 Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).  
 Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
 
+Ce mode d'utilisation est composé de 3 sections:
+- [Publipostage de courriels à des listes de diffusion](https://prrvchr.github.io/smtpMailerOOo/README_fr#publipostage-de-courriels-à-des-listes-de-diffusion).
+- [Configuration de la connexion](https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion).
+- [Courriels sortants](https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants).
+
 ### Publipostage de courriels à des listes de diffusion:
 
 #### Prérequis:
@@ -180,7 +185,7 @@ La capture d'écran suivante montre 1 fichier joint qui sera fusionné sur la so
 ![smtpMailerOOo Merger screenshot 11](smtpMailerOOo-Merger11_fr.png)
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` pour confirmer la soumission des travaux d'envoi.  
-Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants](https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants))
+Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants](https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants).
 
 ### Configuration de la connexion:
 

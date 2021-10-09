@@ -232,6 +232,14 @@ Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriel
 
 ![smtpMailerOOo Spooler screenshot 1](smtpMailerOOo-Spooler1_fr.png)
 
+#### Liste des courriels sortants:
+
+![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2_fr.png)
+
+#### Journal d'activité du spouleur:
+
+![smtpMailerOOo Spooler screenshot 3](smtpMailerOOo-Spooler3_fr.png)
+
 ## Historique:
 
 **Ce qui reste à faire:**

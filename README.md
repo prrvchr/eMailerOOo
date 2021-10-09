@@ -232,6 +232,14 @@ In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgo
 
 ![smtpMailerOOo Spooler screenshot 1](smtpMailerOOo-Spooler1.png)
 
+#### List of outgoing emails:
+
+![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2.png)
+
+#### Spooler activity log:
+
+![smtpMailerOOo Spooler screenshot 3](smtpMailerOOo-Spooler3.png)
+
 ## Historical:
 
 What remains to be done:

@@ -170,6 +170,18 @@ Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide
 
 La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion](https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion).
 
+Le courriel doit avoir un sujet. Il peut être enregistré dans le document Writer.
+
+![smtpMailerOOo Merger screenshot 10](smtpMailerOOo-Merger10_fr.png)
+
+Le courriel peut éventuellement contenir des fichiers joints. Ils peuvent être enregistrés dans le document Writer.  
+La capture d'écran suivante montre 1 fichier joint qui sera fusionné sur la source de données puis converti au format PDF avant d'être joint au courriel.
+
+![smtpMailerOOo Merger screenshot 11](smtpMailerOOo-Merger11_fr.png)
+
+Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` pour confirmer la soumission des travaux d'envoi.  
+Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants](https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants))
+
 ### Configuration de la connexion:
 
 #### Limitations:
@@ -199,7 +211,9 @@ En attendant, si vous souhaitez quand même utiliser votre compte Google comme e
 
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5_fr.png)
 
-Veillez à toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
+Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
+
+### Courriels sortants:
 
 ## Historique:
 

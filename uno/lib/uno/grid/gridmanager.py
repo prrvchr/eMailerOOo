@@ -98,8 +98,9 @@ class GridManager(unohelper.Base):
     def setRowSetData(self, rowset):
         connection = rowset.ActiveConnection
         datasource = connection.Parent
+        name = datasource.Name
         query = rowset.UpdateTableName
-        if self._isDataSourceChanged(datasource, query):
+        if self._isDataSourceChanged(name, query):
             if self._isGridLoaded():
                 self._saveWidths()
             # We can hide GridColumnHeader and reset GridDataModel
@@ -108,9 +109,9 @@ class GridManager(unohelper.Base):
             self._grid.resetRowSetData()
             self._composer = self._getComposer(connection, rowset)
             self._columns = self._getColumns(rowset.getMetaData())
-            identifiers = self._initColumnModel(datasource.Name, query)
+            identifiers = self._initColumnModel(name, query)
             self._initColumns(identifiers)
-            self._name = datasource.Name
+            self._name = name
             self._query = query
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
@@ -148,8 +149,8 @@ class GridManager(unohelper.Base):
         Thread(target=self._executeRowSet, args=args).start()
 
 # GridManager private methods
-    def _isDataSourceChanged(self, datasource, query):
-        return self._datasource != datasource or self._query != query
+    def _isDataSourceChanged(self, name, query):
+        return self._name != name or self._query != query
 
     def _isGridLoaded(self):
         return self._composer is not None

@@ -170,6 +170,18 @@ If this is not already done, you must create a new sender using the `Add` button
 
 The creation of the new sender is described in the [Configure connection](https://prrvchr.github.io/smtpMailerOOo/#configure-connection) section.
 
+The email must have a subject. It can be saved in the Writer document.
+
+![smtpMailerOOo Merger screenshot 10](smtpMailerOOo-Merger10.png)
+
+The email may optionally have attached files. They can be saved in the Writer document.  
+The following screenshot shows 1 attached file which will be merged on the data source then converted to PDF format before being attached to the email.
+
+![smtpMailerOOo Merger screenshot 11](smtpMailerOOo-Merger11.png)
+
+Make sure to always exit the wizard with the `Finish` button to confirm submitting the send jobs.  
+To submit mailing jobs, please follow the section [Outgoing emails](https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails))
+
 ### Configure connection:
 
 #### Limitation:
@@ -200,6 +212,8 @@ In the meantime, if you still want to use your Google account as sender, proceed
 ![smtpMailerOOo Ispdb screenshot 5](smtpMailerOOo-Ispdb5.png)
 
 Always exit the wizard with the `Finish` button to save the connection settings.
+
+### Outgoing emails:
 
 ## Historical:
 

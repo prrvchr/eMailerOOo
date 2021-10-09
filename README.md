@@ -107,7 +107,7 @@ To be able to post emails to a mailing list, you must:
 This Writer document can include merge fields (insertable by the command: **Insert -> Field -> More fields -> Database -> Mail merge fields**), this is even necessary if you want to be able to customize the content of the email.  
 These merge fields should only reference the **main table** of the data source.
 
-#### Merging
+#### Starting the mail merge wizard:
 
 In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 
@@ -198,7 +198,7 @@ In the meantime, if you still want to use your Google account as sender, proceed
 - Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
 - Create a connection configuration with your Google account and enter the connection settings of your access provider, noted precedently.
 
-#### Starting the wizard:
+#### Starting the connection wizard:
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
 
@@ -226,7 +226,7 @@ Always exit the wizard with the `Finish` button to save the connection settings.
 
 ### Outgoing emails:
 
-#### Starting the wizard:
+#### Starting the email spooler:
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
 

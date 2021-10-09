@@ -107,7 +107,7 @@ Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous deve
 Ce document Writer peut inclure des champs de fusion (insérables par la commande: **Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage**), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel.  
 Ces champs de fusion doivent uniquement faire référence à la **table principale** de la source de données.
 
-#### Publipostage:
+#### Démarrage de l'assistant de publipostage de courriels:
 
 Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
@@ -198,7 +198,7 @@ En attendant, si vous souhaitez quand même utiliser votre compte Google comme e
 - Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
 - Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès, notés précédemment.
 
-#### Démarrage de l'assistant:
+#### Démarrage de l'assistant de connexion:
 
 Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
 
@@ -226,13 +226,11 @@ Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'en
 
 ### Courriels sortants:
 
-#### Démarrage de l'assistant:
+#### Démarrage du spouleur de courriels:
 
 Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
 
 ![smtpMailerOOo Spooler screenshot 1](smtpMailerOOo-Spooler1_fr.png)
-
-
 
 ## Historique:
 

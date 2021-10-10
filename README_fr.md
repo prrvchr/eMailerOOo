@@ -265,7 +265,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 - Ecriture de l'assistant de [publipostage de courriels](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) permettant:
     - De créer des listes de diffusions.
     - De fusionner et convertir au format HTML le document courant pour en faire le message du courriel.
-    - De fusionner et/ou convertir au format PDF d'eventuel fichiers joins au courriel.
+    - De fusionner et/ou convertir au format PDF d'éventuel fichiers joints au courriel.
 
 - Ecriture d'un [Grid](https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid) piloté par un `com.sun.star.sdb.RowSet` permettant:
     - D'être paramètrable sur les colonnes à afficher.

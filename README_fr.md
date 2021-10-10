@@ -237,7 +237,7 @@ Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriel
 Chaque travaux d'envoi possède 3 états différents:
 - État **0**: le courriel est prêt à être envoyé.
 - État **1**: le courriel a été envoyé avec succès.
-- État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le [Journal d'activité du spouleur](https://prrvchr.github.io/smtpMailerOOo/README_fr#journal-d'activité-du-spouleur).
+- État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le [Journal d'activité du spouleur](https://prrvchr.github.io/smtpMailerOOo/README_fr#journal-dactivité-du-spouleur).
 
 ![smtpMailerOOo Spooler screenshot 2](smtpMailerOOo-Spooler2_fr.png)
 

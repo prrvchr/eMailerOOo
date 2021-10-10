@@ -253,11 +253,11 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What has been done for version 0.0.1:
 
-- Writing a connection configuration or [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) wizard to SMTP servers allowing:
+- Writing an [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or connection configuration wizard to SMTP servers allowing:
     - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database](https://wiki.mozilla.org/Thunderbird/ISPDB) or IspDB, which made this challenge possible...
     - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
 
-- Writing a email [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/spooler) allowing:
+- Writing an email [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/spooler) allowing:
     - View the email sending jobs with their respective status.
     - Display the activity of the UNO service `com.sun.star.mail.SpoolerService` when sending emails.
     - Start and stop the spooler service.
@@ -265,11 +265,11 @@ When the email spooler is started, its activity can be viewed in the activity lo
 - Writing an email [Merger](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) allowing:
     - To create mailing lists.
     - To merge and convert the current document to HTML format to make it the email message.
-    - To merge and/or convert in PDF format any files attached to the email. 
+    - To merge and/or convert in PDF format any possible files attached to the email. 
 
-- Writing an [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailer) allowing:
+- Writing a document [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailer) allowing:
     - To convert the document to HTML format to make it the email message.
-    - To convert in PDF format any files attached to the email. 
+    - To convert in PDF format any possible files attached to the email.
 
 - Writing a [Grid](https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid) driven by a `com.sun.star.sdb.RowSet` allowing:
     - To be configurable on the columns to be displayed.

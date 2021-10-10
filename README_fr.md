@@ -253,7 +253,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ### Ce qui a été fait pour la version 0.0.1:
 
-- Ecriture de l'assistant de Configuration de connexion ou [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) aux serveurs SMTP permettant:
+- Ecriture de [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) ou l'assistant de Configuration de connexion aux serveurs SMTP permettant:
     - De trouver les paramètres de connexion à un serveur SMTP à partir d'une adresse courriel. D'ailleur je remercie particulierement Mozilla, pour [Thunderbird autoconfiguration database](https://wiki.mozilla.org/Thunderbird/ISPDB) ou IspDB, qui à rendu ce défi possible...
     - D'afficher l'activité du service UNO `com.sun.star.mail.MailServiceProvider` lors de la connexion au serveur SMTP et l'envoi d'un courriel. 
 
@@ -262,7 +262,12 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
     - D'afficher l'activité du service UNO `com.sun.star.mail.SpoolerService` lors de l'envoi de courriels.
     - De démarrer et arrêter le service spouleur.
 
-- Ecriture d'un [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailer) de document permettant:
+- Ecriture du [Merger](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) ou l'assistant de publipostage de courriels permettant:
+    - De créer des listes de diffusions.
+    - De fusionner et convertir au format HTML le document courant pour en faire le message du courriel.
+    - De fusionner et/ou convertir au format PDF d'éventuel fichiers joints au courriel.
+
+- Ecriture du [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailer) de document permettant:
     - De convertir au format HTML le document pour en faire le message du courriel.
     - De convertir au format PDF d'éventuel fichiers joints au courriel.
 

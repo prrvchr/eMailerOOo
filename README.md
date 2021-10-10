@@ -276,6 +276,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What remains to be done for version 0.0.1:
 
+- Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP servers with OAuth2OOo.
 - Corrections of reported issues.
 - Rewrite the spooler service in Java for better performance? Python Threads are limited...
 - Add new languages for internationalization...

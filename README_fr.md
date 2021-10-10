@@ -276,6 +276,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ### Que reste-t-il à faire pour la version 0.0.1:
 
+- Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP avec OAuth2OOo.
 - Corrections des dysfonctionnements signalés.
 - Réécrire le service de spouleur en Java pour de meilleures performances? Les Threads python sont limités...
 - Ajouter de nouvelles langues pour l’internationalisation...

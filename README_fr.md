@@ -251,8 +251,32 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ## Historique:
 
-**Ce qui reste à faire:**
+### Ce qui a été fait pour la version 0.0.1:
 
-- Réécriture de mailmerge.py (pour être compatible avec: SSL, StartTLS et authentification OAuth2 ... c'est à dire: avec la technologie Mozilla IspBD).
-- Ecrire un assistant à l'aide de la technologie Mozilla IspDB capable de trouver la configuration correcte fonctionnant avec mailmerge.py.
-- Ecriture d'un Service UNO, tournant en tâche de fond (Python Thread), permettant d'envoyer du courrier électronique.
+- Ecriture de l'assistant de [configuration de connexion](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) aux serveurs SMTP permettant:
+    - De trouver les paramètres de connexion à un serveur SMTP à partir d'une adresse courriel. D'ailleur je remercie particulierement Mozilla, pour [Thunderbird autoconfiguration database](https://wiki.mozilla.org/Thunderbird/ISPDB) ou ISPDB, qui à rendu ce défi possible...
+    - D'afficher l'activité du service UNO `com.sun.star.mail.MailServiceProvider` lors de la connexion au serveur SMTP et l'envoi d'un courriel. 
+
+- Ecriture du [Spouleur de courriels](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/spooler) permettant:
+    - D'afficher les travaux d'envoi de courriel avec leurs états respectifs.
+    - D'afficher l'activité du service UNO `com.sun.star.mail.SpoolerService` lors de l'envoi de courriels.
+    - De démarrer et arrêter le service spouleur.
+
+- Ecriture de l'assistant de [publipostage de courriels](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) permettant:
+    - De créer des listes de diffusions.
+    - De fusionner et convertir au format HTML le document courant pour en faire le message du courriel.
+    - De fusionner et/ou convertir au format PDF d'eventuel fichiers joins au courriel.
+
+- Ecriture d'un [Grid](https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid) piloté par un `com.sun.star.sdb.RowSet` permettant:
+    - D'être paramètrable sur les colonnes à afficher.
+    - D'être paramètrable sur l'ordre de tri à afficher.
+    - De sauvegarder les paramètres d'affichage.
+
+- Encore plein d'autres choses...
+
+### Que reste-t-il à faire pour la version 0.0.1:
+
+- Corrections des dysfonctionnements signalés.
+- Réécrire le service de spouleur en Java pour de meilleures performances? Les Threads python sont limités...
+- Ajouter de nouvelles langues pour l’internationalisation...
+- Tout ce qui est bienvenu...

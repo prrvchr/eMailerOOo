@@ -251,8 +251,32 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ## Historical:
 
-What remains to be done:
+### What has been done for version 0.0.1:
 
-- Rewriting of mailmerge.py (to be compatible with: SSL and StartTLS, OAuth2 authentication... ie: with Mozilla IspBD technology)
-- Write an Wizard using Mozilla IspDB technology able to find the correct configuration working with mailmerge.py.
-- Writing of a UNO Service, running in the background (Python Thread), allowing to send e-mails.
+- Writing a [connection configuration](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) wizard to SMTP servers allowing:
+    - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database] (https://wiki.mozilla.org/Thunderbird/ISPDB) or ISPDB, which made this challenge possible...
+    - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
+
+- Writing a [email spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/spooler) allowing:
+    - View the email sending jobs with their respective status.
+    - Display the activity of the UNO service `com.sun.star.mail.SpoolerService` when sending emails.
+    - Start and stop the spooler service.
+
+- Writing an [email merger](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) allowing:
+    - To create mailing lists.
+    - To merge and convert the current document to HTML format to make it the email message.
+    - To merge and/or convert in PDF format any files attached to the email. 
+
+- Writing a [Grid](https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid) driven by a `com.sun.star.sdb.RowSet` allowing:
+    - To be configurable on the columns to be displayed.
+    - To be configurable on the sort order to be displayed.
+    - Save the display settings.
+
+- Many other things...
+
+### What remains to be done for version 0.0.1:
+
+- Corrections of reported issues.
+- Rewrite the spooler service in Java for better performance? Python Threads are limited...
+- Add new languages for internationalization...
+- Anything welcome...

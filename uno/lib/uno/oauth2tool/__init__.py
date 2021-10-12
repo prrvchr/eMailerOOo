@@ -29,5 +29,5 @@
 
 from .oauth2config import g_oauth2
 
-from .oauth2tools import getRequest
 from .oauth2tools import getOAuth2
+from .oauth2tools import getRequest

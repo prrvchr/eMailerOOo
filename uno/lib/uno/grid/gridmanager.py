@@ -98,14 +98,9 @@ class GridManager(unohelper.Base):
     def setRowSetData(self, rowset):
         connection = rowset.ActiveConnection
         datasource = connection.Parent
-<<<<<<< HEAD
-        query = rowset.UpdateTableName
-        if self._isDataSourceChanged(datasource, query):
-=======
         name = datasource.Name
         query = rowset.UpdateTableName
         if self._isDataSourceChanged(name, query):
->>>>>>> 4df9d8879470dc877b0d8dac85ba2c91a2414476
             if self._isGridLoaded():
                 self._saveWidths()
             # We can hide GridColumnHeader and reset GridDataModel
@@ -114,15 +109,9 @@ class GridManager(unohelper.Base):
             self._grid.resetRowSetData()
             self._composer = self._getComposer(connection, rowset)
             self._columns = self._getColumns(rowset.getMetaData())
-<<<<<<< HEAD
-            identifiers = self._initColumnModel(datasource.Name, query)
-            self._initColumns(identifiers)
-            self._name = datasource.Name
-=======
             identifiers = self._initColumnModel(name, query)
             self._initColumns(identifiers)
             self._name = name
->>>>>>> 4df9d8879470dc877b0d8dac85ba2c91a2414476
             self._query = query
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
@@ -160,13 +149,8 @@ class GridManager(unohelper.Base):
         Thread(target=self._executeRowSet, args=args).start()
 
 # GridManager private methods
-<<<<<<< HEAD
-    def _isDataSourceChanged(self, datasource, query):
-        return self._datasource != datasource or self._query != query
-=======
     def _isDataSourceChanged(self, name, query):
         return self._name != name or self._query != query
->>>>>>> 4df9d8879470dc877b0d8dac85ba2c91a2414476
 
     def _isGridLoaded(self):
         return self._composer is not None

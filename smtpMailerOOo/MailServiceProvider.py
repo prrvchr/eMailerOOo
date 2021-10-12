@@ -100,7 +100,6 @@ from smtpmailer import getConfiguration
 from smtpmailer import getExceptionMessage
 from smtpmailer import getMessage
 from smtpmailer import getOAuth2
-from smtpmailer import getOAuth2Token
 from smtpmailer import hasInterface
 from smtpmailer import isDebugMode
 from smtpmailer import logMessage
@@ -257,7 +256,7 @@ class SmtpService(unohelper.Base,
                     msg = getMessage(self._ctx, g_message, 152, (user, pwd, code, reply))
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
             elif authentication == 'Oauth2':
-                token = getToken(self._ctx, self, server, user, True)
+                token = getToken(self._ctx, server, user, True)
                 self._server.ehlo_or_helo_if_needed()
                 code, reply = getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
                 if code != 235:
@@ -474,7 +473,7 @@ class ImapService(unohelper.Base,
                 self._server.login(user, password)
         elif authentication == 'Oauth2':
             user = authenticator.getUserName()
-            token = getToken(self._ctx, self, server, user)
+            token = getToken(self._ctx, server, user)
             self._server.authenticate('XOAUTH2', lambda x: token)
         for listener in self._listeners:
             listener.connected(self._notify)
@@ -673,9 +672,10 @@ g_ImplementationHelper.addImplementation(MailMessage,
                                          ('com.sun.star.mail.MailMessage2', ), )
 
 
-def getToken(ctx, source, url, user, encode=False):
-    token = getOAuth2Token(ctx, source, url, user)
-    authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
+def getToken(ctx, url, user, encode=False):
+    authstring = 'user=%s\1' % user
+    authstring += 'auth=Bearer %s\1\1'
+    authstring = getOAuth2(ctx, url, user).getToken(authstring)
     if encode:
         authstring = base64.b64encode(authstring.encode('ascii')).decode('ascii')
     return authstring

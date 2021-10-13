@@ -87,7 +87,8 @@ from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
 
-from .oauth2tool import getOAuth2
+from .oauth2lib import getOAuth2
+from .oauth2lib import getOAuth2Token
 
 from .dbtool import getObjectSequenceFromResult
 from .dbtool import getSequenceFromResult

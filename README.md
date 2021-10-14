@@ -139,7 +139,7 @@ And add the following columns:
 - Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
-In addition, on [Recipients selection](https://prrvchr.github.io/smtpMailerOOo/#recipients-selection) step of the wizard, in the `Available recipients` tab, only records with at least one email address column entered will be listed.  
+In addition, on Recipients selection step of the wizard, in the [Available recipients](https://prrvchr.github.io/smtpMailerOOo/#available-recipients) tab, only records with at least one email address column entered will be listed.  
 So make sure you have an address book with at least one of the email address columns entered.
 
 ![smtpMailerOOo Merger screenshot 5](img/smtpMailerOOo-Merger5.png)
@@ -148,6 +148,8 @@ This setting is to be made only for new mailing lists.
 You can now proceed to the next step.
 
 #### Recipients selection:
+
+##### Available recipients:
 
 The recipients are selected using 2 buttons `Add all` and `Add` allowing respectively:
 - To add all recipients.
@@ -158,6 +160,8 @@ The recipients are selected using 2 buttons `Add all` and `Add` allowing respect
 Example of multiple selection:
 
 ![smtpMailerOOo Merger screenshot 7](img/smtpMailerOOo-Merger7.png)
+
+##### Selected recipients:
 
 The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing respectively:
 - To remove all recipients.

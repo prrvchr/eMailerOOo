@@ -139,7 +139,7 @@ Et ajouter les colonnes suivantes:
 - Colonnes d'adresses électronique: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
 Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient pertinent puisque le courriel sera envoyé à la première adresse disponible.  
-De plus, à l'étape [Sélection des destinataires](https://prrvchr.github.io/smtpMailerOOo/README_fr#sélection-des-destinataires) de l'assistant, dans l'onglet `Destinataires disponibles`, seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
+De plus, à l'étape Sélection des destinataires de l'assistant, dans l'onglet [Destinataires disponibles](https://prrvchr.github.io/smtpMailerOOo/README_fr#destinataires-disponibles), seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
 Assurez-vous donc d'avoir un carnet d'adresses avec au moins une des colonnes d’adresses courriel renseignées.
 
 ![smtpMailerOOo Merger screenshot 5](img/smtpMailerOOo-Merger5_fr.png)
@@ -148,6 +148,8 @@ Ce paramètrage ne doit être effectué que pour les nouvelles listes de diffusi
 Vous pouvez maintenant passer à l'étape suivante.
 
 #### Sélection des destinataires:
+
+##### Destinataires disponibles:
 
 Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `Ajouter` permettant respectivement:
 - D'ajouter tous les destinataires.
@@ -158,6 +160,8 @@ Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `
 Example de la sélection multiple:
 
 ![smtpMailerOOo Merger screenshot 7](img/smtpMailerOOo-Merger7_fr.png)
+
+##### Destinataires sélectionnés:
 
 Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` et `Retirer` permettant respectivement:
 - De retirer tous les destinataires.

@@ -52,8 +52,8 @@
     <name lang="en">smtpMailerOOo</name>
   </display-name>
   <icon>
-    <default xlink:href="smtpMailerOOo/smtpMailer.png"/>
-    <high-contrast xlink:href="smtpMailerOOo/smtpMailer.png"/>
+    <default xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
+    <high-contrast xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
   </icon>
   <extension-description>
     <src xlink:href="description/desc_en.txt" lang="en"/>

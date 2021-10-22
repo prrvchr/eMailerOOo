@@ -1,3 +1,5 @@
+# ![smtpMailerOOo logo](img/smtpMailerOOo.png) smtpMailerOOo
+
 {% comment %}
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -23,7 +25,6 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 {% endcomment %}
-# ![smtpMailerOOo logo](img/smtpMailerOOo.png) smtpMailerOOo
 
 **Ce [document](https://prrvchr.github.io/smtpMailerOOo/README_fr) en français.**
 

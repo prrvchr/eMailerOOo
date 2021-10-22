@@ -1,8 +1,8 @@
+# ![smtpMailerOOo logo](https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png) smtpMailerOOo - Politique de protection des données
+
 **L'utilisation de ce logiciel vous soumet également à nos [Conditions d'utilisation](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr).**
 
 Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation](https://prrvchr.github.io/smtpMailerOOo/README_fr).
-
-# Politique de protection des données
 
 ## Introduction:
 

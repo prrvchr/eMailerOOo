@@ -1,5 +1,5 @@
 
-{#
+{% comment %}
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,7 +23,8 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-#}
+{% endcomment %}
+
 # ![smtpMailerOOo logo](img/smtpMailerOOo.png) smtpMailerOOo
 
 **This [document](https://prrvchr.github.io/smtpMailerOOo) in English.**

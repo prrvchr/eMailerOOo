@@ -72,11 +72,15 @@ Vous devez d'abord installer cette extension, si elle n'est pas déjà installé
 
 Cette extension est nécessaire pour utiliser HsqlDB version 2.5.1 avec toutes ses fonctionnalités.
 
-- Installer l'extension ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.
+- Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
 
-Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
+  - ![vCardOOo logo](https://prrvchr.github.io/vCardOOo/img/vCardOOo.png) **[vCardOOo.oxt](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt)** version 0.0.1.
+  Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**](https://fr.wikipedia.org/wiki/Nextcloud) comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://raw.githubusercontent.com/prrvchr/smtpMailerOOo/master/smtpMailerOOo.oxt)** version 0.0.1.
+  - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.
+  Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
+
+- Installer l'extension ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt)** version 0.0.1.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -91,7 +95,10 @@ Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisa
 
 De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
-Si vous ne disposez pas d'une telle source de données alors je vous invite à installer l'extension [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).  
+Si vous ne disposez pas d'une telle source de données alors je vous invite à installer une des extensions suivantes :
+- [vCardOOo](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt) extension.  
+Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [**Nextcloud**](https://fr.wikipedia.org/wiki/Nextcloud) comme source de données.
+- [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt).  
 Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
 
 Ce mode d'utilisation est composé de 3 sections:

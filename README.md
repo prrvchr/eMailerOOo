@@ -72,11 +72,15 @@ You must first install this extension, if it is not already installed.
 
 This extension is necessary to use HsqlDB version 2.5.1 with all its features.
 
-- Install ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** extension version 0.0.6.
+- If you don't have a datasource, you can install one of the following extensions:
 
-This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
+  - ![vCardOOo logo](https://prrvchr.github.io/vCardOOo/img/vCardOOo.png) **[vCardOOo.oxt](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt)** version 0.0.1.
+  This extension is only necessary if you want to use your contacts present on a [**Nextcloud**](https://en.wikipedia.org/wiki/Nextcloud) platform as a data source for mailing lists and document merging.
 
-- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt)** extension version 0.0.1.
+  - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** extension version 0.0.6.
+  This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
+
+- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt)** extension version 0.0.1.
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -91,7 +95,10 @@ To be able to use the email merge feature using mailing lists, it is necessary t
 
 In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 
-If you do not have such a datasource then I invite you to install the [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.  
+If you do not have such a data source then I invite you to install one of the following extensions:
+- [vCardOOo](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt) extension.  
+This extension will allow you to use your contacts present on a [**Nextcloud**](https://en.wikipedia.org/wiki/Nextcloud) platform as a data source.
+- [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.  
 This extension will allow you to use your Android phone (your phone contacts) as a datasource.
 
 This mode of use is made up of 3 sections:

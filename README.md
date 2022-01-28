@@ -78,7 +78,7 @@ This extension is necessary to use HsqlDB version 2.5.1 with all its features.
 
   This extension is only necessary if you want to use your contacts present on a [**Nextcloud**](https://en.wikipedia.org/wiki/Nextcloud) platform as a data source for mailing lists and document merging.
 
-  - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** extension version 0.0.6.
+  - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.
 
   This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 

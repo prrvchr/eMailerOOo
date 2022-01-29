@@ -30,7 +30,7 @@
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
 
-# version [0.0.1](https://prrvchr.github.io/smtpMailerOOo#historical)
+# version [0.0.2](https://prrvchr.github.io/smtpMailerOOo#historical)
 
 ## Introduction:
 
@@ -264,7 +264,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What has been done for version 0.0.1:
 
-- Writing an [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or connection configuration wizard to SMTP servers allowing:
+- Writing an [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or SMTP servers connection configuration wizard allowing:
     - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database](https://wiki.mozilla.org/Thunderbird/ISPDB) or IspDB, which made this challenge possible...
     - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
 
@@ -289,10 +289,8 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 - Many other things...
 
-### What remains to be done for version 0.0.1:
+### What remains to be done for version 0.0.2:
 
+- Rewrite of IspDB or SMTP servers connection configuration wizard in order to integrate the IMAP connection configuration.
+- Rewriting of the Spooler to make it possible, via the IMAP protocol, to display the delivery date of emails sent.
 - Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP servers with OAuth2OOo.
-- Corrections of reported issues.
-- Rewrite the spooler service in Java for better performance? Python Threads are limited...
-- Add new languages for internationalization...
-- Anything welcome...

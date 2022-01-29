@@ -30,7 +30,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_fr)
 
-# version [0.0.1](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
+# version [0.0.2](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
 
 ## Introduction:
 
@@ -289,10 +289,8 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 - Encore plein d'autres choses...
 
-### Que reste-t-il à faire pour la version 0.0.1:
+### Que reste-t-il à faire pour la version 0.0.2:
 
+- Réécriture de IspDB ou assistant de configuration de connexion aux serveurs SMTP afin d'intégrer la configuration de la connexion IMAP.
+- Réécriture du Spouleur afin de rendre possible, via le protocole IMAP, l'affichage de la date de livraison des courriels envoyé.
 - Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP avec OAuth2OOo.
-- Corrections des dysfonctionnements signalés.
-- Réécrire le service de spouleur en Java pour de meilleures performances? Les Threads python sont limités...
-- Ajouter de nouvelles langues pour l’internationalisation...
-- Tout ce qui est bienvenu...

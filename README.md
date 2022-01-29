@@ -47,8 +47,8 @@ Because it is together that we can make Free Software smarter.
 
 ## Requirement:
 
-smtpMailerOOo uses a local [HsqlDB](http://hsqldb.org/) database of version 2.5.1.  
-Since HsqlDB is a database written in Java, its use requires [installation and configuration](https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/en) in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
+smtpMailerOOo uses a local [HsqlDB](http://hsqldb.org/) database version 2.5.1.  
+HsqlDB being a database written in Java, its use requires the [installation and configuration](https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/en) in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium](https://adoptium.net/releases.html?variant=openjdk11) as your Java installation source.
 
 If you are using **LibreOffice on Linux**, then you are subject to [bug 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  

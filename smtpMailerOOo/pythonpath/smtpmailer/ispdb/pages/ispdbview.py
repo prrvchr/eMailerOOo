@@ -42,13 +42,15 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
+    def __init__(self, ctx, manager, parent, idl):
+        self._dialog = getContainerWindow(ctx, parent, None, g_extension, idl)
         handler = WindowHandler(manager)
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage3')
+        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_extension, 'IspdbPages')
+        self._window.setVisible(True)
 
 # IspdbView getter methods
     def getWindow(self):
-        return self._window
+        return self._dialog
 
     def getAuthentication(self):
         return self._getAuthentication().getSelectedItemPos()
@@ -68,12 +70,12 @@ class IspdbView(unohelper.Base):
     def getPasswords(self):
         return self._getPassword().Text, self._getConfirmPwd().Text
 
-    def getConfiguration(self):
+    def getConfiguration(self, service):
         host = self.getHost()
         port = self.getPort()
-        server = self._getServer(host, port)
-        user = self._getUser(host, port)
-        return user, server
+        server = self._getServer(service, host, port)
+        user = self._getUser(service, host, port)
+        return server, user
 
 # IspdbView setter methods
     def setPageLabel(self, text):
@@ -100,8 +102,9 @@ class IspdbView(unohelper.Base):
         self._getConfirmPwd().Model.Enabled = enabled
 
 # IspdbView private getter methods
-    def _getServer(self, host, port):
+    def _getServer(self, service, host, port):
         server = KeyMap()
+        server.setValue('Service', service)
         server.setValue('Server', host)
         server.setValue('Port', port)
         connection, authentication = self._getSecurityIndex()
@@ -109,12 +112,12 @@ class IspdbView(unohelper.Base):
         server.setValue('Authentication', authentication)
         return server
 
-    def _getUser(self, host, port):
+    def _getUser(self, service, host, port):
         user = KeyMap()
-        user.setValue('Server', host)
-        user.setValue('Port', port)
-        user.setValue('LoginName', self._getLogin().Text)
-        user.setValue('Password', self._getPassword().Text)
+        user.setValue('%sServer' % service, host)
+        user.setValue('%sPort' % service, port)
+        user.setValue('%sLogin' % service, self._getLogin().Text)
+        user.setValue('%sPassword' % service, self._getPassword().Text)
         return user
 
     def _getSecurityIndex(self):

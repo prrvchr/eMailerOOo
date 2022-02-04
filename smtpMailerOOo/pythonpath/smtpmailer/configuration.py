@@ -31,7 +31,7 @@
 g_extension = 'smtpMailerOOo'
 g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
 # Ispdb roadmap wizard paths (Online and Offline)
-g_ispdb_paths = ((1, 2, 3, 4), (1, 2, 3))
+g_ispdb_paths = ((1, 2, 3, 4, 5), (1, 2, 3, 4))
 g_ispdb_page = -1
 # Merger roadmap wizard paths
 g_merger_paths = (1, 2, 3)

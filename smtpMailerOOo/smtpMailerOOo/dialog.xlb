@@ -33,6 +33,8 @@
   <library:element library:name="IspdbPage2"/>
   <library:element library:name="IspdbPage3"/>
   <library:element library:name="IspdbPage4"/>
+  <library:element library:name="IspdbPages"/>
+  <library:element library:name="IspdbPage5"/>
   <library:element library:name="SendDialog"/>
   <library:element library:name="SpoolerDialog"/>
   <library:element library:name="SpoolerTab1"/>

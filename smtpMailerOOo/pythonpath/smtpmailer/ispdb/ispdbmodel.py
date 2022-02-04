@@ -29,6 +29,9 @@
 
 import unohelper
 
+from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.mail.MailServiceType import IMAP
+
 from smtpmailer import KeyMap
 from smtpmailer import DataParser
 
@@ -39,6 +42,9 @@ from smtpmailer import getConfiguration
 from smtpmailer import getStringResource
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
+
+from .pages import IspdbServer
+from .pages import IspdbUser
 
 import validators
 import json
@@ -51,17 +57,15 @@ class IspdbModel(unohelper.Base):
         self._database = datasource.DataBase
         self._close = close
         self._email = email
-        self._user = None
-        self._servers = []
-        self._metadata = {}
-        self._index = 0
+        self._user = IspdbUser()
+        self._servers = IspdbServer()
+        self._metadata = ''
         self._count = 0
         self._offline = 0
-        self._loaded = False
-        self._refresh = False
         self._isnew = False
         self._diposed = False
         self._updated = False
+        self._version = 0
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
@@ -72,9 +76,10 @@ class IspdbModel(unohelper.Base):
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'IspdbPage%s.Step',
                            'Title': 'IspdbPage%s.Title.%s',
-                           'Label': 'IspdbPage%s.Label1.Label',
+                           'PageLabel': 'IspdbPage%s.Label1.Label',
+                           'PagesLabel': 'IspdbPages.Label1.Label',
                            'Progress': 'IspdbPage2.Label2.Label.%s',
-                           'Security': 'IspdbPage3.Label10.Label.%s',
+                           'Security': 'IspdbPages.Label10.Label.%s',
                            'SendTitle': 'SendDialog.Title',
                            'SendSubject': 'SendDialog.TextField2.Text',
                            'SendMessage': 'SendDialog.TextField3.Text'}
@@ -130,46 +135,36 @@ class IspdbModel(unohelper.Base):
         return False
 
 # IspdbModel getter methods called by WizardPage2
-    def setUser(self, user):
-        self._user = user
-        self._metadata['User'] = user.toJson()
-
-    def setServers(self, servers):
-        self._isnew = False
-        if not len(servers):
-            self._isnew = True
-            servers = self._getDefaultServers()
-        self._metadata['Servers'] = tuple(server.toJson() for server in servers)
-        self._servers = servers
-        self._index = self._getServerIndex(0)
-
-    def getSmtpConfig(self, *args):
-        self._refresh = True
-        self._loaded = False
+    def getServerConfig(self, *args):
+        self._version += 1
         url = self._configuration.getByName('IspDBUrl')
-        self._datasource.getSmtpConfig(self.Email, url, *args)
+        self._datasource.getServerConfig(self.Email, url, *args)
+
+    def setServerConfig(self, user, smtp, imap, offline):
+        self._user.setUser(user)
+        self._servers.setServers(smtp, imap, self._user)
+        self._offline = offline
 
 # IspdbModel getter methods called by WizardPage3
-    def isRefreshed(self):
-        if self._refresh:
-            self._refresh = False
-            self._loaded = True
-            return True
-        return False
+    def refreshView(self, version):
+        return version < self._version
 
-    def getConfig(self):
+    def getVersion(self):
+        return self._version
+
+    def getConfig(self, service):
         config = KeyMap()
-        config.setValue('First', self._isFirst())
-        config.setValue('Last', self._isLast())
-        config.setValue('Page', self._getServerPage())
-        config.setValue('Default', self._isDefaultPage())
-        config.update(self._getServer())
-        config.setValue('Login', self._getLoginName())
-        config.setValue('Password', self._getPassword())
+        config.setValue('First', self._servers.isFirst(service))
+        config.setValue('Last', self._servers.isLast(service))
+        config.setValue('Page', self._servers.getServerPage(service))
+        config.setValue('Default', self._servers.isDefaultPage(service, self._user))
+        config.update(self._servers.getCurrentServer(service))
+        config.setValue('Login', self._getLoginName(service))
+        config.setValue('Password', self._getPassword(service))
         return config
 
-    def getAuthentication(self):
-        return self._getServer().getValue('Authentication')
+    def getAuthentication(self, service):
+        return self._servers.getServerAuthentication(service)
 
     def isConnectionValid(self, host, port):
         return self._isHostValid(host) and self._isPortValid(port)
@@ -179,31 +174,31 @@ class IspdbModel(unohelper.Base):
             return True
         return False
 
-    def previousServerPage(self, server):
-        self._getServer().update(server)
-        self._index -= 1
+    def previousServerPage(self, service, server):
+        self._servers.getCurrentServer(service).update(server)
+        self._servers.decrementIndex(service)
 
-    def nextServerPage(self, server):
-        self._getServer().update(server)
-        self._index += 1
+    def nextServerPage(self, service, server):
+        self._servers.getCurrentServer(service).update(server)
+        self._servers.incrementIndex(service)
 
-    def updateConfiguration(self, user, server):
-        print("PageModel.updateConfiguration() %s - %s" % (user, server))
-        self._getServer().update(server)
-        print("PageModel.updateConfiguration() server:\n%s\n%s" % (server.toJson(), self._getServerMetaData()))
-        self._user.update(user)
-        print("PageModel.updateConfiguration() user:\n%s\n%s" % (user.toJson(), self._getUserMetaData()))
+    def updateConfiguration(self, service, server, user):
+        print("PageModel.updateConfiguration() %s - %s" % (server, user))
+        self._servers.updateCurrentServer(service, server)
+        print("PageModel.updateConfiguration() server:\n%s\n%s" % (server.toJson(), self._servers._metadata[service]))
+        self._user.updateUser(user)
+        print("PageModel.updateConfiguration() user:\n%s\n%s" % (user.toJson(), self._user._metadata))
 
-    def saveConfiguration(self):
+    def saveConfiguration(self, service):
         server = self._getServer()
         if self._isnew or server.toJson() != self._getServerMetaData():
             provider = self._getDomain()
             host, port = self._getServerKeys()
             self._saveServer(provider, host, port, server)
             print("PageModel.saveConfiguration() server:\n%s\n%s" % (server.toJson(), self._metadata['Servers'][self._index]))
-        if self._user.toJson() != self._getUserMetaData():
-            print("PageModel.saveConfiguration() user:\n%s\n%s" % (self._user.toJson(), self._getUserMetaData()))
-            self._database.mergeUser(self.Email, self._user)
+        if self._user.isUpdated():
+            print("PageModel.saveConfiguration() user:\n%s\n%s" % (self._user.getUser().toJson(), self._user._metadata))
+            self._database.mergeUser(self.Email, self._user.getUser())
 
     def getSecurity(self, i, j):
         level = self._levels.get(i).get(j)
@@ -217,7 +212,7 @@ class IspdbModel(unohelper.Base):
         else:
             self._database.updateServer(host, port, server)
 
-    def _getSmtpConfig(self, email, url, progress, updateModel):
+    def _getSmtpConfig1(self, email, url, progress, updateModel):
         progress(5)
         url = getUrl(self._ctx, url)
         progress(10)
@@ -277,64 +272,23 @@ class IspdbModel(unohelper.Base):
         return enabled
 
 # IspdbModel private getter methods
-    def _getServer(self):
-        return self._servers[self._index]
+    def _getServer(self, service):
+        return self._servers.getCurrentServer(service)
 
     def _getDomain(self):
-        return self._user.getValue('Domain')
-
-# IspdbModel private getter methods called by WizardPage2
-    def _getDefaultServers(self):
-        server = KeyMap()
-        server.setValue('Server', 'smtp.%s' % self._getDomain())
-        server.setValue('Port', 25)
-        server.setValue('Connection', 0)
-        server.setValue('Authentication', 0)
-        server.setValue('LoginMode', 1)
-        return [server, ]
-
-    def _getServerIndex(self, default=-1):
-        port = self._user.getValue('Port')
-        server = self._user.getValue('Server')
-        if port != 0:
-            for s in self._servers:
-                if s.getValue('Server') == server and s.getValue('Port') == port:
-                    default = self._servers.index(s)
-                    break;
-        return default
+        return self._user.getDomain()
 
 # IspdbModel private getter methods called by WizardPage3
-    def _isFirst(self):
-        return self._index == 0
+    def _getLoginName(self, service):
+        login = self._user.getLoginName(service)
+        return login if login else self._getLoginFromEmail(service)
 
-    def _isLast(self):
-        count = len(self._servers)
-        return self._index +1 >= count
-
-    def _getServerPage(self):
-        if self._isnew:
-            page = '1/0'
-        else:
-            count = len(self._servers)
-            page = '%s/%s' % (self._index +1, count)
-        return page
-
-    def _isDefaultPage(self):
-        return self._index == self._getServerIndex()
-
-    def _getLoginName(self):
-        login = self._user.getValue('LoginName')
-        return login if login != '' else self._getLoginFromEmail()
-
-    def _getLoginFromEmail(self):
-        mode = self._getLoginMode()
+    def _getLoginFromEmail(self, service):
+        mode = self._servers.getLoginMode(service)
         return self.Email.partition('@')[mode] if mode != 1 else self.Email
 
-    def _getLoginMode(self):
-        return self._getServer().getValue('LoginMode')
-
-    def _getPassword(self):
-        return self._user.getValue('Password')
+    def _getPassword(self, service):
+        return self._user.getPassword(service)
 
     def _isHostValid(self, host):
         if validators.domain(host):
@@ -346,9 +300,6 @@ class IspdbModel(unohelper.Base):
             return True
         return False
 
-    def _getUserMetaData(self):
-        return self._metadata['User']
-
     def _getServerMetaData(self):
         return self._metadata['Servers'][self._index]
 
@@ -357,11 +308,11 @@ class IspdbModel(unohelper.Base):
         return server['Server'], server['Port']
 
 # IspdbModel private getter methods called by WizardPage4
-    def _getConnectionContext(self):
-        server = self._getServer().getValue('Server')
-        port = self._getServer().getValue('Port')
-        connection = self._getConnectionMap()
-        authentication = self._getAuthenticationMap()
+    def _getConnectionContext(self, service):
+        server = self._servers.getServerHost(service)
+        port = self._server.getServerPort(service)
+        connection = self._getConnectionMap(service)
+        authentication = self._getAuthenticationMap(service)
         data = {'ServerName': server,
                 'Port': port,
                 'ConnectionType': connection,
@@ -369,17 +320,17 @@ class IspdbModel(unohelper.Base):
                 'Timeout': self.Timeout}
         return CurrentContext(data)
 
-    def _getAuthenticator(self):
-        data = {'LoginName': self._getLoginName(),
-                'Password': self._getPassword()}
+    def _getAuthenticator(self, service):
+        data = {'LoginName': self._user.getLoginName(service),
+                'Password': self._user.getPassword(service)}
         return Authenticator(data)
 
-    def _getConnectionMap(self):
-        index = self._getServer().getValue('Connection')
+    def _getConnectionMap(self, service):
+        index = self._server.getServerConnection(service)
         return self._connections.get(index)
 
-    def _getAuthenticationMap(self):
-        index = self._getServer().getValue('Authentication')
+    def _getAuthenticationMap(self, service):
+        index = self._server.getServerAuthentication(service)
         return self._authentications.get(index)
 
 # IspdbModel StringResource methods
@@ -392,8 +343,13 @@ class IspdbModel(unohelper.Base):
         return self._resolver.resolveString(resource)
 
     def getPageLabel(self, pageid):
-        resource = self._resources.get('Label') % pageid
+        resource = self._resources.get('PageLabel') % pageid
         return self._resolver.resolveString(resource)
+
+    def getPagesLabel(self, service):
+        resource = self._resources.get('PagesLabel')
+        label = self._resolver.resolveString(resource)
+        return label % (service, self.Email)
 
     def getProgressMessage(self, value):
         resource = self._resources.get('Progress') % value

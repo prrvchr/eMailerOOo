@@ -320,10 +320,6 @@ def getKeyMapFromResult(result, keymap=None, provider=None):
     for i in range(1, result.MetaData.ColumnCount +1):
         name = result.MetaData.getColumnName(i)
         value = getValueFromResult(result, i)
-        if value is None:
-            continue
-        if result.wasNull():
-            value = None
         if provider:
             value = provider.transform(name, value)
         keymap.insertValue(name, value)
@@ -334,10 +330,6 @@ def getDataFromResult(result, provider=None):
     for i in range(1, result.MetaData.ColumnCount +1):
         name = result.MetaData.getColumnName(i)
         value = getValueFromResult(result, i)
-        if value is None:
-            continue
-        if result.wasNull():
-            value = None
         if provider:
             value = provider.transform(name, value)
         data[name] = value
@@ -350,8 +342,6 @@ def getRowDict(result, default=None, count=None):
     for i in range(1, count):
         name = result.MetaData.getColumnLabel(i)
         value = getValueFromResult(result, i, default)
-        if result.wasNull():
-            value = default
         row[name] = value
     return row
 
@@ -362,8 +352,6 @@ def getObjectFromResult(result, default=None, count=None):
     for i in range(1, count):
         name = result.MetaData.getColumnLabel(i)
         value = getValueFromResult(result, i, default)
-        if result.wasNull():
-            value = default
         setattr(obj, name, value)
     return obj
 
@@ -383,10 +371,6 @@ def getKeyMapSequenceFromResult(result, provider=None):
         for i in range(1, count):
             name = result.MetaData.getColumnName(i)
             value = getValueFromResult(result, i)
-            if value is None:
-                continue
-            if result.wasNull():
-                value = None
             if provider:
                 value = provider.transform(name, value)
             keymap.insertValue(name, value)
@@ -410,11 +394,7 @@ def getSequenceFromResult(result, index=1, default=None, transformer=None):
     sequence = []
     name = result.MetaData.getColumnName(index)
     while result.next():
-        value = getValueFromResult(result, index)
-#        if value is None:
-#            continue
-        if result.wasNull():
-            value = default
+        value = getValueFromResult(result, index, default)
         if transformer is not None:
             value = transformer.transform(name, value)
         sequence.append(value)
@@ -429,8 +409,6 @@ def getDictFromResult(result):
                 key = getValueFromResult(result, i)
             else:
                 value = getValueFromResult(result, i)
-            if result.wasNull():
-                value = None
         values[key] = value
     return values
 
@@ -447,7 +425,6 @@ def getRowResult(result, index=(0,), separator=' '):
     return tuple(sequence)
 
 def getValueFromResult(result, index=1, default=None):
-    # TODO: 'TINYINT' is buggy: don't use it
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
         value = result.getString(index)
@@ -473,7 +450,11 @@ def getValueFromResult(result, index=1, default=None):
         value = result.getDate(index)
     elif dbtype.endswith('ARRAY'):
         value = result.getArray(index)
+        if not result.wasNull():
+            value = value.getArray(None)
     else:
+        value = default
+    if result.wasNull():
         value = default
     return value
 

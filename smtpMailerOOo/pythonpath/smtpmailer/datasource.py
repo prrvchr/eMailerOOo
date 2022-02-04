@@ -94,7 +94,11 @@ class DataSource(unohelper.Base,
     def notifyClosing(self, source):
         pass
 
-# Procedures called by Ispdb
+# Procedures called by IspdbManager
+    # called by WizardPage2.activatePage()
+    def getServerConfig(self, *args):
+        Thread(target=self._getServerConfig, args=args).start()
+
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
@@ -107,9 +111,6 @@ class DataSource(unohelper.Base,
 
     def waitForDataBase(self):
         DataSource._init.join()
-
-    def getSmtpConfig(self, *args):
-        Thread(target=self._getSmtpConfig, args=args).start()
 
     def smtpConnect(self, *args):
         setDebugMode(self._ctx, True)
@@ -151,7 +152,7 @@ class DataSource(unohelper.Base,
         return self.DataBase.getJobIds(batch)
 
 # Procedures called internally by Ispdb
-    def _getSmtpConfig(self, email, url, progress, updateModel):
+    def _getServerConfig(self, email, url, progress, updateModel):
         progress(5)
         url = getUrl(self._ctx, url)
         progress(10)
@@ -159,8 +160,8 @@ class DataSource(unohelper.Base,
         progress(20)
         self.waitForDataBase()
         progress(40)
-        user, servers = self.DataBase.getSmtpConfig(email)
-        if len(servers) > 0:
+        user, smtp, imap = self.DataBase.getServerConfig(email)
+        if len(smtp) > 0 or len(imap) > 0:
             progress(100, 1)
         elif mode == OFFLINE:
             progress(100, 2)
@@ -171,11 +172,11 @@ class DataSource(unohelper.Base,
             response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
             if response.IsPresent:
                 progress(80)
-                servers = self.DataBase.setSmtpConfig(response.Value)
+                smtp, imap = self.DataBase.setServerConfig(response.Value)
                 progress(100, 3)
             else:
                 progress(100, 4)
-        updateModel(user, servers, mode)
+        updateModel(user, smtp, imap, mode)
 
     def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')

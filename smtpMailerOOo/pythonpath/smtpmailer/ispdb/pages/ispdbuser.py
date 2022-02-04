@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,6 +25,42 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage3" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage3.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage3.Title" dlg:withtitlebar="false"/>
+"""
+
+import unohelper
+
+import traceback
+
+
+class IspdbUser(unohelper.Base):
+    def __init__(self):
+        self._user = None
+        self._metadata = None
+
+    def setUser(self, user):
+        self._user = user
+        self._metadata = user.toJson()
+
+    def updateUser(self, user):
+        self._user.update(user)
+
+    def getUser(self):
+        return self._user
+
+    def isUpdated(self):
+        return self._user.toJson() != self._metadata
+
+    def getServer(self, service):
+        return self._user.getValue('%sServer' % service)
+
+    def getPort(self, service):
+        return self._user.getValue('%sPort' % service)
+
+    def getLoginName(self, service):
+        return self._user.getValue('%sLogin' % service)
+
+    def getPassword(self, service):
+        return self._user.getValue('%sPassword' % service)
+
+    def getDomain(self):
+        return self._user.getValue('Domain')

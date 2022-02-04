@@ -56,12 +56,14 @@ import traceback
 
 
 class IspdbManager(unohelper.Base):
-    def __init__(self, ctx, wizard, model, pageid, parent):
+    def __init__(self, ctx, wizard, model, pageid, parent, idl, service):
         self._ctx = ctx
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, self, parent)
+        self._view = IspdbView(ctx, self, parent, idl)
+        self._service = service.value
+        self._version = 0
 
 # XWizardPage
     @property
@@ -72,17 +74,19 @@ class IspdbManager(unohelper.Base):
         return self._view.getWindow()
 
     def activatePage(self):
-        if self._model.isRefreshed():
-            label = self._model.getPageLabel(self._pageid)
-            self._view.setPageLabel(label % self._model.Email)
-            config = self._model.getConfig()
+        if self._model.refreshView(self._version):
+            label = self._model.getPagesLabel(self._service)
+            self._view.setPageLabel(label)
+            config = self._model.getConfig(self._service)
             self._view.updatePage(config)
+            self._version = self._model.getVersion()
 
     def commitPage(self, reason):
-        user, server = self._view.getConfiguration()
-        self._model.updateConfiguration(user, server)
+        server, user = self._view.getConfiguration(self._service)
+        self._model.updateConfiguration(self._service, server, user)
         if reason == FINISH:
-            self._model.saveConfiguration()
+            #self._model.saveConfiguration()
+            pass
         return True
 
     def canAdvance(self):
@@ -119,12 +123,12 @@ class IspdbManager(unohelper.Base):
 
     def previousServerPage(self):
         server = self._view.getServer()
-        self._model.previousServerPage(server)
-        config = self._model.getConfig()
+        self._model.previousServerPage(self._service, server)
+        config = self._model.getConfig(self._service)
         self._view.updatePage(config)
 
     def nextServerPage(self):
         server = self._view.getServer()
-        self._model.nextServerPage(server)
-        config = self._model.getConfig()
+        self._model.nextServerPage(self._service, server)
+        config = self._model.getConfig(self._service)
         self._view.updatePage(config)

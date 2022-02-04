@@ -41,8 +41,9 @@ from .ispdbmodel import IspdbModel
 
 from .page1 import IspdbManager as WizardPage1
 from .page2 import IspdbManager as WizardPage2
-from .page3 import IspdbManager as WizardPage3
-from .page4 import IspdbManager as WizardPage4
+from .pages import WizardPage3
+from .pages import WizardPage4
+from .page5 import IspdbManager as WizardPage5
 
 import traceback
 
@@ -74,6 +75,8 @@ class IspdbController(unohelper.Base,
                 page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
             elif pageid == 4:
                 page = WizardPage4(self._ctx, self._wizard, self._model, pageid, parent)
+            elif pageid == 5:
+                page = WizardPage5(self._ctx, self._wizard, self._model, pageid, parent)
             msg += " Done"
             logMessage(self._ctx, INFO, msg, 'IspdbWizard', 'createPage()')
             return page

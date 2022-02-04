@@ -32,6 +32,10 @@ import unohelper
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.mail.MailServiceType import IMAP
+
 from com.sun.star.sdb.CommandType import QUERY
 
 from .unolib import KeyMap
@@ -40,7 +44,6 @@ from .unotool import createService
 from .unotool import getDateTime
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
-from .unotool import parseDateTime
 
 from .dbqueries import getSqlQuery
 
@@ -140,75 +143,86 @@ class DataBase(unohelper.Base):
         self._statement.execute(query)
 
 # Procedures called by the Server
-    def getSmtpConfig(self, email):
+    def getServerConfig(self, email):
+        smtp, imap = SMTP.value, IMAP.value
+        print("DataBase.getServerConfig() %s - %s" % (smtp, imap))
         domain = email.partition('@')[2]
         user = KeyMap()
-        servers = []
+        servers = {smtp: [], imap: []}
         call = self._getCall('getServers')
         call.setString(1, email)
         call.setString(2, domain)
+        call.setString(3, smtp)
+        call.setString(4, imap)
         result = call.executeQuery()
-        user.setValue('Server', call.getString(3))
-        user.setValue('Port', call.getShort(4))
-        user.setValue('LoginName', call.getString(5))
-        user.setValue('Password', call.getString(6))
+        user.setValue('%sServer' % smtp, call.getString(5))
+        user.setValue('%sServer' % imap, call.getString(6))
+        user.setValue('%sPort' % smtp, call.getShort(7))
+        user.setValue('%sPort' % imap, call.getShort(8))
+        user.setValue('%sLogin' % smtp, call.getString(9))
+        user.setValue('%sLogin' % imap, call.getString(10))
+        user.setValue('%sPassword' % smtp, call.getString(11))
+        user.setValue('%sPassword' % imap, call.getString(12))
         user.setValue('Domain', domain)
         while result.next():
-            servers.append(getKeyMapFromResult(result))
+            type = getValueFromResult(result)
+            servers[type].append(getKeyMapFromResult(result))
         call.close()
-        return user, servers
+        return user, servers[smtp], servers[imap]
 
-    def setSmtpConfig(self, config):
-        timestamp = parseDateTime()
+    def setServerConfig(self, config):
         provider = config.getValue('Provider')
         name = config.getValue('DisplayName')
         shortname = config.getValue('DisplayShortName')
-        self._mergeProvider(provider, name, shortname, timestamp)
+        self._mergeProvider(provider, name, shortname)
         domains = config.getValue('Domains')
-        self._mergeDomain(provider, domains, timestamp)
+        self._mergeDomain(provider, domains)
         call = self._getMergeServerCall(provider)
-        i = 1
-        servers = config.getValue('Servers')
-        for server in servers:
-            print("DataBase.setSmtpConfig() server: %s" % i)
-            i += 1
-            self._callMergeServer(call, server, timestamp)
+        smtp = self._mergeServers(call, config, 'SmtpServers')
+        imap = self._mergeServers(call, config, 'ImapServers')
         call.close()
+        return smtp, imap
+
+    def _mergeServers(self, call, config, value):
+        servers = config.getValue(value)
+        for server in servers:
+            self._callMergeServer(call, server)
         return servers
 
     def mergeProvider(self, provider):
-        timestamp = parseDateTime()
-        self._mergeProvider(provider, provider, provider, timestamp)
+        self._mergeProvider(provider, provider, provider)
 
-    def mergeServer(self, provider, server):
-        timestamp = parseDateTime()
+    def mergeServer(self, service, provider, server):
         call = self._getMergeServerCall(provider)
-        self._callMergeServer(call, server, timestamp)
+        self._callMergeServer(call, server)
         call.close()
 
     def updateServer(self, host, port, server):
-        timestamp = parseDateTime()
         call = self._getCall('updateServer')
-        call.setString(1, host)
-        call.setShort(2, port)
-        call.setString(3, server.getValue('Server'))
-        call.setShort(4, server.getValue('Port'))
-        call.setByte(5, server.getValue('Connection'))
-        call.setByte(6, server.getValue('Authentication'))
-        call.setTimestamp(7, timestamp)
+        call.setString(1, server.getValue('Service'))
+        call.setString(2, host)
+        call.setShort(3, port)
+        call.setString(4, server.getValue('Server'))
+        call.setShort(5, server.getValue('Port'))
+        call.setByte(6, server.getValue('Connection'))
+        call.setByte(7, server.getValue('Authentication'))
         result = call.executeUpdate()
         print("DataBase.updateServer() %s" % result)
         call.close()
 
     def mergeUser(self, email, user):
-        timestamp = parseDateTime()
         call = self._getCall('mergeUser')
         call.setString(1, email)
-        call.setString(2, user.getValue('Server'))
-        call.setShort(3, user.getValue('Port'))
-        call.setString(4, user.getValue('LoginName'))
-        call.setString(5, user.getValue('Password'))
-        call.setTimestamp(6, timestamp)
+        call.setString(2, SMTP.value)
+        call.setString(3, IMAP.value)
+        call.setString(4, user.getValue('SmtpServer'))
+        call.setString(5, user.getValue('ImapServer'))
+        call.setShort(6, user.getValue('SmtpPort'))
+        call.setShort(7, user.getValue('ImapPort'))
+        call.setString(8, user.getValue('SmtpLogin'))
+        call.setString(9, user.getValue('ImapLogin'))
+        call.setString(10, user.getValue('SmtpPwd'))
+        call.setString(11, user.getValue('ImapPwd'))
         result = call.executeUpdate()
         print("DataBase.mergeUser() %s" % result)
         call.close()
@@ -274,8 +288,7 @@ class DataBase(unohelper.Base):
         call.setInt(1, batch)
         result = call.executeQuery()
         if result.next():
-            values = getValueFromResult(result)
-            jobs = () if values is None else values.getArray(None)
+            jobs = getValueFromResult(result)
         call.close()
         return jobs
 
@@ -388,20 +401,18 @@ class DataBase(unohelper.Base):
         call.close()
 
 # Procedures called internally by the Server
-    def _mergeProvider(self, provider, name, shortname, timestamp):
+    def _mergeProvider(self, provider, name, shortname):
         call = self._getCall('mergeProvider')
         call.setString(1, provider)
         call.setString(2, name)
         call.setString(3, shortname)
-        call.setTimestamp(4, timestamp)
         result = call.executeUpdate()
         call.close()
 
-    def _mergeDomain(self, provider, domains, timestamp):
+    def _mergeDomain(self, provider, domains):
         call = self._getMergeDomainCall(provider)
         for domain in domains:
             call.setString(2, domain)
-            call.setTimestamp(3, timestamp)
             result = call.executeUpdate()
         call.close()
 
@@ -415,13 +426,13 @@ class DataBase(unohelper.Base):
         call.setString(1, provider)
         return call
 
-    def _callMergeServer(self, call, server, timestamp):
-        call.setString(2, server.getValue('Server'))
-        call.setShort(3, server.getValue('Port'))
-        call.setByte(4, server.getValue('Connection'))
-        call.setByte(5, server.getValue('Authentication'))
-        call.setByte(6, server.getValue('LoginMode'))
-        call.setTimestamp(7, timestamp)
+    def _callMergeServer(self, call, server):
+        call.setString(2, server.getValue('Service'))
+        call.setString(3, server.getValue('Server'))
+        call.setShort(4, server.getValue('Port'))
+        call.setByte(5, server.getValue('Connection'))
+        call.setByte(6, server.getValue('Authentication'))
+        call.setByte(7, server.getValue('LoginMode'))
         result = call.executeUpdate()
 
 # Procedures called internally

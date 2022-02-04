@@ -30,6 +30,9 @@
 import uno
 import unohelper
 
+from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.mail.MailServiceType import IMAP
+
 from com.sun.star.auth import XRestDataParser
 
 from .unolib import KeyMap
@@ -56,16 +59,28 @@ class DataParser(unohelper.Base,
             if domain.text != provider:
                 domains.append(domain.text)
         data.insertValue('Domains', tuple(domains))
-        servers = []
-        for s in config.findall('outgoingServer'):
+        smtp = []
+        for s in config.findall("outgoingServer[@type='smtp']"):
             server = KeyMap()
+            server.insertValue('Service', SMTP.value)
             server.insertValue('Server', s.find('hostname').text)
             server.insertValue('Port', self._getPort(s))
             server.insertValue('Connection', self._getConnection(s))
             server.insertValue('Authentication', self._getAuthentication(s))
             server.insertValue('LoginMode', self._getLoginMode(s))
-            servers.append(server)
-        data.insertValue('Servers', tuple(servers))
+            smtp.append(server)
+        data.insertValue('SmtpServers', tuple(smtp))
+        imap = []
+        for s in config.findall("incomingServer[@type='imap']"):
+            server = KeyMap()
+            server.insertValue('Service', IMAP.value)
+            server.insertValue('Server', s.find('hostname').text)
+            server.insertValue('Port', self._getPort(s))
+            server.insertValue('Connection', self._getConnection(s))
+            server.insertValue('Authentication', self._getAuthentication(s))
+            server.insertValue('LoginMode', self._getLoginMode(s))
+            imap.append(server)
+        data.insertValue('ImapServers', tuple(imap))
         return data
 
     def _getPort(self, server):

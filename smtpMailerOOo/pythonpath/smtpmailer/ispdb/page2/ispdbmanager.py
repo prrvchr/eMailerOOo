@@ -61,7 +61,7 @@ class IspdbManager(unohelper.Base):
         self._view.setPageLabel(label % self._model.Email)
         self._refresh = True
         self._loaded = False
-        self._model.getSmtpConfig(self.updateProgress, self.updateModel)
+        self._model.getServerConfig(self.updateProgress, self.updateModel)
 
     def commitPage(self, reason):
         self._finish = False
@@ -76,12 +76,9 @@ class IspdbManager(unohelper.Base):
             message = self._model.getProgressMessage(value + offset)
             self._view.updateProgress(value, message)
 
-    def updateModel(self, user, servers, offline):
+    def updateModel(self, user, smtp, imap, offline):
         if not self._model.isDisposed():
-            # TODO: The order of assignment is important (ie: the user before the servers)
-            self._model.setUser(user)
-            self._model.setServers(servers)
-            self._model.Offline = offline
+            self._model.setServerConfig(user, smtp, imap, offline)
             title = self._model.getPageTitle(self._pageid)
             self._wizard.setTitle(title)
             self._wizard.enablePage(1, True)

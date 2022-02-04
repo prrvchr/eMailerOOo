@@ -50,30 +50,32 @@ def getSqlQuery(ctx, name, format=None):
         k1 = 'CONSTRAINT "UniqueTablesName" UNIQUE("Name")'
         c = (c1, c2, c3, c4, c5, k1)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Tables"(%s);' % ','.join(c)
+
     elif name == 'createTableColumns':
         c1 = '"Column" INTEGER NOT NULL PRIMARY KEY'
         c2 = '"Name" VARCHAR(100) NOT NULL'
         k1 = 'CONSTRAINT "UniqueColumnsName" UNIQUE("Name")'
         c = (c1, c2, k1)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Columns"(%s);' % ','.join(c)
+
     elif name == 'createTableTableColumn':
         c1 = '"Table" INTEGER NOT NULL'
         c2 = '"Column" INTEGER NOT NULL'
         c3 = '"TypeName" VARCHAR(100) NOT NULL'
-        c4 = '"TypeLenght" SMALLINT DEFAULT NULL'
-        c5 = '"Default" VARCHAR(100) DEFAULT NULL'
-        c6 = '"Options" VARCHAR(100) DEFAULT NULL'
-        c7 = '"Primary" BOOLEAN NOT NULL'
-        c8 = '"Unique" BOOLEAN NOT NULL'
-        c9 = '"ForeignTable" INTEGER DEFAULT NULL'
-        c10 = '"ForeignColumn" INTEGER DEFAULT NULL'
+        c4 = '"Default" VARCHAR(100) DEFAULT NULL'
+        c5 = '"Options" VARCHAR(100) DEFAULT NULL'
+        c6 = '"Primary" BOOLEAN NOT NULL'
+        c7 = '"Unique" BOOLEAN NOT NULL'
+        c8 = '"ForeignTable" INTEGER DEFAULT NULL'
+        c9 = '"ForeignColumn" INTEGER DEFAULT NULL'
         k1 = 'PRIMARY KEY("Table","Column")'
         k2 = 'CONSTRAINT "ForeignTableColumnTable" FOREIGN KEY("Table") REFERENCES '
         k2 += '"Tables"("Table") ON DELETE CASCADE ON UPDATE CASCADE'
         k3 = 'CONSTRAINT "ForeignTableColumnColumn" FOREIGN KEY("Column") REFERENCES '
         k3 += '"Columns"("Column") ON DELETE CASCADE ON UPDATE CASCADE'
-        c = (c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, k1, k2, k3)
+        c = (c1, c2, c3, c4, c5, c6, c7, c8, c9, k1, k2, k3)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "TableColumn"(%s);' % ','.join(c)
+
     elif name == 'createTableSettings':
         c1 = '"Id" INTEGER NOT NULL PRIMARY KEY'
         c2 = '"Name" VARCHAR(100) NOT NULL'
@@ -83,12 +85,14 @@ def getSqlQuery(ctx, name, format=None):
         c = (c1, c2, c3, c4, c5)
         p = ','.join(c)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Settings"(%s);' % p
+
     elif name == 'createTableConnectionType':
         c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
         c2 = '"Connection" VARCHAR(20) NOT NULL'
         c = (c1, c2)
         p = ','.join(c)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "ConnectionType"(%s);' % p
+
     elif name == 'createTableAuthenticationType':
         c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
         c2 = '"Authentication" VARCHAR(20) NOT NULL'
@@ -96,12 +100,13 @@ def getSqlQuery(ctx, name, format=None):
         p = ','.join(c)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "AuthenticationType"(%s);' % p
 
-
     # Create Text Table Options
     elif name == 'setTableSource':
         query = 'SET TABLE "%s" SOURCE "%s"' % (format, g_csv % format)
+
     elif name == 'setTableHeader':
         query = 'SET TABLE "%s" SOURCE HEADER "%s"' % format
+
     elif name == 'setTableReadOnly':
         query = 'SET TABLE "%s" READONLY TRUE' % format
 
@@ -152,8 +157,8 @@ def getSqlQuery(ctx, name, format=None):
         s7 = '"Senders"."Document"'
         s8 = '"Senders"."DataSource"'
         s9 = '"Senders"."Query"'
-        s10 = '"Senders"."TimeStamp"'
-        s11 = '"Recipients"."TimeStamp"'
+        s10 = '"Senders"."Created"'
+        s11 = '"Recipients"."Created"'
         s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11)
         f1 = '"Senders"'
         f2 = 'JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"'
@@ -171,18 +176,17 @@ def getSqlQuery(ctx, name, format=None):
         s3 = '"T"."Name" AS "Table"'
         s4 = '"C"."Name" AS "Column"'
         s5 = '"TC"."TypeName" AS "Type"'
-        s6 = '"TC"."TypeLenght" AS "Lenght"'
-        s7 = '"TC"."Default"'
-        s8 = '"TC"."Options"'
-        s9 = '"TC"."Primary"'
-        s10 = '"TC"."Unique"'
-        s11 = '"TC"."ForeignTable" AS "ForeignTableId"'
-        s12 = '"TC"."ForeignColumn" AS "ForeignColumnId"'
-        s13 = '"T2"."Name" AS "ForeignTable"'
-        s14 = '"C2"."Name" AS "ForeignColumn"'
-        s15 = '"T"."View"'
-        s16 = '"T"."Versioned"'
-        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16)
+        s6 = '"TC"."Default"'
+        s7 = '"TC"."Options"'
+        s8 = '"TC"."Primary"'
+        s9 = '"TC"."Unique"'
+        s10 = '"TC"."ForeignTable" AS "ForeignTableId"'
+        s11 = '"TC"."ForeignColumn" AS "ForeignColumnId"'
+        s12 = '"T2"."Name" AS "ForeignTable"'
+        s13 = '"C2"."Name" AS "ForeignColumn"'
+        s14 = '"T"."View"'
+        s15 = '"T"."Versioned"'
+        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15)
         f1 = '"Tables" AS "T"'
         f2 = 'JOIN "TableColumn" AS "TC" ON "T"."Table"="TC"."Table"'
         f3 = 'JOIN "Columns" AS "C" ON "TC"."Column"="C"."Column"'
@@ -213,7 +217,7 @@ def getSqlQuery(ctx, name, format=None):
 
     # Mail Select Queries
     elif name == 'getSenders':
-        query = 'SELECT "User" FROM "Users" ORDER BY "TimeStamp";'
+        query = 'SELECT "User" FROM "Users" ORDER BY "Created";'
 
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
@@ -255,30 +259,30 @@ def getSqlQuery(ctx, name, format=None):
 # Update Queries
     # MailSpooler Update Queries
     elif name == 'setJobState':
-        query = 'UPDATE "Recipients" SET "State"=?, "TimeStamp"=? WHERE "JobId"=?;'
+        query = 'UPDATE "Recipients" SET "State"=?, "Modified"=? WHERE "JobId"=?;'
 
     elif name == 'setBatchState':
-        query = 'UPDATE "Recipients" SET "State"=?, "TimeStamp"=? WHERE "BatchId"=?;'
+        query = 'UPDATE "Recipients" SET "State"=?, "Modified"=? WHERE "BatchId"=?;'
 
 # Function creation Queries
     # IspDb Function Queries
     elif name == 'createGetDomain':
         query = """\
-CREATE FUNCTION "GetDomain"("User" VARCHAR(320))
+CREATE FUNCTION "GetDomain"(EMAIL VARCHAR(320))
   RETURNS VARCHAR(100)
   SPECIFIC "GetDomain_1"
-  RETURN SUBSTRING("User" FROM POSITION('@' IN "User") + 1);
+  RETURN SUBSTRING(EMAIL FROM POSITION('@' IN EMAIL) + 1);
 """
 
 # Delete Procedure Queries
     # SpoolerService Delete Procedure Queries
     elif name == 'createDeleteJobs':
         query = """\
-CREATE PROCEDURE "DeleteJobs"(IN "Jobs" INTEGER ARRAY)
+CREATE PROCEDURE "DeleteJobs"(IN JOBIDS INTEGER ARRAY)
   SPECIFIC "DeleteJobs_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DELETE FROM "Recipients" WHERE "JobId" IN (UNNEST ("Jobs"));
+    DELETE FROM "Recipients" WHERE "JobId" IN (UNNEST (JOBIDS));
     DELETE FROM "Senders" WHERE "BatchId" IN (SELECT "BatchId" FROM "Senders"
     EXCEPT SELECT "BatchId" FROM "Recipients");
   END;"""
@@ -287,288 +291,318 @@ CREATE PROCEDURE "DeleteJobs"(IN "Jobs" INTEGER ARRAY)
     # IspDb Select Procedure Queries
     elif name == 'createGetServers':
         query = """\
-CREATE PROCEDURE "GetServers"(IN "Email" VARCHAR(320),
-                              IN "DomainName" VARCHAR(255),
-                              OUT "Server" VARCHAR(255),
-                              OUT "Port" SMALLINT,
-                              OUT "LoginName" VARCHAR(100),
-                              OUT "Password" VARCHAR(100))
+CREATE PROCEDURE "GetServers"(IN EMAIL VARCHAR(320),
+                              IN DOMAIN VARCHAR(255),
+                              IN SMTP VARCHAR(4),
+                              IN IMAP VARCHAR(4),
+                              OUT SMTPSERVER VARCHAR(255),
+                              OUT IMAPSERVER VARCHAR(255),
+                              OUT SMTPPORT SMALLINT,
+                              OUT IMAPPORT SMALLINT,
+                              OUT SMTPLOGIN VARCHAR(100),
+                              OUT IMAPLOGIN VARCHAR(100),
+                              OUT SMTPPWD VARCHAR(100),
+                              OUT IMAPPDW VARCHAR(100))
   SPECIFIC "GetServers_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "Servers"."Server", "Servers"."Port", "Servers"."Connection",
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT "Servers"."Service","Servers"."Server", "Servers"."Port", "Servers"."Connection",
       "Servers"."Authentication", "Servers"."LoginMode" FROM "Servers"
       JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"
       LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
-      WHERE "Providers"."Provider"="DomainName" OR "Domains"."Domain"="DomainName"
+      WHERE "Providers"."Provider"=DOMAIN OR "Domains"."Domain"=DOMAIN
       FOR READ ONLY;
-    SET ("Server", "Port", "LoginName", "Password") = (SELECT "Users"."Server",
-     "Users"."Port", "Users"."LoginName", "Users"."Password" FROM "Users"
-      WHERE "Users"."User"="Email");
-    OPEN "Result";
+    SET (SMTPSERVER,IMAPSERVER,SMTPPORT,IMAPPORT,SMTPLOGIN,IMAPLOGIN,SMTPPWD,IMAPPDW) =
+      (SELECT S1."Server",S2."Server",S1."Port",S2."Port",S1."LoginName",S2."LoginName",S1."Password",S2."Password"
+        FROM "Services" AS S1
+        JOIN "Services" AS S2 ON S1."User"=S2."User" AND S2."Service"=IMAP
+        WHERE S1."Service"=SMTP AND S1."User"=EMAIL);
+    OPEN RSLT;
   END;"""
 
     # MailSpooler Select Procedure Queries
     elif name == 'createGetRecipient':
         query = """\
-CREATE PROCEDURE "GetRecipient"(IN "Id" INTEGER)
+CREATE PROCEDURE "GetRecipient"(IN JOBID INTEGER)
   SPECIFIC "GetRecipient_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
+    DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Recipient", "Index", "BatchId" From "Recipients"
-      WHERE "JobId"="Id"
+      WHERE "JobId"=JOBID
       FOR READ ONLY;
-    OPEN "Result";
+    OPEN RSLT;
   END;"""
 
     elif name == 'createGetSender':
         query = """\
-CREATE PROCEDURE "GetSender"(IN "Id" INTEGER)
+CREATE PROCEDURE "GetSender"(IN BATCHID INTEGER)
   SPECIFIC "GetSender_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
+    DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Sender", "Subject", "Document", "DataSource",
       "Query", "Table", "Identifier", "Bookmark",
       CASE WHEN "DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
       FROM "Senders"
-      WHERE "BatchId"="Id"
+      WHERE "BatchId"=BATCHID
       FOR READ ONLY;
-    OPEN "Result";
+    OPEN RSLT;
   END;"""
 
     elif name == 'createGetAttachments':
         query = """\
-CREATE PROCEDURE "GetAttachments"(IN "Id" INTEGER)
+CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
   SPECIFIC "GetAttachments_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
+    DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Attachment" From "Attachments"
-      WHERE "BatchId"="Id" ORDER BY "TimeStamp"
+      WHERE "BatchId"=BATCHID ORDER BY "Created"
       FOR READ ONLY;
-    OPEN "Result";
+    OPEN RSLT;
   END;"""
 
     elif name == 'createGetServer':
         query = """\
-CREATE PROCEDURE "GetServer"(IN "User" VARCHAR(320),
-                             IN "TimeOut" INTEGER)
+CREATE PROCEDURE "GetServer"(IN EMAIL VARCHAR(320),
+                             IN SERVICE VARCHAR(4),
+                             IN TIMEOUT INTEGER)
   SPECIFIC "GetServer_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
-      SELECT "TimeOut" AS "Timeout", "Servers"."Server" AS "ServerName",
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT TIMEOUT AS "Timeout", "Servers"."Server" AS "ServerName",
       "Servers"."Port", "ConnectionType"."Connection" AS "ConnectionType",
       "AuthenticationType"."Authentication" AS "AuthenticationType",
-      "Users"."LoginName", "Users"."Password"
+      "Services"."LoginName", "Services"."Password"
       FROM "Servers"
-      JOIN "Users" ON "Servers"."Server"="Users"."Server" AND "Servers"."Port"="Users"."Port"
+      JOIN "Services" ON "Servers"."Server"="Services"."Server" AND "Servers"."Port"="Services"."Port" AND "Services"."Service"=SERVICE
       JOIN "ConnectionType" ON "Servers"."Connection"="ConnectionType"."Type"
       JOIN "AuthenticationType" ON "Servers"."Authentication"="AuthenticationType"."Type"
-      WHERE "Users"."User"="User"
+      WHERE "Services"."User"=EMAIL
       FOR READ ONLY;
-    OPEN "Result";
+    OPEN RSLT;
   END;"""
 
     elif name == 'createGetJobMail1':
         query = """\
-CREATE PROCEDURE "GetJobMail"(IN "Job" INTEGER)
+CREATE PROCEDURE "GetJobMail"(IN JOBID INTEGER)
   SPECIFIC "GetJobMail_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE "Result" CURSOR WITH RETURN FOR
+    DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
       "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
       "Recipients"."Identifier", ARRAY_AGG("Attachments"."Attachment")
       FROM "Senders"
       JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"
       LEFTJOIN "Attachments" ON ""Senders"."BatchId"="Attachments"."BatchId"
-      WHERE "Recipients"."JobId"="Job"
+      WHERE "Recipients"."JobId"=JOBID
       GROUP BY "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
       "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
       "Recipients"."Identifier"
       FOR READ ONLY;
-    OPEN "Result";
+    OPEN RSLT;
   END;"""
 
 # Insert Procedure Queries
     # SpoolerService Insert Procedure Queries
     elif name == 'createInsertJob':
         query = """\
-CREATE PROCEDURE "InsertJob"(IN "Sender" VARCHAR(320),
-                             IN "Subject" VARCHAR(78),
-                             IN "Document" VARCHAR(512),
-                             IN "Recipients" VARCHAR(320) ARRAY,
-                             IN "Attachments" VARCHAR(512) ARRAY,
-                             OUT "Id" INTEGER)
+CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
+                             IN SUBJECT VARCHAR(78),
+                             IN DOCUMENT VARCHAR(512),
+                             IN RECIPIENTS VARCHAR(320) ARRAY,
+                             IN ATTACHMENTS VARCHAR(512) ARRAY,
+                             OUT BATCHID INTEGER)
   SPECIFIC "InsertJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE "BatchId" INTEGER DEFAULT 0;
-    DECLARE "Index" INTEGER DEFAULT 1;
+    DECLARE ID INTEGER DEFAULT 0;
+    DECLARE INDEX INTEGER DEFAULT 1;
     INSERT INTO "Senders" ("Sender","Subject","Document")
-    VALUES ("Sender","Subject","Document");
-    SET "BatchId" = IDENTITY();
-    WHILE "Index" <= CARDINALITY("Recipients") DO
+    VALUES (SENDER,SUBJECT,DOCUMENT);
+    SET ID = IDENTITY();
+    WHILE INDEX <= CARDINALITY(RECIPIENTS) DO
       INSERT INTO "Recipients" ("BatchId","Recipient")
-      VALUES ("BatchId","Recipients"["Index"]);
-      SET "Index" = "Index" + 1;
+      VALUES (ID,RECIPIENTS[INDEX]);
+      SET INDEX = INDEX + 1;
     END WHILE;
-    SET "Index" = 1;
-    WHILE "Index" <= CARDINALITY("Attachments") DO
+    SET INDEX = 1;
+    WHILE INDEX <= CARDINALITY(ATTACHMENTS) DO
       INSERT INTO "Attachments" ("BatchId","Attachment")
-      VALUES ("BatchId","Attachments"["Index"]);
-      SET "Index" = "Index" + 1;
+      VALUES (ID,ATTACHMENTS[INDEX]);
+      SET INDEX = INDEX + 1;
     END WHILE;
-    SET "Id" = "BatchId";
+    SET BATCHID = ID;
   END;"""
 
     # SpoolerService Insert Procedure Queries
     elif name == 'createInsertMergeJob':
         query = """\
-CREATE PROCEDURE "InsertMergeJob"(IN "Sender" VARCHAR(320),
-                                  IN "Subject" VARCHAR(78),
-                                  IN "Document" VARCHAR(512),
-                                  IN "DataSource" VARCHAR(512),
-                                  IN "Query" VARCHAR(512),
-                                  IN "Table" VARCHAR(512),
-                                  IN "Identifier" VARCHAR(512),
-                                  IN "Bookmark" VARCHAR(512),
-                                  IN "Recipients" VARCHAR(320) ARRAY,
-                                  IN "Indexes" VARCHAR(128) ARRAY,
-                                  IN "Attachments" VARCHAR(512) ARRAY,
-                                  OUT "Id" INTEGER)
+CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
+                                  IN SUBJECT VARCHAR(78),
+                                  IN DOCUMENT VARCHAR(512),
+                                  IN DATASOURCE VARCHAR(512),
+                                  IN QUERYNAME VARCHAR(512),
+                                  IN TABLENAME VARCHAR(512),
+                                  IN IDENTIFIER VARCHAR(512),
+                                  IN BOOKMARK VARCHAR(512),
+                                  IN RECIPIENTS VARCHAR(320) ARRAY,
+                                  IN INDEXES VARCHAR(128) ARRAY,
+                                  IN ATTACHMENTS VARCHAR(512) ARRAY,
+                                  OUT BATCHID INTEGER)
   SPECIFIC "InsertMergeJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE "BatchId" INTEGER DEFAULT 0;
-    DECLARE "I" INTEGER DEFAULT 1;
+    DECLARE ID INTEGER;
+    DECLARE INDEX INTEGER DEFAULT 1;
     INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query","Table","Identifier","Bookmark")
-    VALUES ("Sender","Subject","Document","DataSource","Query","Table","Identifier","Bookmark");
-    SET "BatchId" = IDENTITY();
-    WHILE "I" <= CARDINALITY("Recipients") DO
+    VALUES (SENDER,SUBJECT,DOCUMENT,DATASOURCE,QUERYNAME,TABLENAME,IDENTIFIER,BOOKMARK);
+    SET ID = IDENTITY();
+    WHILE INDEX <= CARDINALITY(RECIPIENTS) DO
       INSERT INTO "Recipients" ("BatchId","Recipient","Index")
-      VALUES ("BatchId","Recipients"["I"],"Indexes"["I"]);
-      SET "I" = "I" + 1;
+      VALUES (ID,RECIPIENTS[INDEX],INDEXES[INDEX]);
+      SET INDEX = INDEX + 1;
     END WHILE;
-    SET "I" = 1;
-    WHILE "I" <= CARDINALITY("Attachments") DO
+    SET INDEX = 1;
+    WHILE INDEX <= CARDINALITY(ATTACHMENTS) DO
       INSERT INTO "Attachments" ("BatchId","Attachment")
-      VALUES ("BatchId","Attachments"["I"]);
-      SET "I" = "I" + 1;
+      VALUES (ID,ATTACHMENTS[INDEX]);
+      SET INDEX = INDEX + 1;
     END WHILE;
-    SET "Id" = "BatchId";
+    SET BATCHID = ID;
   END;"""
 
 # Update Procedure Queries
     # IspDb Update Procedure Queries
     elif name == 'createUpdateServer':
         query = """\
-CREATE PROCEDURE "UpdateServer"(IN "Server1" VARCHAR(255),
-                                IN "Port1" SMALLINT,
-                                IN "Server2" VARCHAR(255),
-                                IN "Port2" SMALLINT,
-                                IN "Connection" TINYINT,
-                                IN "Authentication" TINYINT,
-                                IN "Time" TIMESTAMP(6))
+CREATE PROCEDURE "UpdateServer"(IN SERVICE VARCHAR(4),
+                                IN SERVER1 VARCHAR(255),
+                                IN PORT1 SMALLINT,
+                                IN SERVER2 VARCHAR(255),
+                                IN PORT2 SMALLINT,
+                                IN CONNECTION TINYINT,
+                                IN AUTHENTICATION TINYINT)
   SPECIFIC "UpdateServer_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Servers" SET "Server"="Server2", "Port"="Port2",
-      "Connection"="Connection", "Authentication"="Authentication",
-      "TimeStamp"="Time"
-      WHERE "Server" = "Server1" AND "Port" = "Port1";
+    UPDATE "Servers" SET "Server"=SERVER2,"Port"=PORT2,
+      "Connection"=CONNECTION,"Authentication"=AUTHENTICATION,
+      "Modified"=DEFAULT
+      WHERE "Service"=SERVICE AND "Server"=SERVER1 AND "Port"=PORT1;
   END"""
 
 # Merge Procedure Queries
     # IspDb Merge Procedure Queries
     elif name == 'createMergeProvider':
         query = """\
-CREATE PROCEDURE "MergeProvider"(IN "Provider" VARCHAR(100),
-                                 IN "DisplayName"  VARCHAR(100),
-                                 IN "DisplayShortName" VARCHAR(100),
-                                 IN "Time" TIMESTAMP(6))
+CREATE PROCEDURE "MergeProvider"(IN PROVIDER VARCHAR(100),
+                                 IN DISPLAYNAME  VARCHAR(100),
+                                 IN DISPLAYSHORTNAME VARCHAR(100))
   SPECIFIC "MergeProvider_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    MERGE INTO "Providers" USING (VALUES("Provider","DisplayName","DisplayShortName","Time"))
-      AS vals(w,x,y,z) ON "Providers"."Provider"=vals.w
+    MERGE INTO "Providers" USING (VALUES(PROVIDER,DISPLAYNAME,DISPLAYSHORTNAME))
+      AS vals(x,y,z) ON "Provider"=vals.x
         WHEN MATCHED THEN UPDATE
-          SET "DisplayName"=vals.x, "DisplayShortName"=vals.y, "TimeStamp"=vals.z
-        WHEN NOT MATCHED THEN INSERT ("Provider","DisplayName","DisplayShortName","TimeStamp")
-          VALUES vals.w, vals.x, vals.y, vals.z;
+          SET "DisplayName"=vals.y,"DisplayShortName"=vals.z,"Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("Provider","DisplayName","DisplayShortName")
+          VALUES vals.x,vals.y,vals.z;
   END"""
 
     # IspDb Merge Procedure Queries
     elif name == 'createMergeDomain':
         query = """\
-CREATE PROCEDURE "MergeDomain"(IN "Provider" VARCHAR(100),
-                               IN "Domain" VARCHAR(255),
-                               IN "Time" TIMESTAMP(6))
+CREATE PROCEDURE "MergeDomain"(IN PROVIDER VARCHAR(100),
+                               IN DOMAIN VARCHAR(255))
   SPECIFIC "MergeDomain_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    MERGE INTO "Domains" USING (VALUES("Domain","Provider","Time"))
-      AS vals(x,y,z) ON "Domains"."Domain"=vals.x
+    MERGE INTO "Domains" USING (VALUES(DOMAIN,PROVIDER))
+      AS vals(y,z) ON "Domain"=vals.y
         WHEN MATCHED THEN UPDATE
-          SET "Provider"=vals.y, "TimeStamp"=vals.z
-        WHEN NOT MATCHED THEN INSERT ("Domain","Provider","TimeStamp")
-          VALUES vals.x, vals.y, vals.z;
+          SET "Provider"=vals.z,"Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("Domain","Provider")
+          VALUES vals.y,vals.z;
   END"""
 
     # IspDb Merge Procedure Queries
     elif name == 'createMergeServer':
         query = """\
-CREATE PROCEDURE "MergeServer"(IN "Provider" VARCHAR(100),
-                               IN "Server" VARCHAR(255),
-                               IN "Port" SMALLINT,
-                               IN "Connection" TINYINT,
-                               IN "Authentication" TINYINT,
-                               IN "LoginMode" TINYINT,
-                               IN "Time" TIMESTAMP(6))
+CREATE PROCEDURE "MergeServer"(IN PROVIDER VARCHAR(100),
+                               IN SERVICE VARCHAR(4),
+                               IN SERVER VARCHAR(255),
+                               IN PORT SMALLINT,
+                               IN CONNECTION TINYINT,
+                               IN AUTHENTICATION TINYINT,
+                               IN LOGIN TINYINT)
   SPECIFIC "MergeServer_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    MERGE INTO "Servers" USING (VALUES("Server","Port","Provider","Connection","Authentication","LoginMode","Time"))
-      AS vals(t,u,v,w,x,y,z) ON "Servers"."Server"=vals.t AND "Servers"."Port"=vals.u
+    MERGE INTO "Servers" USING (VALUES(SERVICE,SERVER,PORT,PROVIDER,CONNECTION,AUTHENTICATION,LOGIN))
+      AS vals(t,u,v,w,x,y,z) ON "Service"=vals.t AND "Server"=vals.u AND "Port"=vals.v
         WHEN MATCHED THEN UPDATE
-          SET "Provider"=vals.v, "Connection"=vals.w, "Authentication"=vals.x, "LoginMode"=vals.y, "TimeStamp"=vals.z
-        WHEN NOT MATCHED THEN INSERT ("Server","Port","Provider","Connection","Authentication","LoginMode","TimeStamp")
-          VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
+          SET "Provider"=vals.w,"Connection"=vals.x,"Authentication"=vals.y,"LoginMode"=vals.z,"Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("Service","Server","Port","Provider","Connection","Authentication","LoginMode")
+          VALUES vals.t,vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
   END"""
 
     # IspDb Merge Procedure Queries
     elif name == 'createMergeUser':
         query = """\
-CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
-                             IN "Server" VARCHAR(255),
-                             IN "Port" SMALLINT,
-                             IN "LoginName" VARCHAR(100),
-                             IN "Password" VARCHAR(100),
-                             IN "Time" TIMESTAMP(6))
+CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
+                             IN SMTP VARCHAR(4),
+                             IN IMAP VARCHAR(4),
+                             IN SMTPSERVER VARCHAR(255),
+                             IN IMAPSERVER VARCHAR(255),
+                             IN SMTPPORT SMALLINT,
+                             IN IMAPPORT SMALLINT,
+                             IN SMTPLOGIN VARCHAR(100),
+                             IN IMAPLOGIN VARCHAR(100),
+                             IN SMTPPWD VARCHAR(100),
+                             IN IMAPPWD VARCHAR(100))
   SPECIFIC "MergeUser_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    MERGE INTO "Users" USING (VALUES("User","Server","Port","LoginName","Password","Time"))
-      AS vals(u,v,w,x,y,z) ON "Users"."User"=vals.u
+    MERGE INTO "Users" USING (VALUES(EMAIL))
+      AS vals(z) ON "Users"."User"=vals.z
         WHEN MATCHED THEN UPDATE
-          SET "Server"=vals.v, "Port"=vals.w, "LoginName"=vals.x, "Password"=vals.y, "TimeStamp"=vals.z
-        WHEN NOT MATCHED THEN INSERT ("User","Server","Port","LoginName","Password","TimeStamp")
-          VALUES vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
+          SET "Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("User")
+          VALUES vals.z;
+    MERGE INTO "Services" USING (VALUES(EMAIL,SMTP,SMTPSERVER,SMTPPORT,SMTPLOGIN,SMTPPWD))
+      AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
+        WHEN MATCHED THEN UPDATE
+          SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("User","Service","Server","Port","LoginName","Password")
+          VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
+    MERGE INTO "Services" USING (VALUES(EMAIL,IMAP,IMAPSERVER,IMAPPORT,IMAPLOGIN,IMAPPWD))
+      AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
+        WHEN MATCHED THEN UPDATE
+          SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
+        WHEN NOT MATCHED THEN INSERT
+          ("User","Service","Server","Port","LoginName","Password")
+          VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
   END"""
 
 # Call Procedure Query
     elif name == 'getServers':
-        query = 'CALL "GetServers"(?,?,?,?,?,?)'
+        query = 'CALL "GetServers"(?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'getRecipient':
         query = 'CALL "GetRecipient"(?)'
     elif name == 'getSender':
@@ -586,13 +620,13 @@ CREATE PROCEDURE "MergeUser"(IN "User" VARCHAR(320),
     elif name == 'updateServer':
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':
-        query = 'CALL "MergeProvider"(?,?,?,?)'
+        query = 'CALL "MergeProvider"(?,?,?)'
     elif name == 'mergeDomain':
-        query = 'CALL "MergeDomain"(?,?,?)'
+        query = 'CALL "MergeDomain"(?,?)'
     elif name == 'mergeServer':
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
-        query = 'CALL "MergeUser"(?,?,?,?,?,?)'
+        query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

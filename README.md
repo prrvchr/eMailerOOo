@@ -296,7 +296,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
 - Rewrite of [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
   - Use of [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
   - Extension of [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail) IDL files:
-    - [XMailMessage.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
+    - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
     - The new [XImapService.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) interface allows access to part of the IMAPClient library.
 
 ### What remains to be done for version 0.0.2:

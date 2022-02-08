@@ -289,8 +289,17 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 - Encore plein d'autres choses...
 
+### Ce qui a été fait pour la version 0.0.2:
+
+**Tant que la version 0.0.2 n'est pas disponible, nous vous conseillons d'utiliser la version [0.0.1](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt) malgré ses limitations...**
+
+- Réécriture de [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
+  - Utilisation de [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
+  - Extension des fichiers IDL [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail):
+    - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) prend désormais en charge la hiérarchisation des courriels (thread).
+    - La nouvelle interface [XImapService](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) permet d'accéder à une partie de la bibliothèque IMAPClient.
+
 ### Que reste-t-il à faire pour la version 0.0.2:
 
-- Réécriture de IspDB ou assistant de configuration de connexion aux serveurs SMTP afin d'intégrer la configuration de la connexion IMAP.
 - Réécriture du Spouleur afin de rendre possible, via le protocole IMAP, l'affichage de la date de livraison des courriels envoyé.
 - Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP avec OAuth2OOo.

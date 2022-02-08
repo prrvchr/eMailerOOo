@@ -289,8 +289,17 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 - Many other things...
 
+### What has been done for version 0.0.2:
+
+**As long as version 0.0.2 is not available, we advise you to use version [0.0.1](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt) despite its limitations...**
+
+- Rewrite of [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
+  - Use of [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
+  - Extension of [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail) IDL files:
+    - [XMailMessage.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
+    - The new [XImapService.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) interface allows access to part of the IMAPClient library.
+
 ### What remains to be done for version 0.0.2:
 
-- Rewrite of IspDB or SMTP servers connection configuration wizard in order to integrate the IMAP connection configuration.
 - Rewriting of the Spooler to make it possible, via the IMAP protocol, to display the delivery date of emails sent.
 - Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP servers with OAuth2OOo.

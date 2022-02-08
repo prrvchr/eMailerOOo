@@ -37,17 +37,13 @@ from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail.MailServiceType import SMTP
 
-from com.sun.star.ucb.ConnectionMode import OFFLINE
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpmailer import MailTransferable
 from smtpmailer import createService
-from smtpmailer import getConnectionMode
 from smtpmailer import getMail
 from smtpmailer import getMessage
-from smtpmailer import getUrl
 from smtpmailer import logMessage
 from smtpmailer import setDebugMode
 
@@ -96,13 +92,17 @@ class DataSource(unohelper.Base,
 
 # Procedures called by IspdbManager
     # called by WizardPage2.activatePage()
-    def getServerConfig(self, *args):
-        Thread(target=self._getServerConfig, args=args).start()
+    def getServerConfig(self, servers, email):
+        return self.DataBase.getServerConfig(servers, email)
 
+    def setServerConfig(self, services, servers, config):
+        self.DataBase.setServerConfig(services, servers, config)
+
+    # called by WizardPage3 / WizardPage4
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
-    def saveServer(self, new, provider, host, port, server):
+    def saveServer(self, new, provider, server, host, port):
         if new:
             self.DataBase.mergeProvider(provider)
             self.DataBase.mergeServer(provider, server)
@@ -111,14 +111,6 @@ class DataSource(unohelper.Base,
 
     def waitForDataBase(self):
         DataSource._init.join()
-
-    def smtpConnect(self, *args):
-        setDebugMode(self._ctx, True)
-        Thread(target=self._smtpConnect, args=args).start()
-
-    def smtpSend(self, *args):
-        setDebugMode(self._ctx, True)
-        Thread(target=self._smtpSend, args=args).start()
 
 # Procedures called by the Mailer
     def getSenders(self, *args):
@@ -150,93 +142,6 @@ class DataSource(unohelper.Base,
 
     def getJobIds(self, batch):
         return self.DataBase.getJobIds(batch)
-
-# Procedures called internally by Ispdb
-    def _getServerConfig(self, email, url, progress, updateModel):
-        progress(5)
-        url = getUrl(self._ctx, url)
-        progress(10)
-        mode = getConnectionMode(self._ctx, url.Server)
-        progress(20)
-        self.waitForDataBase()
-        progress(40)
-        user, smtp, imap = self.DataBase.getServerConfig(email)
-        if len(smtp) > 0 or len(imap) > 0:
-            progress(100, 1)
-        elif mode == OFFLINE:
-            progress(100, 2)
-        else:
-            progress(60)
-            service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
-            request = createService(self._ctx, service)
-            response = self._getIspdbConfig(request, url.Complete, user.getValue('Domain'))
-            if response.IsPresent:
-                progress(80)
-                smtp, imap = self.DataBase.setServerConfig(response.Value)
-                progress(100, 3)
-            else:
-                progress(100, 4)
-        updateModel(user, smtp, imap, mode)
-
-    def _getIspdbConfig(self, request, url, domain):
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
-        parameter.Method = 'GET'
-        parameter.Url = '%s%s' % (url, domain)
-        parameter.NoAuth = True
-        #parameter.NoVerify = True
-        response = request.getRequest(parameter, DataParser()).execute()
-        return response
-
-    def _smtpConnect(self, context, authenticator, progress, callback):
-        progress(0)
-        step = 2
-        progress(5)
-        service = 'com.sun.star.mail.MailServiceProvider2'
-        progress(25)
-        server = createService(self._ctx, service).create(SMTP)
-        progress(50)
-        try:
-            server.connect(context, authenticator)
-        except UnoException as e:
-            progress(100)
-        else:
-            progress(75)
-            if server.isConnected():
-                server.disconnect()
-                step = 4
-                progress(100)
-            else:
-                progress(100)
-        setDebugMode(self._ctx, False)
-        callback(step)
-
-    def _smtpSend(self, context, authenticator, sender, recipient, subject, message, progress, setStep):
-        step = 3
-        progress(5)
-        service = 'com.sun.star.mail.MailServiceProvider2'
-        progress(25)
-        server = createService(self._ctx, service).create(SMTP)
-        progress(50)
-        try:
-            server.connect(context, authenticator)
-        except UnoException as e:
-            print("DataSoure._smtpSend() 1 Error: %s" % e.Message)
-        else:
-            progress(75)
-            if server.isConnected():
-                body = MailTransferable(self._ctx, message, False)
-                mail = getMail(self._ctx, sender, recipient, subject, body)
-                print("DataSoure._smtpSend() 2: %s - %s" % (type(mail), mail))
-                try:
-                    server.sendMailMessage(mail)
-                except UnoException as e:
-                    print("DataSoure._smtpSend() 3 Error: %s - %s" % (e.Message, traceback.print_exc()))
-                else:
-                    step = 5
-                server.disconnect()
-        progress(100)
-        setDebugMode(self._ctx, False)
-        setStep(step)
 
 # Procedures called internally by the Mailer
     def _getSenders(self, callback):

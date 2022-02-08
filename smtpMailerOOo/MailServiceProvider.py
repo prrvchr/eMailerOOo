@@ -68,7 +68,8 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.mail import XMailServiceProvider2
 from com.sun.star.mail import XMailService2
 from com.sun.star.mail import XSmtpService2
-from com.sun.star.mail import XMailMessage
+from com.sun.star.mail import XImapService
+from com.sun.star.mail import XMailMessage2
 from com.sun.star.lang import EventObject
 
 from com.sun.star.mail.MailServiceType import SMTP
@@ -94,6 +95,7 @@ from email.encoders import encode_base64
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate
+from email.utils import make_msgid
 from email.utils import parseaddr
 
 from smtpmailer import getConfiguration
@@ -105,15 +107,16 @@ from smtpmailer import hasInterface
 from smtpmailer import isDebugMode
 from smtpmailer import logMessage
 from smtpmailer import smtplib
+from smtpmailer import imapclient
 
 g_message = 'MailServiceProvider'
 
 import re
 import sys
 import six
-import imaplib
 import poplib
 import base64
+from collections import OrderedDict
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -128,7 +131,7 @@ class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
         if isDebugMode():
-            msg = getMessage(ctx, g_message, 121)
+            msg = getMessage(ctx, g_message, 211)
             logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
         self._ctx = ctx
         self._listeners = []
@@ -136,10 +139,9 @@ class SmtpService(unohelper.Base,
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None
-        self._sessions = {}
         self._notify = EventObject(self)
         if isDebugMode():
-            msg = getMessage(ctx, g_message, 122)
+            msg = getMessage(ctx, g_message, 212)
             logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
 
     def addConnectionListener(self, listener):
@@ -157,7 +159,7 @@ class SmtpService(unohelper.Base,
 
     def connect(self, context, authenticator):
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 131)
+            msg = getMessage(self._ctx, g_message, 221)
             logMessage(self._ctx, INFO, msg, 'SmtpService', 'connect()')
         if self.isConnected():
             raise AlreadyConnectedException()
@@ -169,7 +171,7 @@ class SmtpService(unohelper.Base,
         error = self._setServer(context, server)
         if error is not None:
             if isDebugMode():
-                msg = getMessage(self._ctx, g_message, 132, error.Message)
+                msg = getMessage(self._ctx, g_message, 222, error.Message)
                 logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'connect()')
             raise error
         authentication = context.getValueByName('AuthenticationType').title()
@@ -177,14 +179,14 @@ class SmtpService(unohelper.Base,
             error = self._doLogin(authentication, authenticator, server)
             if error is not None:
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 133, error.Message)
+                    msg = getMessage(self._ctx, g_message, 223, error.Message)
                     logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'connect()')
                 raise error
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 134)
+            msg = getMessage(self._ctx, g_message, 224)
             logMessage(self._ctx, INFO, msg, 'SmtpService', 'connect()')
 
     def _setServer(self, context, host):
@@ -193,49 +195,49 @@ class SmtpService(unohelper.Base,
         timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType').title()
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 141, connection)
+            msg = getMessage(self._ctx, g_message, 231, connection)
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
         try:
             if connection == 'Ssl':
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 142, timeout)
+                    msg = getMessage(self._ctx, g_message, 232, timeout)
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP_SSL(timeout=timeout)
             else:
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 143, timeout)
+                    msg = getMessage(self._ctx, g_message, 233, timeout)
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 server = smtplib.SMTP(timeout=timeout)
             if isDebugMode():
                 server.set_debuglevel(1)
-            code, reply = getReply(*server.connect(host=host, port=port))
+            code, reply = _getReply(*server.connect(host=host, port=port))
             if isDebugMode():
-                msg = getMessage(self._ctx, g_message, 144, (host, port, code, reply))
+                msg = getMessage(self._ctx, g_message, 234, (host, port, code, reply))
                 logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
             if code != 220:
-                msg = getMessage(self._ctx, g_message, 146, reply)
+                msg = getMessage(self._ctx, g_message, 236, reply)
                 error = ConnectException(msg, self)
             elif connection == 'Tls':
-                code, reply = getReply(*server.starttls())
+                code, reply = _getReply(*server.starttls())
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 145, (code, reply))
+                    msg = getMessage(self._ctx, g_message, 235, (code, reply))
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 if code != 220:
-                    msg = getMessage(self._ctx, g_message, 146, reply)
+                    msg = getMessage(self._ctx, g_message, 236, reply)
                     error = ConnectException(msg, self)
         except smtplib.SMTPConnectError as e:
-            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 236, getExceptionMessage(e))
             error = ConnectException(msg, self)
         except smtplib.SMTPException as e:
-            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 236, getExceptionMessage(e))
             error = UnknownHostException(msg, self)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 146, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 236, getExceptionMessage(e))
             error = MailException(msg, self)
         else:
             self._server = server
         if isDebugMode() and error is None: 
-            msg = getMessage(self._ctx, g_message, 147, (connection, reply))
+            msg = getMessage(self._ctx, g_message, 237, (connection, reply))
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
         return error
 
@@ -243,7 +245,7 @@ class SmtpService(unohelper.Base,
         error = None
         user = authenticator.getUserName()
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 151, authentication)
+            msg = getMessage(self._ctx, g_message, 241, authentication)
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         try:
             if authentication == 'Login':
@@ -251,26 +253,26 @@ class SmtpService(unohelper.Base,
                 if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
                     user = user.encode('ascii')
                     password = password.encode('ascii')
-                code, reply = getReply(*self._server.login(user, password))
+                code, reply = _getReply(*self._server.login(user, password))
                 if isDebugMode():
                     pwd = '*' * len(password)
-                    msg = getMessage(self._ctx, g_message, 152, (user, pwd, code, reply))
+                    msg = getMessage(self._ctx, g_message, 242, (user, pwd, code, reply))
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
             elif authentication == 'Oauth2':
-                token = getToken(self._ctx, self, server, user, True)
+                token = _getToken(self._ctx, self, server, user, True)
                 self._server.ehlo_or_helo_if_needed()
-                code, reply = getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
+                code, reply = _getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
                 if code != 235:
-                    msg = getMessage(self._ctx, g_message, 154, reply)
+                    msg = getMessage(self._ctx, g_message, 244, reply)
                     error = AuthenticationFailedException(msg, self)
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 153, (code, reply))
+                    msg = getMessage(self._ctx, g_message, 243, (code, reply))
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 154, getExceptionMessage(e))
+            msg = getMessage(self._ctx, g_message, 244, getExceptionMessage(e))
             error = AuthenticationFailedException(msg, self)
         if isDebugMode() and error is None:
-            msg = getMessage(self._ctx, g_message, 155, (authentication, reply))
+            msg = getMessage(self._ctx, g_message, 245, (authentication, reply))
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         return error
 
@@ -280,7 +282,7 @@ class SmtpService(unohelper.Base,
     def disconnect(self):
         if self.isConnected():
             if isDebugMode():
-                msg = getMessage(self._ctx, g_message, 171)
+                msg = getMessage(self._ctx, g_message, 261)
                 logMessage(self._ctx, INFO, msg, 'SmtpService', 'disconnect()')
             self._server.quit()
             self._server = None
@@ -288,135 +290,40 @@ class SmtpService(unohelper.Base,
             for listener in self._listeners:
                 listener.disconnected(self._notify)
             if isDebugMode():
-                msg = getMessage(self._ctx, g_message, 172)
+                msg = getMessage(self._ctx, g_message, 262)
                 logMessage(self._ctx, INFO, msg, 'SmtpService', 'disconnect()')
 
     def getCurrentConnectionContext(self):
         return self._context
 
     def sendMailMessage(self, message):
-        COMMASPACE = ', '
-        recipients = message.getRecipients()
-        sendermail = message.SenderAddress
-        sendername = message.SenderName
-        subject = message.Subject
-        if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 161, subject)
-            logMessage(self._ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
-        ccrecipients = message.getCcRecipients()
-        bccrecipients = message.getBccRecipients()
-        attachments = message.getAttachments()
-        textmsg = Message()
-        content = message.Body
-        flavors = content.getTransferDataFlavors()
-        #Use first flavor that's sane for an email body
-        for flavor in flavors:
-            if flavor.MimeType.find('text/html') != -1 or flavor.MimeType.find('text/plain') != -1:
-                textbody = content.getTransferData(flavor)
-                if len(textbody):
-                    mimeEncoding = re.sub('charset=.*', 'charset=UTF-8', flavor.MimeType)
-                    if mimeEncoding.find('charset=UTF-8') == -1:
-                        mimeEncoding = mimeEncoding + '; charset=UTF-8'
-                    textmsg['Content-Type'] = mimeEncoding
-                    textmsg['MIME-Version'] = '1.0'
-                    try:
-                        #it's a string, get it as utf-8 bytes
-                        textbody = textbody.encode('utf-8')
-                    except:
-                        #it's a bytesequence, get raw bytes
-                        textbody = textbody.value
-                    if sys.version >= '3':
-                        if sys.version_info.minor < 3 or (sys.version_info.minor == 3 and sys.version_info.micro <= 1):
-                            #http://stackoverflow.com/questions/9403265/how-do-i-use-python-3-2-email-module-to-send-unicode-messages-encoded-in-utf-8-w
-                            #see http://bugs.python.org/16564, etc. basically it now *seems* to be all ok
-                            #in python 3.3.2 onwards, but a little busted in 3.3.0
-                            textbody = textbody.decode('iso8859-1')
-                        else:
-                            textbody = textbody.decode('utf-8')
-                        c = Charset('utf-8')
-                        c.body_encoding = QP
-                        textmsg.set_payload(textbody, c)
-                    else:
-                        textmsg.set_payload(textbody)
-                break
-        if len(attachments):
-            msg = MIMEMultipart()
-            msg.epilogue = ''
-            msg.attach(textmsg)
-        else:
-            msg = textmsg
-        header = Header(sendername, 'utf-8')
-        header.append('<'+sendermail+'>','us-ascii')
-        msg['Subject'] = subject
-        msg['From'] = header
-        msg['To'] = COMMASPACE.join(recipients)
-        if len(ccrecipients):
-            msg['Cc'] = COMMASPACE.join(ccrecipients)
-        if message.ReplyToAddress != '':
-            msg['Reply-To'] = message.ReplyToAddress
-        mailerstring = "LibreOffice via smtpMailerOOo component"
-        try:
-            configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
-            name = configuration.getByName('ooName')
-            version = configuration.getByName('ooSetupVersion')
-            mailerstring = "%s %s via via smtpMailerOOo component" % (name, version)
-        except:
-            pass
-        msg['X-Mailer'] = mailerstring
-        msg['Date'] = formatdate(localtime=True)
-        for attachment in attachments:
-            content = attachment.Data
-            flavors = content.getTransferDataFlavors()
-            flavor = flavors[0]
-            ctype = flavor.MimeType
-            maintype, subtype = ctype.split('/', 1)
-            msgattachment = MIMEBase(maintype, subtype)
-            data = content.getTransferData(flavor)
-            msgattachment.set_payload(data.value)
-            encode_base64(msgattachment)
-            fname = attachment.ReadableName
-            try:
-                msgattachment.add_header('Content-Disposition', 'attachment', \
-                    filename=fname)
-            except:
-                msgattachment.add_header('Content-Disposition', 'attachment', \
-                    filename=('utf-8','',fname))
-            msg.attach(msgattachment)
-        uniquer = {}
-        for key in recipients:
-            uniquer[key] = True
-        if len(ccrecipients):
-            for key in ccrecipients:
-                uniquer[key] = True
-        if len(bccrecipients):
-            for key in bccrecipients:
-                uniquer[key] = True
-        truerecipients = uniquer.keys()
+        msg = _getMessage(self._ctx, message)
+        recipients = _getRecipients(message)
         error = None
         try:
-            refused = self._server.sendmail(sendermail, truerecipients, msg.as_string())
+            refused = self._server.sendmail(message.SenderAddress, recipients, msg.as_string())
         except smtplib.SMTPSenderRefused as e:
-            msg = getMessage(self._ctx, g_message, 162, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 252, (message.Subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         except smtplib.SMTPRecipientsRefused as e:
-            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
             # TODO: return SendMailMessageFailedException in place of MailException
             # TODO: error = SendMailMessageFailedException(msg, self)
             error = MailException(msg, self)
         except smtplib.SMTPDataError as e:
-            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 163, (subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
             error = MailException(msg, self)
         else:
             if len(refused) > 0:
                 for address, result in refused.items():
-                    code, reply = getReply(*result)
-                    msg = getMessage(self._ctx, g_message, 164, (subject, address, code, reply))
+                    code, reply = _getReply(*result)
+                    msg = getMessage(self._ctx, g_message, 254, (message.Subject, address, code, reply))
                     logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
             elif isDebugMode():
-                msg = getMessage(self._ctx, g_message, 165, subject)
+                msg = getMessage(self._ctx, g_message, 255, message.Subject)
                 logMessage(self._ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
         if error is not None:
             logMessage(self._ctx, SEVERE, error.Message, 'SmtpService', 'sendMailMessage()')
@@ -424,16 +331,21 @@ class SmtpService(unohelper.Base,
 
 
 class ImapService(unohelper.Base,
-                  XMailService2):
+                  XImapService):
     def __init__(self, ctx):
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 311)
+            logMessage(ctx, INFO, msg, 'ImapService', '__init__()')
         self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None
-        self._sessions = {}
         self._notify = EventObject(self)
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 312)
+            logMessage(ctx, INFO, msg, 'ImapService', '__init__()')
 
     def addConnectionListener(self, listener):
         self._listeners.append(listener)
@@ -449,49 +361,99 @@ class ImapService(unohelper.Base,
         return self._supportedauthentication
 
     def connect(self, context, authenticator):
-        #xConnectionContext = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.ConnectionContext", self._ctx)
-        #xConnectionContext.setPropertyValue("MailServiceType", IMAP)
-        #xAuthenticator = self._ctx.ServiceManager.createInstanceWithContext("com.gmail.prrvchr.extensions.gMailOOo.Authenticator", self._ctx)
+        if isDebugMode():
+            msg = getMessage(self._ctx, g_message, 321)
+            logMessage(self._ctx, INFO, msg, 'ImapService', 'connect()')
+        if self.isConnected():
+            raise AlreadyConnectedException()
+        if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
+            raise IllegalArgumentException()
+        if not hasInterface(authenticator, 'com.sun.star.mail.XAuthenticator'):
+            raise IllegalArgumentException()
         self._context = context
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
+        timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType').title()
         authentication = context.getValueByName('AuthenticationType').title()
         if connection == 'Ssl':
-            self._server = imaplib.IMAP4_SSL(host=server, port=port)
+            self._server = imapclient.IMAPClient(server, port=port, ssl=True, timeout=timeout)
         else:
-            self._server = imaplib.IMAP4(host=server, port=port)
+            self._server = imapclient.IMAPClient(server, port=port, ssl=False, timeout=timeout)
         if connection == 'Tls':
             self._server.starttls()
         if authentication == 'Login':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
-            if user != '':
-                if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
-                    user = user.encode('ascii')
-                    if password != '':
-                        password = password.encode('ascii')
-                self._server.login(user, password)
+            code = self._server.login(user, password)
+            print("ImapService.connect() 1: %s" % code)
         elif authentication == 'Oauth2':
             user = authenticator.getUserName()
-            token = getToken(self._ctx, self, server, user)
-            self._server.authenticate('XOAUTH2', lambda x: token)
+            token = getOAuth2Token(self._ctx, self, server, user)
+            code = self._server.oauth2_login(user, token)
+            print("ImapService.connect() 2: %s" % code)
         for listener in self._listeners:
             listener.connected(self._notify)
+        if isDebugMode():
+            msg = getMessage(self._ctx, g_message, 324)
+            logMessage(self._ctx, INFO, msg, 'ImapService', 'connect()')
 
     def disconnect(self):
         if self.isConnected():
+            if isDebugMode():
+                msg = getMessage(self._ctx, g_message, 361)
+                logMessage(self._ctx, INFO, msg, 'ImapService', 'disconnect()')
             self._server.logout()
             self._server = None
             self._context = None
-        for listener in self._listeners:
-            listener.disconnected(self._notify)
+            for listener in self._listeners:
+                listener.disconnected(self._notify)
+            if isDebugMode():
+                msg = getMessage(self._ctx, g_message, 362)
+                logMessage(self._ctx, INFO, msg, 'ImapService', 'disconnect()')
 
     def isConnected(self):
         return self._server is not None
 
     def getCurrentConnectionContext(self):
         return self._context
+
+    def getDeliveryDate(self, uid):
+        return ''
+
+    def findSentFolder(self):
+        data = self._server.find_special_folder(imapclient.SENT)
+        return data if data is not None else ''
+
+    def hasFolder(self, folder):
+        find = False
+        if folder:
+            find = self._server.folder_exists(folder)
+        return find
+
+    def selectFolder(self, folder, readonly):
+        data = self._server.select_folder(folder, readonly)
+        return data[b'EXISTS']
+
+    def getMessageByHeader(self, header, value):
+        uid = self._server.search(['HEADER', header, value])
+        print("MailServiceProvider.getMessageById() %s" % (uid, ))
+        return uid
+
+    def uploadMessage(self, folder, message):
+        msg = _getMessage(self._ctx, message)
+        code = self._server.append(folder, msg.as_string())
+        print("MailServiceProvider.uploadMessage() %s" % (code, ))
+
+
+    def list(self, directory, pattern):
+        typ, data = self._server.list(directory, pattern)
+        print("MailServiceProvider.list() %s - %s" % (typ, data))
+
+    def getUidByMessageId(self, messageid):
+        typ, data = self._server.search(None, '(HEADER Message-ID "%s")' % messageid)
+        print("MailServiceProvider.getUidByMessageId() %s - %s" % (typ, data))
+        return data
 
 
 class Pop3Service(unohelper.Base,
@@ -567,16 +529,16 @@ class MailServiceProvider(unohelper.Base,
                           XServiceInfo):
     def __init__(self, ctx):
         if isDebugMode():
-            msg = getMessage(ctx, g_message, 101)
+            msg = getMessage(ctx, g_message, 111)
             logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
         self._ctx = ctx
         if isDebugMode():
-            msg = getMessage(ctx, g_message, 102)
+            msg = getMessage(ctx, g_message, 112)
             logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
 
     def create(self, mailtype):
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 111, mailtype.value)
+            msg = getMessage(self._ctx, g_message, 121, mailtype.value)
             logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
         if mailtype == SMTP:
             service = SmtpService(self._ctx)
@@ -585,11 +547,11 @@ class MailServiceProvider(unohelper.Base,
         elif mailtype == IMAP:
             service = ImapService(self._ctx)
         else:
-            e = self._getNoMailServiceProviderException(113, mailtype)
+            e = self._getNoMailServiceProviderException(123, mailtype)
             logMessage(self._ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
             raise e
         if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 112, mailtype.value)
+            msg = getMessage(self._ctx, g_message, 122, mailtype.value)
             logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
         return service
 
@@ -609,7 +571,8 @@ class MailServiceProvider(unohelper.Base,
 
 
 class MailMessage(unohelper.Base,
-                  XMailMessage):
+                  XMailMessage2,
+                  XServiceInfo):
     def __init__(self, ctx, to='', sender='', subject='', body=None, attachment=None):
         self._ctx = ctx
         self._recipients = [to]
@@ -618,42 +581,63 @@ class MailMessage(unohelper.Base,
         self._attachments = []
         if attachment is not None:
             self._attachments.append(attachment)
-        self._sname, self._saddress = parseaddr(sender)
+        self._name, self._address = parseaddr(sender)
+        print("MailMessage.__init__() %s - %s - %s" % (sender, self._name, self._address))
+        name, part, domain = sender.partition('@')
+        host = '%s.%s' % (name, domain)
+        self._messageid = make_msgid(None, host)
+        self.ThreadId = ''
         self.ReplyToAddress = sender
         self.Subject = subject
         self.Body = body
 
     @property
     def SenderName(self):
-        return self._sname
+        return self._name
 
     @property
     def SenderAddress(self):
-        return self._saddress
+        return self._address
+
+    @property
+    def MessageId(self):
+        return self._messageid
 
     def addRecipient(self, recipient):
         self._recipients.append(recipient)
 
-    def addCcRecipient(self, ccrecipient):
-        self._ccrecipients.append(ccrecipient)
-
-    def addBccRecipient(self, bccrecipient):
-        self._bccrecipients.append(bccrecipient)
-
     def getRecipients(self):
         return tuple(self._recipients)
+
+    def hasRecipients(self):
+        return len(self._recipients) > 0
+
+    def addCcRecipient(self, ccrecipient):
+        self._ccrecipients.append(ccrecipient)
 
     def getCcRecipients(self):
         return tuple(self._ccrecipients)
 
+    def hasCcRecipients(self):
+        return len(self._ccrecipients) > 0
+
+    def addBccRecipient(self, bccrecipient):
+        self._bccrecipients.append(bccrecipient)
+
     def getBccRecipients(self):
         return tuple(self._bccrecipients)
+
+    def hasBccRecipients(self):
+        return len(self._bccrecipients) > 0
 
     def addAttachment(self, attachment):
         self._attachments.append(attachment)
 
     def getAttachments(self):
         return tuple(self._attachments)
+
+    def hasAttachments(self):
+        return len(self._attachments) > 0
 
     # XServiceInfo
     def supportsService(self, service):
@@ -673,22 +657,115 @@ g_ImplementationHelper.addImplementation(MailMessage,
                                          ('com.sun.star.mail.MailMessage2', ), )
 
 
-def getToken(ctx, source, url, user, encode=False):
+def _getMessage(ctx, message):
+    COMMASPACE = ', '
+    sendermail = message.SenderAddress
+    sendername = message.SenderName
+    subject = message.Subject
+    if isDebugMode():
+        msg = getMessage(ctx, g_message, 251, subject)
+        logMessage(ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+    textmsg = Message()
+    content = message.Body
+    flavors = content.getTransferDataFlavors()
+    #Use first flavor that's sane for an email body
+    for flavor in flavors:
+        if flavor.MimeType.find('text/html') != -1 or flavor.MimeType.find('text/plain') != -1:
+            textbody = content.getTransferData(flavor)
+            if len(textbody):
+                mimeEncoding = re.sub('charset=.*', 'charset=UTF-8', flavor.MimeType)
+                if mimeEncoding.find('charset=UTF-8') == -1:
+                    mimeEncoding = mimeEncoding + '; charset=UTF-8'
+                textmsg['Content-Type'] = mimeEncoding
+                textmsg['MIME-Version'] = '1.0'
+                try:
+                    #it's a string, get it as utf-8 bytes
+                    textbody = textbody.encode('utf-8')
+                except:
+                    #it's a bytesequence, get raw bytes
+                    textbody = textbody.value
+                if sys.version >= '3':
+                    if sys.version_info.minor < 3 or (sys.version_info.minor == 3 and sys.version_info.micro <= 1):
+                        #http://stackoverflow.com/questions/9403265/how-do-i-use-python-3-2-email-module-to-send-unicode-messages-encoded-in-utf-8-w
+                        #see http://bugs.python.org/16564, etc. basically it now *seems* to be all ok
+                        #in python 3.3.2 onwards, but a little busted in 3.3.0
+                        textbody = textbody.decode('iso8859-1')
+                    else:
+                        textbody = textbody.decode('utf-8')
+                    c = Charset('utf-8')
+                    c.body_encoding = QP
+                    textmsg.set_payload(textbody, c)
+                else:
+                    textmsg.set_payload(textbody)
+            break
+    if message.hasAttachments():
+        msg = MIMEMultipart()
+        msg.epilogue = ''
+        msg.attach(textmsg)
+    else:
+        msg = textmsg
+    header = Header(sendername, 'utf-8')
+    header.append('<'+sendermail+'>','us-ascii')
+    msg['Subject'] = subject
+    msg['From'] = header
+    msg['To'] = COMMASPACE.join(message.getRecipients())
+    msg['Message-ID'] = message.MessageId
+    if message.ThreadId:
+        msg['References'] = message.ThreadId
+    if message.hasCcRecipients():
+        msg['Cc'] = COMMASPACE.join(message.getCcRecipients())
+    if message.ReplyToAddress != '':
+        msg['Reply-To'] = message.ReplyToAddress
+    xmailer = "LibreOffice / OpenOffice via smtpMailerOOo extention"
+    try:
+        configuration = getConfiguration(ctx, '/org.openoffice.Setup/Product')
+        name = configuration.getByName('ooName')
+        version = configuration.getByName('ooSetupVersion')
+        xmailer = "%s %s via smtpMailerOOo extention" % (name, version)
+    except:
+        pass
+    msg['X-Mailer'] = xmailer
+    msg['Date'] = formatdate(localtime=True)
+    for attachment in message.getAttachments():
+        content = attachment.Data
+        flavors = content.getTransferDataFlavors()
+        flavor = flavors[0]
+        ctype = flavor.MimeType
+        maintype, subtype = ctype.split('/', 1)
+        msgattachment = MIMEBase(maintype, subtype)
+        data = content.getTransferData(flavor)
+        msgattachment.set_payload(data.value)
+        encode_base64(msgattachment)
+        fname = attachment.ReadableName
+        try:
+            msgattachment.add_header('Content-Disposition', 'attachment', \
+                filename=fname)
+        except:
+            msgattachment.add_header('Content-Disposition', 'attachment', \
+                filename=('utf-8','',fname))
+        msg.attach(msgattachment)
+    return msg
+
+def _getRecipients(message):
+    recipients = OrderedDict()
+    for recipient in message.getRecipients():
+        recipients[recipient] = True
+    if message.hasCcRecipients():
+        for recipient in message.getCcRecipients():
+            recipients[recipient] = True
+    if message.hasBccRecipients():
+        for recipient in message.getBccRecipients():
+            recipients[recipient] = True
+    return recipients.keys()
+
+def _getToken(ctx, source, url, user, encode=False):
     token = getOAuth2Token(ctx, source, url, user)
     authstring = 'user=%s\1auth=Bearer %s\1\1' % (user, token)
     if encode:
         authstring = base64.b64encode(authstring.encode('ascii')).decode('ascii')
     return authstring
 
-def getToken1(ctx, source, url, user, encode=False):
-    authstring = 'user=%s\1' % user
-    authstring += 'auth=Bearer %s\1\1'
-    authstring = getOAuth2(ctx, url, user).getToken(authstring)
-    if encode:
-        authstring = base64.b64encode(authstring.encode('ascii')).decode('ascii')
-    return authstring
-
-def getReply(code, reply):
+def _getReply(code, reply):
     if isinstance(reply, six.binary_type):
         reply = reply.decode('ascii')
     return code, reply

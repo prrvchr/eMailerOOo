@@ -76,9 +76,9 @@ class IspdbManager(unohelper.Base):
             message = self._model.getProgressMessage(value + offset)
             self._view.updateProgress(value, message)
 
-    def updateModel(self, user, smtp, imap, offline):
+    def updateModel(self, user, servers, offline):
         if not self._model.isDisposed():
-            self._model.setServerConfig(user, smtp, imap, offline)
+            self._model.setServerConfig(user, servers, offline)
             title = self._model.getPageTitle(self._pageid)
             self._wizard.setTitle(title)
             self._wizard.enablePage(1, True)

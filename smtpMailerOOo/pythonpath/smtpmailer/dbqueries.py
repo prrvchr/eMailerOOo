@@ -295,6 +295,7 @@ CREATE PROCEDURE "GetServers"(IN EMAIL VARCHAR(320),
                               IN DOMAIN VARCHAR(255),
                               IN SMTP VARCHAR(4),
                               IN IMAP VARCHAR(4),
+                              OUT THREAD VARCHAR(100),
                               OUT SMTPSERVER VARCHAR(255),
                               OUT IMAPSERVER VARCHAR(255),
                               OUT SMTPPORT SMALLINT,
@@ -314,11 +315,12 @@ CREATE PROCEDURE "GetServers"(IN EMAIL VARCHAR(320),
       LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
       WHERE "Providers"."Provider"=DOMAIN OR "Domains"."Domain"=DOMAIN
       FOR READ ONLY;
-    SET (SMTPSERVER,IMAPSERVER,SMTPPORT,IMAPPORT,SMTPLOGIN,IMAPLOGIN,SMTPPWD,IMAPPDW) =
-      (SELECT S1."Server",S2."Server",S1."Port",S2."Port",S1."LoginName",S2."LoginName",S1."Password",S2."Password"
-        FROM "Services" AS S1
-        JOIN "Services" AS S2 ON S1."User"=S2."User" AND S2."Service"=IMAP
-        WHERE S1."Service"=SMTP AND S1."User"=EMAIL);
+    SET (THREAD,SMTPSERVER,IMAPSERVER,SMTPPORT,IMAPPORT,SMTPLOGIN,IMAPLOGIN,SMTPPWD,IMAPPDW) =
+      (SELECT U."ThreadId",S1."Server",S2."Server",S1."Port",S2."Port",S1."LoginName",S2."LoginName",S1."Password",S2."Password"
+        FROM "Users" AS U
+        JOIN "Services" AS S1 ON U."User"=S1."User" AND S1."Service"=SMTP
+        LEFT JOIN "Services" AS S2 ON U."User"=S2."User" AND S2."Service"=IMAP
+        WHERE U."User"=EMAIL);
     OPEN RSLT;
   END;"""
 
@@ -564,6 +566,7 @@ CREATE PROCEDURE "MergeServer"(IN PROVIDER VARCHAR(100),
     elif name == 'createMergeUser':
         query = """\
 CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
+                             IN THREAD VARCHAR(100),
                              IN SMTP VARCHAR(4),
                              IN IMAP VARCHAR(4),
                              IN SMTPSERVER VARCHAR(255),
@@ -577,13 +580,13 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
   SPECIFIC "MergeUser_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    MERGE INTO "Users" USING (VALUES(EMAIL))
-      AS vals(z) ON "Users"."User"=vals.z
+    MERGE INTO "Users" USING (VALUES(EMAIL,THREAD))
+      AS vals(y,z) ON "User"=vals.y
         WHEN MATCHED THEN UPDATE
-          SET "Modified"=DEFAULT
+          SET "ThreadId"=vals.z,"Modified"=DEFAULT
         WHEN NOT MATCHED THEN INSERT
-          ("User")
-          VALUES vals.z;
+          ("User","ThreadId")
+          VALUES vals.y,vals.z;
     MERGE INTO "Services" USING (VALUES(EMAIL,SMTP,SMTPSERVER,SMTPPORT,SMTPLOGIN,SMTPPWD))
       AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
         WHEN MATCHED THEN UPDATE
@@ -602,7 +605,7 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
 
 # Call Procedure Query
     elif name == 'getServers':
-        query = 'CALL "GetServers"(?,?,?,?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "GetServers"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'getRecipient':
         query = 'CALL "GetRecipient"(?)'
     elif name == 'getSender':
@@ -626,7 +629,7 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
     elif name == 'mergeServer':
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
-        query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

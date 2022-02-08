@@ -29,8 +29,10 @@ Path=$(dirname "${0}")
 
 rm -f ${Path}/types.rdb
 
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XMailMessage2
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XMailService2
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XSmtpService2
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XImapService
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XMailServiceProvider2
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XSpoolerListener
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/mail/XSpoolerService

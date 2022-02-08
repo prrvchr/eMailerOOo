@@ -122,3 +122,5 @@ from .mailspooler import MailSpooler
 from .ispdb import IspdbModel
 
 from . import smtplib
+
+from .imapclient import *

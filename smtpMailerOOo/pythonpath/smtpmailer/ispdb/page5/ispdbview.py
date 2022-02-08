@@ -47,7 +47,7 @@ class IspdbView(unohelper.Base):
         self._ctx = ctx
         self._url = getLoggerUrl(ctx)
         handler = WindowHandler(manager)
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage4')
+        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage5')
 
 # IspdbView getter methods
     def getWindow(self):
@@ -62,8 +62,13 @@ class IspdbView(unohelper.Base):
 
     def updateProgress(self, value):
         self._getProgressBar().Value = value
-        if value == 0:
-            clearLogger()
+        self._updateLogger()
+
+    def resetProgress(self, value):
+        control = self._getProgressBar()
+        control.setRange(0, value)
+        control.Value = 0
+        clearLogger()
         self._updateLogger()
 
 # IspdbView private setter methods

@@ -66,11 +66,8 @@ class IspdbManager(unohelper.Base):
 
     def activatePage(self):
         self._connected = False
-        label = self._model.getPageLabel(self._pageid)
-        format = (self._model.getHost(), self._model.getPort())
-        self._view.setPageLabel(label % format)
         self._view.setPageStep(1)
-        self._model.smtpConnect(self.progress, self.setStep)
+        self._model.connectServers(self.resetProgress, self.updateProgress, self.setLabel, self.setStep)
 
     def commitPage(self, reason):
         if reason == FINISH:
@@ -81,9 +78,18 @@ class IspdbManager(unohelper.Base):
         return self._connected
 
 # IspdbManager setter methods
-    def progress(self, value):
+    def setLabel(self, *format):
+        if not self._model.isDisposed():
+            label = self._model.getPageLabel(self._pageid)
+            self._view.setPageLabel(label % format)
+
+    def updateProgress(self, value):
         if not self._model.isDisposed():
             self._view.updateProgress(value)
+
+    def resetProgress(self, value):
+        if not self._model.isDisposed():
+            self._view.resetProgress(value)
 
     def setStep(self, step):
         if not self._model.isDisposed():
@@ -99,12 +105,12 @@ class IspdbManager(unohelper.Base):
         msg = self._model.getSendMessage()
         self._dialog = SendView(self._ctx, self, parent, title, email, subject, msg)
         if self._dialog.execute() == OK:
-            self.progress(0)
+            #self.progress(0)
             self._view.setPageStep(1)
             recipient = self._dialog.getRecipient()
             subject = self._dialog.getSubject()
             msg = self._dialog.getMessage()
-            self._model.smtpSend(recipient, subject, msg, self.progress, self.setStep)
+            self._model.sendMessage(recipient, subject, msg, self.resetProgress, self.updateProgress, self.setStep)
         self._dialog.dispose()
         self._dialog = None
 

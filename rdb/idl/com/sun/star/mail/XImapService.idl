@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,31 +22,42 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-import unohelper
+#ifndef __com_sun_star_mail_XImapService_idl__
+#define __com_sun_star_mail_XImapService_idl__
 
-from com.sun.star.awt import XContainerWindowEventHandler
+#include <com/sun/star/mail/XMailService2.idl>
+#include <com/sun/star/mail/XMailMessage2.idl>
 
-import traceback
+module com { module sun { module star { module mail {
+
+interface XImapService: com::sun::star::mail::XMailService2
+{
+
+    string findSentFolder();
+
+    long selectFolder([in] string Folder,
+                      [in] boolean ReadOnly);
+
+    boolean hasFolder([in] string Folder);
+
+    void uploadMessage([in] string Folder,
+                       [in] ::com::sun::star::mail::XMailMessage2 MailMessage);
 
 
-class WindowHandler(unohelper.Base,
-                    XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
+    sequence<long> getMessageByHeader([in] string Header,
+                                      [in] string value);
 
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
-        try:
-            handled = False
-            if method == 'SendMail':
-                self._manager.sendMail()
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
+    string getDeliveryDate([in] string MessageUid);
 
-    def getSupportedMethodNames(self):
-        return ('SendMail',)
+    string getUidByMessageId([in] string MessageId);
+
+    void list([in] string Directory,
+              [in] string Pattern);
+
+};
+
+}; }; }; };
+
+#endif

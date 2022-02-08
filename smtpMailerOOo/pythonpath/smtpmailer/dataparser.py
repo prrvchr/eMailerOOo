@@ -46,6 +46,7 @@ class DataParser(unohelper.Base,
         self.DataType = 'Xml'
 
     def parseResponse(self, response):
+        smtp, imap = SMTP.value, IMAP.value
         data = KeyMap()
         config = XmlTree.fromstring(response).find('emailProvider')
         provider = config.attrib['id']
@@ -59,28 +60,28 @@ class DataParser(unohelper.Base,
             if domain.text != provider:
                 domains.append(domain.text)
         data.insertValue('Domains', tuple(domains))
-        smtp = []
+        servers = []
         for s in config.findall("outgoingServer[@type='smtp']"):
             server = KeyMap()
-            server.insertValue('Service', SMTP.value)
+            server.insertValue('Service', smtp)
             server.insertValue('Server', s.find('hostname').text)
             server.insertValue('Port', self._getPort(s))
             server.insertValue('Connection', self._getConnection(s))
             server.insertValue('Authentication', self._getAuthentication(s))
             server.insertValue('LoginMode', self._getLoginMode(s))
-            smtp.append(server)
-        data.insertValue('SmtpServers', tuple(smtp))
-        imap = []
+            servers.append(server)
+        data.insertValue(smtp, tuple(servers))
+        servers = []
         for s in config.findall("incomingServer[@type='imap']"):
             server = KeyMap()
-            server.insertValue('Service', IMAP.value)
+            server.insertValue('Service', imap)
             server.insertValue('Server', s.find('hostname').text)
             server.insertValue('Port', self._getPort(s))
             server.insertValue('Connection', self._getConnection(s))
             server.insertValue('Authentication', self._getAuthentication(s))
             server.insertValue('LoginMode', self._getLoginMode(s))
-            imap.append(server)
-        data.insertValue('ImapServers', tuple(imap))
+            servers.append(server)
+        data.insertValue(imap, tuple(servers))
         return data
 
     def _getPort(self, server):

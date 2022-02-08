@@ -33,13 +33,16 @@ import traceback
 
 
 class IspdbUser(unohelper.Base):
-    def __init__(self):
-        self._user = None
-        self._metadata = None
-
-    def setUser(self, user):
+    def __init__(self, user):
         self._user = user
         self._metadata = user.toJson()
+
+    @property
+    def ThreadId(self):
+        return self._user.getValue('ThreadId')
+    @ThreadId.setter
+    def ThreadId(self, thread):
+        self._user.setValue('ThreadId', thread)
 
     def updateUser(self, user):
         self._user.update(user)
@@ -61,6 +64,9 @@ class IspdbUser(unohelper.Base):
 
     def getPassword(self, service):
         return self._user.getValue('%sPassword' % service)
+
+    def hasThread(self):
+        return self.ThreadId is not None
 
     def getDomain(self):
         return self._user.getValue('Domain')

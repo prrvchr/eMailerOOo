@@ -85,8 +85,7 @@ class IspdbManager(unohelper.Base):
         server, user = self._view.getConfiguration(self._service)
         self._model.updateConfiguration(self._service, server, user)
         if reason == FINISH:
-            #self._model.saveConfiguration()
-            pass
+            self._model.saveConfiguration()
         return True
 
     def canAdvance(self):
@@ -122,13 +121,13 @@ class IspdbManager(unohelper.Base):
         self._wizard.updateTravelUI()
 
     def previousServerPage(self):
-        server = self._view.getServer()
-        self._model.previousServerPage(self._service, server)
+        server, user = self._view.getConfiguration(self._service)
+        self._model.previousServerPage(self._service, server, user)
         config = self._model.getConfig(self._service)
         self._view.updatePage(config)
 
     def nextServerPage(self):
-        server = self._view.getServer()
-        self._model.nextServerPage(self._service, server)
+        server, user = self._view.getConfiguration(self._service)
+        self._model.nextServerPage(self._service, server, user)
         config = self._model.getConfig(self._service)
         self._view.updatePage(config)

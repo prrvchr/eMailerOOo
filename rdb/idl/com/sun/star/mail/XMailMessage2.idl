@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,31 +22,29 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-import unohelper
+#ifndef __com_sun_star_mail_XMailMessage2_idl__
+#define __com_sun_star_mail_XMailMessage2_idl__
 
-from com.sun.star.awt import XContainerWindowEventHandler
+#include <com/sun/star/mail/XMailMessage.idl>
 
-import traceback
+module com { module sun { module star { module mail {
+
+interface XMailMessage2: com::sun::star::mail::XMailMessage
+{
+
+    boolean hasRecipients();
+    boolean hasCcRecipients();
+    boolean hasBccRecipients();
+    boolean hasAttachments();
+
+    [attribute, readonly] string MessageId;
+    [attribute] string ThreadId;
+
+};
 
 
-class WindowHandler(unohelper.Base,
-                    XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
+}; }; }; };
 
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
-        try:
-            handled = False
-            if method == 'SendMail':
-                self._manager.sendMail()
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ('SendMail',)
+#endif

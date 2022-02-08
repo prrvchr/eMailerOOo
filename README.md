@@ -302,4 +302,4 @@ When the email spooler is started, its activity can be viewed in the activity lo
 ### What remains to be done for version 0.0.2:
 
 - Rewriting of the Spooler to make it possible, via the IMAP protocol, to display the delivery date of emails sent.
-- Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP servers with OAuth2OOo.
+- **Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP and IMAP servers with OAuth2OOo.**

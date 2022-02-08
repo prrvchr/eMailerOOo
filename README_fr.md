@@ -302,4 +302,4 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 ### Que reste-t-il à faire pour la version 0.0.2:
 
 - Réécriture du Spouleur afin de rendre possible, via le protocole IMAP, l'affichage de la date de livraison des courriels envoyé.
-- Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP avec OAuth2OOo.
+- **Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP et IMAP avec OAuth2OOo.**

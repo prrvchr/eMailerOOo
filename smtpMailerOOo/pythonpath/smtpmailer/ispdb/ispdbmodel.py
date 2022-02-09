@@ -32,8 +32,8 @@ import unohelper
 
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
-from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
+from com.sun.star.mail.MailServiceType import SMTP
 
 from com.sun.star.uno import Exception as UnoException
 
@@ -209,7 +209,7 @@ class IspdbModel(unohelper.Base):
         config.setValue('Page', self._servers.getServerPage(service))
         config.setValue('Default', self._servers.isDefaultPage(service, self._user))
         config.update(self._servers.getCurrentServer(service))
-        config.setValue('Login', self._getLoginName(service))
+        config.setValue('Login', self._getLogin(service))
         config.setValue('Password', self._getPassword(service))
         return config
 
@@ -244,8 +244,7 @@ class IspdbModel(unohelper.Base):
         provider = self._user.getDomain()
         self._servers.saveServer(self._datasource, service, provider)
         if self._user.isUpdated():
-            print("PageModel.saveConfiguration() user:\n%s\n%s" % (self._user.getUser().toJson(), self._user._metadata))
-            self._datasource.saveUser(self.Email, self._user.getUser())
+            self._datasource.saveUser(self.Email, self._user)
 
     def getSecurity(self, i, j):
         level = self._levels.get(i).get(j)
@@ -396,8 +395,8 @@ class IspdbModel(unohelper.Base):
         return enabled
 
 # IspdbModel private getter methods called by WizardPage3 / WizardPage4
-    def _getLoginName(self, service):
-        login = self._user.getLoginName(service)
+    def _getLogin(self, service):
+        login = self._user.getLogin(service)
         return login if login else self._getLoginFromEmail(service)
 
     def _getLoginFromEmail(self, service):
@@ -422,29 +421,11 @@ class IspdbModel(unohelper.Base):
         return IMAP.value in self._services
 
     def _getConnectionContext(self, service):
-        server = self._servers.getServerHost(service)
-        port = self._servers.getServerPort(service)
-        connection = self._getConnectionMap(service)
-        authentication = self._getAuthenticationMap(service)
-        data = {'ServerName': server,
-                'Port': port,
-                'ConnectionType': connection,
-                'AuthenticationType': authentication,
-                'Timeout': self.Timeout}
-        return CurrentContext(data)
+        config = self._servers.getConfig(service, self._timeout, self._connections, self._authentications)
+        return CurrentContext(service, config)
 
     def _getAuthenticator(self, service):
-        data = {'LoginName': self._user.getLoginName(service),
-                'Password': self._user.getPassword(service)}
-        return Authenticator(data)
-
-    def _getConnectionMap(self, service):
-        index = self._servers.getServerConnection(service)
-        return self._connections.get(index)
-
-    def _getAuthenticationMap(self, service):
-        index = self._servers.getServerAuthentication(service)
-        return self._authentications.get(index)
+        return Authenticator(service, self._user.getConfig())
 
 # IspdbModel private shared methods
     def _getServicesCount(self):
@@ -478,7 +459,8 @@ class IspdbModel(unohelper.Base):
 
     def getSendTitle(self):
         resource = self._resources.get('SendTitle')
-        return self._resolver.resolveString(resource)
+        title = self._resolver.resolveString(resource)
+        return title % self.Email
 
     def getSendSubject(self):
         resource = self._resources.get('SendSubject')

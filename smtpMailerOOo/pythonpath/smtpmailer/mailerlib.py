@@ -44,25 +44,26 @@ import traceback
 
 class Authenticator(unohelper.Base,
                     XAuthenticator):
-    def __init__(self, user):
+    def __init__(self, service, user):
+        self._service = service
         self._user = user
 
 # XAuthenticator
     def getUserName(self):
-        return self._user['LoginName']
+        return self._user.getValue(self._service + 'Login')
 
     def getPassword(self):
-        return self._user['Password']
-
+        return self._user.getValue(self._service + 'Password')
 
 class CurrentContext(unohelper.Base,
                      XCurrentContext):
-    def __init__(self, context):
+    def __init__(self, service, context):
+        self._service = service
         self._context = context
 
 # XCurrentContext
     def getValueByName(self, name):
-        return self._context[name]
+        return self._context.getValue(self._service + name)
 
 
 class MailTransferable(unohelper.Base,

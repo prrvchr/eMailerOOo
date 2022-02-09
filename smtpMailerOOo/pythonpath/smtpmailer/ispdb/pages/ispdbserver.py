@@ -146,6 +146,15 @@ class IspdbServer(unohelper.Base):
     def getServerAuthentication(self, service):
         return self.getCurrentServer(service).getValue('Authentication')
 
+    def getConfig(self, service, timeout, connections, authentications):
+        config = KeyMap()
+        config.setValue(service + 'ServerName', self.getServerHost(service))
+        config.setValue(service + 'Port', self.getServerPort(service))
+        config.setValue(service + 'ConnectionType', connections.get(self.getServerConnection(service)))
+        config.setValue(service + 'AuthenticationType', authentications.get(self.getServerAuthentication(service)))
+        config.setValue(service + 'Timeout', timeout)
+        return config
+
     def saveServer(self, datasource, service, provider):
         new = self._isNew(service)
         server = self.getCurrentServer(service)

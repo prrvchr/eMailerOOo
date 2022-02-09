@@ -38,6 +38,9 @@ from com.sun.star.mail.MailServiceType import IMAP
 
 from com.sun.star.sdb.CommandType import QUERY
 
+from com.sun.star.sdbc.DataType import VARCHAR
+from com.sun.star.sdbc.DataType import SMALLINT
+
 from .unolib import KeyMap
 
 from .unotool import createService
@@ -156,15 +159,15 @@ class DataBase(unohelper.Base):
         call.setString(4, imap)
         result = call.executeQuery()
         user.setValue('ThreadId', getRowValue(call, 'VARCHAR', 5))
-        user.setValue('%sServer' % smtp, getRowValue(call, 'VARCHAR', 6))
-        user.setValue('%sServer' % imap, getRowValue(call, 'VARCHAR', 7))
-        user.setValue('%sPort' % smtp, getRowValue(call, 'SMALLINT', 8))
-        user.setValue('%sPort' % imap, getRowValue(call, 'SMALLINT', 9))
-        user.setValue('%sLogin' % smtp, getRowValue(call, 'VARCHAR', 10))
-        user.setValue('%sLogin' % imap, getRowValue(call, 'VARCHAR', 11))
+        user.setValue(smtp + 'Server', getRowValue(call, 'VARCHAR', 6))
+        user.setValue(imap + 'Server', getRowValue(call, 'VARCHAR', 7))
+        user.setValue(smtp + 'Port', getRowValue(call, 'SMALLINT', 8))
+        user.setValue(imap + 'Port', getRowValue(call, 'SMALLINT', 9))
+        user.setValue(smtp + 'Login', getRowValue(call, 'VARCHAR', 10))
+        user.setValue(imap + 'Login', getRowValue(call, 'VARCHAR', 11))
         #TODO: Password need default value to empty string not None
-        user.setValue('%sPassword' % smtp, getRowValue(call, 'VARCHAR', 12, ''))
-        user.setValue('%sPassword' % imap, getRowValue(call, 'VARCHAR', 13, ''))
+        user.setValue(smtp + 'Password', getRowValue(call, 'VARCHAR', 12, ''))
+        user.setValue(imap + 'Password', getRowValue(call, 'VARCHAR', 13, ''))
         user.setValue('Domain', domain)
         while result.next():
             service = getResultValue(result)
@@ -217,17 +220,27 @@ class DataBase(unohelper.Base):
         smtp, imap = SMTP.value, IMAP.value
         call = self._getCall('mergeUser')
         call.setString(1, email)
-        call.setString(2, user.getValue('ThreadId'))
+        if user.hasThread():
+            call.setString(2, user.ThreadId)
+        else:
+            call.setNull(2, VARCHAR)
         call.setString(3, smtp)
-        call.setString(4, imap)
-        call.setString(5, user.getValue('%sServer' % smtp))
-        call.setString(6, user.getValue('%sServer' % imap))
-        call.setShort(7, user.getValue('%sPort' % smtp))
-        call.setShort(8, user.getValue('%sPort' % imap))
-        call.setString(9, user.getValue('%sLogin' % smtp))
-        call.setString(10, user.getValue('%sLogin' % imap))
-        call.setString(11, user.getValue('%sPassword' % smtp))
-        call.setString(12, user.getValue('%sPassword' % imap))
+        call.setString(4, user.getServer(smtp))
+        call.setShort(5, user.getPort(smtp))
+        call.setString(6, user.getLogin(smtp))
+        call.setString(7, user.getPassword(smtp))
+        if user.hasImapConfig():
+            call.setString(8, imap)
+            call.setString(9, user.getServer(imap))
+            call.setShort(10, user.getPort(imap))
+            call.setString(11, user.getLogin(imap))
+            call.setString(12, user.getPassword(imap))
+        else:
+            call.setNull(8, VARCHAR)
+            call.setNull(9, VARCHAR)
+            call.setNull(10, SMALLINT)
+            call.setNull(11, VARCHAR)
+            call.setNull(12, VARCHAR)
         result = call.executeUpdate()
         print("DataBase.mergeUser() %s" % result)
         call.close()
@@ -328,7 +341,7 @@ class DataBase(unohelper.Base):
         print("DataBase.getSpoolerJobs() 6")
         call.close()
         print("DataBase.getSpoolerJobs() 7")
-        return jobids
+        return jobids, len(jobids)
 
     def getRecipient(self, connection, job):
         print("DataBase.getRecipient() 1")
@@ -345,15 +358,18 @@ class DataBase(unohelper.Base):
         print("DataBase.getRecipient() 5")
         return recipient
 
-    def getSender(self, connection, batch):
-        sender = None
-        call = self._getDataBaseCall(connection, 'getSender')
+    def getMailer(self, connection, batch, timeout):
+        mailer = None
+        call = self._getDataBaseCall(connection, 'getMailer')
         call.setInt(1, batch)
+        call.setInt(2, timeout)
+        call.setString(3, SMTP.value)
+        call.setString(4, IMAP.value)
         result = call.executeQuery()
         if result.next():
-            sender = getObjectFromResult(result)
+            mailer = getKeyMapFromResult(result)
         call.close()
-        return sender
+        return mailer
 
     def getAttachments(self, connection, batch):
         attachments = ()
@@ -367,17 +383,6 @@ class DataBase(unohelper.Base):
         call.close()
         print("DataBase.getAttachments() 4")
         return attachments
-
-    def getServer(self, connection, user, timeout):
-        server = None
-        call = self._getDataBaseCall(connection, 'getServer')
-        call.setString(1, user)
-        call.setInt(2, timeout)
-        result = call.executeQuery()
-        if result.next():
-            server = getRowDict(result)
-        call.close()
-        return server
 
     def getBookmark(self, connection, format, identifier):
         bookmark = None

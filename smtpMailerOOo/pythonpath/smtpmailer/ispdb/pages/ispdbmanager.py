@@ -37,7 +37,7 @@ from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-from com.sun.star.mail.MailServiceType import SMTP
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 

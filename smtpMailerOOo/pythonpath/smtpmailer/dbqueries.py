@@ -339,19 +339,38 @@ CREATE PROCEDURE "GetRecipient"(IN JOBID INTEGER)
     OPEN RSLT;
   END;"""
 
-    elif name == 'createGetSender':
+    elif name == 'createGetMailer':
         query = """\
-CREATE PROCEDURE "GetSender"(IN BATCHID INTEGER)
-  SPECIFIC "GetSender_1"
+CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
+                             IN TIMEOUT INTEGER,
+                             IN SMTP VARCHAR(4),
+                             IN IMAP VARCHAR(4))
+  SPECIFIC "GetMailer_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Sender", "Subject", "Document", "DataSource",
-      "Query", "Table", "Identifier", "Bookmark",
-      CASE WHEN "DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
-      FROM "Senders"
-      WHERE "BatchId"=BATCHID
+      SELECT S."Sender", S."Subject", S."Document", S."DataSource",
+      S."Query", S."Table", S."Identifier", S."Bookmark",
+      CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
+      S1."Server" AS "SMTPServerName",S1."Port" AS "SMTPPort",
+      S1."LoginName" AS "SMTPLogin",S1."Password" AS "SMTPPassword",
+      C1."Connection" AS "SMTPConnectionType",A1."Authentication" AS "SMTPAuthenticationType",
+      TIMEOUT AS "SMTPTimeout",
+      S3."Server" AS "IMAPServerName",S3."Port" AS "IMAPPort",
+      S3."LoginName" AS "IMAPLogin",S3."Password" AS "IMAPPassword",
+      C2."Connection" AS "IMAPConnectionType",A2."Authentication" AS "IMAPAuthenticationType",
+      TIMEOUT AS "IMAPTimeout"
+      FROM "Senders" AS S
+      JOIN "Services" AS S1 ON S."Sender"=S1."User" AND S1."Service"=SMTP
+      JOIN "Servers" AS S2 ON S1."Server"=S2."Server" AND S1."Port"=S2."Port" AND S2."Service"=SMTP
+      JOIN "ConnectionType" AS C1 ON S2."Connection"=C1."Type"
+      JOIN "AuthenticationType" AS A1 ON S2."Authentication"=A1."Type"
+      LEFT JOIN "Services" AS S3 ON S."Sender"=S3."User" AND S3."Service"=IMAP
+      LEFT JOIN "Servers" AS S4 ON S3."Server"=S4."Server" AND S3."Port"=S4."Port" AND S4."Service"=IMAP
+      LEFT JOIN "ConnectionType" AS C2 ON S4."Connection"=C2."Type"
+      LEFT JOIN "AuthenticationType" AS A2 ON S4."Authentication"=A2."Type"
+      WHERE S."BatchId"=BATCHID
       FOR READ ONLY;
     OPEN RSLT;
   END;"""
@@ -366,51 +385,6 @@ CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
     DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Attachment" From "Attachments"
       WHERE "BatchId"=BATCHID ORDER BY "Created"
-      FOR READ ONLY;
-    OPEN RSLT;
-  END;"""
-
-    elif name == 'createGetServer':
-        query = """\
-CREATE PROCEDURE "GetServer"(IN EMAIL VARCHAR(320),
-                             IN SERVICE VARCHAR(4),
-                             IN TIMEOUT INTEGER)
-  SPECIFIC "GetServer_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT TIMEOUT AS "Timeout", "Servers"."Server" AS "ServerName",
-      "Servers"."Port", "ConnectionType"."Connection" AS "ConnectionType",
-      "AuthenticationType"."Authentication" AS "AuthenticationType",
-      "Services"."LoginName", "Services"."Password"
-      FROM "Servers"
-      JOIN "Services" ON "Servers"."Server"="Services"."Server" AND "Servers"."Port"="Services"."Port" AND "Services"."Service"=SERVICE
-      JOIN "ConnectionType" ON "Servers"."Connection"="ConnectionType"."Type"
-      JOIN "AuthenticationType" ON "Servers"."Authentication"="AuthenticationType"."Type"
-      WHERE "Services"."User"=EMAIL
-      FOR READ ONLY;
-    OPEN RSLT;
-  END;"""
-
-    elif name == 'createGetJobMail1':
-        query = """\
-CREATE PROCEDURE "GetJobMail"(IN JOBID INTEGER)
-  SPECIFIC "GetJobMail_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
-      "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
-      "Recipients"."Identifier", ARRAY_AGG("Attachments"."Attachment")
-      FROM "Senders"
-      JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"
-      LEFTJOIN "Attachments" ON ""Senders"."BatchId"="Attachments"."BatchId"
-      WHERE "Recipients"."JobId"=JOBID
-      GROUP BY "Senders"."Sender", "Senders"."Subject", "Senders"."Document",
-      "Senders"."DataSource", "Senders"."Query", "Recipients"."Recipient",
-      "Recipients"."Identifier"
       FOR READ ONLY;
     OPEN RSLT;
   END;"""
@@ -568,14 +542,14 @@ CREATE PROCEDURE "MergeServer"(IN PROVIDER VARCHAR(100),
 CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
                              IN THREAD VARCHAR(100),
                              IN SMTP VARCHAR(4),
-                             IN IMAP VARCHAR(4),
                              IN SMTPSERVER VARCHAR(255),
-                             IN IMAPSERVER VARCHAR(255),
                              IN SMTPPORT SMALLINT,
-                             IN IMAPPORT SMALLINT,
                              IN SMTPLOGIN VARCHAR(100),
-                             IN IMAPLOGIN VARCHAR(100),
                              IN SMTPPWD VARCHAR(100),
+                             IN IMAP VARCHAR(4),
+                             IN IMAPSERVER VARCHAR(255),
+                             IN IMAPPORT SMALLINT,
+                             IN IMAPLOGIN VARCHAR(100),
                              IN IMAPPWD VARCHAR(100))
   SPECIFIC "MergeUser_1"
   MODIFIES SQL DATA
@@ -594,13 +568,15 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
         WHEN NOT MATCHED THEN INSERT
           ("User","Service","Server","Port","LoginName","Password")
           VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
-    MERGE INTO "Services" USING (VALUES(EMAIL,IMAP,IMAPSERVER,IMAPPORT,IMAPLOGIN,IMAPPWD))
-      AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
-        WHEN MATCHED THEN UPDATE
-          SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("User","Service","Server","Port","LoginName","Password")
-          VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
+    IF IMAP IS NOT NULL THEN
+      MERGE INTO "Services" USING (VALUES(EMAIL,IMAP,IMAPSERVER,IMAPPORT,IMAPLOGIN,IMAPPWD))
+        AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
+          WHEN MATCHED THEN UPDATE
+            SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
+          WHEN NOT MATCHED THEN INSERT
+            ("User","Service","Server","Port","LoginName","Password")
+            VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
+    END IF;
   END"""
 
 # Call Procedure Query
@@ -608,12 +584,10 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
         query = 'CALL "GetServers"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'getRecipient':
         query = 'CALL "GetRecipient"(?)'
-    elif name == 'getSender':
-        query = 'CALL "GetSender"(?)'
+    elif name == 'getMailer':
+        query = 'CALL "GetMailer"(?,?,?,?)'
     elif name == 'getAttachments':
         query = 'CALL "GetAttachments"(?)'
-    elif name == 'getServer':
-        query = 'CALL "GetServer"(?,?)'
     elif name == 'deleteJobs':
         query = 'CALL "DeleteJobs"(?)'
     elif name == 'insertJob':

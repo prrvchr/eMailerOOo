@@ -33,12 +33,12 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
 
 from com.sun.star.sdb.CommandType import TABLE
 
 from com.sun.star.uno import Exception as UnoException
-
 
 from .unotool import createService
 from .unotool import executeDispatch
@@ -103,9 +103,8 @@ class MailSpooler(Process):
             print("MailSpooler._run() **********************************")
             connection = self._database.getConnection()
             print("MailSpooler._run() 1")
-            jobs = self._database.getSpoolerJobs(connection)
+            jobs, total = self._database.getSpoolerJobs(connection)
             print("MailSpooler._run() 2")
-            total = len(jobs)
             if total > 0:
                 print("MailSpooler._run() 3")
                 self._logger.logResource(INFO, 111, total)
@@ -177,35 +176,32 @@ class MailSpooler(Process):
 
     def _send(self, connection, jobs):
         print("MailSpooler._send()1 begin ****************************************")
-        sf = getSimpleFile(self._ctx)
-        uf = getUriFactory(self._ctx)
-        server = config = datasource = sender = url = batchid = None
-        urls = ()
+        mailer = Mailer(self._ctx, self._database, self._logger)
+        server = None
         count = 0
         for job in jobs:
             if self._disposed.is_set():
-                print("MailSpooler._send() 2 break")
+                self._logger.logResource(INFO, 124, job)
                 break
             self._logger.logResource(INFO, 121, job)
             recipient = self._database.getRecipient(connection, job)
-            print("MailSpooler._send() 3 batch %s" % recipient.BatchId)
-            if batchid != recipient.BatchId:
+            batch = recipient.BatchId
+            if mailer.isNewBatch(batch):
                 try:
-                    newsender = self._database.getSender(connection, recipient.BatchId)
-                    sender, datasource = self._getSender(sender, newsender, datasource, sf, job)
-                    print("MailSpooler._send() 4 %s" % (sender, ))
+                    metadata = self._database.getMailer(connection, batch, self._timeout)
+                    if metadata is None:
+                        # TODO: need to log this user has no IspDB config
+                        self._logger.logResource(INFO, 124, job)
+                        continue
+                    attachments = self._database.getAttachments(connection, batch)
+                    mailer.setBatch(batch, metadata, attachments, job, recipient.Index)
                     if self._disposed.is_set():
-                        print("MailSpooler._send() 3 break")
+                        self._logger.logResource(INFO, 124, job)
                         break
-                    self._disposeUrls(urls, url)
-                    attachments = self._database.getAttachments(connection, recipient.BatchId)
-                    urls, url = self._getUrls(uf, sf, attachments, sender, datasource, job, recipient.Index)
-                    if self._disposed.is_set():
-                        print("MailSpooler._send() 4 break")
-                        break
-                    newconfig = self._database.getServer(connection, sender.Sender, self._timeout)
-                    server, config = self._getServer(server, config, newconfig, sender, job)
-                    print("MailSpooler._send() 4 %s" % url.Main)
+                    if mailer.hasThread():
+                        self._createThread(mailer, batch)
+                    server = self._getServer(SMTP, mailer.getConfig(), server)
+                    print("MailSpooler._send() 4")
                 except UnoException as e:
                     print("MailSpooler._send() 5 break %s" % e.Message)
                     self._database.setJobState(connection, 2, job)
@@ -213,58 +209,201 @@ class MailSpooler(Process):
                     self._logger.logMessage(INFO, msg)
                     print("MailSpooler._send() 6 break %s" % msg)
                     continue
-                else:
-                    print("MailSpooler._send() 6")
-                    batchid = recipient.BatchId
-            elif sender.Merge:
-                descriptor = self._getDataDescriptor(datasource, sender, recipient.Index)
-                url.merge(descriptor)
-                print("MailSpooler._send() 7")
-            mail = self._getMail(sender, recipient, url)
-            self._addAttachments(mail, urls, datasource, sender, recipient.Index)
+            elif mailer.Merge:
+                mailer.merge(recipient.Index)
+            mail = self._getMail(mailer, recipient)
+            mailer.addAttachments(mail, recipient.Index)
             if self._disposed.is_set():
                 print("MailSpooler._send() 8 break")
+                self._logger.logResource(INFO, 124, job)
                 break
             server.sendMailMessage(mail)
             self._database.setJobState(connection, 1, job)
             self._logger.logResource(INFO, 123, job)
             count += 1
             print("MailSpooler._send() 9")
-        self._dispose(server, datasource, urls, url)
+        self._dispose(server, mailer)
         print("MailSpooler._send() 11 end.........................")
         return count
 
-    def _dispose(self, server, datasource, urls, url):
-        self._disconnect(server)
-        self._disposeDataSource(datasource)
-        self._disposeUrls(urls, url)
+    def _createThread(self, mailer, batch):
+        print("MailSpooler._createThread() 1 *****************************************************")
+        server = self._getServer(IMAP, mailer.getConfig())
+        folder = server.findSentFolder()
+        if server.hasFolder(folder):
+            subject = self._getThreadSubject(mailer, batch)
+            message = self._getThreadMessage(mailer, subject)
+            body = MailTransferable(self._ctx, message, False)
+            mail = getMail(self._ctx, mailer.Sender, mailer.Sender, subject, body)
+            server.uploadMessage(folder, mail)
+            mailer.setThread(mail.MessageId)
+        print("MailSpooler._createThread() 2 *****************************************************")
+        server.disconnect()
+        print("MailSpooler._createThread() 3 *****************************************************")
 
-    def _disconnect(self, server):
+    def _getThreadSubject(self, mailer, batch):
+        format = (batch, mailer.Query)
+        subject = self._logger.getMessage(131, format)
+        return subject
+
+    def _getThreadMessage(self, mailer, title):
+        subject = self._logger.getMessage(141)
+        attachments = self._logger.getMessage(142)
+        return '''\
+%s
+
+%s: %s
+
+Document: %s
+
+%s:
+%s
+
+''' % (title, subject, mailer.Subject, mailer.Document, attachments, mailer.getUrls())
+
+    def _dispose(self, server, mailer):
         if server is not None:
             server.disconnect()
+        mailer.dispose()
 
-    def _disposeDataSource(self, datasource):
-        if datasource is not None:
-            datasource['ActiveConnection'].close()
-
-    def _disposeUrls(self, urls, url):
-        if url is not None:
-            url.dispose()
-        for url in urls:
-            url.dispose()
-
-    def _getMail(self, sender, recipient, url):
-        body = MailTransferable(self._ctx, url.Main, True)
-        mail = getMail(self._ctx, sender.Sender, recipient.Recipient, sender.Subject, body)
+    def _getMail(self, mailer, recipient):
+        body = MailTransferable(self._ctx, mailer.getBodyUrl(), True)
+        mail = getMail(self._ctx, mailer.Sender, recipient.Recipient, mailer.Subject, body)
         return mail
 
-    def _addAttachments(self, mail, urls, datasource, sender, index):
-        for url in urls:
-            print("MailSpooler._addAttachments() %s - %s" % (url.Name, url.Main))
-            if sender.Merge and url.Merge:
-                descriptor = self._getDataDescriptor(datasource, sender, index)
+    def _checkSender(self, sf, sender, job):
+        if sender is None:
+            raise _getUnoException(self._logger, self, 131, job)
+        self._checkUrl(sf, sender.Document, job, 132)
+
+    def _getServer(self, mailtype, config, server=None):
+        if server is not None:
+            server.disconnect()
+        server = self._getMailServer(mailtype, config)
+        return server
+
+    def _checkUrl(self, sf, url, job, resource):
+        if not sf.exists(url):
+            format = (job, url)
+            raise _getUnoException(self._logger, self, resource, format)
+
+    def _getMailServer(self, mailtype, config):
+        context = CurrentContext(mailtype.value, config)
+        authenticator = Authenticator(mailtype.value, config)
+        service = 'com.sun.star.mail.MailServiceProvider2'
+        try:
+            server = createService(self._ctx, service).create(mailtype)
+            server.connect(context, authenticator)
+        except UnoException as e:
+            mailserver = '%s:%s' % (server['ServerName'], server['Port'])
+            format = (job, sender.Sender, mailserver, e.Message)
+            raise _getUnoException(self._logger, self, 151, format)
+        return server
+
+
+class Mailer(unohelper.Base):
+    def __init__(self, ctx, database, logger):
+        self._ctx = ctx
+        self._database = database
+        self._logger = logger
+        self._sf = getSimpleFile(ctx)
+        self._uf = getUriFactory(ctx)
+        self._batch = None
+        self._descriptor = None
+        self._url = None
+        self._urls = ()
+        self._thread = None
+
+    @property
+    def Merge(self):
+        return self._metadata.getValue('Merge')
+    @property
+    def Sender(self):
+        return self._metadata.getValue('Sender')
+    @property
+    def Subject(self):
+        return self._metadata.getValue('Subject')
+    @property
+    def Document(self):
+        return self._metadata.getValue('Document')
+    @property
+    def DataSource(self):
+        return self._metadata.getValue('DataSource')
+    @property
+    def Table(self):
+        return self._metadata.getValue('Table')
+    @property
+    def Query(self):
+        return self._metadata.getValue('Query')
+    @property
+    def Identifier(self):
+        return self._metadata.getValue('Identifier')
+    @property
+    def Bookmark(self):
+        return self._metadata.getValue('Bookmark')
+
+    def isNewBatch(self, batch):
+        new = self._batch != batch
+        if new and self._batch is not None:
+            self._dispose()
+        return new
+
+    def setBatch(self, batch, metadata, attachments, job, index):
+        self._batch = batch
+        self._metadata = metadata
+        self._checkUrl(self.Document, job, 161)
+        self._descriptor = self._getDescriptor()
+        self._urls, self._url = self._getUrls(attachments, job, index)
+
+    def hasThread(self):
+        self._thread = None
+        return self.Merge and self._hasImapConfig()
+
+    def setThread(self, thread):
+        self._thread = thread
+
+    def _hasImapConfig(self):
+        return all((self._metadata.getValue('IMAPServerName'),
+                    self._metadata.getValue('IMAPPort'),
+                    self._metadata.getValue('IMAPLogin'),
+                    self._metadata.getValue('IMAPConnectionType'),
+                    self._metadata.getValue('IMAPAuthenticationType')))
+
+    def dispose(self):
+        if self._batch is not None:
+            self._dispose()
+
+    def _dispose(self):
+        self._descriptor['ActiveConnection'].close()
+        self._url.dispose()
+        for url in self._urls:
+            url.dispose()
+
+    def merge(self, index):
+        descriptor = self._getUrlDescriptor(index)
+        self._url.merge(descriptor)
+
+    def getBodyUrl(self):
+        return self._url.Main
+
+    def getUrls(self):
+        urls = []
+        for url in self._urls:
+            urls.append(url.Url)
+        return '\n'.join(urls)
+
+    def addAttachments(self, mail, index):
+        if self._hasThread():
+            mail.ThreadId = self._thread
+        for url in self._urls:
+            print("Mailer.addAttachments() %s - %s" % (url.Name, url.Main))
+            if self.Merge and url.Merge:
+                descriptor = self._getUrlDescriptor(index)
                 url.merge(descriptor)
             mail.addAttachment(self._getAttachment(url))
+
+    def _hasThread(self):
+        return self._thread is not None
 
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
@@ -272,63 +411,61 @@ class MailSpooler(Process):
         attachment.ReadableName = url.Name
         return attachment
 
-    def _getSender(self, old, new, datasource, sf, job):
-        self._checkSender(sf, new, job)
-        if self._isNewDataSource(old, new, datasource):
-            self._disposeDataSource(datasource)
-            datasource = self._getDescriptor(new)
-        return new, datasource
+    def getConfig(self):
+        return self._metadata
 
-    def _checkSender(self, sf, sender, job):
-        if sender is None:
-            raise self._getUnoException(131, job)
-        self._checkUrl(sf, sender.Document, job, 132)
-
-    def _isNewDataSource(self, old, new, datasource):
-        if not new.Merge:
-            isnew = False
-        elif old is None or datasource is None:
-            isnew = True
-        else:
-            isnew =  any((old.DataSource != new.DataSource,
-                          old.Table != new.Table,
-                          old.Identifier != new.Identifier,
-                          old.Bookmark != new.Bookmark))
-        return isnew
-
-    def _getUrls(self, uf, sf, attachments, sender, datasource, job, index):
-        descriptor = False
-        if sender.Merge:
-            descriptor = self._getDataDescriptor(datasource, sender, index)
-        uri = uf.parse(sender.Document)
-        url = MailUrl(self._ctx, uri, sender.Merge, False, descriptor)
-        urls = self._getMailUrl(uf, sf, attachments, job)
-        return urls, url
-
-    def _getServer(self, server, old, new, sender, job):
-        if old != new:
-            self._disconnect(server)
-            server = self._getSmtpServer(sender, new, job)
-        return server, new
-
-    def _getDataDescriptor(self, datasource, sender, index):
-        connection = datasource['ActiveConnection']
-        bookmark = self._getBookmark(connection, sender, index)
-        datasource['Selection'] = (bookmark, )
-        descriptor = getPropertyValueSet(datasource)
+    def _getDescriptor(self):
+        service = 'com.sun.star.sdb.DatabaseContext'
+        datasource = createService(self._ctx, service).getByName(self.DataSource)
+        connection = self._getDataSourceConnection(datasource)
+        rowset = self._getRowSet(connection)
+        rowset.execute()
+        descriptor = {'ActiveConnection': connection,
+                      'DataSourceName': self.DataSource,
+                      'Command': self.Table,
+                      'CommandType': TABLE,
+                      'BookmarkSelection': False,
+                      'Cursor': rowset.createResultSet()}
         return descriptor
 
-    def _getBookmark(self, connection, sender, index):
-        format = (sender.Bookmark, sender.Table, sender.Identifier)
-        bookmark = self._database.getBookmark(connection, format, index)
-        return bookmark
+    def _getDataSourceConnection(self, datasource):
+        if datasource.IsPasswordRequired:
+            handler = getInteractionHandler(self._ctx)
+            connection = datasource.getIsolatedConnectionWithCompletion(handler)
+        else:
+            connection = datasource.getIsolatedConnection('', '')
+        return connection
 
-    def _getMailUrl(self, uf, sf, attachments, job):
+    def _getRowSet(self, connection):
+        service = 'com.sun.star.sdb.RowSet'
+        rowset = createService(self._ctx, service)
+        rowset.ActiveConnection = connection
+        rowset.CommandType = TABLE
+        rowset.FetchSize = g_fetchsize
+        rowset.Command = self.Table
+        return rowset
+
+    def _getUrls(self, attachments, job, index):
+        descriptor = self._getUrlDescriptor(index) if self.Merge else None
+        uri = self._uf.parse(self.Document)
+        url = MailUrl(self._ctx, uri, self.Merge, False, descriptor)
+        urls = self._getMailUrl(attachments, job)
+        return urls, url
+
+    def _getUrlDescriptor(self, index):
+        connection = self._descriptor['ActiveConnection']
+        format = (self.Bookmark, self.Table, self.Identifier)
+        bookmark = self._database.getBookmark(connection, format, index)
+        self._descriptor['Selection'] = (bookmark, )
+        descriptor = getPropertyValueSet(self._descriptor)
+        return descriptor
+
+    def _getMailUrl(self, attachments, job):
         urls = []
         for attachment in attachments:
-            url = uf.parse(attachment)
+            url = self._uf.parse(attachment)
             merge, pdf = self._getUrlMark(url)
-            self._checkUrl(sf, url.UriReference, job, 141)
+            self._checkUrl(url.UriReference, job, 171)
             urls.append(MailUrl(self._ctx, url, merge, pdf))
         return urls
 
@@ -343,68 +480,10 @@ class MailSpooler(Process):
             url.clearFragment()
         return merge, pdf
 
-    def _checkUrl(self, sf, url, job, resource):
-        if not sf.exists(url):
+    def _checkUrl(self, url, job, resource):
+        if not self._sf.exists(url):
             format = (job, url)
-            raise self._getUnoException(resource, format)
-
-    def _getSmtpServer(self, sender, config, job):
-        if config is None:
-            format = (job, sender.Sender)
-            raise self._getUnoException(151, format)
-        context = CurrentContext(config)
-        authenticator = Authenticator(config)
-        service = 'com.sun.star.mail.MailServiceProvider2'
-        try:
-            server = createService(self._ctx, service).create(SMTP)
-            server.connect(context, authenticator)
-        except UnoException as e:
-            smtpserver = '%s:%s' % (server['ServerName'], server['Port'])
-            format = (job, sender.Sender, smtpserver, e.Message)
-            raise self._getUnoException(152, format)
-        return server
-
-    def _getUnoException(self, resource, format=None):
-        e = UnoException()
-        e.Message = self._logger.getMessage(resource, format)
-        e.Context = self
-        return e
-
-    def _getDescriptor(self, sender):
-        datasource = self._getDocumentDataSource(sender.DataSource)
-        connection = self._getDataSourceConnection(datasource)
-        rowset = self._getRowSet(connection, sender.Table)
-        rowset.execute()
-        descriptor = {'ActiveConnection': connection,
-                      'DataSourceName': sender.DataSource,
-                      'Command': sender.Table,
-                      'CommandType': TABLE,
-                      'BookmarkSelection': False,
-                      'Cursor': rowset.createResultSet()}
-        return descriptor
-
-    def _getDocumentDataSource(self, name):
-        service = 'com.sun.star.sdb.DatabaseContext'
-        dbcontext = createService(self._ctx, service)
-        datasource = dbcontext.getByName(name)
-        return datasource
-
-    def _getDataSourceConnection(self, datasource):
-        if datasource.IsPasswordRequired:
-            handler = getInteractionHandler(self._ctx)
-            connection = datasource.getIsolatedConnectionWithCompletion(handler)
-        else:
-            connection = datasource.getIsolatedConnection('', '')
-        return connection
-
-    def _getRowSet(self, connection, table):
-        service = 'com.sun.star.sdb.RowSet'
-        rowset = createService(self._ctx, service)
-        rowset.ActiveConnection = connection
-        rowset.CommandType = TABLE
-        rowset.FetchSize = g_fetchsize
-        rowset.Command = table
-        return rowset
+            raise _getUnoException(self._logger, self, resource, format)
 
 
 class MailUrl(unohelper.Base):
@@ -432,6 +511,9 @@ class MailUrl(unohelper.Base):
     @property
     def Name(self):
         return self._title
+    @property
+    def Url(self):
+        return self._url
     @property
     def Main(self):
         if self._isTemp():
@@ -471,3 +553,10 @@ class MailUrl(unohelper.Base):
         elif self._pdf:
             filter = 'pdf'
         return saveTempDocument(self._document, self._temp, self._name, filter)
+
+
+def _getUnoException(logger, source, resource, format=None):
+    e = UnoException()
+    e.Message = logger.getMessage(resource, format)
+    e.Context = source
+    return e

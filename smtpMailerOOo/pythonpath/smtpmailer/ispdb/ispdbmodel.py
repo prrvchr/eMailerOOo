@@ -233,11 +233,8 @@ class IspdbModel(unohelper.Base):
         self._servers.incrementIndex(service)
 
     def updateConfiguration(self, service, server, user):
-        print("PageModel.updateConfiguration() %s - %s" % (server, user))
         self._servers.updateCurrentServer(service, server)
-        print("PageModel.updateConfiguration() server:\n%s\n%s" % (server.toJson(), self._servers._metadata[service]))
         self._user.updateUser(user)
-        print("PageModel.updateConfiguration() user:\n%s\n%s" % (user.toJson(), self._user._metadata))
 
     def saveConfiguration(self):
         for service in self._services:
@@ -275,7 +272,6 @@ class IspdbModel(unohelper.Base):
         setstep(step)
 
     def _connectServer(self, context, authenticator, stype, i, progress):
-        print("IspdbModel._connectServer() %s" % i)
         step = 2
         progress(i + 5)
         service = 'com.sun.star.mail.MailServiceProvider2'
@@ -359,7 +355,7 @@ class IspdbModel(unohelper.Base):
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            print("IspdbModel._viewMessage() 1 Error: %s" % e.Message)
+            print("IspdbModel._uploadMessage() 1 Error: %s" % e.Message)
         else:
             progress(40)
             if server.isConnected():
@@ -372,16 +368,8 @@ class IspdbModel(unohelper.Base):
                         mail = getMail(self._ctx, self.Email, self.Email, subject, body)
                         progress(60)
                         server.uploadMessage(folder, mail)
-                        print("IspdbModel._viewMessage() 3: %s" % folder)
-                    #server.select('"[Gmail]/Messages envoyés"')
-                    #uid = server.getUidByMessageId(self._messageid)
-                    #print("IspdbModel._viewMessage() 2: %s" % folder)
-                    #count = server.selectFolder(folder, True)
-                    #print("IspdbModel._viewMessage() 3: %s" % count)
-                    #ids = server.getMessageByHeader('Message-ID', self._messageid)
-                    #print("IspdbModel._viewMessage() 4: %s" % (ids,))
                 except UnoException as e:
-                    print("IspdbModel._viewMessage() 5 Error: %s - %s" % (e.Message, traceback.print_exc()))
+                    print("IspdbModel._uploadMessage() 2 Error: %s - %s" % (e.Message, traceback.print_exc()))
                 else:
                     if mail is not None:
                         msgid = mail.MessageId
@@ -435,7 +423,7 @@ class IspdbModel(unohelper.Base):
         path = '%s/%s' % (g_extension, g_logo)
         url = getResourceLocation(self._ctx, g_identifier, path)
         logo = getMessageImage(self._ctx, url)
-        message = '''\
+        return '''\
 <!DOCTYPE html>
 <html>
   <head>
@@ -448,8 +436,6 @@ class IspdbModel(unohelper.Base):
   </body>
 </html>
 ''' % (g_extension, logo, title)
-        print("IspdbModel._getThreadMessage() \n%s" % message)
-        return message
 
 # IspdbModel private shared methods
     def _getServicesCount(self):

@@ -53,7 +53,6 @@ class IspdbManager(unohelper.Base):
         self._pageid = pageid
         self._connected = False
         self._dialog = None
-        #self._logger = Logger(ctx, 'IspDb')
         self._view = IspdbView(ctx, self, parent)
 
 # XWizardPage
@@ -105,7 +104,6 @@ class IspdbManager(unohelper.Base):
         msg = self._model.getSendMessage()
         self._dialog = SendView(self._ctx, self, parent, title, email, subject, msg)
         if self._dialog.execute() == OK:
-            #self.progress(0)
             self._view.setPageStep(1)
             recipient = self._dialog.getRecipient()
             subject = self._dialog.getSubject()

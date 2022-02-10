@@ -46,7 +46,6 @@ from smtpmailer import getDialog
 from smtpmailer import getMessage
 from smtpmailer import logMessage
 
-
 from .ispdbview import IspdbView
 
 g_message = 'pagemanager'

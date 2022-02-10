@@ -263,7 +263,7 @@ class MailSpooler(Process):
         else:
             attachments = '<p>%s</p>' % self._logger.getMessage(145)
         logo = getMessageImage(self._ctx, self._logo)
-        message = '''\
+        return '''\
 <!DOCTYPE html>
 <html>
   <head>
@@ -282,8 +282,6 @@ class MailSpooler(Process):
 ''' % (g_extension, logo, title, subject, mailer.Subject,
         document, mailer.Document, mailer.getDocumentTitle(),
         files, attachments)
-        print("Mailer._getThreadMessage() \n%s" % message)
-        return message
 
     def _dispose(self, server, mailer):
         if server is not None:

@@ -54,7 +54,7 @@ class IspdbServer(unohelper.Base):
 
     def hasServers(self, services):
         for service in services:
-            if len(self._servers[service]) == 0:
+            if self._getServerCount(service) == 0:
                 return False
         return True
 
@@ -117,14 +117,14 @@ class IspdbServer(unohelper.Base):
         return self._getIndex(service) == 0
 
     def isLast(self, service):
-        count = len(self._servers[service])
+        count = self._getServerCount(service)
         return self._getIndex(service) +1 >= count
 
     def getServerPage(self, service):
         if self._isNew(service):
             page = '1/0'
         else:
-            count = len(self._servers[service])
+            count = self._getServerCount(service)
             page = '%s/%s' % (self._getIndex(service) +1, count)
         return page
 
@@ -162,7 +162,6 @@ class IspdbServer(unohelper.Base):
         if new or server.toJson() != metadata:
             host, port = self._getServerKeys(metadata)
             datasource.saveServer(new, provider, server, host, port)
-            print("IspdbServer.saveServer() server:\n%s\n%s" % (server.toJson(), metadata))
 
     def _getServerMetaData(self, service):
         return self._metadata[service][self._getIndex(service)]
@@ -170,3 +169,6 @@ class IspdbServer(unohelper.Base):
     def _getServerKeys(self, metadata):
         server = json.loads(metadata)
         return server['Server'], server['Port']
+
+    def _getServerCount(self, service):
+        return len(self._servers[service])

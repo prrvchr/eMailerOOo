@@ -42,3 +42,5 @@ g_fetchsize = 500
 g_resource = 'resource'
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)
+# Thread Logo
+g_logo = 'smtpMailerOOo.png'

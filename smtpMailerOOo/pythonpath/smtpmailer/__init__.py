@@ -33,6 +33,7 @@ from .configuration import g_fetchsize
 from .configuration import g_identifier
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
+from .configuration import g_logo
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 
@@ -81,6 +82,7 @@ from .mailerlib import MailTransferable
 from .mailertool import getDocument
 from .mailertool import getDocumentFilter
 from .mailertool import getMail
+from .mailertool import getMessageImage
 from .mailertool import getNamedExtension
 from .mailertool import getUrlMimeType
 from .mailertool import saveDocumentAs

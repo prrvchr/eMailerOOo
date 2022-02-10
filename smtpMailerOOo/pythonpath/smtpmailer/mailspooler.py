@@ -48,6 +48,7 @@ from .unotool import getConnectionMode
 from .unotool import getFileSequence
 from .unotool import getInteractionHandler
 from .unotool import getPropertyValueSet
+from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import getTempFile
 from .unotool import getTypeDetection
@@ -59,6 +60,7 @@ from smtpmailer import TerminateListener
 from smtpmailer import getMail
 from smtpmailer import getDesktop
 from smtpmailer import getDocument
+from smtpmailer import getMessageImage
 from smtpmailer import getUrl
 from smtpmailer import getUrlMimeType
 from smtpmailer import saveDocumentAs
@@ -70,7 +72,9 @@ from smtpmailer import CurrentContext
 from .logger import Pool
 
 from .configuration import g_dns
+from .configuration import g_extension
 from .configuration import g_identifier
+from .configuration import g_logo
 from .configuration import g_fetchsize
 
 #from multiprocessing.context import ForkProcess as Process
@@ -90,6 +94,8 @@ class MailSpooler(Process):
         self._disposed = Event()
         self._disposed.clear()
         self._listeners = listeners
+        logo = '%s/%s' % (g_extension, g_logo)
+        self._logo = getResourceLocation(ctx, g_identifier, logo)
         #self._listener = TerminateListener(self)
         #self._terminated = False
         #getDesktop(ctx).addTerminateListener(self._listener)
@@ -234,44 +240,48 @@ class MailSpooler(Process):
         server = self._getServer(IMAP, mailer.getConfig())
         folder = server.findSentFolder()
         if server.hasFolder(folder):
-            subject = self._getThreadSubject(mailer, batch)
-            message = self._getThreadMessage(mailer, subject)
+            subject = self._getThreadSubject()
+            message = self._getThreadMessage(mailer, batch)
             body = MailTransferable(self._ctx, message, True)
             mail = getMail(self._ctx, mailer.Sender, mailer.Sender, subject, body)
             server.uploadMessage(folder, mail)
             mailer.setThread(mail.MessageId)
         server.disconnect()
 
-    def _getThreadSubject(self, mailer, batch):
-        format = (batch, mailer.Query)
-        subject = self._logger.getMessage(131, format)
-        #subject = 'smtpMailerOOo'
-        return subject
+    def _getThreadSubject(self):
+        return self._logger.getMessage(131)
 
-    def _getThreadMessage(self, mailer, title):
-        subject = self._logger.getMessage(141)
-        files = self._logger.getMessage(142)
+    def _getThreadMessage(self, mailer, batch):
+        title = self._logger.getMessage(141) % (batch, mailer.Query)
+        subject = self._logger.getMessage(142)
+        document = self._logger.getMessage(143)
+        files = self._logger.getMessage(144)
         if mailer.hasAttachments():
+            tag = '<a href="%s">%s</a>'
             separator = '</li><li>'
-            attachments = '<ol><li>%s</li></ol>' % mailer.getUrls(separator)
+            attachments = '<ol><li>%s</li></ol>' % mailer.getAttachments(tag, separator)
         else:
-            attachments = '<p>%s</p>' % self._logger.getMessage(143)
+            attachments = '<p>%s</p>' % self._logger.getMessage(145)
+        logo = getMessageImage(self._ctx, self._logo)
         message = '''\
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>smtpMailerOOo</tile>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
-    <p><img src="https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png" alt="smtpMailerOOo logo" /></p>
-    <p><b>%s:</b>%s</p>
-    <p><b>Document:</b>%s</p>
+    <img alt="%s Logo" src="data:image/png;base64,%s" />
+    <h3 style="display:inline;" >%s</h3>
+    <p><b>%s:</b>&nbsp%s</p>
+    <p><b>%s:</b>&nbsp<a href="%s">%s</a></p>
     <p><b>%s:</b></p>
     %s
   </body>
 </html>
-''' % (subject, mailer.Subject, mailer.Document, files, attachments)
+''' % (g_extension, logo, title, subject, mailer.Subject,
+        document, mailer.Document, mailer.getDocumentTitle(),
+        files, attachments)
         print("Mailer._getThreadMessage() \n%s" % message)
         return message
 
@@ -376,23 +386,9 @@ class Mailer(unohelper.Base):
     def setThread(self, thread):
         self._thread = thread
 
-    def _hasImapConfig(self):
-        return all((self._metadata.getValue('IMAPServerName'),
-                    self._metadata.getValue('IMAPPort'),
-                    self._metadata.getValue('IMAPLogin'),
-                    self._metadata.getValue('IMAPConnectionType'),
-                    self._metadata.getValue('IMAPAuthenticationType')))
-
     def dispose(self):
         if self._batch is not None:
             self._dispose()
-
-    def _dispose(self):
-        if self._descriptor is not None:
-            self._descriptor['ActiveConnection'].close()
-        self._url.dispose()
-        for url in self._urls:
-            url.dispose()
 
     def merge(self, index):
         descriptor = self._getUrlDescriptor(index)
@@ -401,10 +397,13 @@ class Mailer(unohelper.Base):
     def getBodyUrl(self):
         return self._url.Main
 
-    def getUrls(self, separator):
+    def getDocumentTitle(self):
+        return self._url.Title
+
+    def getAttachments(self, tag, separator):
         urls = []
         for url in self._urls:
-            urls.append(url.Url)
+            urls.append(tag % (url.Url, url.Name))
         return separator.join(urls)
 
     def addAttachments(self, mail, index):
@@ -416,20 +415,35 @@ class Mailer(unohelper.Base):
                 url.merge(descriptor)
             mail.addAttachment(self._getAttachment(url))
 
-    def _hasThread(self):
-        return self._thread is not None
-
     def hasAttachments(self):
         return len(self._urls) > 0
+
+    def getConfig(self):
+        return self._metadata
+
+# Private Procedures call
+    def _dispose(self):
+        if self._descriptor is not None:
+            self._descriptor['ActiveConnection'].close()
+        self._url.dispose()
+        for url in self._urls:
+            url.dispose()
+
+    def _hasImapConfig(self):
+        return all((self._metadata.getValue('IMAPServerName'),
+                    self._metadata.getValue('IMAPPort'),
+                    self._metadata.getValue('IMAPLogin'),
+                    self._metadata.getValue('IMAPConnectionType'),
+                    self._metadata.getValue('IMAPAuthenticationType')))
+
+    def _hasThread(self):
+        return self._thread is not None
 
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
         attachment.Data = MailTransferable(self._ctx, url.Main, False, True)
         attachment.ReadableName = url.Name
         return attachment
-
-    def getConfig(self):
-        return self._metadata
 
     def _getDescriptor(self):
         descriptor = None
@@ -521,13 +535,16 @@ class MailUrl(unohelper.Base):
             if descriptor is not None:
                 self.merge(descriptor)
             elif not self._merge:
-                self._title = self._saveTempDocument()
+                self._name = self._saveTempDocument()
 
     @property
     def Merge(self):
         return self._merge
     @property
     def Name(self):
+        return self._name
+    @property
+    def Title(self):
         return self._title
     @property
     def Url(self):
@@ -542,7 +559,7 @@ class MailUrl(unohelper.Base):
 
     def merge(self, descriptor):
         self._setDocumentRecord(descriptor)
-        self._title = self._saveTempDocument()
+        self._name = self._saveTempDocument()
 
     def dispose(self):
         if self._isTemp():

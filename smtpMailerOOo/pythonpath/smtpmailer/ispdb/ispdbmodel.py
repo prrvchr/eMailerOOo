@@ -48,11 +48,14 @@ from smtpmailer import createService
 from smtpmailer import getConfiguration
 from smtpmailer import getConnectionMode
 from smtpmailer import getMail
+from smtpmailer import getMessageImage
+from smtpmailer import getResourceLocation
 from smtpmailer import getStringResource
 from smtpmailer import getUrl
 from smtpmailer import setDebugMode
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
+from smtpmailer import g_logo
 
 from .pages import IspdbServer
 from .pages import IspdbUser
@@ -97,7 +100,7 @@ class IspdbModel(unohelper.Base):
                            'SendSubject': 'SendDialog.TextField2.Text',
                            'SendMessage': 'SendDialog.TextField3.Text',
                            'ThreadSubject': 'SendThread.Subject',
-                           'ThreadMessage': 'SendThread.Message'}
+                           'ThreadTitle': 'SendThread.Title'}
 
     @property
     def Email(self):
@@ -365,7 +368,7 @@ class IspdbModel(unohelper.Base):
                     if server.hasFolder(folder):
                         subject = self._getThreadSubject()
                         message = self._getThreadMessage()
-                        body = MailTransferable(self._ctx, message, False)
+                        body = MailTransferable(self._ctx, message, True)
                         mail = getMail(self._ctx, self.Email, self.Email, subject, body)
                         progress(60)
                         server.uploadMessage(folder, mail)
@@ -427,6 +430,27 @@ class IspdbModel(unohelper.Base):
     def _getAuthenticator(self, service):
         return Authenticator(service, self._user.getConfig())
 
+    def _getThreadMessage(self):
+        title = self._getThreadTitle()
+        path = '%s/%s' % (g_extension, g_logo)
+        url = getResourceLocation(self._ctx, g_identifier, path)
+        logo = getMessageImage(self._ctx, url)
+        message = '''\
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <img alt="%s Logo" src="data:image/png;base64,%s" />
+    <h3 style="display:inline;" >%s</h3>
+  </body>
+</html>
+''' % (g_extension, logo, title)
+        print("IspdbModel._getThreadMessage() \n%s" % message)
+        return message
+
 # IspdbModel private shared methods
     def _getServicesCount(self):
         return len(self._services)
@@ -474,6 +498,6 @@ class IspdbModel(unohelper.Base):
         resource = self._resources.get('ThreadSubject')
         return self._resolver.resolveString(resource)
 
-    def _getThreadMessage(self):
-        resource = self._resources.get('ThreadMessage')
+    def _getThreadTitle(self):
+        resource = self._resources.get('ThreadTitle')
         return self._resolver.resolveString(resource)

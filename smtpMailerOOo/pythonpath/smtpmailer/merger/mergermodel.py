@@ -68,6 +68,7 @@ from smtpmailer import getStringResource
 from smtpmailer import getTableColumns
 from smtpmailer import getTablesInfos
 from smtpmailer import getUrl
+from smtpmailer import getUrlPresentation
 from smtpmailer import getValueFromResult
 from smtpmailer import logMessage
 
@@ -808,7 +809,8 @@ class MergerModel(MailModel):
     def getDocumentInfo(self):
         identifier = self.getIdentifier()
         bookmark = self.getBookmark()
-        return self.getUrl(), self._name, self._query, self._table, identifier, bookmark
+        url = getUrlPresentation(self._ctx, self.getUrl())
+        return url, self._name, self._query, self._table, identifier, bookmark
 
     def saveDocument(self):
         self._saved = True

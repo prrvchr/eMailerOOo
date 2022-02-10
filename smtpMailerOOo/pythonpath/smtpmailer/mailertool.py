@@ -31,13 +31,20 @@ from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 
 from .unotool import createService
 from .unotool import getDesktop
+from .unotool import getFileSequence
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
+import base64
 import traceback
 
+
+def getMessageImage(ctx, url):
+    lenght, sequence = getFileSequence(ctx, url)
+    img = base64.b64encode(sequence.value).decode('utf-8')
+    return img
 
 def getDocument(ctx, url):
     properties = {'Hidden': True,

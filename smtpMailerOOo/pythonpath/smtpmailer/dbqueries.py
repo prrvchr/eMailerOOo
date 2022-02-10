@@ -614,7 +614,7 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
         query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?,?)'
-    elif name == 'updateMailer'
+    elif name == 'updateMailer':
         query = 'CALL "UpdateMailer"(?,?)'
 
 # ShutDown Queries

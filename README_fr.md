@@ -79,6 +79,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.5.1 avec toutes s
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
 - Installer l'extension ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt)** version 0.0.2.  
+
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ## Utilisation:

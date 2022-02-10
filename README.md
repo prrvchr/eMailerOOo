@@ -78,7 +78,7 @@ This extension is necessary to use HsqlDB version 2.5.1 with all its features.
   - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.  
   This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 
-- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt)** extension version 0.0.1.  
+- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt)** extension version 0.0.2.  
 Restart LibreOffice / OpenOffice after installation.
 
 ## Use:
@@ -291,15 +291,14 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What has been done for version 0.0.2:
 
-**As long as version 0.0.2 is not available, we advise you to use version [0.0.1](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt) despite its limitations...**
-
 - Rewrite of [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
   - Use of [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
   - Extension of [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail) IDL files:
     - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
     - The new [XImapService.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) interface allows access to part of the IMAPClient library.
 
+- Rewriting of the [Spouleur](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
+
 ### What remains to be done for version 0.0.2:
 
-- Rewriting of the Spooler to make it possible, via the IMAP protocol, to display the delivery date of emails sent.
 - **Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP and IMAP servers with OAuth2OOo.**

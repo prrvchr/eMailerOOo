@@ -78,7 +78,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.5.1 avec toutes s
   - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt)** version 0.0.1.  
+- Installer l'extension ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt)** version 0.0.2.  
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ## Utilisation:
@@ -291,15 +291,14 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ### Ce qui a été fait pour la version 0.0.2:
 
-**Tant que la version 0.0.2 n'est pas disponible, nous vous conseillons d'utiliser la version [0.0.1](https://github.com/prrvchr/smtpMailerOOo/releases/download/v0.0.1/smtpMailerOOo.oxt) malgré ses limitations...**
-
 - Réécriture de [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
   - Utilisation de [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
   - Extension des fichiers IDL [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail):
     - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) prend désormais en charge la hiérarchisation des courriels (thread).
     - La nouvelle interface [XImapService](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) permet d'accéder à une partie de la bibliothèque IMAPClient.
 
+- Réécriture du [Spouleur](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
+
 ### Que reste-t-il à faire pour la version 0.0.2:
 
-- Réécriture du Spouleur afin de rendre possible, via le protocole IMAP, l'affichage de la date de livraison des courriels envoyé.
 - **Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP et IMAP avec OAuth2OOo.**

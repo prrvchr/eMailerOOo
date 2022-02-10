@@ -721,7 +721,7 @@ def _getMessage(ctx, message):
         configuration = getConfiguration(ctx, '/org.openoffice.Setup/Product')
         name = configuration.getByName('ooName')
         version = configuration.getByName('ooSetupVersion')
-        xmailer = "%s %s via smtpMailerOOo extention" % (name, version)
+        xmailer = "%s %s via smtpMailerOOo extension" % (name, version)
     except:
         pass
     msg['X-Mailer'] = xmailer

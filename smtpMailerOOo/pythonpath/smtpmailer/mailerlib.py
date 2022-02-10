@@ -68,40 +68,41 @@ class CurrentContext(unohelper.Base,
 
 class MailTransferable(unohelper.Base,
                        XTransferable):
-    def __init__(self, ctx, data, html=None):
+    def __init__(self, ctx, data, html=False, url=False):
         print("MailTransferable.__init__() 1")
         self._ctx = ctx
         self._data = data
         self._html = html
-        self.texttype = 'text/plain; charset=utf-16'
-        if html is None:
+        self._url = url
+        self._mimetext = 'text/plain; charset=utf-16'
+        if url and not html:
             self._mimetype = getAttachmentType(ctx, data)
         elif html:
             self._mimetype = 'text/html; charset=utf-8'
         else:
-            self._mimetype = self.texttype
+            self._mimetype = self._mimetext
         print("MailTransferable.__init__() 2 %s" % self._mimetype)
 
 # XTransferable
     def getTransferData(self, flavor):
         #mri = createService(self._ctx, 'mytools.Mri')
         #mri.inspect(flavor)
-        if flavor.MimeType == self.texttype:
+        if self._url:
             print("MailTransferable.getTransferData() 1")
-            data = self._data
-        else:
-            print("MailTransferable.getTransferData() 2 %s" % flavor.MimeType)
             lenght, sequence = getFileSequence(self._ctx, self._data)
             data = sequence
+        else:
+            print("MailTransferable.getTransferData() 2 %s" % flavor.MimeType)
+            data = self._data
         return data
 
     def getTransferDataFlavors(self):
         flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
         flavor.MimeType = self._mimetype
-        if self._html is None:
-            flavor.HumanPresentableName = 'E-Documents'
-        elif self._html:
+        if self._html:
             flavor.HumanPresentableName = 'HTML-Documents'
+        elif self._html:
+            flavor.HumanPresentableName = 'E-Documents'
         else:
             flavor.HumanPresentableName = 'Unicode text'
         print("MailTransferable.getTransferDataFlavors() 1 %s" % flavor.MimeType)

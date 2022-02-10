@@ -264,4 +264,5 @@ def getQueries():
             ('createDeleteJobs', None),
             ('createGetRecipient', None),
             ('createGetMailer', None),
-            ('createGetAttachments', None))
+            ('createGetAttachments', None),
+            ('createUpdateMailer', None))

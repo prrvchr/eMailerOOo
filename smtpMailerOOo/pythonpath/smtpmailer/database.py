@@ -149,7 +149,6 @@ class DataBase(unohelper.Base):
 # Procedures called by the IspDB Wizard
     def getServerConfig(self, servers, email):
         smtp, imap = SMTP.value, IMAP.value
-        print("DataBase.getServerConfig() %s - %s" % (smtp, imap))
         domain = email.partition('@')[2]
         user = KeyMap()
         call = self._getCall('getServers')
@@ -213,7 +212,6 @@ class DataBase(unohelper.Base):
         call.setByte(6, server.getValue('Connection'))
         call.setByte(7, server.getValue('Authentication'))
         result = call.executeUpdate()
-        print("DataBase.updateServer() %s" % result)
         call.close()
 
     def mergeUser(self, email, user):
@@ -242,7 +240,6 @@ class DataBase(unohelper.Base):
             call.setNull(11, VARCHAR)
             call.setNull(12, VARCHAR)
         result = call.executeUpdate()
-        print("DataBase.mergeUser() %s" % result)
         call.close()
 
 # Procedures called by the Spooler
@@ -286,7 +283,6 @@ class DataBase(unohelper.Base):
         call = self._getCall('deleteJobs')
         call.setArray(1, jobs)
         status = call.executeUpdate()
-        print("DataBase.deleteJob() %s" % status)
         call.close()
         return True
 
@@ -328,34 +324,22 @@ class DataBase(unohelper.Base):
 
 # Procedures called by the MailSpooler
     def getSpoolerJobs(self, connection, state=0):
-        print("DataBase.getSpoolerJobs() 1")
         jobid = []
-        print("DataBase.getSpoolerJobs() 2")
         call = self._getDataBaseCall(connection, 'getSpoolerJobs')
-        print("DataBase.getSpoolerJobs() 3")
         call.setInt(1, state)
-        print("DataBase.getSpoolerJobs() 4")
         result = call.executeQuery()
-        print("DataBase.getSpoolerJobs() 5")
         jobids = getSequenceFromResult(result)
-        print("DataBase.getSpoolerJobs() 6")
         call.close()
-        print("DataBase.getSpoolerJobs() 7")
         return jobids, len(jobids)
 
     def getRecipient(self, connection, job):
-        print("DataBase.getRecipient() 1")
         recipient = None
         call = self._getDataBaseCall(connection, 'getRecipient')
-        print("DataBase.getRecipient() 2")
         call.setInt(1, job)
         result = call.executeQuery()
-        print("DataBase.getRecipient() 3")
         if result.next():
-            print("DataBase.getRecipient() 4")
             recipient = getObjectFromResult(result)
         call.close()
-        print("DataBase.getRecipient() 5")
         return recipient
 
     def getMailer(self, connection, batch, timeout):
@@ -371,17 +355,20 @@ class DataBase(unohelper.Base):
         call.close()
         return mailer
 
+    def updateMailer(self, connection, batch, thread):
+        call = self._getDataBaseCall(connection, 'updateMailer')
+        call.setInt(1, batch)
+        call.setString(2, thread)
+        state = call.executeUpdate()
+        call.close()
+
     def getAttachments(self, connection, batch):
         attachments = ()
-        print("DataBase.getAttachments() 1")
         call = self._getDataBaseCall(connection, 'getAttachments')
         call.setInt(1, batch)
-        print("DataBase.getAttachments() 2")
         result = call.executeQuery()
-        print("DataBase.getAttachments() 3")
         attachments = getSequenceFromResult(result)
         call.close()
-        print("DataBase.getAttachments() 4")
         return attachments
 
     def getBookmark(self, connection, format, identifier):
@@ -394,12 +381,12 @@ class DataBase(unohelper.Base):
         call.close()
         return bookmark
 
-    def setJobState(self, connection, state, jobid):
-        call = self._getDataBaseCall(connection, 'setJobState')
+    def updateRecipient(self, connection, state, messageid, jobid):
+        call = self._getDataBaseCall(connection, 'updateRecipient')
         call.setInt(1, state)
-        call.setTimestamp(2, getDateTime())
+        call.setString(2, messageid)
         call.setInt(3, jobid)
-        result = call.executeUpdate()
+        state = call.executeUpdate()
         call.close()
 
     def setBatchState(self, connection, state, batchid):

@@ -207,9 +207,9 @@ class MailSpooler(Process):
                     if self._disposed.is_set():
                         self._logger.logResource(INFO, 124, job)
                         break
-                    if mailer.hasThread():
+                    if mailer.needThreadId():
                         print("MailSpooler._send() 6")
-                        self._createThread(mailer, batch)
+                        self._createThreadId(connection, mailer, batch)
                     server = self._getServer(SMTP, mailer.getConfig(), server)
                     print("MailSpooler._send() 7")
                 except UnoException as e:
@@ -228,7 +228,7 @@ class MailSpooler(Process):
                 self._logger.logResource(INFO, 124, job)
                 break
             server.sendMailMessage(mail)
-            self._database.setJobState(connection, 1, job)
+            self._database.updateRecipient(connection, 1, mail.MessageId, job)
             self._logger.logResource(INFO, 123, job)
             count += 1
             print("MailSpooler._send() 11")
@@ -236,7 +236,7 @@ class MailSpooler(Process):
         print("MailSpooler._send() 12 end.........................")
         return count
 
-    def _createThread(self, mailer, batch):
+    def _createThreadId(self, connection, mailer, batch):
         server = self._getServer(IMAP, mailer.getConfig())
         folder = server.findSentFolder()
         if server.hasFolder(folder):
@@ -245,7 +245,7 @@ class MailSpooler(Process):
             body = MailTransferable(self._ctx, message, True)
             mail = getMail(self._ctx, mailer.Sender, mailer.Sender, subject, body)
             server.uploadMessage(folder, mail)
-            mailer.setThread(mail.MessageId)
+            mailer.setThreadId(connection, batch, mail.MessageId)
         server.disconnect()
 
     def _getThreadSubject(self):
@@ -365,6 +365,9 @@ class Mailer(unohelper.Base):
     @property
     def Bookmark(self):
         return self._metadata.getValue('Bookmark')
+    @property
+    def ThreadId(self):
+        return self._metadata.getValue('ThreadId')
 
     def isNewBatch(self, batch):
         new = self._batch != batch
@@ -379,12 +382,12 @@ class Mailer(unohelper.Base):
         self._descriptor = self._getDescriptor()
         self._urls, self._url = self._getUrls(attachments, job, index)
 
-    def hasThread(self):
-        self._thread = None
-        return self.Merge and self._hasImapConfig()
+    def needThreadId(self):
+        return self.ThreadId is None and self.Merge and self._hasImapConfig()
 
-    def setThread(self, thread):
-        self._thread = thread
+    def setThreadId(self, connection, batchid, thread):
+        self._database.updateMailer(connection, batchid, thread)
+        self._metadata.setValue('ThreadId', thread)
 
     def dispose(self):
         if self._batch is not None:
@@ -407,8 +410,8 @@ class Mailer(unohelper.Base):
         return separator.join(urls)
 
     def addAttachments(self, mail, index):
-        if self._hasThread():
-            mail.ThreadId = self._thread
+        if self._hasThreadId():
+            mail.ThreadId = self.ThreadId
         for url in self._urls:
             if self.Merge and url.Merge:
                 descriptor = self._getUrlDescriptor(index)
@@ -436,8 +439,8 @@ class Mailer(unohelper.Base):
                     self._metadata.getValue('IMAPConnectionType'),
                     self._metadata.getValue('IMAPAuthenticationType')))
 
-    def _hasThread(self):
-        return self._thread is not None
+    def _hasThreadId(self):
+        return self.ThreadId is not None
 
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
@@ -581,7 +584,7 @@ class MailUrl(unohelper.Base):
             executeFrameDispatch(self._ctx, frame, url, descriptor)
 
     def _saveTempDocument(self):
-        return saveTempDocument(self._document, self._temp, self._name, self._filter)
+        return saveTempDocument(self._document, self._temp, self._title, self._filter)
 
 
 def _getUnoException(logger, source, resource, format=None):

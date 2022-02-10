@@ -258,8 +258,8 @@ def getSqlQuery(ctx, name, format=None):
 
 # Update Queries
     # MailSpooler Update Queries
-    elif name == 'setJobState':
-        query = 'UPDATE "Recipients" SET "State"=?, "Modified"=? WHERE "JobId"=?;'
+    elif name == 'updateRecipient':
+        query = 'UPDATE "Recipients" SET "State"=?, "MessageId"=?, "Modified"=DEFAULT WHERE "JobId"=?;'
 
     elif name == 'setBatchState':
         query = 'UPDATE "Recipients" SET "State"=?, "Modified"=? WHERE "BatchId"=?;'
@@ -350,8 +350,8 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT S."Sender", S."Subject", S."Document", S."DataSource",
-      S."Query", S."Table", S."Identifier", S."Bookmark",
+      SELECT S."Sender",S."Subject",S."Document",S."DataSource",
+      S."Query",S."Table",S."Identifier",S."Bookmark",S."ThreadId",
       CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
       S1."Server" AS "SMTPServerName",S1."Port" AS "SMTPPort",
       S1."LoginName" AS "SMTPLogin",S1."Password" AS "SMTPPassword",
@@ -374,6 +374,16 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
       FOR READ ONLY;
     OPEN RSLT;
   END;"""
+
+    elif name == 'createUpdateMailer':
+        query = """\
+CREATE PROCEDURE "UpdateMailer"(IN BATCHID INTEGER,
+                                IN THREADID VARCHAR(100))
+  SPECIFIC "UpdateMailer_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Senders" SET "ThreadId"=THREADID WHERE "BatchId"=BATCHID;
+  END"""
 
     elif name == 'createGetAttachments':
         query = """\
@@ -604,6 +614,8 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
         query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeUser':
         query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?,?)'
+    elif name == 'updateMailer'
+        query = 'CALL "UpdateMailer"(?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

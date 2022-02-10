@@ -26,6 +26,7 @@ Column|Name
 24|Recipient
 25|Index
 26|State
-27|Attachment
-28|Created
-29|Modified
+27|MessageId
+28|Attachment
+29|Created
+30|Modified

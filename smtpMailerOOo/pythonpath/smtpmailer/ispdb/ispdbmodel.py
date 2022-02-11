@@ -56,6 +56,7 @@ from smtpmailer import setDebugMode
 from smtpmailer import g_identifier
 from smtpmailer import g_extension
 from smtpmailer import g_logo
+from smtpmailer import g_logourl
 
 from .pages import IspdbServer
 from .pages import IspdbUser
@@ -99,7 +100,6 @@ class IspdbModel(unohelper.Base):
                            'SendTitle': 'SendDialog.Title',
                            'SendSubject': 'SendDialog.TextField2.Text',
                            'SendMessage': 'SendDialog.TextField3.Text',
-                           'ThreadSubject': 'SendThread.Subject',
                            'ThreadTitle': 'SendThread.Title'}
 
     @property
@@ -309,7 +309,7 @@ class IspdbModel(unohelper.Base):
         elif self._hasImapService():
             i = 100
             reset(200)
-            self._user.ThreadId = self._uploadMessage(progress)
+            self._user.ThreadId = self._uploadMessage(subject, progress)
         smtp = SMTP.value
         context = self._getConnectionContext(smtp)
         authenticator = self._getAuthenticator(smtp)
@@ -343,7 +343,7 @@ class IspdbModel(unohelper.Base):
         setDebugMode(self._ctx, False)
         setstep(step)
 
-    def _uploadMessage(self, progress):
+    def _uploadMessage(self, subject, progress):
         mail = msgid = None
         imap = IMAP.value
         context = self._getConnectionContext(imap)
@@ -362,7 +362,6 @@ class IspdbModel(unohelper.Base):
                 try:
                     folder = server.findSentFolder()
                     if server.hasFolder(folder):
-                        subject = self._getThreadSubject()
                         message = self._getThreadMessage()
                         body = MailTransferable(self._ctx, message, True)
                         mail = getMail(self._ctx, self.Email, self.Email, subject, body)
@@ -423,7 +422,7 @@ class IspdbModel(unohelper.Base):
         path = '%s/%s' % (g_extension, g_logo)
         url = getResourceLocation(self._ctx, g_identifier, path)
         logo = getMessageImage(self._ctx, url)
-        return '''\
+        message = '''\
 <!DOCTYPE html>
 <html>
   <head>
@@ -431,11 +430,13 @@ class IspdbModel(unohelper.Base):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
-    <img alt="%s Logo" src="data:image/png;base64,%s" />
-    <h3 style="display:inline;" >%s</h3>
+    <img alt="%s Logo" src="data:image/png;charset=utf-8;base64,%s" src="%s" />
+    <h3 style="display:inline;" >&nbsp;%s</h3>
   </body>
 </html>
-''' % (g_extension, logo, title)
+''' % (g_extension, logo, g_logourl, title)
+        print("IspdbModel._getThreadMessage()\n%s" % message)
+        return message
 
 # IspdbModel private shared methods
     def _getServicesCount(self):
@@ -478,10 +479,6 @@ class IspdbModel(unohelper.Base):
 
     def getSendMessage(self):
         resource = self._resources.get('SendMessage')
-        return self._resolver.resolveString(resource)
-
-    def _getThreadSubject(self):
-        resource = self._resources.get('ThreadSubject')
         return self._resolver.resolveString(resource)
 
     def _getThreadTitle(self):

@@ -75,6 +75,7 @@ from .configuration import g_dns
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_logo
+from .configuration import g_logourl
 from .configuration import g_fetchsize
 
 #from multiprocessing.context import ForkProcess as Process
@@ -240,28 +241,25 @@ class MailSpooler(Process):
         server = self._getServer(IMAP, mailer.getConfig())
         folder = server.findSentFolder()
         if server.hasFolder(folder):
-            subject = self._getThreadSubject()
+            #subject = self._getThreadSubject()
             message = self._getThreadMessage(mailer, batch)
             body = MailTransferable(self._ctx, message, True)
-            mail = getMail(self._ctx, mailer.Sender, mailer.Sender, subject, body)
+            mail = getMail(self._ctx, mailer.Sender, mailer.Sender, mailer.Subject, body)
             server.uploadMessage(folder, mail)
             mailer.setThreadId(connection, batch, mail.MessageId)
         server.disconnect()
 
-    def _getThreadSubject(self):
-        return self._logger.getMessage(131)
-
     def _getThreadMessage(self, mailer, batch):
-        title = self._logger.getMessage(141) % (batch, mailer.Query)
-        subject = self._logger.getMessage(142)
-        document = self._logger.getMessage(143)
-        files = self._logger.getMessage(144)
+        title = self._logger.getMessage(131) % (batch, mailer.Query)
+        subject = self._logger.getMessage(132)
+        document = self._logger.getMessage(133)
+        files = self._logger.getMessage(134)
         if mailer.hasAttachments():
             tag = '<a href="%s">%s</a>'
             separator = '</li><li>'
             attachments = '<ol><li>%s</li></ol>' % mailer.getAttachments(tag, separator)
         else:
-            attachments = '<p>%s</p>' % self._logger.getMessage(145)
+            attachments = '<p>%s</p>' % self._logger.getMessage(135)
         logo = getMessageImage(self._ctx, self._logo)
         return '''\
 <!DOCTYPE html>
@@ -271,15 +269,15 @@ class MailSpooler(Process):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
-    <img alt="%s Logo" src="data:image/png;base64,%s" />
-    <h3 style="display:inline;" >%s</h3>
-    <p><b>%s:</b>&nbsp%s</p>
-    <p><b>%s:</b>&nbsp<a href="%s">%s</a></p>
+    <img alt="%s Logo" src="data:image/png;charset=utf-8;base64,%s" src="%s" />
+    <h3 style="display:inline;" >&nbsp;%s</h3>
+    <p><b>%s:</b>&nbsp;%s</p>
+    <p><b>%s:</b>&nbsp;<a href="%s">%s</a></p>
     <p><b>%s:</b></p>
     %s
   </body>
 </html>
-''' % (g_extension, logo, title, subject, mailer.Subject,
+''' % (g_extension, logo, g_logourl, title, subject, mailer.Subject,
         document, mailer.Document, mailer.getDocumentTitle(),
         files, attachments)
 
@@ -292,11 +290,6 @@ class MailSpooler(Process):
         body = MailTransferable(self._ctx, mailer.getBodyUrl(), True, True)
         mail = getMail(self._ctx, mailer.Sender, recipient.Recipient, mailer.Subject, body)
         return mail
-
-    def _checkSender(self, sf, sender, job):
-        if sender is None:
-            raise _getUnoException(self._logger, self, 131, job)
-        self._checkUrl(sf, sender.Document, job, 132)
 
     def _getServer(self, mailtype, config, server=None):
         if server is not None:
@@ -319,7 +312,7 @@ class MailSpooler(Process):
         except UnoException as e:
             mailserver = '%s:%s' % (server['ServerName'], server['Port'])
             format = (job, sender.Sender, mailserver, e.Message)
-            raise _getUnoException(self._logger, self, 151, format)
+            raise _getUnoException(self._logger, self, 141, format)
         return server
 
 

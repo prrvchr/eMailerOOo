@@ -34,6 +34,7 @@ from .configuration import g_identifier
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
 from .configuration import g_logo
+from .configuration import g_logourl
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 

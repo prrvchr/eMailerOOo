@@ -422,7 +422,7 @@ class IspdbModel(unohelper.Base):
         path = '%s/%s' % (g_extension, g_logo)
         url = getResourceLocation(self._ctx, g_identifier, path)
         logo = getMessageImage(self._ctx, url)
-        message = '''\
+        return '''\
 <!DOCTYPE html>
 <html>
   <head>
@@ -435,8 +435,6 @@ class IspdbModel(unohelper.Base):
   </body>
 </html>
 ''' % (g_extension, logo, g_logourl, title)
-        print("IspdbModel._getThreadMessage()\n%s" % message)
-        return message
 
 # IspdbModel private shared methods
     def _getServicesCount(self):

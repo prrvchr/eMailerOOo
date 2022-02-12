@@ -1,1 +1,1 @@
-An SMTP client supporting Mozilla IspDB and OAuth2 for LibreOffice / OpenOffice.
+An email messanger supporting Mozilla IspDB and OAuth2 for LibreOffice / OpenOffice.

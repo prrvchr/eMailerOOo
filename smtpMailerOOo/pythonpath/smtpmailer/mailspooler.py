@@ -239,9 +239,8 @@ class MailSpooler(Process):
 
     def _createThreadId(self, connection, mailer, batch):
         server = self._getServer(IMAP, mailer.getConfig())
-        folder = server.findSentFolder()
+        folder = server.getSentFolder()
         if server.hasFolder(folder):
-            #subject = self._getThreadSubject()
             message = self._getThreadMessage(mailer, batch)
             body = MailTransferable(self._ctx, message, True)
             mail = getMail(self._ctx, mailer.Sender, mailer.Sender, mailer.Subject, body)
@@ -307,7 +306,8 @@ class MailSpooler(Process):
         authenticator = Authenticator(mailtype.value, config)
         service = 'com.sun.star.mail.MailServiceProvider2'
         try:
-            server = createService(self._ctx, service).create(mailtype)
+            host = context.getValueByName('ServerName')
+            server = createService(self._ctx, service).create(mailtype, host)
             server.connect(context, authenticator)
         except UnoException as e:
             mailserver = '%s:%s' % (server['ServerName'], server['Port'])

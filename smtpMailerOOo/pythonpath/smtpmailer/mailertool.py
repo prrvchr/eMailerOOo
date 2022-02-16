@@ -71,8 +71,9 @@ def getDocumentFilter(extension, format):
 
 def getMail(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage2'
-    arguments = (recipient, sender, subject, body)
-    return createService(ctx, service, *arguments)
+    mail = createService(ctx, service)
+    mail.create(recipient, sender, subject, body)
+    return mail
 
 def getNamedExtension(name):
     part1, dot, part2 = name.rpartition('.')

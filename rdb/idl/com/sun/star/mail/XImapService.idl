@@ -35,26 +35,12 @@ module com { module sun { module star { module mail {
 interface XImapService: com::sun::star::mail::XMailService2
 {
 
-    string findSentFolder();
-
-    long selectFolder([in] string Folder,
-                      [in] boolean ReadOnly);
+    string getSentFolder();
 
     boolean hasFolder([in] string Folder);
 
     void uploadMessage([in] string Folder,
                        [in] ::com::sun::star::mail::XMailMessage2 MailMessage);
-
-
-    sequence<long> getMessageByHeader([in] string Header,
-                                      [in] string value);
-
-    string getDeliveryDate([in] string MessageUid);
-
-    string getUidByMessageId([in] string MessageId);
-
-    void list([in] string Directory,
-              [in] string Pattern);
 
 };
 

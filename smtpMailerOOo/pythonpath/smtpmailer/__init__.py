@@ -92,6 +92,7 @@ from .mailertool import saveTempDocument
 
 from .oauth2lib import getOAuth2
 from .oauth2lib import getOAuth2Token
+from .oauth2lib import getRequest
 
 from .dbtool import getObjectSequenceFromResult
 from .dbtool import getSequenceFromResult
@@ -127,3 +128,9 @@ from .ispdb import IspdbModel
 from . import smtplib
 
 from .imapclient import *
+
+from .mailservice import SmtpBaseService
+from .mailservice import SmtpApiService
+from .mailservice import ImapBaseService
+from .mailservice import ImapApiService
+from .mailservice import Pop3Service

@@ -276,7 +276,8 @@ class IspdbModel(unohelper.Base):
         progress(i + 5)
         service = 'com.sun.star.mail.MailServiceProvider2'
         progress(i + 25)
-        server = createService(self._ctx, service).create(stype)
+        host = context.getValueByName('ServerName')
+        server = createService(self._ctx, service).create(stype, host)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -317,7 +318,8 @@ class IspdbModel(unohelper.Base):
         progress(i + 5)
         service = 'com.sun.star.mail.MailServiceProvider2'
         progress(i + 25)
-        server = createService(self._ctx, service).create(SMTP)
+        host = context.getValueByName('ServerName')
+        server = createService(self._ctx, service).create(SMTP, host)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -350,7 +352,8 @@ class IspdbModel(unohelper.Base):
         authenticator = self._getAuthenticator(imap)
         progress(10)
         service = 'com.sun.star.mail.MailServiceProvider2'
-        server = createService(self._ctx, service).create(IMAP)
+        host = context.getValueByName('ServerName')
+        server = createService(self._ctx, service).create(IMAP, host)
         progress(20)
         try:
             server.connect(context, authenticator)
@@ -360,7 +363,7 @@ class IspdbModel(unohelper.Base):
             progress(40)
             if server.isConnected():
                 try:
-                    folder = server.findSentFolder()
+                    folder = server.getSentFolder()
                     if server.hasFolder(folder):
                         message = self._getThreadMessage()
                         body = MailTransferable(self._ctx, message, True)

@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,44 +25,10 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_mail_XMailMessage2_idl__
-#define __com_sun_star_mail_XMailMessage2_idl__
-
-#include <com/sun/star/mail/XMailMessage.idl>
-#include <com/sun/star/mail/MailAttachment.idl>
-#include <com/sun/star/datatransfer/XTransferable.idl>
-
-module com { module sun { module star { module mail {
-
-interface XMailMessage2: ::com::sun::star::mail::XMailMessage
-{
-
-    void create([in] string To,
-                [in] string From,
-                [in] string Subject,
-                [in] com::sun::star::datatransfer::XTransferable Body);
-
-    void createWithAttachment([in] string To,
-                              [in] string From,
-                              [in] string Subject,
-                              [in] com::sun::star::datatransfer::XTransferable Body,
-                              [in] com::sun::star::mail::MailAttachment Attachment);
-
-
-    boolean hasRecipients();
-    boolean hasCcRecipients();
-    boolean hasBccRecipients();
-    boolean hasAttachments();
-    string asString([in] boolean Encode);
-
-    [attribute] string MessageId;
-    [attribute] string ThreadId;
-
-};
-
-
-}; }; }; };
-
-#endif
+from .smtpbaseservice import SmtpBaseService
+from .smtpapiservice import SmtpApiService
+from .imapbaseservice import ImapBaseService
+from .imapapiservice import ImapApiService
+from .pop3service import Pop3Service

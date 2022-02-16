@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,44 +25,75 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_mail_XMailMessage2_idl__
-#define __com_sun_star_mail_XMailMessage2_idl__
+import uno
+import unohelper
 
-#include <com/sun/star/mail/XMailMessage.idl>
-#include <com/sun/star/mail/MailAttachment.idl>
-#include <com/sun/star/datatransfer/XTransferable.idl>
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
-module com { module sun { module star { module mail {
+from com.sun.star.lang import EventObject
+from com.sun.star.mail import XImapService
 
-interface XMailMessage2: ::com::sun::star::mail::XMailMessage
-{
+from smtpmailer import getMessage
+from smtpmailer import isDebugMode
+from smtpmailer import logMessage
 
-    void create([in] string To,
-                [in] string From,
-                [in] string Subject,
-                [in] com::sun::star::datatransfer::XTransferable Body);
+g_message = 'MailServiceProvider'
 
-    void createWithAttachment([in] string To,
-                              [in] string From,
-                              [in] string Subject,
-                              [in] com::sun::star::datatransfer::XTransferable Body,
-                              [in] com::sun::star::mail::MailAttachment Attachment);
+import traceback
 
 
-    boolean hasRecipients();
-    boolean hasCcRecipients();
-    boolean hasBccRecipients();
-    boolean hasAttachments();
-    string asString([in] boolean Encode);
+class ImapService(unohelper.Base,
+                  XImapService):
+    def __init__(self, ctx):
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 311)
+            logMessage(ctx, INFO, msg, 'ImapService', '__init__()')
+        self._ctx = ctx
+        self._listeners = []
+        self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
+        self._supportedauthentication = ('None', 'Login', 'OAuth2')
+        self._server = None
+        self._context = None
+        self._notify = EventObject(self)
+        if isDebugMode():
+            msg = getMessage(ctx, g_message, 312)
+            logMessage(ctx, INFO, msg, 'ImapService', '__init__()')
 
-    [attribute] string MessageId;
-    [attribute] string ThreadId;
+# XMailService2 interface implementation
+    def addConnectionListener(self, listener):
+        self._listeners.append(listener)
 
-};
+    def removeConnectionListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
+    def getSupportedConnectionTypes(self):
+        return self._supportedconnection
 
-}; }; }; };
+    def getSupportedAuthenticationTypes(self):
+        return self._supportedauthentication
 
-#endif
+    def getCurrentConnectionContext(self):
+        return self._context
+
+# Interface not implemented
+    def connect(self, context, authenticator):
+        raise NotImplementedError
+
+    def disconnect(self):
+        raise NotImplementedError
+
+    def isConnected(self):
+        raise NotImplementedError
+
+    def getSentFolder(self):
+        raise NotImplementedError
+
+    def hasFolder(self, folder):
+        raise NotImplementedError
+
+    def uploadMessage(self, folder, message):
+        raise NotImplementedError

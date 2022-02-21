@@ -15,6 +15,8 @@ For simplicity, in the rest of this document, will be named:
 - `User`: the user of the smtpMailerOOo software.
 - `Supplier`: the internet service provider delivering internet services to `smtpMailerOOo`.
 
+Although **smtpMailerOOo does not share or transfer any data to any other application**, if you are using `smtpMailerOOo` with a Google account, then `smtpMailerOOo` adhere to [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+
 ## Contact:
 
 In any case, it is possible to contact the person responsible for data processing at:

@@ -201,15 +201,6 @@ Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants
 
 ### Configuration de la connexion:
 
-#### Limitations:
-
-Bien que l'extension smtpMailerOOO est conçue pour utiliser les serveurs SMTP de Google (smtp.gmail.com) à l'aide du protocole OAuth2, **il n'est pas encore possible de se connecter à ces serveurs SMTP**, l'extension OAuth2OOo n'étant pas encore approuvé par Google.  
-Merci de votre compréhension et de votre patience.
-
-En attendant, si vous souhaitez quand même utiliser votre compte Google comme expéditeur, procédez comme suit:
-- Créez une Configuration de connexion avec votre compte de votre fourniseur d'acces internet (par exemple: moncompte@orange.fr). Notez les paramètres de connexion utilisés.
-- Créez une Configuration de connexion avec votre compte Google et saisir les paramètres de connexion de votre fournisseur d'accès, notés précédemment.
-
 #### Démarrage de l'assistant de connexion:
 
 Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
@@ -300,6 +291,10 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 - Réécriture du [Spouleur](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
 
+- Soumission de l'extension smtpMailerOOo à Google et obtention de l'autorisation d'utiliser son API GMail afin d'envoyer des courriels avec un compte Google.
+
 ### Que reste-t-il à faire pour la version 0.0.2:
 
-- **Soumettre à nouveau l'extension smtpMailerOOo à Google afin d'obtenir l'autorisation d'utiliser leurs serveurs SMTP et IMAP avec OAuth2OOo.**
+- Ajouter de nouvelles langues pour l’internationalisation...
+
+- Tout ce qui est bienvenu...

@@ -201,15 +201,6 @@ To submit mailing jobs, please follow the section [Outgoing emails](https://prrv
 
 ### Configure connection:
 
-#### Limitation:
-
-Although the smtpMailerOOo extension is designed to use the Google SMTP servers (smtp.gmail.com) using the OAuth2 protocol, **it is not yet possible to connect to these SMTP servers**, the OAuth2OOo extension being not yet approved by Google.  
-Thank you for your understanding and your patience.
-
-In the meantime, if you still want to use your Google account as sender, proceed as follows:
-- Create a connection configuration with your account of your internet access provider (for example: myaccount@att.net). Note the connection settings used.
-- Create a connection configuration with your Google account and enter the connection settings of your access provider, noted precedently.
-
 #### Starting the connection wizard:
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
@@ -300,6 +291,10 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 - Rewriting of the [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
 
+- Submitting the smtpMailerOOo extension to Google and obtaining permission to use its GMail API to send emails with a Google account.
+
 ### What remains to be done for version 0.0.2:
 
-- **Resubmit the smtpMailerOOo extension to Google in order to obtain permission to use their SMTP and IMAP servers with OAuth2OOo.**
+- Add new languages for internationalization...
+
+- Anything welcome...

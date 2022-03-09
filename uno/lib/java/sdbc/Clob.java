@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,107 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.sdbc;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XClob;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+
+import org.apache.commons.io.input.ReaderInputStream;
+
+
+public class Clob
+extends WeakBase
+implements XClob
+{
+	private java.sql.Statement m_Statement;
+	private java.sql.Clob m_Clob;
+
+	
+	// The constructor method:
+	public Clob(java.sql.Statement statement,
+            java.sql.Clob clob)
+{
+		m_Statement = statement;
+	m_Clob = clob;
+}
+
+	
+	// com.sun.star.sdbc.XClob:
+	@Override
+	public XInputStream getCharacterStream() throws SQLException {
+		try
+		{
+			java.io.Reader reader = m_Clob.getCharacterStream();
+			Charset cs = Charset.forName("UTF-8");
+			InputStream input = new ReaderInputStream(reader, cs);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getSubString(long position, int lenght) throws SQLException {
+		try
+		{
+			return m_Clob.getSubString(position, lenght);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long length() throws SQLException {
+		try
+		{
+			return m_Clob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long position(String str, int start) throws SQLException {
+		try
+		{
+			return m_Clob.position(str, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long positionOfClob(XClob clob, long start) throws SQLException {
+		try
+		{
+			java.sql.Clob c = UnoHelper.getSQLClob(m_Statement, clob);
+			return m_Clob.position(c, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+
+
+
+
+}

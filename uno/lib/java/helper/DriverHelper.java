@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,74 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.helper;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.Properties;
+import java.util.logging.Logger;
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+
+public class DriverHelper implements Driver
+{
+	private Driver m_driver;
+
+	// The constructor method:
+	public DriverHelper(Driver driver)
+	{
+		m_driver = driver;
+	}
+
+	// java.sql.Driver:
+	@Override
+	public boolean acceptsURL(String url)
+	throws SQLException
+	{
+		return m_driver.acceptsURL(url);
+	}
+
+	@Override
+	public Connection connect(String url, Properties properties)
+	throws SQLException
+	{
+		return m_driver.connect(url, properties);
+	}
+
+	@Override
+	public int getMajorVersion()
+	{
+		return m_driver.getMajorVersion();
+	}
+
+	@Override
+	public int getMinorVersion()
+	{
+		return m_driver.getMinorVersion();
+	}
+
+	@Override
+	public Logger getParentLogger()
+	throws SQLFeatureNotSupportedException
+	{
+		return null;
+	}
+
+	@Override
+	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
+	throws SQLException
+	{
+		return m_driver.getPropertyInfo(url, properties);
+	}
+
+	@Override
+	public boolean jdbcCompliant()
+	{
+		return m_driver.jdbcCompliant();
+	}
+
+
+}

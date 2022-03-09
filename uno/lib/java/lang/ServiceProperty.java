@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,97 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.lang;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import java.util.Map;
+import java.util.Map.Entry;
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+import com.sun.star.beans.Property;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.uno.helper.PropertySet;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+
+
+public abstract class ServiceProperty
+extends PropertySet
+implements XServiceInfo
+{
+	private final String m_name;
+	private final String[] m_services;
+
+	// The constructor method:
+	public ServiceProperty(String name,
+						   String[] services)
+	{
+		super();
+		m_name = name;
+		m_services = services;
+	}
+	public ServiceProperty(String name,
+						   String[] services,
+						   Map<String, Property> properties)
+	{
+		super();
+		m_name = name;
+		m_services = services;
+		for (Entry <String, Property> map : properties.entrySet())
+		{
+			registerProperty(map.getValue(), map.getKey());
+		}
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String getImplementationName()
+	{
+		return ServiceInfo.getImplementationName(m_name);
+	}
+
+	@Override
+	public String[] getSupportedServiceNames()
+	{
+		return ServiceInfo.getSupportedServiceNames(m_services);
+	}
+
+	@Override
+	public boolean supportsService(String service)
+	{
+		return ServiceInfo.supportsService(m_services, service);
+	}
+
+
+	// com.sun.star.lib.uno.helper.PropertySet:
+	@Override
+	public boolean convertPropertyValue(Property property,
+										Object[] newValue,
+										Object[] oldValue,
+										Object value)
+	throws com.sun.star.lang.IllegalArgumentException,
+		   com.sun.star.lang.WrappedTargetException
+	{
+		Object id = getPropertyId(property);
+		return UnoHelper.convertPropertyValue(property, newValue, oldValue, value, this, id);
+	}
+
+	@Override
+	public void setPropertyValueNoBroadcast(Property property,
+											Object value)
+	throws WrappedTargetException
+	{
+		Object id = getPropertyId(property);
+		UnoHelper.setPropertyValueNoBroadcast(property, value, this, id);
+	}
+
+	@Override
+	public Object getPropertyValue(Property property)
+	{
+		Object id = getPropertyId(property);
+		return UnoHelper.getPropertyValue(property, this, id);
+	}
+
+
+}

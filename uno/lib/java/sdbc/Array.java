@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,93 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.sdbc;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import java.util.Arrays;
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.DataType;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+
+public class Array
+extends WeakBase
+implements XArray
+{
+	private Object[] m_Array = null;
+	private String m_Type = null;
+
+	// The constructor method:
+	public Array(java.sql.Array array)
+	throws SQLException
+	{
+		try {
+			m_Array = (Object[]) array.getArray();
+			m_Type = UnoHelper.mapSQLDataType(array.getBaseType(), array.getBaseTypeName());
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
+		
+	}
+	public Array(Object[] array,
+				 String type)
+	{
+		m_Array = array;
+		m_Type = type;
+	}
+
+	@Override
+	public Object[] getArray(XNameAccess arg0)
+	throws SQLException
+	{
+		return m_Array;
+	}
+
+	@Override
+	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+	throws SQLException
+	{
+		return Arrays.copyOfRange(m_Array, index, index + count);
+	}
+
+	@Override
+	public int getBaseType()
+	throws SQLException
+	{
+		try {
+			return UnoHelper.getConstantValue(DataType.class, m_Type);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+	@Override
+	public String getBaseTypeName()
+	throws SQLException
+	{
+		return m_Type;
+	}
+
+	@Override
+	public XResultSet getResultSet(XNameAccess arg0)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+}

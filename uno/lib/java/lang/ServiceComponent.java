@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,49 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.lang;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import com.sun.star.lib.uno.helper.ComponentBase;
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+import com.sun.star.lang.XServiceInfo;
+
+
+public abstract class ServiceComponent
+extends ComponentBase
+implements XServiceInfo
+{
+	private final String m_name;
+	private final String[] m_services;
+
+
+	// The constructor method:
+	public ServiceComponent(String name,
+							String[] services)
+	{
+		m_name = name;
+		m_services = services;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String getImplementationName()
+	{
+		return ServiceInfo.getImplementationName(m_name);
+	}
+
+	@Override
+	public String[] getSupportedServiceNames()
+	{
+		return ServiceInfo.getSupportedServiceNames(m_services);
+	}
+
+	@Override
+	public boolean supportsService(String service)
+	{
+		return ServiceInfo.supportsService(m_services, service);
+	}
+
+
+}

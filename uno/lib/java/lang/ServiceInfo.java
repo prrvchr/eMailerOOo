@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,18 +22,37 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.lang;
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+public final class ServiceInfo
+{
+
+	// com.sun.star.lang.XServiceInfo:
+	public static String getImplementationName(String name)
+	{
+		return name;
+	}
+
+	public static String[] getSupportedServiceNames(String[] services)
+	{
+		return services;
+	}
+
+	public static boolean supportsService(String[] services, String service)
+	{
+		boolean support = false;
+		for (int i = 0; i < services.length; i++)
+		{
+			if (service.equals(services[i]))
+			{
+				support = true;
+				break;
+			}
+		}
+		return support;
+	}
+
+
+}

@@ -47,6 +47,7 @@ from .unotool import createService
 from .unotool import getDateTime
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
+from .unotool import getUrlPresentation
 
 from .dbqueries import getSqlQuery
 
@@ -93,7 +94,8 @@ class DataBase(unohelper.Base):
             self._embedded = False
             time.sleep(0.2)
             print("smtpMailer.DataBase.__init__() 2")
-            url = getResourceLocation(ctx, g_identifier, g_folder)
+            location = getResourceLocation(ctx, g_identifier, g_folder)
+            url = getUrlPresentation(ctx, location)
             self._url = url + '/' + dbname
             if self._embedded:
                 self._path = url + '/' + g_jar

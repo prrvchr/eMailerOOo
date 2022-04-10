@@ -8,15 +8,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.NamedValue;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
+import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
@@ -42,7 +45,8 @@ public class UnoHelper
         }
     }
 
-    public static Object createService(XComponentContext context, String identifier)
+    public static Object createService(XComponentContext context,
+                                       String identifier)
     {
         Object service = null;
         try
@@ -53,6 +57,44 @@ public class UnoHelper
         catch (Exception e) { e.printStackTrace(); }
         return service;
     }
+
+
+    public static XMultiServiceFactory getMultiServiceFactory(XComponentContext context,
+                                                              String service)
+    {
+        return (XMultiServiceFactory) UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
+    }
+
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path)
+        throws com.sun.star.uno.Exception
+    {
+        return getConfiguration(context, path, false, null);
+    }
+
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path,
+                                          final boolean update)
+        throws com.sun.star.uno.Exception
+    {
+        return getConfiguration(context, path, update, null);
+    }
+
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path,
+                                          final boolean update,
+                                          final String language)
+        throws com.sun.star.uno.Exception
+    {
+        final String service = "com.sun.star.configuration.Configuration";
+        final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
+        ArrayList<NamedValue> arguments = new ArrayList<>(Arrays.asList(new NamedValue("nodepath", path)));
+        if (language != null) {
+            arguments.add(new NamedValue("Locale", language));
+        }
+        return provider.createInstanceWithArguments(service + (update ? "UpdateAccess" : "Access"), arguments.toArray());
+    }
+
 
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path)

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE library:library PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "library.dtd">
+<library:library xmlns:library="http://openoffice.org/2000/library" library:name="smtpMailerOOo" library:readonly="false" library:passwordprotected="false">
+  <library:element library:name="LogDialog"/>
+  <library:element library:name="OptionsDialog"/>
+  <library:element library:name="Wizard"/>
+  <library:element library:name="IspdbPage1"/>
+  <library:element library:name="IspdbPage2"/>
+  <library:element library:name="IspdbPage3"/>
+  <library:element library:name="IspdbPage4"/>
+  <library:element library:name="IspdbPages"/>
+  <library:element library:name="IspdbPage5"/>
+  <library:element library:name="SendDialog"/>
+  <library:element library:name="SpoolerDialog"/>
+  <library:element library:name="SpoolerTab1"/>
+  <library:element library:name="SpoolerTab2"/>
+  <library:element library:name="MergerPage1"/>
+  <library:element library:name="MergerPage2"/>
+  <library:element library:name="MergerTab1"/>
+  <library:element library:name="MergerTab2"/>
+  <library:element library:name="SenderDialog"/>
+  <library:element library:name="MailWindow"/>
+  <library:element library:name="GridWindow"/>
+</library:library>

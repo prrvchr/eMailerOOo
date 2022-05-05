@@ -1,0 +1,2 @@
+ERROR: Exception occurred: reading from stdin failed ./desktop/source/deployment/misc/dp_misc.cxx:484
+ERROR: unopkg failed.

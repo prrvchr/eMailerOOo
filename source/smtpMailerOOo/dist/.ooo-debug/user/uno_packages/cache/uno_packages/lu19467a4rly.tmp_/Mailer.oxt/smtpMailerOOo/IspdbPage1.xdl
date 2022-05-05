@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage1" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage1.Title" dlg:withtitlebar="false">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;IspdbPage1.FixedLine1.HelpText" dlg:value="&amp;IspdbPage1.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="120" dlg:height="15" dlg:help-text="&amp;IspdbPage1.Label1.HelpText" dlg:value="&amp;IspdbPage1.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPage1.Label2.HelpText" dlg:value="&amp;IspdbPage1.Label2.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="13" dlg:left="95" dlg:top="25" dlg:width="205" dlg:height="15" dlg:default="true" dlg:help-text="&amp;IspdbPage1.TextField1.HelpText" dlg:value="&amp;IspdbPage1.TextField1.Text">
+      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeEmail" script:language="UNO"/>
+    </dlg:textfield>
+  </dlg:bulletinboard>
+</dlg:window>

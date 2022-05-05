@@ -1,1 +1,0 @@
-Un messager de courriel supportant Mozilla IspDB et OAuth2 pour LibreOffice / OpenOffice.

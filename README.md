@@ -28,7 +28,7 @@
 
 **Ce [document](https://prrvchr.github.io/smtpMailerOOo/README_fr) en français.**
 
-**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/PrivacyPolicy_en)
+**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_en) **and** [**Data Protection Policy**](https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_en)
 
 # version [0.0.2](https://prrvchr.github.io/smtpMailerOOo#historical)
 
@@ -67,18 +67,18 @@ If necessary, rename it before installing it.
 - Install ![OAuth2OOo logo](https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.png) **[OAuth2OOo.oxt](https://github.com/prrvchr/OAuth2OOo/raw/master/OAuth2OOo.oxt)** extension version 0.0.5.  
 You must first install this extension, if it is not already installed.
 
-- Install ![jdbcDriverOOo logo](https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png) **[jdbcDriverOOo.oxt](https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt)** extension version 0.0.4.  
+- Install ![jdbcDriverOOo logo](https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png) **[jdbcDriverOOo.oxt](https://github.com/prrvchr/jdbcDriverOOo/raw/master/source/jdbcDriverOOo/dist/jdbcDriverOOo.oxt)** extension version 0.0.4.  
 This extension is necessary to use HsqlDB version 2.5.1 with all its features.
 
 - If you don't have a datasource, you can install one of the following extensions:
 
-  - ![vCardOOo logo](https://prrvchr.github.io/vCardOOo/img/vCardOOo.png) **[vCardOOo.oxt](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt)** version 0.0.1.  
+  - ![vCardOOo logo](https://prrvchr.github.io/vCardOOo/img/vCardOOo.png) **[vCardOOo.oxt](https://github.com/prrvchr/vCardOOo/raw/main/source/vCardOOo/dist/vCardOOo.oxt)** version 0.0.1.  
   This extension is only necessary if you want to use your contacts present on a [**Nextcloud**](https://en.wikipedia.org/wiki/Nextcloud) platform as a data source for mailing lists and document merging.
 
   - ![gContactOOo logo](https://prrvchr.github.io/gContactOOo/img/gContactOOo.png) **[gContactOOo.oxt](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt)** version 0.0.6.  
   This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 
-- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt)** extension version 0.0.2.  
+- Install ![smtpMailerOOo logo](img/smtpMailerOOo.png) **[smtpMailerOOo.oxt](https://github.com/prrvchr/smtpMailerOOo/raw/master/source/smtpMailerOOo/dist/smtpMailerOOo.oxt)** extension version 0.0.2.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -94,7 +94,7 @@ To be able to use the email merge feature using mailing lists, it is necessary t
 In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 
 If you do not have such a data source then I invite you to install one of the following extensions:
-- [vCardOOo](https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt) extension.  
+- [vCardOOo](https://github.com/prrvchr/vCardOOo/raw/main/source/vCardOOo/dist/vCardOOo.oxt) extension.  
 This extension will allow you to use your contacts present on a [**Nextcloud**](https://en.wikipedia.org/wiki/Nextcloud) platform as a data source.
 - [gContactOOo](https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt) extension.  
 This extension will allow you to use your Android phone (your phone contacts) as a datasource.
@@ -256,21 +256,21 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What has been done for version 0.0.1:
 
-- Writing an [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or SMTP servers connection configuration wizard allowing:
+- Writing an [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or SMTP servers connection configuration wizard allowing:
     - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database](https://wiki.mozilla.org/Thunderbird/ISPDB) or IspDB, which made this challenge possible...
     - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
 
-- Writing an email [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/spooler) allowing:
+- Writing an email [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/spooler) allowing:
     - View the email sending jobs with their respective status.
     - Display the activity of the UNO service `com.sun.star.mail.SpoolerService` when sending emails.
     - Start and stop the spooler service.
 
-- Writing an email [Merger](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/merger) allowing:
+- Writing an email [Merger](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/merger) allowing:
     - To create mailing lists.
     - To merge and convert the current document to HTML format to make it the email message.
     - To merge and/or convert in PDF format any possible files attached to the email. 
 
-- Writing a document [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailer) allowing:
+- Writing a document [Mailer](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/mailer) allowing:
     - To convert the document to HTML format to make it the email message.
     - To convert in PDF format any possible files attached to the email.
 
@@ -283,13 +283,13 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ### What has been done for version 0.0.2:
 
-- Rewrite of [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
+- Rewrite of [IspDB](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/ispdb) or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
   - Use of [IMAPClient](https://github.com/mjs/imapclient#readme) version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
-  - Extension of [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/rdb/idl/com/sun/star/mail) IDL files:
-    - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
-    - The new [XImapService.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/rdb/idl/com/sun/star/mail/XImapService.idl) interface allows access to part of the IMAPClient library.
+  - Extension of [com.sun.star.mail.*](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/idl/com/sun/star/mail) IDL files:
+    - [XMailMessage2.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl) now supports email threading.
+    - The new [XImapService.idl](https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl) interface allows access to part of the IMAPClient library.
 
-- Rewriting of the [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
+- Rewriting of the [Spooler](https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py) in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
 
 - Submitting the smtpMailerOOo extension to Google and obtaining permission to use its GMail API to send emails with a Google account.
 

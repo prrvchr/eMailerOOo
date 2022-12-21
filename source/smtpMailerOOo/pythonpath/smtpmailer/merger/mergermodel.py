@@ -340,13 +340,14 @@ class MergerModel(MailModel):
         return tables.hasElements()
 
     def _getQueryTables(self, queries):
-        tables = {}
+        querytable = {}
         for query in queries:
             subquery = self._getSubQueryName(query)
             self._composer.setCommand(subquery, QUERY)
-            table = self._composer.getTables().getByIndex(0).Name
-            tables[query] = table
-        return tables
+            tables = self._composer.getTables()
+            if tables.hasElements():
+                querytable[query] = tables.getElementNames()[0]
+        return querytable
 
     # AddressBook Table methods
     def setAddressBookTable(self, table):
@@ -390,9 +391,12 @@ class MergerModel(MailModel):
         composer.setQuery(command)
 
     def _addSubQuery(self, name, table):
-        command = getSqlQuery(self._ctx, 'getQueryCommand', table)
+        command = getSqlQuery(self._ctx, 'getQueryCommand', self._getQuotedTableName(table))
         query = self._createQuery(name, command)
         self._addQueries(name, query)
+
+    def _getQuotedTableName(self, table):
+        return self._datasource.DataBase.getQuotedTableName(table)
 
     def _addQuery(self, name, command):
         query = self._createQuery(name, command)
@@ -638,16 +642,13 @@ class MergerModel(MailModel):
     def _executeRowSet(self, *rowsets):
         for rowset in rowsets:
             rowset.execute()
-            print("MergerModel._executeRowSet() RowCount: %s" % rowset.RowCount)
 
     def _executeResultSet(self):
         self._recipient.execute()
-        print("MergerModel._executeResultSet() 1 RowCount: %s" % self._recipient.RowCount)
         rowset = self._getRowSet(TABLE)
         rowset.ActiveConnection = self.Connection
         rowset.Command = self._table
         rowset.execute()
-        print("MergerModel._executeResultSet() 2 RowCount: %s" % rowset.RowCount)
         self._resultset = rowset.createResultSet()
 
     def _isPage2Loaded(self):
@@ -721,7 +722,6 @@ class MergerModel(MailModel):
 
     def _executeAddress(self):
         self._address.execute()
-        print("MergerModel._executeAddress() RowCount: %s" % self._address.RowCount)
 
     def _addItem(self, rows):
         self._updateItem(self._address, rows, True)
@@ -736,7 +736,6 @@ class MergerModel(MailModel):
         self._addressbook.DatabaseDocument.store()
         self._setRowSetFilter(self._recipient, self._composer)
         self._recipient.execute()
-        print("MergerModel._updateItem() %s\n%s\n%s" % (self._recipient.RowCount, self._recipient.Command, self._subcomposer.getQuery()))
 
     def _getFilters(self, rowset, rows, add):
         identifier = self.getIdentifier()
@@ -839,7 +838,8 @@ class MergerModel(MailModel):
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
         identifier = self.getIdentifier()
         filter = self._composer.getFilter()
-        format = (columns, identifier, self._table, filter)
+        table = self._getQuotedTableName(self._table)
+        format = (columns, identifier, table, filter)
         query = getSqlQuery(self._ctx, 'getRecipientQuery', format)
         result = self._statement.executeQuery(query)
         recipients = getObjectSequenceFromResult(result)
@@ -855,7 +855,8 @@ class MergerModel(MailModel):
                 self._setDocumentRecord(document, bookmark)
 
     def _getBookmark(self, index):
-        format = (self.getBookmark(), self._table, self.getIdentifier())
+        table = self._getQuotedTableName(self._table)
+        format = (self.getBookmark(), table, self.getIdentifier())
         bookmark = self._datasource.DataBase.getBookmark(self.Connection, format, index)
         return bookmark
 

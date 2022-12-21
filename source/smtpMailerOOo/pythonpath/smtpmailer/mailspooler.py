@@ -448,11 +448,11 @@ class Mailer(unohelper.Base):
             rowset = self._getRowSet(connection)
             rowset.execute()
             descriptor = {'ActiveConnection': connection,
-                        'DataSourceName': self.DataSource,
-                        'Command': self.Table,
-                        'CommandType': TABLE,
-                        'BookmarkSelection': False,
-                        'Cursor': rowset.createResultSet()}
+                          'DataSourceName': self.DataSource,
+                          'Command': self.Table,
+                          'CommandType': TABLE,
+                          'BookmarkSelection': False,
+                          'Cursor': rowset.createResultSet()}
         return descriptor
 
     def _getDataSourceConnection(self, datasource):
@@ -481,7 +481,8 @@ class Mailer(unohelper.Base):
 
     def _getUrlDescriptor(self, index):
         connection = self._descriptor['ActiveConnection']
-        format = (self.Bookmark, self.Table, self.Identifier)
+        table = self._database.getQuotedTableName(self.Table)
+        format = (self.Bookmark, table, self.Identifier)
         bookmark = self._database.getBookmark(connection, format, index)
         self._descriptor['Selection'] = (bookmark, )
         descriptor = getPropertyValueSet(self._descriptor)

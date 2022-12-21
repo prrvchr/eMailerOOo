@@ -185,7 +185,6 @@ class MergerView(unohelper.Base):
         initialized = control.Model.ItemCount > 0
         if initialized:
             query = control.Model.getItemText(0)
-        print("MergerView.initQuery() *************************")
         control.Text = query
         return not initialized
 

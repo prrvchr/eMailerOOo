@@ -138,6 +138,9 @@ class DataBase(unohelper.Base):
         return connection
 
 # Procedures called by the DataSource
+    def getQuotedTableName(self, table):
+        return table.replace('.', '"."')
+
     def getDataSource(self):
         return self.Connection.getParent()
 

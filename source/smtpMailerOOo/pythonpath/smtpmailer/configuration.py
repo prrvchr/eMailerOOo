@@ -44,5 +44,4 @@ g_resource = 'resource'
 g_dns = ('1.1.1.1', 53)
 # Thread Logo
 g_logo = 'smtpMailerOOo.png'
-g_giturl = 'https://prrvchr.github.io'
-g_logourl = '%s/%s/%s/%s/%s' %(g_giturl, g_extension, g_extension, g_extension, g_logo)
+g_logourl = 'https://prrvchr.github.io/%s/img/%s' %(g_extension, g_logo)

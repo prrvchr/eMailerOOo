@@ -36,6 +36,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
 
+from com.sun.star.sdb.CommandType import QUERY
 from com.sun.star.sdb.CommandType import TABLE
 
 from com.sun.star.uno import Exception as UnoException
@@ -328,6 +329,7 @@ class Mailer(unohelper.Base):
         self._url = None
         self._urls = ()
         self._thread = None
+        self._rowset = None
 
     @property
     def Merge(self):
@@ -366,12 +368,12 @@ class Mailer(unohelper.Base):
             self._dispose()
         return new
 
-    def setBatch(self, batch, metadata, attachments, job, index):
+    def setBatch(self, batch, metadata, attachments, job, identifier):
         self._batch = batch
         self._metadata = metadata
         self._checkUrl(self.Document, job, 161)
-        self._descriptor = self._getDescriptor()
-        self._urls, self._url = self._getUrls(attachments, job, index)
+        self._rowset, self._descriptor = self._getDescriptors()
+        self._urls, self._url = self._getUrls(attachments, job, identifier)
 
     def needThreadId(self):
         return self.ThreadId is None and self.Merge and self._hasImapConfig()
@@ -384,8 +386,8 @@ class Mailer(unohelper.Base):
         if self._batch is not None:
             self._dispose()
 
-    def merge(self, index):
-        descriptor = self._getUrlDescriptor(index)
+    def merge(self, identifier):
+        descriptor = self._getFilteredDescriptor(identifier)
         self._url.merge(descriptor)
 
     def getBodyUrl(self):
@@ -400,12 +402,12 @@ class Mailer(unohelper.Base):
             urls.append(tag % (url.Url, url.Name))
         return separator.join(urls)
 
-    def addAttachments(self, mail, index):
+    def addAttachments(self, mail, identifier):
         if self._hasThreadId():
             mail.ThreadId = self.ThreadId
         for url in self._urls:
             if self.Merge and url.Merge:
-                descriptor = self._getUrlDescriptor(index)
+                descriptor = self._getFilteredDescriptor(identifier)
                 url.merge(descriptor)
             mail.addAttachment(self._getAttachment(url))
 
@@ -439,21 +441,21 @@ class Mailer(unohelper.Base):
         attachment.ReadableName = url.Name
         return attachment
 
-    def _getDescriptor(self):
+    def _getDescriptors(self):
+        rowset = None
         descriptor = None
         if self.Merge:
             service = 'com.sun.star.sdb.DatabaseContext'
             datasource = createService(self._ctx, service).getByName(self.DataSource)
             connection = self._getDataSourceConnection(datasource)
             rowset = self._getRowSet(connection)
-            rowset.execute()
-            descriptor = {'ActiveConnection': connection,
-                          'DataSourceName': self.DataSource,
+            descriptor = {'DataSourceName': self.DataSource,
+                          'ActiveConnection': connection,
                           'Command': self.Table,
                           'CommandType': TABLE,
                           'BookmarkSelection': False,
-                          'Cursor': rowset.createResultSet()}
-        return descriptor
+                          'Selection': (1, )}
+        return rowset, descriptor
 
     def _getDataSourceConnection(self, datasource):
         if datasource.IsPasswordRequired:
@@ -467,24 +469,26 @@ class Mailer(unohelper.Base):
         service = 'com.sun.star.sdb.RowSet'
         rowset = createService(self._ctx, service)
         rowset.ActiveConnection = connection
+        rowset.DataSourceName = self.DataSource
         rowset.CommandType = TABLE
         rowset.FetchSize = g_fetchsize
         rowset.Command = self.Table
+        rowset.ApplyFilter = True
         return rowset
 
-    def _getUrls(self, attachments, job, index):
-        descriptor = self._getUrlDescriptor(index) if self.Merge else None
+    def _getUrls(self, attachments, job, identifier):
+        descriptor = self._getFilteredDescriptor(identifier) if self.Merge else None
         uri = self._uf.parse(self.Document)
         url = MailUrl(self._ctx, uri, self.Merge, 'html', descriptor)
         urls = self._getMailUrl(attachments, job)
         return urls, url
 
-    def _getUrlDescriptor(self, index):
-        connection = self._descriptor['ActiveConnection']
-        table = self._database.getQuotedTableName(self.Table)
-        format = (self.Bookmark, table, self.Identifier)
-        bookmark = self._database.getBookmark(connection, format, index)
-        self._descriptor['Selection'] = (bookmark, )
+    def _getFilteredDescriptor(self, identifier):
+        filter = '"%s" = ' % self.Identifier
+        filter += "'%s'" % identifier
+        self._rowset.Filter = filter
+        self._rowset.execute()
+        self._descriptor['Cursor'] = self._rowset.createResultSet()
         descriptor = getPropertyValueSet(self._descriptor)
         return descriptor
 

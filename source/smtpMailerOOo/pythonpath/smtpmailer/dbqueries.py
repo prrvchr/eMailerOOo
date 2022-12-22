@@ -245,6 +245,9 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getBookmark':
         query = 'SELECT "%s" FROM "%s" WHERE "%s" = ?;' % format
 
+    elif name == 'getBookmark1':
+        query = 'SELECT ROWNUM() FROM "%s" WHERE "%s" = ?;' % format
+
     elif name == 'getJobState':
         query = 'SELECT "State" FROM "Recipients" WHERE "JobId" = ?;'
 

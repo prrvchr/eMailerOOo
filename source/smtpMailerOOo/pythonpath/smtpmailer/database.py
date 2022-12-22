@@ -378,7 +378,19 @@ class DataBase(unohelper.Base):
 
     def getBookmark(self, connection, format, identifier):
         bookmark = None
+        print("DataBase.getBookmark() Format: %s" % (format, ))
         call = self._getDataBaseCall(connection, 'getBookmark', format)
+        call.setString(1, identifier)
+        result = call.executeQuery()
+        if result.next():
+            bookmark = getResultValue(result)
+        call.close()
+        return bookmark
+
+    def getBookmark1(self, connection, format, identifier):
+        bookmark = None
+        print("DataBase.getBookmark1() Format: %s" % (format, ))
+        call = self._getDataBaseCall(connection, 'getBookmark1', format)
         call.setString(1, identifier)
         result = call.executeQuery()
         if result.next():

@@ -1,8 +1,10 @@
-# ![smtpMailerOOo logo](https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png) smtpMailerOOo - Politique de protection des données
+# ![smtpMailerOOo logo][1] smtpMailerOOo - Politique de protection des données
 
-**L'utilisation de ce logiciel vous soumet également à nos [Conditions d'utilisation](https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo/registration/TermsOfUse_fr).**
+**This [document][2] in english.**
 
-Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation](https://prrvchr.github.io/smtpMailerOOo/README_fr).
+**L'utilisation de ce logiciel vous soumet également à nos [Conditions d'utilisation][3].**
+
+Concernant l'installation, la configuration et l'utilisation, veuillez consulter la **[documentation][4]**.
 
 ## Introduction:
 
@@ -56,3 +58,8 @@ Il est de la responsabilité de l'`Utilisateur` de désinstaller `smtpMailerOOo`
 L'utilisation des services du `Fournisseur` via `smtpMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 
 Le `Fournisseur` est seul responsable de l'expiration des données qu'il collecte comme décrit dans sa politique de protection des données.
+
+[1]: <https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png>
+[2]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
+[3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_en>
+[4]: <https://prrvchr.github.io/smtpMailerOOo/README_fr>

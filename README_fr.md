@@ -1,4 +1,4 @@
-# ![smtpMailerOOo logo](img/smtpMailerOOo.png) smtpMailerOOo
+# ![smtpMailerOOo logo][1] smtpMailerOOo
 
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -26,11 +26,11 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 
-**This [document](https://prrvchr.github.io/smtpMailerOOo) in English.**
+**This [document][2] in english.**
 
-**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr) **et à notre** [**Politique de protection des données**](https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr)
+**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**][3] **et à notre** [**Politique de protection des données**][4]
 
-# version [0.0.2](https://prrvchr.github.io/smtpMailerOOo/README_fr#historique)
+# version [0.0.2][5]
 
 ## Introduction:
 
@@ -298,3 +298,9 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 - Ajouter de nouvelles langues pour l’internationalisation...
 
 - Tout ce qui est bienvenu...
+
+[1]: <https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png>
+[2]: <https://prrvchr.github.io/smtpMailerOOo>
+[3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr>
+[4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
+[5]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#historique>

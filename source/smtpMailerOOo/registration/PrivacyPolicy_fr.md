@@ -60,6 +60,6 @@ L'utilisation des services du `Fournisseur` via `smtpMailerOOo` peut vous soumet
 Le `Fournisseur` est seul responsable de l'expiration des données qu'il collecte comme décrit dans sa politique de protection des données.
 
 [1]: <https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png>
-[2]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
-[3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_en>
+[2]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_en>
+[3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr>
 [4]: <https://prrvchr.github.io/smtpMailerOOo/README_fr>

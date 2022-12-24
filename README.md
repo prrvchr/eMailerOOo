@@ -304,4 +304,4 @@ When the email spooler is started, its activity can be viewed in the activity lo
 [2]: <https://prrvchr.github.io/smtpMailerOOo/README_fr>
 [3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_en>
 [4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_en>
-[5]: <https://prrvchr.github.io/smtpMailerOOo#historical>
+[5]: <https://prrvchr.github.io/smtpMailerOOo/#historical>

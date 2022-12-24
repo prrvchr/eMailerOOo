@@ -300,7 +300,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 - Tout ce qui est bienvenu...
 
 [1]: <https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png>
-[2]: <https://prrvchr.github.io/smtpMailerOOo>
+[2]: <https://prrvchr.github.io/smtpMailerOOo/>
 [3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr>
 [4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
 [5]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#historique>

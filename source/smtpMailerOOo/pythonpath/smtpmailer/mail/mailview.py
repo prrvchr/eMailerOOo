@@ -202,6 +202,7 @@ class MailView(unohelper.Base):
 
     def removeAttachments(self):
         self._getRemoveAttachments().Model.Enabled = False
+        self._getViewPdf().Model.Enabled = False
         control = self._getAttachments()
         for position in reversed(control.getSelectedItemsPos()):
             control.removeItems(position, 1)

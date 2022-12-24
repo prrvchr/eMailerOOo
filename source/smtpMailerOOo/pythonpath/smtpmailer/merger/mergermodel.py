@@ -833,6 +833,11 @@ class MergerModel(MailModel):
     def setUrl(self, url):
         pass
 
+    def getMergerRecipient(self):
+        recipients = self.getRecipients()
+        message = self._getRecipientMessage(len(recipients))
+        return recipients, message
+
     def getRecipients(self):
         emails = self.getEmails()
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
@@ -845,11 +850,11 @@ class MergerModel(MailModel):
         recipients = getObjectSequenceFromResult(result)
         return recipients
 
-    def getTotal(self, total):
-        return self._getRecipientMessage(total)
+    def hasMergeMark(self, url):
+        return url.endswith('#merge&pdf') or url.endswith('#merge')
 
-    def mergeDocument(self, document, url, index):
-        if self._hasMergeMark(url) and self._resultset is not None:
+    def mergeDocument(self, document, index):
+        if self._resultset is not None:
             bookmark = self._getBookmark(index)
             if bookmark is not None:
                 self._setDocumentRecord(document, bookmark)
@@ -860,15 +865,12 @@ class MergerModel(MailModel):
         bookmark = self._datasource.DataBase.getBookmark(self.Connection, format, index)
         return bookmark
 
-    def _hasMergeMark(self, url):
-        return url.endswith('#merge&pdf') or url.endswith('#merge')
-
 # Private procedures called by WizardPage3
     def _initPage3(self, handler, initView, initRecipient):
         self._recipient.addRowSetListener(handler)
         initView(self._document)
         recipients = self.getRecipients()
-        message = self.getTotal(len(recipients))
+        message = self._getRecipientMessage(len(recipients))
         initRecipient(recipients, message)
 
     def _getDocumentName(self):

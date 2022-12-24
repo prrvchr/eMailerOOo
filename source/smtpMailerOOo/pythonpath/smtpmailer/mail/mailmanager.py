@@ -130,7 +130,10 @@ class MailManager(unohelper.Base):
             self._updateUI()
 
     def viewHtml(self):
+        index = self._view.getCurrentRecipient()
         document = self._model.getDocument()
+        if index is not None:
+            self._model.mergeDocument(document, index)
         url = self._model.saveDocumentAs(document, 'html')
         self._closeDocument(document)
         if url is not None:
@@ -140,8 +143,8 @@ class MailManager(unohelper.Base):
         index = self._view.getCurrentRecipient()
         attachment = self._view.getSelectedAttachment()
         document = self._model.getDocument(attachment)
-        if index is not  None:
-            self._model.mergeDocument(document, attachment, index)
+        if index is not None and self._model.hasMergeMark(attachment):
+            self._model.mergeDocument(document, index)
         url = self._model.saveDocumentAs(document, 'pdf')
         self._closeDocument(document)
         if url is not None:

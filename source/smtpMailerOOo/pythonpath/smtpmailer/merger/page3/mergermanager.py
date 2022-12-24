@@ -91,8 +91,7 @@ class MergerManager(MailManager,
         self._updateUI()
 
     def changeRecipient(self):
-        recipients = self._model.getRecipients()
-        message = self._model.getTotal(len(recipients))
+        recipients, message = self._model.getMergerRecipient()
         print("MergerManager.changeRecipient()")
         self._view.setMergerRecipient(recipients, message)
         self._updateUI()

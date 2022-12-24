@@ -95,7 +95,7 @@ class MailModel(unohelper.Base):
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
-    def mergeDocument(self, document, url, index):
+    def mergeDocument(self, document, index):
         raise NotImplementedError('Need to be implemented!')
 
 # MailModel setter methods
@@ -107,9 +107,6 @@ class MailModel(unohelper.Base):
 
     def setDocumentSubject(self, document, subject):
         document.DocumentProperties.Subject = subject
-
-    def mergeDocument(self, document, index):
-        pass
 
 # MailModel StringRessoure methods
     def getFilePickerTitle(self):

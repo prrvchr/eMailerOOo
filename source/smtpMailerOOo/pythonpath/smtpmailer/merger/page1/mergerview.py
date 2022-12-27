@@ -106,13 +106,6 @@ class MergerView(unohelper.Base):
     def hasIdentifier(self):
         return self._getIdentifier().getItemCount() > 0
 
-    # Bookmark getter method
-    def getBookmark(self):
-        return self._getBookmark().getItem(0)
-
-    def hasBookmark(self):
-        return self._getBookmark().getItemCount() > 0
-
 # MergerView setter methods
     def setPageStep(self, step):
         self._window.Model.Step = step
@@ -134,8 +127,6 @@ class MergerView(unohelper.Base):
         self._getAfter().Model.Enabled = enabled
         self._getAddIdentifier().Model.Enabled = enabled
         self._getRemoveIdentifier().Model.Enabled = enabled
-        self._getAddBookmark().Model.Enabled = enabled
-        self._getRemoveBookmark().Model.Enabled = enabled
 
     def updateProgress(self, value, message):
         if not self.isDisposed():
@@ -263,30 +254,6 @@ class MergerView(unohelper.Base):
     def enableRemoveIdentifier(self, enabled):
         self._getRemoveIdentifier().Model.Enabled = enabled
 
-    # Bookmark column methods
-    def setBookmark(self, bookmark, exist):
-        bookmarks = () if bookmark is None else (bookmark, )
-        add = bookmark is None if exist else False
-        remove = bookmark is not None if exist else False
-        self._getBookmark().Model.StringItemList = bookmarks
-        self.enableAddBookmark(add)
-        self.enableRemoveBookmark(remove)
-
-    def addBookmark(self, bookmark):
-        self._getBookmark().Model.insertItemText(0, bookmark)
-        self.enableRemoveBookmark(True)
-
-    def removeBookmark(self, enabled):
-        self._getBookmark().Model.removeItem(0)
-        self.enableAddBookmark(enabled)
-
-    def enableAddBookmark(self, enabled):
-        enabled = not self.hasBookmark() if enabled else False
-        self._getAddBookmark().Model.Enabled = enabled
-
-    def enableRemoveBookmark(self, enabled):
-        self._getRemoveBookmark().Model.Enabled = enabled
-
 # MergerView private setter methods
     def _enableBox(self, enabled):
         control = self._getQuery()
@@ -298,8 +265,6 @@ class MergerView(unohelper.Base):
         control = self._getEmail()
         self._enableListBox(control, enabled)
         control = self._getIdentifier()
-        self._enableListBox(control, enabled)
-        control = self._getBookmark()
         self._enableListBox(control, enabled)
 
     def _enableComboBox(self, control, enabled):
@@ -327,9 +292,6 @@ class MergerView(unohelper.Base):
 
     def _getIdentifier(self):
         return self._window.getControl('ListBox5')
-
-    def _getBookmark(self):
-        return self._window.getControl('ListBox6')
 
     def _getQuery(self):
         return self._window.getControl('ComboBox1')
@@ -363,12 +325,6 @@ class MergerView(unohelper.Base):
 
     def _getRemoveIdentifier(self):
         return self._window.getControl('CommandButton9')
-
-    def _getAddBookmark(self):
-        return self._window.getControl('CommandButton10')
-
-    def _getRemoveBookmark(self):
-        return self._window.getControl('CommandButton11')
 
     def _getProgressMessage(self):
         return self._window.getControl('Label6')

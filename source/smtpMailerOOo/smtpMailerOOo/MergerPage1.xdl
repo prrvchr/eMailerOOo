@@ -94,13 +94,5 @@
     <dlg:button dlg:id="CommandButton9" dlg:tab-index="33" dlg:page="3" dlg:disabled="true" dlg:left="266" dlg:top="150" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton9.HelpText" dlg:value="&amp;MergerPage1.CommandButton9.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveIdentifier" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:id="Label16" dlg:tab-index="34" dlg:page="3" dlg:left="155" dlg:top="165" dlg:width="124" dlg:height="14" dlg:help-text="&amp;MergerPage1.Label16.HelpText" dlg:value="&amp;MergerPage1.Label16.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox6" dlg:tab-index="35" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="180" dlg:width="90" dlg:height="14" dlg:help-text="&amp;MergerPage1.ListBox6.HelpText" dlg:value="&amp;MergerPage1.ListBox6.Text"/>
-    <dlg:button dlg:id="CommandButton10" dlg:tab-index="36" dlg:page="3" dlg:disabled="true" dlg:left="250" dlg:top="180" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton10.HelpText" dlg:value="&amp;MergerPage1.CommandButton10.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddBookmark" script:language="UNO"/>
-    </dlg:button>
-    <dlg:button dlg:id="CommandButton11" dlg:tab-index="37" dlg:page="3" dlg:disabled="true" dlg:left="266" dlg:top="180" dlg:width="14" dlg:height="14" dlg:help-text="&amp;MergerPage1.CommandButton11.HelpText" dlg:value="&amp;MergerPage1.CommandButton11.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveBookmark" script:language="UNO"/>
-    </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>

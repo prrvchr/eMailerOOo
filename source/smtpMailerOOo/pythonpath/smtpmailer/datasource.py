@@ -40,6 +40,10 @@ from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.sdbc.DataType import CHAR
+from com.sun.star.sdbc.DataType import VARCHAR
+from com.sun.star.sdbc.DataType import LONGVARCHAR
+
 from .database import DataBase
 
 from .dbtool import Array
@@ -67,6 +71,7 @@ class DataSource(unohelper.Base,
         print("DataSource.__init__() 1")
         self._ctx = ctx
         self._dbname = 'SmtpMailer'
+        self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
         if not self._isInitialized():
             print("DataSource.__init__() 2")
             DataSource._init = Thread(target=self._initDataBase)
@@ -122,6 +127,13 @@ class DataSource(unohelper.Base,
     def removeSender(self, sender):
         return self.DataBase.deleteUser(sender)
 
+# Procedures called by the Merger
+    def getFilterValue(self, value, dbtype):
+        return "'%s'" % value if dbtype in self._dbtypes else "%s" % value
+
+    def getFilter(self, identifier, value, dbtype):
+        return '"%s" = %s' % (identifier, self.getFilterValue(value, dbtype))
+
 # Procedures called by the SpoolerService
     def insertJob(self, sender, subject, document, recipient, attachment):
         recipients = Array('VARCHAR', recipient)
@@ -129,11 +141,11 @@ class DataSource(unohelper.Base,
         id = self.DataBase.insertJob(sender, subject, document, recipients, attachments)
         return id
 
-    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipient, index, attachment):
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, recipient, filter, attachment):
         recipients = Array('VARCHAR', recipient)
-        indexes = Array('VARCHAR', index)
+        filters = Array('VARCHAR', filter)
         attachments = Array('VARCHAR', attachment)
-        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments)
+        id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
         return id
 
     def deleteJob(self, job):

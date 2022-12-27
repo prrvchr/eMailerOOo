@@ -95,8 +95,8 @@ class SpoolerService(unohelper.Base,
     def addJob(self, sender, subject, document, recipients, attachments):
         return self._datasource.insertJob(sender, subject, document, recipients, attachments)
 
-    def addMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipients, identifiers, attachments):
-        return self._datasource.insertMergeJob(sender, subject, document, datasource, query, table, identifier, bookmark, recipients, identifiers, attachments)
+    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
+        return self._datasource.insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
 
     def removeJobs(self, jobids):
         return self._datasource.deleteJob(jobids)

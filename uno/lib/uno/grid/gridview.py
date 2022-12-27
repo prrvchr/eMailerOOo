@@ -153,6 +153,8 @@ class GridView(unohelper.Base):
         model.GridDataModel = data
         #model.ColumnModel = column
         model.SelectionModel = MULTI
+        model.HScroll = True
+        model.VScroll = True
         model.ShowColumnHeader = False
         model.BackgroundColor = 16777215
         return model

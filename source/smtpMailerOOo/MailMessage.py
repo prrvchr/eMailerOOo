@@ -246,7 +246,7 @@ class MailMessage(unohelper.Base,
             msg['Cc'] = COMMASPACE.join(self.getCcRecipients())
         if self.ReplyToAddress != '':
             msg['Reply-To'] = self.ReplyToAddress
-        xmailer = "LibreOffice / OpenOffice via smtpMailerOOo extention"
+        xmailer = "LibreOffice / OpenOffice via smtpMailerOOo extension"
         try:
             configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')

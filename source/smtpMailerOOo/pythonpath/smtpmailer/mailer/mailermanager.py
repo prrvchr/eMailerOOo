@@ -61,8 +61,7 @@ class MailerManager(MailManager):
         try:
             subject, attachments = self._getSavedDocumentProperty()
             print("MailerManager.sendDocument() *************************** %s - %s" % (subject, attachments))
-            sender = self._view.getSender()
-            recipients = self._view.getRecipients()
+            sender, recipients = self._view.getEmail()
             url = self._model.getUrl()
             service = 'com.sun.star.mail.SpoolerService'
             spooler = createService(self._ctx, service)

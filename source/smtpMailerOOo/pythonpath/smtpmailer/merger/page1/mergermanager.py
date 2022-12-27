@@ -101,9 +101,7 @@ class MergerManager(unohelper.Base,
             print(msg)
 
     def canAdvance(self):
-        return all((self._view.hasEmail(),
-                    self._view.hasIdentifier(),
-                    self._view.hasBookmark()))
+        return self._view.hasEmail() and self._view.hasIdentifier()
 
 # MergerManager setter methods
     # AddressBook setter methods
@@ -168,7 +166,6 @@ class MergerManager(unohelper.Base,
         emails = self._view.getEmails()
         self._view.updateAddEmail(emails, enabled)
         self._view.enableAddIdentifier(enabled)
-        self._view.enableAddBookmark(enabled)
 
     # Query setter methods
     def editQuery(self, query, table):
@@ -182,16 +179,13 @@ class MergerManager(unohelper.Base,
                 self._view.setTable(table)
             enabled = False
             identifier = self._model.getIdentifier()
-            bookmark = self._model.getBookmark()
             emails = self._model.getEmails()
         else:
             enabled = self._model.isQueryValid(query)
             identifier = None
-            bookmark = None
             emails = ()
         self._view.enableAddQuery(enabled)
         self._view.enableRemoveQuery(exist)
-        self._view.setBookmark(bookmark, exist)
         self._view.setIdentifier(identifier, exist)
         self._view.setEmail(emails)
         self._view.updateAddEmail(emails, exist)
@@ -289,26 +283,6 @@ class MergerManager(unohelper.Base,
         self._model.removeIdentifier(query, identifier)
         enabled = self._canAddColumn()
         self._view.removeIdentifier(enabled)
-        self._wizard.updateTravelUI()
-
-    # Bookmark column setter methods
-    def addBookmark(self):
-        self._view.enableAddBookmark(False)
-        self._view.enableRemoveBookmark(False)
-        query = self._view.getQuery()
-        bookmark = self._view.getColumn()
-        self._model.addBookmark(query, bookmark)
-        self._view.addBookmark(bookmark)
-        self._wizard.updateTravelUI()
-
-    def removeBookmark(self):
-        self._view.enableAddBookmark(False)
-        self._view.enableRemoveBookmark(False)
-        query = self._view.getQuery()
-        bookmark = self._view.getBookmark()
-        self._model.removeBookmark(query, bookmark)
-        enabled = self._canAddColumn()
-        self._view.removeBookmark(enabled)
         self._wizard.updateTravelUI()
 
     def _canAddColumn(self):

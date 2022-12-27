@@ -432,10 +432,6 @@ class MergerModel(MailModel):
         if identifier is not None:
             filter = self._getIdentifierFilter(identifier)
             f.append(filter)
-        bookmark = self.getBookmark()
-        if bookmark is not None:
-            filter = self._getBookmarkFilter(bookmark)
-            f.append(filter)
         filters = tuple(f)
         return (filters, )
 
@@ -513,9 +509,7 @@ class MergerModel(MailModel):
     # Identifier methods
     def getIdentifier(self):
         filters = self._composer.getStructuredFilter()
-        operator = self._getIdentifierOperator()
-        identifier = self._getFiltersName(filters, operator)
-        return identifier
+        return self._getFirstFilterName(filters)
 
     def addIdentifier(self, query, identifier):
         filter = self._getIdentifierFilter(identifier)
@@ -526,44 +520,16 @@ class MergerModel(MailModel):
         self._setFilter(query, filter, False)
 
     def _getIdentifierFilter(self, identifier):
-        operator = self._getIdentifierOperator()
-        filter = getPropertyValue(identifier, 'IS NULL', 0, operator)
+        filter = getPropertyValue(identifier, 'IS NULL', 0, SQLNULL)
         return filter
 
-    def _getIdentifierOperator(self):
-        return SQLNULL
-
-    # Bookmark methods
-    def getBookmark(self):
-        filters = self._composer.getStructuredFilter()
-        operator = self._getBookmarkOperator()
-        bookmark = self._getFiltersName(filters, operator)
-        return bookmark
-
-    def addBookmark(self, query, bookmark):
-        filter = self._getBookmarkFilter(bookmark)
-        self._setFilter(query, filter)
-
-    def removeBookmark(self, query, bookmark):
-        filter = self._getBookmarkFilter(bookmark)
-        self._setFilter(query, filter, False)
-
-    def _getBookmarkFilter(self, bookmark):
-        operator = self._getBookmarkOperator()
-        filter = getPropertyValue(bookmark, '0', 0, operator)
-        return filter
-
-    def _getBookmarkOperator(self):
-        return EQUAL
-
-    # Index and Bookmark private shared methods
-    def _getFiltersName(self, filters, operator):
+    # Index private shared methods
+    def _getFirstFilterName(self, filters):
         name = None
         if len(filters) > 0:
-            for filter in filters[0]:
-                if filter.Handle == operator:
-                    name = filter.Name
-                    break
+            filter = filters[0]
+            if len(filter):
+                name = filter[0].Name
         return name
 
     def _setFilter(self, query, filter, add=True):
@@ -750,26 +716,26 @@ class MergerModel(MailModel):
     def _getFilters(self, identifiers, add):
         filters = self._getComposerFilter(self._composer)
         identifier = self.getIdentifier()
+        dbtype = self._grid2.getIdentifierDataType()
         for value in identifiers:
-            self._updateFilters(filters, identifier, value, add)
+            self._updateFilters(filters, identifier, value, dbtype, add)
         return tuple(filters)
 
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
         return list(filters)
 
-    def _updateFilters(self, filters, identifier, value, add):
-        filter = self._getFilter(identifier, value)
+    def _updateFilters(self, filters, identifier, value, dbtype, add):
+        filter = self._getFilter(identifier, value, dbtype)
         if add:
             if filter not in filters:
                 filters.append(filter)
         elif filter in filters:
             filters.remove(filter)
 
-    def _getFilter(self, identifier, value):
+    def _getFilter(self, identifier, value, dbtype):
         # FIXME: The value of the filter MUST be enclosed in single quotes!!!
-        value = "'%s'" % value
-        filter = getPropertyValue(identifier, value, 0, EQUAL)
+        filter = getPropertyValue(identifier, self._datasource.getFilterValue(value, dbtype), 0, EQUAL)
         filters = (filter, )
         return filters
 
@@ -819,11 +785,18 @@ class MergerModel(MailModel):
     def getUrl(self):
         return self._document.URL
 
-    def getDocumentInfo(self):
-        identifier = self.getIdentifier()
-        bookmark = self.getBookmark()
+    def getDocumentInfo(self, identifiers):
+        filters = self._getfiltersFromIdentifiers(identifiers)
         url = getUrlPresentation(self._ctx, self.getUrl())
-        return url, self._name, self._query, self._table, identifier, bookmark
+        return url, self._name, self._query, self._table, filters
+
+    def _getfiltersFromIdentifiers(self, identifiers):
+        filters = []
+        identifier = self.getIdentifier()
+        dbtype = self._grid2.getIdentifierDataType()
+        for value in identifiers:
+            filters.append(self._datasource.getFilter(identifier, value, dbtype))
+        return tuple(filters)
 
     def saveDocument(self):
         self._saved = True
@@ -868,18 +841,9 @@ class MergerModel(MailModel):
         return url.endswith('#merge&pdf') or url.endswith('#merge')
 
     def mergeDocument(self, document, identifier):
-        #if self._resultset is not None:
-        #    bookmark = self._getBookmark(index)
-        #    if bookmark is not None:
         index = self._grid2.getIdentifierIndex()
         if index != -1:
             self._setDocumentRecord(document, self._recipient, identifier, index)
-
-    def _getBookmark(self, index):
-        table = self._getQuotedTableName(self._table)
-        format = (self.getBookmark(), table, self.getIdentifier())
-        bookmark = self._datasource.DataBase.getBookmark(self.Connection, format, index)
-        return bookmark
 
 # Private procedures called by WizardPage3
     def _initPage3(self, handler, initView, initRecipient):

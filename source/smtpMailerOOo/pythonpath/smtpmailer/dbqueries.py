@@ -145,9 +145,11 @@ def getSqlQuery(ctx, name, format=None):
         c7 = '"Document"'
         c8 = '"DataSource"'
         c9 = '"Query"'
-        c10 = '"Submit"'
-        c11 = '"Sending"'
-        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11)
+        c10 = '"Table"'
+        c11 = '"Filter"'
+        c12 = '"Submit"'
+        c13 = '"Sending"'
+        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13)
         s1 = '"Recipients"."JobId"'
         s2 = '"Senders"."BatchId"'
         s3 = '"Recipients"."State"'
@@ -157,9 +159,11 @@ def getSqlQuery(ctx, name, format=None):
         s7 = '"Senders"."Document"'
         s8 = '"Senders"."DataSource"'
         s9 = '"Senders"."Query"'
-        s10 = '"Senders"."Created"'
-        s11 = '"Recipients"."Created"'
-        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11)
+        s10 = '"Senders"."Table"'
+        s11 = '"Recipients"."Filter"'
+        s12 = '"Senders"."Created"'
+        s13 = '"Recipients"."Created"'
+        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13)
         f1 = '"Senders"'
         f2 = 'JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"'
         f = (f1,f2)
@@ -241,12 +245,6 @@ def getSqlQuery(ctx, name, format=None):
     # MailSpooler Select Queries
     elif name == 'getSpoolerJobs':
         query = 'SELECT "JobId" FROM "Spooler" WHERE "State" = ? ORDER BY "JobId";'
-
-    elif name == 'getBookmark':
-        query = 'SELECT "%s" FROM "%s" WHERE "%s" = ?;' % format
-
-    elif name == 'getBookmark1':
-        query = 'SELECT ROWNUM() FROM "%s" WHERE "%s" = ?;' % format
 
     elif name == 'getJobState':
         query = 'SELECT "State" FROM "Recipients" WHERE "JobId" = ?;'
@@ -336,7 +334,7 @@ CREATE PROCEDURE "GetRecipient"(IN JOBID INTEGER)
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Recipient", "Index", "BatchId" From "Recipients"
+      SELECT "Recipient", "Filter", "BatchId" From "Recipients"
       WHERE "JobId"=JOBID
       FOR READ ONLY;
     OPEN RSLT;
@@ -353,8 +351,8 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT S."Sender",S."Subject",S."Document",S."DataSource",
-      S."Query",S."Table",S."Identifier",S."Bookmark",S."ThreadId",
+      SELECT S."Sender",S."Subject",S."Document",
+      S."DataSource",S."Query",S."Table",S."ThreadId",
       CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
       S1."Server" AS "SMTPServerName",S1."Port" AS "SMTPPort",
       S1."LoginName" AS "SMTPLogin",S1."Password" AS "SMTPPassword",
@@ -443,10 +441,8 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
                                   IN DATASOURCE VARCHAR(512),
                                   IN QUERYNAME VARCHAR(512),
                                   IN TABLENAME VARCHAR(512),
-                                  IN IDENTIFIER VARCHAR(512),
-                                  IN BOOKMARK VARCHAR(512),
                                   IN RECIPIENTS VARCHAR(320) ARRAY,
-                                  IN INDEXES VARCHAR(128) ARRAY,
+                                  IN FILTERS VARCHAR(256) ARRAY,
                                   IN ATTACHMENTS VARCHAR(512) ARRAY,
                                   OUT BATCHID INTEGER)
   SPECIFIC "InsertMergeJob_1"
@@ -454,12 +450,12 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
   BEGIN ATOMIC
     DECLARE ID INTEGER;
     DECLARE INDEX INTEGER DEFAULT 1;
-    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query","Table","Identifier","Bookmark")
-    VALUES (SENDER,SUBJECT,DOCUMENT,DATASOURCE,QUERYNAME,TABLENAME,IDENTIFIER,BOOKMARK);
+    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query","Table")
+    VALUES (SENDER,SUBJECT,DOCUMENT,DATASOURCE,QUERYNAME,TABLENAME);
     SET ID = IDENTITY();
     WHILE INDEX <= CARDINALITY(RECIPIENTS) DO
-      INSERT INTO "Recipients" ("BatchId","Recipient","Index")
-      VALUES (ID,RECIPIENTS[INDEX],INDEXES[INDEX]);
+      INSERT INTO "Recipients" ("BatchId","Recipient","Filter")
+      VALUES (ID,RECIPIENTS[INDEX],FILTERS[INDEX]);
       SET INDEX = INDEX + 1;
     END WHILE;
     SET INDEX = 1;
@@ -606,7 +602,7 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':
-        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateServer':
         query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
     elif name == 'mergeProvider':

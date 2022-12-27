@@ -266,7 +266,7 @@ class DataBase(unohelper.Base):
         call.close()
         return id
 
-    def insertMergeJob(self, sender, subject, document, datasource, query, table, identifier, bookmark, recipients, indexes, attachments):
+    def insertMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
         call = self._getCall('insertMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
@@ -274,13 +274,11 @@ class DataBase(unohelper.Base):
         call.setString(4, datasource)
         call.setString(5, query)
         call.setString(6, table)
-        call.setString(7, identifier)
-        call.setString(8, bookmark)
-        call.setArray(9, recipients)
-        call.setArray(10, indexes)
-        call.setArray(11, attachments)
+        call.setArray(7, recipients)
+        call.setArray(8, filters)
+        call.setArray(9, attachments)
         status = call.executeUpdate()
-        id = call.getInt(12)
+        id = call.getInt(10)
         call.close()
         return id
 
@@ -375,28 +373,6 @@ class DataBase(unohelper.Base):
         attachments = getSequenceFromResult(result)
         call.close()
         return attachments
-
-    def getBookmark(self, connection, format, identifier):
-        bookmark = None
-        print("DataBase.getBookmark() Format: %s" % (format, ))
-        call = self._getDataBaseCall(connection, 'getBookmark', format)
-        call.setString(1, identifier)
-        result = call.executeQuery()
-        if result.next():
-            bookmark = getResultValue(result)
-        call.close()
-        return bookmark
-
-    def getBookmark1(self, connection, format, identifier):
-        bookmark = None
-        print("DataBase.getBookmark1() Format: %s" % (format, ))
-        call = self._getDataBaseCall(connection, 'getBookmark1', format)
-        call.setString(1, identifier)
-        result = call.executeQuery()
-        if result.next():
-            bookmark = getResultValue(result)
-        call.close()
-        return bookmark
 
     def updateRecipient(self, connection, state, messageid, jobid):
         call = self._getDataBaseCall(connection, 'updateRecipient')

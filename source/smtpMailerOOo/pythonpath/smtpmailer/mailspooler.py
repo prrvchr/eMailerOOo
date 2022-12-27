@@ -185,7 +185,7 @@ class MailSpooler(Process):
                 listener.stopped(event)
 
     def _send(self, connection, jobs):
-        print("MailSpooler._send()1 begin ****************************************")
+        print("MailSpooler._send() 1 begin ****************************************")
         mailer = Mailer(self._ctx, self._database, self._logger)
         server = None
         count = 0
@@ -206,7 +206,7 @@ class MailSpooler(Process):
                     print("MailSpooler._send() 3")
                     attachments = self._database.getAttachments(connection, batch)
                     print("MailSpooler._send() 4")
-                    mailer.setBatch(batch, metadata, attachments, job, recipient.Index)
+                    mailer.setBatch(batch, metadata, attachments, job, recipient.Filter)
                     print("MailSpooler._send() 5")
                     if self._disposed.is_set():
                         self._logger.logResource(INFO, 124, job)
@@ -224,20 +224,21 @@ class MailSpooler(Process):
                     print("MailSpooler._send() 9 break %s" % msg)
                     continue
             elif mailer.Merge:
-                mailer.merge(recipient.Index)
+                mailer.merge(recipient.Filter)
             mail = self._getMail(mailer, recipient)
-            mailer.addAttachments(mail, recipient.Index)
+            mailer.addAttachments(mail, recipient.Filter)
+            print("MailSpooler._send() 10 Filter: %s" % recipient.Filter)
             if self._disposed.is_set():
-                print("MailSpooler._send() 10 break")
+                print("MailSpooler._send() 11 break")
                 self._logger.logResource(INFO, 124, job)
                 break
             server.sendMailMessage(mail)
             self._database.updateRecipient(connection, 1, mail.MessageId, job)
             self._logger.logResource(INFO, 123, job)
             count += 1
-            print("MailSpooler._send() 11")
+            print("MailSpooler._send() 12")
         self._dispose(server, mailer)
-        print("MailSpooler._send() 12 end.........................")
+        print("MailSpooler._send() 13 end.........................")
         return count
 
     def _createThreadId(self, connection, mailer, batch):
@@ -355,12 +356,6 @@ class Mailer(unohelper.Base):
     def Query(self):
         return self._metadata.getValue('Query')
     @property
-    def Identifier(self):
-        return self._metadata.getValue('Identifier')
-    @property
-    def Bookmark(self):
-        return self._metadata.getValue('Bookmark')
-    @property
     def ThreadId(self):
         return self._metadata.getValue('ThreadId')
 
@@ -370,12 +365,12 @@ class Mailer(unohelper.Base):
             self._dispose()
         return new
 
-    def setBatch(self, batch, metadata, attachments, job, identifier):
+    def setBatch(self, batch, metadata, attachments, job, filter):
         self._batch = batch
         self._metadata = metadata
         self._checkUrl(self.Document, job, 161)
         self._rowset, self._descriptor = self._getDescriptors()
-        self._urls, self._url = self._getUrls(attachments, job, identifier)
+        self._urls, self._url = self._getUrls(attachments, job, filter)
 
     def needThreadId(self):
         return self.ThreadId is None and self.Merge and self._hasImapConfig()
@@ -388,8 +383,8 @@ class Mailer(unohelper.Base):
         if self._batch is not None:
             self._dispose()
 
-    def merge(self, identifier):
-        descriptor = self._getFilteredDescriptor(identifier)
+    def merge(self, filter):
+        descriptor = self._getFilteredDescriptor(filter)
         self._url.merge(descriptor)
 
     def getBodyUrl(self):
@@ -404,12 +399,12 @@ class Mailer(unohelper.Base):
             urls.append(tag % (url.Url, url.Name))
         return separator.join(urls)
 
-    def addAttachments(self, mail, identifier):
+    def addAttachments(self, mail, filter):
         if self._hasThreadId():
             mail.ThreadId = self.ThreadId
         for url in self._urls:
             if self.Merge and url.Merge:
-                descriptor = self._getFilteredDescriptor(identifier)
+                descriptor = self._getFilteredDescriptor(filter)
                 url.merge(descriptor)
             mail.addAttachment(self._getAttachment(url))
 
@@ -475,20 +470,19 @@ class Mailer(unohelper.Base):
         rowset.CommandType = TABLE
         rowset.FetchSize = g_fetchsize
         rowset.Command = self.Table
-        rowset.ApplyFilter = True
         return rowset
 
-    def _getUrls(self, attachments, job, identifier):
-        descriptor = self._getFilteredDescriptor(identifier) if self.Merge else None
+    def _getUrls(self, attachments, job, filter):
+        descriptor = self._getFilteredDescriptor(filter) if self.Merge else None
         uri = self._uf.parse(self.Document)
         url = MailUrl(self._ctx, uri, self.Merge, 'html', descriptor)
         urls = self._getMailUrl(attachments, job)
         return urls, url
 
-    def _getFilteredDescriptor(self, identifier):
-        filter = '"%s" = ' % self.Identifier
-        filter += "'%s'" % identifier
+    def _getFilteredDescriptor(self, filter):
+        self._rowset.ApplyFilter = False
         self._rowset.Filter = filter
+        self._rowset.ApplyFilter = True
         self._rowset.execute()
         self._descriptor['Cursor'] = self._rowset.createResultSet()
         descriptor = getPropertyValueSet(self._descriptor)

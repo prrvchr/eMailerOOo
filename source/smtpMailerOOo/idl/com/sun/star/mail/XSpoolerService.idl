@@ -50,10 +50,8 @@ interface XSpoolerService: com::sun::star::uno::XInterface
                      [in] string DataSource,
                      [in] string Query,
                      [in] string Table,
-                     [in] string Identifier,
-                     [in] string Bookmark,
                      [in] sequence<string> Recipients,
-                     [in] sequence<string> Indexes,
+                     [in] sequence<string> Filters,
                      [in] sequence<string> Attachments);
 
     boolean removeJobs([in] sequence<long> JobIds);

@@ -55,6 +55,9 @@ class MailView(unohelper.Base):
     def getCurrentIdentifier(self):
         raise NotImplementedError('Need to be implemented!')
 
+    def getEmail(self):
+        return self.getSender(), self.getRecipients()
+
     def getSender(self):
         return self._getSenders().getSelectedItem()
 

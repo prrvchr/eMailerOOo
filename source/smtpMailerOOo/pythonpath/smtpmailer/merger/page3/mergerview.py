@@ -38,6 +38,10 @@ class MergerView(MailView):
     def isRecipientsValid(self):
         return self._getMergerRecipients().getItemCount() > 0
 
+    def getEmail(self):
+        recipients, identifiers = self.getRecipients()
+        return self.getSender(), recipients, identifiers
+
     def getRecipients(self):
         recipients = []
         identifiers = []

@@ -68,12 +68,12 @@ class GridManager(unohelper.Base):
         widths = self._config.getByName(self._getConfigWidthName())
         self._widths = json.loads(widths, object_pairs_hook=OrderedDict)
         orders = self._config.getByName(self._getConfigOrderName())
-        print("GridManager.__init__() Orders: %s" % (orders, ))
         self._orders = json.loads(orders)
         self._max = maxi
         self._multi = multi
         self._identifier = identifier
         self._index = -1
+        self._type = -1
         self._rowset = rowset
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
         model = createService(ctx, 'com.sun.star.awt.grid.SortableGridDataModel')
@@ -107,6 +107,9 @@ class GridManager(unohelper.Base):
     def getIdentifierIndex(self):
         return self._index
 
+    def getIdentifierDataType(self):
+        return self._type
+
 # GridManager setter methods
     def dispose(self):
         self._model.dispose()
@@ -137,7 +140,7 @@ class GridManager(unohelper.Base):
             # but after saving GridColumnModel Widths
             self._view.showGridColumnHeader(False)
             #self._grid.resetRowSetData()
-            self._columns, self._index = self._getColumns(rowset.getMetaData())
+            self._columns, self._index, self._type = self._getColumns(rowset.getMetaData())
             identifiers = self._initColumnModel(name, query)
             self._view.initColumns(self._url, self._columns, identifiers)
             self._name = name
@@ -252,15 +255,16 @@ class GridManager(unohelper.Base):
         self._config.commitChanges()
 
     def _getColumns(self, metadata):
-        index = -1
+        index = type = -1
         columns = OrderedDict()
         for i in range(metadata.getColumnCount()):
             column = metadata.getColumnLabel(i +1)
             title = self._getColumnTitle(column)
             if self._identifier == column:
                 index = i
+                type = metadata.getColumnType(i +1)
             columns[column] = title
-        return columns, index
+        return columns, index, type
 
     def _initColumnModel(self, datasource, query):
         # TODO: ColumnWidth should be assigned after all columns have 

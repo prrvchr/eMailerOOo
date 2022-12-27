@@ -129,12 +129,6 @@ class WindowHandler(unohelper.Base,
             elif method == 'RemoveIdentifier':
                 self._manager.removeIdentifier()
                 handled = True
-            elif method == 'AddBookmark':
-                self._manager.addBookmark()
-                handled = True
-            elif method == 'RemoveBookmark':
-                self._manager.removeBookmark()
-                handled = True
             return handled
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -155,6 +149,4 @@ class WindowHandler(unohelper.Base,
                 'MoveBefore',
                 'MoveAfter',
                 'AddIdentifier',
-                'RemoveIdentifier',
-                'AddBookmark',
-                'RemoveBookmark')
+                'RemoveIdentifier')

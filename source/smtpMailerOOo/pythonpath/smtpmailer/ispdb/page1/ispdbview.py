@@ -30,10 +30,11 @@
 import uno
 import unohelper
 
-from smtpmailer import getContainerWindow
-from smtpmailer import g_extension
-
 from .ispdbhandler import WindowHandler
+
+from ...unotool import getContainerWindow
+
+from ...configuration import g_extension
 
 import traceback
 

@@ -30,16 +30,19 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import MailModel
+from ..mail import MailModel
 
-from smtpmailer import getDocument
-from smtpmailer import getDesktop
-from smtpmailer import getMessage
-from smtpmailer import getPropertyValueSet
-from smtpmailer import getStringResource
-from smtpmailer import logMessage
-from smtpmailer import g_identifier
-from smtpmailer import g_extension
+from ..mailertool import getDocument
+
+from ..unotool import getDesktop
+from ..unotool import getPropertyValueSet
+from ..unotool import getStringResource
+
+from ..logger import logMessage
+from ..logger import getMessage
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
 
 import traceback
 

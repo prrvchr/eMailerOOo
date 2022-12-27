@@ -35,7 +35,7 @@ from com.sun.star.ui.dialogs import XWizardController
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import logMessage
+from ..logger import logMessage
 
 from .ispdbmodel import IspdbModel
 

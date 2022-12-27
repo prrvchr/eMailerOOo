@@ -32,11 +32,13 @@ import unohelper
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
-from smtpmailer import KeyMap
-from smtpmailer import getContainerWindow
-from smtpmailer import g_extension
-
 from .ispdbhandler import WindowHandler
+
+from ...unolib import KeyMap
+
+from ...unotool import getContainerWindow
+
+from ...configuration import g_extension
 
 import traceback
 

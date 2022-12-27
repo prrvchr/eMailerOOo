@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from smtpmailer import MailView
+from ..mail import MailView
 
 
 class MailerView(MailView):
@@ -35,5 +35,5 @@ class MailerView(MailView):
     def isRecipientsValid(self):
         return self._getMailerRecipients().getItemCount() > 0
 
-    def getCurrentRecipient(self):
+    def getCurrentIdentifier(self):
         return None

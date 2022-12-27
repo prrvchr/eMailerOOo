@@ -30,11 +30,12 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import MailManager
+from ..mail import MailManager
 
-from smtpmailer import createService
-from smtpmailer import getMessage
-from smtpmailer import logMessage
+from ..unotool import createService
+
+from ..logger import getMessage
+from ..logger import logMessage
 
 from .mailermodel import MailerModel
 from .mailerview import MailerView

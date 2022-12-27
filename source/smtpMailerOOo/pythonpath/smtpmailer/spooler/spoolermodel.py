@@ -35,18 +35,21 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.sdb.CommandType import TABLE
 
-from smtpmailer import GridManager
+from ..grid import GridManager
 
-from smtpmailer import createService
-from smtpmailer import getConfiguration
-from smtpmailer import getMessage
-from smtpmailer import getPathSettings
-from smtpmailer import getStringResource
-from smtpmailer import getValueFromResult
-from smtpmailer import logMessage
-from smtpmailer import g_identifier
-from smtpmailer import g_extension
-from smtpmailer import g_fetchsize
+from ..unotool import createService
+from ..unotool import getConfiguration
+from ..unotool import getPathSettings
+from ..unotool import getStringResource
+
+from ..dbtool import getValueFromResult
+
+from ..logger import getMessage
+from ..logger import logMessage
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
+from ..configuration import g_fetchsize
 
 from collections import OrderedDict
 from threading import Thread
@@ -115,7 +118,7 @@ class SpoolerModel(unohelper.Base):
         self.DataSource.dispose()
 
     def saveGrid(self):
-        self._grid.saveColumnWidths()
+        self._grid.saveColumnSettings()
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
@@ -150,17 +153,12 @@ class SpoolerModel(unohelper.Base):
         table = self._configuration.getByName('SpoolerTable')
         return table
 
-    def _getQueryOrders(self):
-        orders = self._configuration.getByName('SpoolerOrders')
-        return orders
-
 # SpoolerModel private setter methods
     def _initSpooler(self, possize, parent, listener, initView):
         self.DataSource.waitForDataBase()
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
-        self._rowset.Order = self._getQueryOrders()
-        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'Spooler', self._resource, 9)
+        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'JobId', 'Spooler', self._resource, 9)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!

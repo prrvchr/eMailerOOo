@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from .mergerhandler import DispatchListener
-
 from com.sun.star.beans import PropertyValue
 
 from com.sun.star.logging.LogLevel import INFO
@@ -49,37 +47,43 @@ from com.sun.star.sdb.SQLFilterOperator import EQUAL
 from com.sun.star.sdb.SQLFilterOperator import SQLNULL
 from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 
-from smtpmailer import createService
-from smtpmailer import executeDispatch
-from smtpmailer import executeFrameDispatch
-from smtpmailer import getConfiguration
-from smtpmailer import getDesktop
-from smtpmailer import getDocument
-from smtpmailer import getInteractionHandler
-from smtpmailer import getMessage
-from smtpmailer import getPathSettings
-from smtpmailer import getPropertyValue
-from smtpmailer import getPropertyValueSet
-from smtpmailer import getSequenceFromResult
-from smtpmailer import getObjectSequenceFromResult
-from smtpmailer import getSimpleFile
-from smtpmailer import getSqlQuery
-from smtpmailer import getStringResource
-from smtpmailer import getTableColumns
-from smtpmailer import getTablesInfos
-from smtpmailer import getUrl
-from smtpmailer import getUrlPresentation
-from smtpmailer import getValueFromResult
-from smtpmailer import logMessage
-
-from smtpmailer import GridManager
-from smtpmailer import MailModel
-
-from smtpmailer import g_identifier
-from smtpmailer import g_extension
-from smtpmailer import g_fetchsize
-
 from .mergerhandler import DispatchListener
+
+from ..grid import GridManager
+
+from ..mail import MailModel
+
+from ..unotool import createService
+from ..unotool import executeDispatch
+from ..unotool import executeFrameDispatch
+from ..unotool import getConfiguration
+from ..unotool import getDesktop
+from ..unotool import getInteractionHandler
+from ..unotool import getPathSettings
+from ..unotool import getPropertyValue
+from ..unotool import getPropertyValueSet
+from ..unotool import getSimpleFile
+from ..unotool import getStringResource
+from ..unotool import getUrl
+from ..unotool import getUrlPresentation
+
+from ..dbtool import getObjectSequenceFromResult
+from ..dbtool import getResultValue
+from ..dbtool import getSequenceFromResult
+from ..dbtool import getValueFromResult
+from ..dbtool import getTableColumns
+from ..dbtool import getTablesInfos
+
+from ..dbqueries import getSqlQuery
+
+from ..mailertool import getDocument
+
+from ..logger import getMessage
+from ..logger import logMessage
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
+from ..configuration import g_fetchsize
 
 from collections import OrderedDict
 from six import string_types
@@ -184,9 +188,9 @@ class MergerModel(MailModel):
     def saveGrids(self):
         print("MergerModel.save() 1")
         if self._grid1 is not None:
-            self._grid1.saveColumnWidths()
+            self._grid1.saveColumnSettings()
         if self._grid2 is not None:
-            self._grid2.saveColumnWidths()
+            self._grid2.saveColumnSettings()
         print("MergerModel.save() 2")
 
 # Procedures called by WizardPage1
@@ -365,7 +369,8 @@ class MergerModel(MailModel):
         self._address.UpdateTableName = subquery
         self._setComposerCommand(self._subcomposer, subquery)
         self._setRowSet(self._address, self._subcomposer)
-        self._recipient.Command = subquery
+        #self._recipient.Command = subquery
+        self._recipient.Command = query
         self._recipient.UpdateTableName = query
         self._setComposerCommand(self._composer, query)
         self._setRowSet(self._recipient, self._composer)
@@ -670,11 +675,13 @@ class MergerModel(MailModel):
     def setGrid2Data(self, rowset):
         self._grid2.setRowSetData(rowset)
 
-    def getGrid1SelectedRows(self):
-        return self._grid1.getSelectedRows()
+    def getGrid1SelectedIdentifiers(self):
+        return self._grid1.getSelectedIdentifiers()
 
-    def getGrid2SelectedRows(self):
-        return self._grid2.getSelectedRows()
+    def getGrid2SelectedIdentifiers(self):
+        identifiers = self._grid2.getSelectedIdentifiers()
+        self._grid2.deselectAllRows()
+        return identifiers
 
     def isChanged(self):
         return self._changed
@@ -697,15 +704,17 @@ class MergerModel(MailModel):
     def removeItem(self, *args):
         Thread(target=self._removeItem, args=args).start()
 
-    def setAddressRecord(self, index):
-        if self._resultset is not None:
-            row = self._getIndexRow(self._address, index)
-            self._setDocumentRecord(self._document, row)
+    def setAddressRecord(self, row):
+        identifier= self._grid1.getRowIdentifier(row)
+        index = self._grid1.getIdentifierIndex()
+        if index != -1:
+            self._setDocumentRecord(self._document, self._address, identifier, index)
 
-    def setRecipientRecord(self, index):
-        if self._resultset is not None:
-            row = self._getIndexRow(self._recipient, index)
-            self._setDocumentRecord(self._document, row)
+    def setRecipientRecord(self, row):
+        identifier= self._grid2.getRowIdentifier(row)
+        index = self._grid2.getIdentifierIndex()
+        if index != -1:
+            self._setDocumentRecord(self._document, self._recipient, identifier, index)
 
     def getMailingMessage(self):
         message = self._getMailingMessage()
@@ -714,8 +723,9 @@ class MergerModel(MailModel):
 # Private procedures called by WizardPage2
     def _initPage2(self, table, possize, parent1, parent2, initPage):
         self._address.Command = table
-        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, 'MergerGrid1', None, 8, True, 'Grid1')
-        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, 'MergerGrid2', None, 8, True, 'Grid2')
+        identifier = self.getIdentifier()
+        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, identifier, 'MergerGrid1', None, 8, True, 'Grid1')
+        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, identifier, 'MergerGrid2', None, 8, True, 'Grid2')
         initPage(self._grid1, self._grid2, self._address, self._recipient)
         self._executeAddress()
         self._executeResultSet()
@@ -723,80 +733,84 @@ class MergerModel(MailModel):
     def _executeAddress(self):
         self._address.execute()
 
-    def _addItem(self, rows):
-        self._updateItem(self._address, rows, True)
+    def _addItem(self, identifiers):
+        self._updateItem(identifiers, True)
 
-    def _removeItem(self, rows):
-        self._updateItem(self._recipient, rows, False)
+    def _removeItem(self, identifiers):
+        self._updateItem(identifiers, False)
 
-    def _updateItem(self, rowset, rows, add):
-        filters = self._getFilters(rowset, rows, add)
+    def _updateItem(self, identifiers, add):
+        filters = self._getFilters(identifiers, add)
         self._composer.setStructuredFilter(filters)
         self._queries.getByName(self._query).Command = self._composer.getQuery()
         self._addressbook.DatabaseDocument.store()
         self._setRowSetFilter(self._recipient, self._composer)
         self._recipient.execute()
 
-    def _getFilters(self, rowset, rows, add):
-        identifier = self.getIdentifier()
+    def _getFilters(self, identifiers, add):
         filters = self._getComposerFilter(self._composer)
-        for row in rows:
-            rowset.absolute(row +1)
-            self._updateFilters(rowset, identifier, filters, add)
+        identifier = self.getIdentifier()
+        for value in identifiers:
+            self._updateFilters(filters, identifier, value, add)
         return tuple(filters)
 
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
         return list(filters)
 
-    def _updateFilters(self, rowset, identifier, filters, add):
-        filter = self._getRowSetFilter(rowset, identifier)
+    def _updateFilters(self, filters, identifier, value, add):
+        filter = self._getFilter(identifier, value)
         if add:
             if filter not in filters:
                 filters.append(filter)
         elif filter in filters:
             filters.remove(filter)
 
-    def _getRowSetFilter(self, rowset, name):
-        i = rowset.findColumn(name)
+    def _getFilter(self, identifier, value):
         # FIXME: The value of the filter MUST be enclosed in single quotes!!!
-        value = "'" + getValueFromResult(rowset, i) + "'"
-        filter = getPropertyValue(name, value, 0, EQUAL)
+        value = "'%s'" % value
+        filter = getPropertyValue(identifier, value, 0, EQUAL)
         filters = (filter, )
         return filters
 
-    def _setDocumentRecord(self, document, row):
+    def _setDocumentRecord(self, document, rowset, identifier, index):
         url = None
         if document.supportsService('com.sun.star.text.TextDocument'):
             url = '.uno:DataSourceBrowser/InsertContent'
         elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
             url = '.uno:DataSourceBrowser/InsertColumns'
         if url is not None:
-            descriptor = self._getDataDescriptor(row)
-            frame = document.CurrentController.Frame
-            executeFrameDispatch(self._ctx, frame, url, descriptor)
+            result = rowset.createResultSet()
+            if result is not None:
+                 row = self._getIdentifierRow(result, identifier, index)
+                 print("MergerModel._setDocumentRecord() Identifier: %s - Index: %s - Row: %s" % (identifier, index, row))
+                 if row != -1:
+                    descriptor = self._getDataDescriptor(result, row)
+                    frame = document.CurrentController.Frame
+                    executeFrameDispatch(self._ctx, frame, url, descriptor)
 
-    def _getDataDescriptor(self, row):
-        # FIXME: We need early initialization to reduce loading time
-        # FIXME: The cursor is not present during initialization to avoid any display
+    def _getIdentifierRow(self, result, identifier, index):
+        row = -1
+        while result.next():
+            value = getResultValue(result, index +1)
+            if value == identifier:
+                row = result.getRow()
+                break
+        result.beforeFirst()
+        return row
+
+    def _getDataDescriptor(self, result, row):
+        # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
+        # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
         properties = {'ActiveConnection': self.Connection,
+                      'DataSourceName': self._addressbook.Name,
                       'Command': self._table,
                       'CommandType': TABLE,
+                      'Cursor': result,
                       'BookmarkSelection': False,
-                      'DataSourceName': self._name,
-                      'Cursor': self._resultset,
                       'Selection': (row, )}
         descriptor = getPropertyValueSet(properties)
         return descriptor
-
-    def _getIndexRow(self, rowset, index):
-        row = 0
-        bookmark = self.getBookmark()
-        if bookmark is not None:
-            i = rowset.findColumn(bookmark)
-            rowset.absolute(index +1)
-            row = getValueFromResult(rowset, i)
-        return row
 
 # Procedures called by WizardPage3
     def initPage3(self, *args):
@@ -853,11 +867,13 @@ class MergerModel(MailModel):
     def hasMergeMark(self, url):
         return url.endswith('#merge&pdf') or url.endswith('#merge')
 
-    def mergeDocument(self, document, index):
-        if self._resultset is not None:
-            bookmark = self._getBookmark(index)
-            if bookmark is not None:
-                self._setDocumentRecord(document, bookmark)
+    def mergeDocument(self, document, identifier):
+        #if self._resultset is not None:
+        #    bookmark = self._getBookmark(index)
+        #    if bookmark is not None:
+        index = self._grid2.getIdentifierIndex()
+        if index != -1:
+            self._setDocumentRecord(document, self._recipient, identifier, index)
 
     def _getBookmark(self, index):
         table = self._getQuotedTableName(self._table)

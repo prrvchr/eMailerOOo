@@ -39,14 +39,15 @@ from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import GridListener
-
-from smtpmailer import getMessage
-from smtpmailer import logMessage
-
 from .mergerview import MergerView
+
 from .mergerhandler import AddressHandler
 from .mergerhandler import RecipientHandler
+
+from ...grid import GridListener
+
+from ...logger import getMessage
+from ...logger import logMessage
 
 import traceback
 
@@ -130,28 +131,30 @@ class MergerManager(unohelper.Base,
     def setAddressTable(self, table):
         self._model.setAddressTable(table)
 
-    def changeGridSelection(self, selected, index, grid):
+    def changeGridSelection(self, selected, row, grid):
         if grid == 1:
             self._view.enableAdd(selected)
-            if index != -1:
-                self._model.setAddressRecord(index)
+            if row != -1:
+                self._model.setAddressRecord(row)
         elif grid == 2:
             self._view.enableRemove(selected)
-            if index != -1:
-                self._model.setRecipientRecord(index)
+            if row != -1:
+                self._model.setRecipientRecord(row)
 
     def addItem(self):
-        rows = self._model.getGrid1SelectedRows()
-        self._model.addItem(rows)
+        identifiers = self._model.getGrid1SelectedIdentifiers()
+        self._model.addItem(identifiers)
 
     def addAllItem(self):
-        rows = range(self._model.getAddressCount())
-        self._model.addItem(rows)
+        pass
+        #rows = range(self._model.getAddressCount())
+        #self._model.addItem(rows)
 
     def removeItem(self):
-        rows = self._model.getGrid2SelectedRows()
-        self._model.removeItem(rows)
+        identifiers = self._model.getGrid2SelectedIdentifiers()
+        self._model.removeItem(identifiers)
 
     def removeAllItem(self):
-        rows = range(self._model.getRecipientCount())
-        self._model.removeItem(rows)
+        pass
+        #rows = range(self._model.getRecipientCount())
+        #self._model.removeItem(rows)

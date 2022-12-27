@@ -32,7 +32,7 @@ import unohelper
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
-from smtpmailer import KeyMap
+from ...unolib import KeyMap
 
 import json
 import traceback

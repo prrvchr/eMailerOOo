@@ -37,26 +37,29 @@ from com.sun.star.mail.MailServiceType import SMTP
 
 from com.sun.star.uno import Exception as UnoException
 
-from smtpmailer import KeyMap
-from smtpmailer import DataParser
+from ..unolib import KeyMap
+from ..dataparser import DataParser
 
-from smtpmailer import CurrentContext
-from smtpmailer import Authenticator
-from smtpmailer import MailTransferable
+from ..mailerlib import CurrentContext
+from ..mailerlib import Authenticator
+from ..mailerlib import MailTransferable
 
-from smtpmailer import createService
-from smtpmailer import getConfiguration
-from smtpmailer import getConnectionMode
-from smtpmailer import getMail
-from smtpmailer import getMessageImage
-from smtpmailer import getResourceLocation
-from smtpmailer import getStringResource
-from smtpmailer import getUrl
-from smtpmailer import setDebugMode
-from smtpmailer import g_identifier
-from smtpmailer import g_extension
-from smtpmailer import g_logo
-from smtpmailer import g_logourl
+from ..unotool import createService
+from ..unotool import getConfiguration
+from ..unotool import getConnectionMode
+from ..unotool import getResourceLocation
+from ..unotool import getStringResource
+from ..unotool import getUrl
+
+from ..mailertool import getMail
+from ..mailertool import getMessageImage
+
+from ..logger import setDebugMode
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
+from ..configuration import g_logo
+from ..configuration import g_logourl
 
 from .pages import IspdbServer
 from .pages import IspdbUser

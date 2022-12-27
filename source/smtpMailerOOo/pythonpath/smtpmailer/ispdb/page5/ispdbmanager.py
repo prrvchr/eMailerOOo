@@ -35,9 +35,10 @@ from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
 from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
-from smtpmailer import Logger
-from smtpmailer import createService
-from smtpmailer import getDialog
+from ...unotool import createService
+from ...unotool import getDialog
+
+from ...logger import Logger
 
 from .ispdbview import IspdbView
 from .send import SendView

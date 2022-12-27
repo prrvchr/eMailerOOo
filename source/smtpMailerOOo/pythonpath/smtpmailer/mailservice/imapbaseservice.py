@@ -38,12 +38,16 @@ from com.sun.star.io import AlreadyConnectedException
 
 from .imapservice import ImapService
 
-from smtpmailer import getMessage
-from smtpmailer import getOAuth2Token
-from smtpmailer import hasInterface
-from smtpmailer import isDebugMode
-from smtpmailer import logMessage
-from smtpmailer import imapclient
+from ..oauth2lib import getOAuth2Token
+
+from ..unotool import hasInterface
+
+from .. import imapclient
+
+from ..logger import logMessage
+from ..logger import getMessage
+from ..logger import isDebugMode
+
 
 g_message = 'MailServiceProvider'
 

@@ -31,8 +31,9 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from smtpmailer import getContainerWindow
-from smtpmailer import g_extension
+from ..unotool import getContainerWindow
+
+from ..configuration import g_extension
 
 from .mailhandler import WindowHandler
 
@@ -51,7 +52,7 @@ class MailView(unohelper.Base):
     def isRecipientsValid(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def getCurrentRecipient(self):
+    def getCurrentIdentifier(self):
         raise NotImplementedError('Need to be implemented!')
 
     def getSender(self):

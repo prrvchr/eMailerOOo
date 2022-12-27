@@ -33,14 +33,16 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import createService
-from smtpmailer import getDocumentFilter
-from smtpmailer import getMessage
-from smtpmailer import getNamedExtension
-from smtpmailer import getUrlTransformer
-from smtpmailer import logMessage
-from smtpmailer import parseUrl
-from smtpmailer import saveDocumentAs
+from ..unotool import createService
+from ..unotool import getUrlTransformer
+from ..unotool import parseUrl
+
+from ..mailertool import getDocumentFilter
+from ..mailertool import getNamedExtension
+from ..mailertool import saveDocumentAs
+
+from ..logger import logMessage
+from ..logger import getMessage
 
 from collections import OrderedDict
 import validators
@@ -95,7 +97,7 @@ class MailModel(unohelper.Base):
     def getSenders(self, *args):
         self.DataSource.getSenders(*args)
 
-    def mergeDocument(self, document, index):
+    def mergeDocument(self, document, row):
         raise NotImplementedError('Need to be implemented!')
 
 # MailModel setter methods

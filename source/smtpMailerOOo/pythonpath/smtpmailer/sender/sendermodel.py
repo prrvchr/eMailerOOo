@@ -35,15 +35,17 @@ from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import getDesktop
-from smtpmailer import getFileUrl
-from smtpmailer import getMessage
-from smtpmailer import logMessage
-from smtpmailer import getPropertyValueSet
-from smtpmailer import getStringResource
-from smtpmailer import getUrlPresentation
-from smtpmailer import g_identifier
-from smtpmailer import g_extension
+from ..unotool import getDesktop
+from ..unotool import getFileUrl
+from ..unotool import getPropertyValueSet
+from ..unotool import getStringResource
+from ..unotool import getUrlPresentation
+
+from ..logger import getMessage
+from ..logger import logMessage
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
 
 from collections import OrderedDict
 from threading import Thread

@@ -33,13 +33,13 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import logMessage
-from smtpmailer import getMessage
+from .sendermodel import SenderModel
+from .senderview import SenderView
 
 from ..mailer import MailerManager
 
-from .sendermodel import SenderModel
-from .senderview import SenderView
+from ..logger import getMessage
+from ..logger import logMessage
 
 g_message = 'sendermanager'
 

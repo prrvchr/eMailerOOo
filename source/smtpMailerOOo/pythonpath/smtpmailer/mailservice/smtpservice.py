@@ -70,9 +70,9 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.lang import EventObject
 from com.sun.star.mail import XSmtpService2
 
-from smtpmailer import getMessage
-from smtpmailer import isDebugMode
-from smtpmailer import logMessage
+from ..logger import getMessage
+from ..logger import isDebugMode
+from ..logger import logMessage
 
 g_message = 'MailServiceProvider'
 

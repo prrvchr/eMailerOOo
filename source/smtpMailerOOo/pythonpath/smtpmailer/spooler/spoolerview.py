@@ -33,13 +33,14 @@ import unohelper
 from com.sun.star.view.SelectionType import MULTI
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from smtpmailer import getContainerWindow
-from smtpmailer import getDialog
-from smtpmailer import g_extension
-
 from .spoolerhandler import DialogHandler
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
+
+from ..unotool import getContainerWindow
+from ..unotool import getDialog
+
+from ..configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):

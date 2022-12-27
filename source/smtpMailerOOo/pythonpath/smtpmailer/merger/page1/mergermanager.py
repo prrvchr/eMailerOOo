@@ -39,12 +39,13 @@ from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import createService
-from smtpmailer import executeDispatch
-from smtpmailer import logMessage
-from smtpmailer import getMessage
-
 from .mergerview import MergerView
+
+from ...unotool import createService
+from ...unotool import executeDispatch
+
+from ...logger import getMessage
+from ...logger import logMessage
 
 import traceback
 

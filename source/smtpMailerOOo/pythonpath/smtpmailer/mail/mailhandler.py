@@ -35,8 +35,8 @@ from com.sun.star.frame import XDispatchResultListener
 from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.awt.Key import RETURN
 
-from smtpmailer import executeDispatch
-from smtpmailer import getPropertyValueSet
+from ..unotool import executeDispatch
+from ..unotool import getPropertyValueSet
 
 import traceback
 

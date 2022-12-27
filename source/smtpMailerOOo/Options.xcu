@@ -44,7 +44,7 @@
         <value>{}</value>
     </prop>
     <prop oor:name="SpoolerOrders" oor:op="fuse">
-        <value></value>
+        <value>[-1, true]</value>
     </prop>
     <prop oor:name="MergerLoadDataSource" oor:op="fuse">
         <value>true</value>
@@ -53,6 +53,12 @@
         <value>{}</value>
     </prop>
     <prop oor:name="MergerGrid2Columns" oor:op="fuse">
+        <value>{}</value>
+    </prop>
+    <prop oor:name="MergerGrid1Orders" oor:op="fuse">
+        <value>{}</value>
+    </prop>
+    <prop oor:name="MergerGrid2Orders" oor:op="fuse">
         <value>{}</value>
     </prop>
 </oor:component-data>

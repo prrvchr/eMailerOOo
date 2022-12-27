@@ -40,18 +40,21 @@ from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import MailTransferable
-from smtpmailer import createService
-from smtpmailer import getMail
-from smtpmailer import getMessage
-from smtpmailer import logMessage
-from smtpmailer import setDebugMode
-
 from .database import DataBase
 
 from .dbtool import Array
 
 from .dataparser import DataParser
+
+from .mailerlib import MailTransferable
+
+from .mailertool import getMail
+
+from .unotool import createService
+
+from .logger import getMessage
+from .logger import logMessage
+from .logger import setDebugMode
 
 from threading import Thread
 import traceback

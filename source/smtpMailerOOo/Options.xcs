@@ -40,5 +40,7 @@
         <prop oor:name="MergerLoadDataSource" oor:type="xs:boolean"/>
         <prop oor:name="MergerGrid1Columns" oor:type="xs:string"/>
         <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid1Orders" oor:type="xs:string"/>
+        <prop oor:name="MergerGrid2Orders" oor:type="xs:string"/>
     </component>
 </oor:component-schema>

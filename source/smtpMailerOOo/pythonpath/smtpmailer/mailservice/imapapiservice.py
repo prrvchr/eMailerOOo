@@ -40,14 +40,15 @@ from com.sun.star.mail import MailException
 from .imapservice import ImapService
 from .apihelper import setDefaultFolder
 
-from smtpmailer import getExceptionMessage
-from smtpmailer import getMessage
-from smtpmailer import getOAuth2Token
-from smtpmailer import getRequest
-from smtpmailer import hasInterface
-from smtpmailer import isDebugMode
-from smtpmailer import logMessage
-from smtpmailer import imapclient
+from ..unotool import getExceptionMessage
+from ..unotool import hasInterface
+
+from ..oauth2lib import getOAuth2Token
+from ..oauth2lib import getRequest
+
+from ..logger import logMessage
+from ..logger import getMessage
+from ..logger import isDebugMode
 
 g_message = 'MailServiceProvider'
 

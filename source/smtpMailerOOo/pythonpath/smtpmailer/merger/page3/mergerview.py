@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from smtpmailer import MailView
+from ...mail import MailView
 
 
 class MergerView(MailView):
@@ -47,13 +47,13 @@ class MergerView(MailView):
             identifiers.append(control.Model.getItemData(index))
         return tuple(recipients), tuple(identifiers)
 
-    def getCurrentRecipient(self):
-        index = None
+    def getCurrentIdentifier(self):
+        identifier = None
         control = self._getMergerRecipients()
-        position = control.getSelectedItemPos()
-        if position != -1:
-            index = control.Model.getItemData(position)
-        return index
+        index = control.getSelectedItemPos()
+        if index != -1:
+            identifier = control.Model.getItemData(index)
+        return identifier
 
 # MergerView setter methods
     def setMergerRecipient(self, recipients, message):

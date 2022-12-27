@@ -29,11 +29,13 @@
 
 import unohelper
 
-from smtpmailer import getContainerWindow
-from smtpmailer import logMessage
-from smtpmailer import g_extension
-
 from .mergerhandler import WindowHandler
+
+from ...unotool import getContainerWindow
+
+from ...logger import logMessage
+
+from ...configuration import g_extension
 
 import traceback
 

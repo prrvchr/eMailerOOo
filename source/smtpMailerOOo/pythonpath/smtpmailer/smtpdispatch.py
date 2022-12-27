@@ -40,24 +40,27 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import DataSource
-from smtpmailer import Wizard
-
-from smtpmailer import getMessage
-from smtpmailer import getPathSettings
-from smtpmailer import logMessage
-from smtpmailer import g_extension
-from smtpmailer import g_identifier
-from smtpmailer import g_ispdb_page
-from smtpmailer import g_ispdb_paths
-from smtpmailer import g_merger_page
-from smtpmailer import g_merger_paths
-
 from .ispdb import IspdbController
 from .merger import MergerController
 from .sender import SenderModel
 from .sender import SenderManager
 from .spooler import SpoolerManager
+
+from .datasource import DataSource
+
+from .wizard import Wizard
+
+from .unotool import getPathSettings
+
+from .logger import getMessage
+from .logger import logMessage
+
+from .configuration import g_extension
+from .configuration import g_identifier
+from .configuration import g_ispdb_page
+from .configuration import g_ispdb_paths
+from .configuration import g_merger_page
+from .configuration import g_merger_paths
 
 import traceback
 

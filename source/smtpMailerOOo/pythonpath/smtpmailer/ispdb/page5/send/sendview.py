@@ -29,8 +29,9 @@
 
 import unohelper
 
-from smtpmailer import getDialog
-from smtpmailer import g_extension
+from ....unotool import getDialog
+
+from ....configuration import g_extension
 
 from .sendhandler import DialogHandler
 

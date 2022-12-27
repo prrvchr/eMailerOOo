@@ -29,8 +29,9 @@
 
 import unohelper
 
-from smtpmailer import getContainerWindow
-from smtpmailer import g_extension
+from ...unotool import getContainerWindow
+
+from ...configuration import g_extension
 
 import traceback
 

@@ -51,12 +51,6 @@ from smtpmailer import getPropertyValueSet
 from smtpmailer import executeDispatch
 
 from smtpmailer import Pool
-#from smtpmailer import getLoggerUrl
-#from smtpmailer import getLoggerSetting
-#from smtpmailer import setLoggerSetting
-#from smtpmailer import clearLogger
-#from smtpmailer import logMessage
-#from smtpmailer import getMessage
 
 from smtpmailer import g_extension
 from smtpmailer import g_identifier

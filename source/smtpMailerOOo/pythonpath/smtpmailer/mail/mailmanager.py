@@ -33,10 +33,11 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import executeShell
-from smtpmailer import getFileUrl
-from smtpmailer import getMessage
-from smtpmailer import logMessage
+from ..unotool import executeShell
+from ..unotool import getFileUrl
+
+from ..logger import getMessage
+from ..logger import logMessage
 
 g_message = 'basemanager'
 
@@ -130,21 +131,21 @@ class MailManager(unohelper.Base):
             self._updateUI()
 
     def viewHtml(self):
-        index = self._view.getCurrentRecipient()
+        identifier = self._view.getCurrentIdentifier()
         document = self._model.getDocument()
-        if index is not None:
-            self._model.mergeDocument(document, index)
+        if identifier is not None:
+            self._model.mergeDocument(document, identifier)
         url = self._model.saveDocumentAs(document, 'html')
         self._closeDocument(document)
         if url is not None:
             executeShell(self._ctx, url)
 
     def viewPdf(self):
-        index = self._view.getCurrentRecipient()
+        identifier = self._view.getCurrentIdentifier()
         attachment = self._view.getSelectedAttachment()
         document = self._model.getDocument(attachment)
-        if index is not None and self._model.hasMergeMark(attachment):
-            self._model.mergeDocument(document, index)
+        if identifier is not None and self._model.hasMergeMark(attachment):
+            self._model.mergeDocument(document, identifier)
         url = self._model.saveDocumentAs(document, 'pdf')
         self._closeDocument(document)
         if url is not None:

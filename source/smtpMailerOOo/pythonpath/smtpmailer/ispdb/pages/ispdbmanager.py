@@ -41,10 +41,11 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer import createService
-from smtpmailer import getDialog
-from smtpmailer import getMessage
-from smtpmailer import logMessage
+from ...unotool import createService
+from ...unotool import getDialog
+
+from ...logger import getMessage
+from ...logger import logMessage
 
 from .ispdbview import IspdbView
 

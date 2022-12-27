@@ -37,14 +37,15 @@ from com.sun.star.mail import XIspDBService
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from smtpmailer.unotool import getUrl
-from smtpmailer.unotool import createService
-from smtpmailer.unotool import getNamedValueSet
-
-from smtpmailer.logger import logMessage
-from smtpmailer.logger import getMessage
-
 from smtpmailer import DataSource
+
+from smtpmailer import createService
+from smtpmailer import getNamedValueSet
+from smtpmailer import getUrl
+
+from smtpmailer import getMessage
+from smtpmailer import logMessage
+
 from smtpmailer import g_identifier
 
 import traceback

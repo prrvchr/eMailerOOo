@@ -30,14 +30,16 @@
 import uno
 import unohelper
 
-from smtpmailer import getContainerWindow
-from smtpmailer import getFileSequence
-from smtpmailer import clearLogger
-from smtpmailer import getLoggerUrl
-from smtpmailer import logMessage
-from smtpmailer import g_extension
-
 from .ispdbhandler import WindowHandler
+
+from ...unotool import getContainerWindow
+from ...unotool import getFileSequence
+
+from ...logger import clearLogger
+from ...logger import getLoggerUrl
+from ...logger import logMessage
+
+from ...configuration import g_extension
 
 import traceback
 

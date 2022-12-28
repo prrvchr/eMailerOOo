@@ -35,6 +35,8 @@ from com.sun.star.beans import PropertyValue
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.view.SelectionType import MULTI
+
 from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
@@ -724,8 +726,8 @@ class MergerModel(MailModel):
 # Private procedures called by WizardPage2
     def _initPage2(self, table, possize, parent1, parent2, initPage):
         self._address.Command = table
-        self._grid1 = GridManager(self._ctx, GridModel(self._ctx), parent1, possize, 'MergerGrid1', None, 8, True, 'Grid1')
-        self._grid2 = GridManager(self._ctx, GridModel(self._ctx), parent2, possize, 'MergerGrid2', None, 8, True, 'Grid2')
+        self._grid1 = GridManager(self._ctx, GridModel(self._ctx), parent1, possize, 'MergerGrid1', MULTI, None, 8, True, 'Grid1')
+        self._grid2 = GridManager(self._ctx, GridModel(self._ctx), parent2, possize, 'MergerGrid2', MULTI, None, 8, True, 'Grid2')
         initPage(self._grid1, self._grid2, self._address, self._recipient)
         self._executeAddress()
         self._executeResultSet()

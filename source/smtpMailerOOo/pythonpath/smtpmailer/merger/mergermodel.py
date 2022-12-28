@@ -50,6 +50,7 @@ from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 from .mergerhandler import DispatchListener
 
 from ..grid import GridManager
+from ..grid import GridModel
 
 from ..mail import MailModel
 
@@ -377,9 +378,7 @@ class MergerModel(MailModel):
 
     # Query methods
     def isQueryValid(self, query):
-        return all((query != '',
-                    query not in self._tables,
-                    not query.startswith(self._prefix)))
+        return len(query) > 0 and self.Connection.getObjectNames().isNameValid(QUERY, query)
 
     def setQuery(self, query):
         subquery = self._getSubQueryName(query)
@@ -396,7 +395,7 @@ class MergerModel(MailModel):
         name = self._getSubQueryName(query)
         self._addSubQuery(name, table)
         command = getSqlQuery(self._ctx, 'getQueryCommand', name)
-        self._addQuery(query, command)
+        self._addQuery(query, command, name)
         self._addressbook.DatabaseDocument.store()
 
     def removeQuery(self, query):
@@ -408,20 +407,22 @@ class MergerModel(MailModel):
     def _getSubQueryName(self, query):
         return self._prefix + query
 
-    def _setComposerCommand(self, composer, query):
-        command = self._queries.getByName(query).Command
-        composer.setQuery(command)
+    def _setComposerCommand(self, composer, name):
+        query = self._queries.getByName(name)
+        command = query.Command
+        print("MergerModel._setComposerCommand() '%s'" % query.UpdateTableName)
+        composer.setQuery(query.Command)
 
     def _addSubQuery(self, name, table):
         command = getSqlQuery(self._ctx, 'getQueryCommand', self._getQuotedTableName(table))
-        query = self._createQuery(name, command)
+        query = self._createQuery(name, command, table)
         self._addQueries(name, query)
 
     def _getQuotedTableName(self, table):
         return self._datasource.DataBase.getQuotedTableName(table)
 
-    def _addQuery(self, name, command):
-        query = self._createQuery(name, command)
+    def _addQuery(self, name, command, subquery):
+        query = self._createQuery(name, command, subquery)
         if self._similar:
             filters = self._getQueryFilters()
             self._composer.setQuery(command)
@@ -433,13 +434,16 @@ class MergerModel(MailModel):
         if not self._queries.hasByName(name):
             self._queries.insertByName(name, query)
 
-    def _createQuery(self, name, command):
+    def _createQuery(self, name, command, table=None):
         # FIXME: If a Query already exist we rewrite it content!!!
         if self._queries.hasByName(name):
             query = self._queries.getByName(name)
         else:
             service = 'com.sun.star.sdb.QueryDefinition'
             query = createService(self._ctx, service)
+            if table is not None:
+                query.UpdateTableName = table
+                print("MergerModel._createQuery() '%s'" % query.UpdateTableName)
         query.Command = command
         return query
 
@@ -662,10 +666,12 @@ class MergerModel(MailModel):
         Thread(target=self._initPage2, args=args).start()
 
     def setGrid1Data(self, rowset):
-        self._grid1.setRowSetData(rowset)
+        identifier = self.getIdentifier()
+        self._grid1.setDataModel(rowset, identifier)
 
     def setGrid2Data(self, rowset):
-        self._grid2.setRowSetData(rowset)
+        identifier = self.getIdentifier()
+        self._grid2.setDataModel(rowset, identifier)
 
     def getGrid1SelectedIdentifiers(self):
         return self._grid1.getSelectedIdentifiers()
@@ -718,9 +724,8 @@ class MergerModel(MailModel):
 # Private procedures called by WizardPage2
     def _initPage2(self, table, possize, parent1, parent2, initPage):
         self._address.Command = table
-        identifier = self.getIdentifier()
-        self._grid1 = GridManager(self._ctx, self._address, parent1, possize, identifier, 'MergerGrid1', None, 8, True, 'Grid1')
-        self._grid2 = GridManager(self._ctx, self._recipient, parent2, possize, identifier, 'MergerGrid2', None, 8, True, 'Grid2')
+        self._grid1 = GridManager(self._ctx, GridModel(self._ctx), parent1, possize, 'MergerGrid1', None, 8, True, 'Grid1')
+        self._grid2 = GridManager(self._ctx, GridModel(self._ctx), parent2, possize, 'MergerGrid2', None, 8, True, 'Grid2')
         initPage(self._grid1, self._grid2, self._address, self._recipient)
         self._executeAddress()
         self._executeResultSet()

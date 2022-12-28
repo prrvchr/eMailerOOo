@@ -37,6 +37,8 @@ from com.sun.star.sdb.CommandType import TABLE
 
 from ..grid import GridManager
 
+from ..grid import GridModel
+
 from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getPathSettings
@@ -109,7 +111,7 @@ class SpoolerModel(unohelper.Base):
         Thread(target=self._initSpooler, args=args).start()
 
     def setGridData(self, rowset):
-        self._grid.setRowSetData(rowset)
+        self._grid.setDataModel(rowset, 'JobId')
 
     def dispose(self):
         self._diposed = True
@@ -158,7 +160,7 @@ class SpoolerModel(unohelper.Base):
         self.DataSource.waitForDataBase()
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
-        self._grid = GridManager(self._ctx, self._rowset, parent, possize, 'JobId', 'Spooler', self._resource, 13)
+        self._grid = GridManager(self._ctx, GridModel(self._ctx), parent, possize, 'Spooler', self._resource, 13)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!

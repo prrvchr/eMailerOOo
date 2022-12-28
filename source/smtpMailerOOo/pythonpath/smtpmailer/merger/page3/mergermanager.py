@@ -89,7 +89,7 @@ class MergerManager(MailManager,
 
 # MergerManager setter methods
     def initRecipients(self, recipients, message):
-        self._view.setMergerRecipient(recipients, message)
+        self._view.setRecipients(recipients, message)
         self._updateUI()
 
     def changeRecipient(self):

@@ -100,7 +100,7 @@ class SpoolerManager(unohelper.Base):
                 rowset.addRowSetListener(RowSetListener(self))
                 self._view.initView()
 
-    def setRowSetData(self, rowset):
+    def setDataModel(self, rowset):
         with self._lock:
             if not self._model.isDisposed():
                 self._model.setGridData(rowset)

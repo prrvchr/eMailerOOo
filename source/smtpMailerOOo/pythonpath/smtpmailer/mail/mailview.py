@@ -143,7 +143,7 @@ class MailView(unohelper.Base):
     def enableRemoveRecipient(self, enabled):
         self._getRemoveRecipient().Model.Enabled = enabled
 
-    def setMergerRecipient(self, recipients):
+    def setRecipients(self, recipients):
         raise NotImplementedError('Need to be implemented if needed!')
 
     def addRecipient(self):

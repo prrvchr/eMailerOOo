@@ -105,8 +105,8 @@ class SpoolerManager(unohelper.Base):
             if not self._model.isDisposed():
                 self._model.setGridData(rowset)
 
-    def changeGridSelection(self, selected, index, grid):
-        self._view.enableButtonRemove(selected)
+    def changeGridSelection(self, index, grid):
+        self._view.enableButtonRemove(index != -1)
 
     def started(self):
         self._refreshSpoolerView(1)

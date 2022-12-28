@@ -131,15 +131,16 @@ class MergerManager(unohelper.Base,
     def setAddressTable(self, table):
         self._model.setAddressTable(table)
 
-    def changeGridSelection(self, selected, row, grid):
+    def changeGridSelection(self, index, grid):
+        selected = index != -1
         if grid == 1:
             self._view.enableAdd(selected)
-            if row != -1:
-                self._model.setAddressRecord(row)
+            if selected:
+                self._model.setAddressRecord(index)
         elif grid == 2:
             self._view.enableRemove(selected)
-            if row != -1:
-                self._model.setRecipientRecord(row)
+            if selected:
+                self._model.setRecipientRecord(index)
 
     def addItem(self):
         identifiers = self._model.getGrid1SelectedIdentifiers()

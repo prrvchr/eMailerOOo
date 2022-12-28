@@ -46,7 +46,7 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, tables, enabled, message):
+    def __init__(self, ctx, manager, parent, tables, message):
         self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 5, 285, 195)
@@ -60,7 +60,7 @@ class MergerView(unohelper.Base):
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
         self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 2, 25, 277, 152)
-        self._initTables(tables, enabled)
+        self._initTables(tables)
         self.setMessage(message)
 
 # MergerView getter methods
@@ -147,7 +147,5 @@ class MergerView(unohelper.Base):
         model.insertByIndex(index, page)
         return tab.getControls()[i]
 
-    def _initTables(self, tables, enabled):
-        control = self._getTable()
-        control.Model.StringItemList = tables
-        control.Model.Enabled = enabled
+    def _initTables(self, tables):
+        self._getTable().Model.StringItemList = tables

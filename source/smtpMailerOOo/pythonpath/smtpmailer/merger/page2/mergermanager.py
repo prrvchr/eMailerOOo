@@ -60,8 +60,8 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, table, enabled, message = self._model.getPageInfos()
-        self._view = MergerView(ctx, self, parent, tables, enabled, message)
+        tables, table, message = self._model.getPageInfos()
+        self._view = MergerView(ctx, self, parent, tables, message)
         possize = self._view.getGridPosSize()
         parent1, parent2 = self._view.getGridParents()
         self._model.initPage2(table, possize, parent1, parent2, self.initPage)
@@ -146,9 +146,8 @@ class MergerManager(unohelper.Base,
         self._model.addItem(identifiers)
 
     def addAllItem(self):
-        pass
-        #rows = range(self._model.getAddressCount())
-        #self._model.addItem(rows)
+        table = self._view.getTable()
+        self._model.addAllItem(table)
 
     def removeItem(self):
         identifiers = self._model.getGrid2SelectedIdentifiers()

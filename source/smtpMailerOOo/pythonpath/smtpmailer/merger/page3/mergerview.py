@@ -60,7 +60,7 @@ class MergerView(MailView):
         return identifier
 
 # MergerView setter methods
-    def setMergerRecipient(self, recipients, message):
+    def setRecipients(self, recipients, message):
         self._getMergerMessage().Text = message
         control = self._getMergerRecipients()
         control.Model.removeAllItems()

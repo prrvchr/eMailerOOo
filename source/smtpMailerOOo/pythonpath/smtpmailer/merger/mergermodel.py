@@ -71,8 +71,6 @@ from ..dbtool import getObjectSequenceFromResult
 from ..dbtool import getResultValue
 from ..dbtool import getSequenceFromResult
 from ..dbtool import getValueFromResult
-from ..dbtool import getTableColumns
-from ..dbtool import getTablesInfos
 
 from ..dbqueries import getSqlQuery
 
@@ -120,7 +118,7 @@ class MergerModel(MailModel):
         self._subcommand = None
         self._name = None
         self._rows = ()
-        self._tables = ()
+        self._tables = {}
         self._table = None
         self._query = None
         self._changed = False
@@ -228,7 +226,7 @@ class MergerModel(MailModel):
             sleep(0.2)
             progress(5)
             queries = label = message = None
-            self._tables = ()
+            self._tables = {}
             self._query = self._table = None
             self._command = self._subcommand = None
             progress(10)
@@ -267,7 +265,7 @@ class MergerModel(MailModel):
                 self._composer = connection.createInstance(service)
                 self._subcomposer = connection.createInstance(service)
                 progress(60)
-                self._similar, self._tables = getTablesInfos(connection)
+                self._tables, self._similar = self._getTablesInfos(connection)
                 progress(70)
                 self._address.ActiveConnection = connection
                 self._recipient.ActiveConnection = connection
@@ -278,10 +276,26 @@ class MergerModel(MailModel):
                 label = self._getIndexLabel()
                 step = 3
             progress(100)
-            setAddressBook(step, queries, self._tables, label, message)
+            setAddressBook(step, queries, self._getTables(), label, message)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    def _getTablesInfos(self, connection):
+        infos = {}
+        similar = True
+        tables = connection.getTables()
+        if tables.hasElements():
+            columns = tables.getByIndex(0).getColumns().getElementNames()
+            for name in tables.getElementNames():
+                info = tables.getByName(name).getColumns().getElementNames()
+                if columns != info:
+                    similar = False
+                infos[name] = info
+        return infos, similar
+
+    def _getTables(self):
+        return tuple(self._tables.keys())
 
     def _getDataSource(self, addressbook):
         # We need to check if the registered datasource has an existing odb file
@@ -354,8 +368,11 @@ class MergerModel(MailModel):
         return querytable
 
     # AddressBook Table methods
-    def setAddressBookTable(self, table):
-        columns = getTableColumns(self.Connection, table)
+    def setAddressBookTable(self, name):
+        columns = ()
+        tables = self.Connection.getTables()
+        if tables.hasByName(name):
+            columns = tables.getByName(name).getColumns().getElementNames()
         return columns
 
     # Query methods
@@ -426,11 +443,11 @@ class MergerModel(MailModel):
         query.Command = command
         return query
 
-    def _getQueryFilters(self):
+    def _getQueryFilters(self, null=True):
         f = []
         identifier = self.getIdentifier()
         if identifier is not None:
-            filter = self._getIdentifierFilter(identifier)
+            filter = self._getIdentifierFilter(identifier, null)
             f.append(filter)
         filters = tuple(f)
         return (filters, )
@@ -519,8 +536,11 @@ class MergerModel(MailModel):
         filter = self._getIdentifierFilter(identifier)
         self._setFilter(query, filter, False)
 
-    def _getIdentifierFilter(self, identifier):
-        filter = getPropertyValue(identifier, 'IS NULL', 0, SQLNULL)
+    def _getIdentifierFilter(self, identifier, null=True):
+        if null:
+            filter = getPropertyValue(identifier, 'IS NULL', 0, SQLNULL)
+        else:
+            filter = getPropertyValue(identifier, 'IS NOT NULL', 0, NOT_SQLNULL)
         return filter
 
     # Index private shared methods
@@ -627,8 +647,14 @@ class MergerModel(MailModel):
 
 # Procedures called by WizardPage2
     def getPageInfos(self):
+        tables = self._getTables() if self._similar else self._getSimilarTables()
         message = self._getMailingMessage()
-        return self._tables, self._table, self._similar, message
+        return tables, self._table, message
+
+    def _getSimilarTables(self):
+        columns = self._tables.get(self._table, ())
+        tables = [table for table in self._tables if self._tables[table] == columns]
+        return tuple(tables)
 
     def initPage2(self, *args):
         # We must prevent a second execution of self._address in setAddressTable()
@@ -667,6 +693,9 @@ class MergerModel(MailModel):
     def addItem(self, *args):
         Thread(target=self._addItem, args=args).start()
 
+    def addAllItem(self, *args):
+        Thread(target=self._addAllItem, args=args).start()
+
     def removeItem(self, *args):
         Thread(target=self._removeItem, args=args).start()
 
@@ -702,11 +731,24 @@ class MergerModel(MailModel):
     def _addItem(self, identifiers):
         self._updateItem(identifiers, True)
 
+    def _addAllItem(self, table):
+        filters = self._subcomposer.getFilter()
+        command = getSqlQuery(self._ctx, 'getQueryCommand', self._getQuotedTableName(table))
+        self._subcomposer.setQuery(command)
+        self._subcomposer.setFilter(filters)
+        subquery = self._getSubQueryName(self._query)
+        self._queries.getByName(subquery).Command = command
+        filters = self._getQueryFilters(False)
+        self._updateItemFilter(filters)
+
     def _removeItem(self, identifiers):
         self._updateItem(identifiers, False)
 
     def _updateItem(self, identifiers, add):
         filters = self._getFilters(identifiers, add)
+        self._updateItemFilter(filters)
+
+    def _updateItemFilter(self, filters):
         self._composer.setStructuredFilter(filters)
         self._queries.getByName(self._query).Command = self._composer.getQuery()
         self._addressbook.DatabaseDocument.store()
@@ -734,7 +776,6 @@ class MergerModel(MailModel):
             filters.remove(filter)
 
     def _getFilter(self, identifier, value, dbtype):
-        # FIXME: The value of the filter MUST be enclosed in single quotes!!!
         filter = getPropertyValue(identifier, self._datasource.getFilterValue(value, dbtype), 0, EQUAL)
         filters = (filter, )
         return filters
@@ -820,19 +861,20 @@ class MergerModel(MailModel):
     def setUrl(self, url):
         pass
 
-    def getMergerRecipient(self):
-        recipients = self.getRecipients()
+    def getRecipients(self):
+        recipients = self._getRecipients()
         message = self._getRecipientMessage(len(recipients))
         return recipients, message
 
-    def getRecipients(self):
+    def _getRecipients(self):
         emails = self.getEmails()
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
         identifier = self.getIdentifier()
         filter = self._composer.getFilter()
-        table = self._getQuotedTableName(self._table)
-        format = (columns, identifier, table, filter)
+        command = self._subcomposer.getQuery()
+        format = (columns, identifier, command, filter)
         query = getSqlQuery(self._ctx, 'getRecipientQuery', format)
+        print("MergerModel._getRecipients() Query: %s" % query)
         result = self._statement.executeQuery(query)
         recipients = getObjectSequenceFromResult(result)
         return recipients
@@ -849,8 +891,7 @@ class MergerModel(MailModel):
     def _initPage3(self, handler, initView, initRecipient):
         self._recipient.addRowSetListener(handler)
         initView(self._document)
-        recipients = self.getRecipients()
-        message = self._getRecipientMessage(len(recipients))
+        recipients, message = self.getRecipients()
         initRecipient(recipients, message)
 
     def _getDocumentName(self):

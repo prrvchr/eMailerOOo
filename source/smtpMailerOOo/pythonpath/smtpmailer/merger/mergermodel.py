@@ -65,6 +65,7 @@ from ..unotool import getInteractionHandler
 from ..unotool import getPathSettings
 from ..unotool import getPropertyValue
 from ..unotool import getPropertyValueSet
+from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getStringResource
 from ..unotool import getUrl
@@ -130,6 +131,7 @@ class MergerModel(MailModel):
         self._temp = False
         self._saved = False
         self._lock = Condition()
+        self._url = getResourceLocation(ctx, g_identifier, g_extension)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'MergerPage%s.Step',
                            'Title': 'MergerPage%s.Title',
@@ -726,8 +728,8 @@ class MergerModel(MailModel):
 # Private procedures called by WizardPage2
     def _initPage2(self, table, possize, parent1, parent2, initPage):
         self._address.Command = table
-        self._grid1 = GridManager(self._ctx, GridModel(self._ctx), parent1, possize, 'MergerGrid1', MULTI, None, 8, True, 'Grid1')
-        self._grid2 = GridManager(self._ctx, GridModel(self._ctx), parent2, possize, 'MergerGrid2', MULTI, None, 8, True, 'Grid2')
+        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), parent1, possize, 'MergerGrid1', MULTI, None, 8, True, 'Grid1')
+        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), parent2, possize, 'MergerGrid2', MULTI, None, 8, True, 'Grid2')
         initPage(self._grid1, self._grid2, self._address, self._recipient)
         self._executeAddress()
         self._executeResultSet()

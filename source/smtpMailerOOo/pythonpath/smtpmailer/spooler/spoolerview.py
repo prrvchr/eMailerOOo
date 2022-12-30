@@ -30,12 +30,7 @@
 import uno
 import unohelper
 
-from com.sun.star.view.SelectionType import MULTI
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
-from .spoolerhandler import DialogHandler
-from .spoolerhandler import Tab1Handler
-from .spoolerhandler import Tab2Handler
 
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
@@ -44,24 +39,17 @@ from ..configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
-        handler = DialogHandler(manager)
+    def __init__(self, ctx, handler, handler1, handler2, parent, title, title1, title2):
         self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 180)
-        title1 = manager.getTabPageTitle(1)
-        title2 = manager.getTabPageTitle(2)
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
         tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
         parent = tab1.getPeer()
-        handler = Tab1Handler(manager)
-        self._tab1 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerTab1')
+        self._tab1 = getContainerWindow(ctx, parent, handler1, g_extension, 'SpoolerTab1')
         self._tab1.setVisible(True)
         parent = tab2.getPeer()
-        handler = Tab2Handler(manager)
-        self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab2')
         self._tab2.setVisible(True)
-        title = manager.getDialogTitle()
         self._dialog.setTitle(title)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 2, 25, 392, 132)
 
 # SpoolerView getter methods
     def execute(self):
@@ -70,11 +58,8 @@ class SpoolerView(unohelper.Base):
     def getParent(self):
         return self._dialog.getPeer()
 
-    def getGridParent(self):
-        return self._tab1.getPeer()
-
-    def getGridPosSize(self):
-        return self._rectangle
+    def getGridWindow(self):
+        return self._getGridWindow()
 
 # SpoolerView setter methods
     def initView(self):
@@ -131,6 +116,9 @@ class SpoolerView(unohelper.Base):
 
     def _getButtonRemove(self):
         return self._tab1.getControl('CommandButton2')
+
+    def _getGridWindow(self):
+        return self._tab1.getControl('FrameControl1')
 
     def _getLabelState(self):
         return self._dialog.getControl('Label2')

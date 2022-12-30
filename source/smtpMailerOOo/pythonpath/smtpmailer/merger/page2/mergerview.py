@@ -59,19 +59,15 @@ class MergerView(unohelper.Base):
         handler = Tab2Handler(manager)
         self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 2, 25, 277, 152)
         self._initTables(tables)
         self.setMessage(message)
 
 # MergerView getter methods
-    def getGridParents(self):
-        return self._tab1.getPeer(), self._tab2.getPeer()
-
-    def getGridPosSize(self):
-        return self._rectangle
-
     def getWindow(self):
         return self._window
+
+    def getGridWindows(self):
+        return self._getGrid1Windows(), self._getGrid2Windows()
 
     def getTable(self):
         return self._getTable().getSelectedItem()
@@ -112,6 +108,9 @@ class MergerView(unohelper.Base):
     def _getAdd(self):
         return self._tab1.getControl('CommandButton2')
 
+    def _getGrid1Windows(self):
+        return self._tab1.getControl('FrameControl1')
+
     def _getRemoveAll(self):
         return self._tab2.getControl('CommandButton1')
 
@@ -120,6 +119,9 @@ class MergerView(unohelper.Base):
 
     def _getMessage(self):
         return self._tab2.getControl('Label1')
+
+    def _getGrid2Windows(self):
+        return self._tab2.getControl('FrameControl1')
 
 # MergerView private methods
     def _getTabPages(self, manager, name, rectangle, i):

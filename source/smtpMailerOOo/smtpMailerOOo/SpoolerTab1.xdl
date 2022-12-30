@@ -33,5 +33,8 @@
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="349" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton2.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
     </dlg:button>
+    <dlg:titledbox dlg:id="FrameControl1" dlg:tab-index="2" dlg:disabled="true" dlg:left="5" dlg:top="25" dlg:width="389" dlg:height="130" dlg:help-text="&amp;SpoolerTab1.FrameControl1.HelpText">
+      <dlg:title dlg:value="&amp;SpoolerTab1.FrameControl1.Label"/>
+    </dlg:titledbox>
   </dlg:bulletinboard>
 </dlg:window>

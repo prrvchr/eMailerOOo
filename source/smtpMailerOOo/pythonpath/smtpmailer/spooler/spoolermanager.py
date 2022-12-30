@@ -34,9 +34,14 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .spoolermodel import SpoolerModel
+
 from .spoolerview import SpoolerView
+
 from .spoolerhandler import DispatchListener
 from .spoolerhandler import SpoolerListener
+from .spoolerhandler import DialogHandler
+from .spoolerhandler import Tab1Handler
+from .spoolerhandler import Tab2Handler
 
 from ..grid import GridListener
 from ..grid import RowSetListener
@@ -65,15 +70,15 @@ class SpoolerManager(unohelper.Base):
         self._lock = Condition()
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
-        self._view = SpoolerView(ctx, self, parent)
+        titles = self._model.getDialogTitles()
+        self._view = SpoolerView(ctx, DialogHandler(self),Tab1Handler(self), Tab1Handler(self), parent, *titles)
         service = 'com.sun.star.mail.SpoolerService'
         self._spooler = createService(ctx, service)
         self._spoolerlistener = SpoolerListener(self)
         self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
-        parent = self._view.getGridParent()
-        possize = self._view.getGridPosSize()
-        self._model.initSpooler(possize, parent, GridListener(self), self.initView)
+        window = self._view.getGridWindow()
+        self._model.initSpooler(window, GridListener(self), self.initView)
         self._logger = Pool(ctx).getLogger('SpoolerLogger')
         self._loghandler = LogHandler(ctx, self.refreshLog)
         self._logger.addLogHandler(self._loghandler)

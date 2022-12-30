@@ -62,9 +62,8 @@ class MergerManager(unohelper.Base,
         self._disabled = False
         tables, table, message = self._model.getPageInfos()
         self._view = MergerView(ctx, self, parent, tables, message)
-        possize = self._view.getGridPosSize()
-        parent1, parent2 = self._view.getGridParents()
-        self._model.initPage2(table, possize, parent1, parent2, self.initPage)
+        window1, window2 = self._view.getGridWindows()
+        self._model.initPage2(table, window1, window2, self.initPage)
         # FIXME: We must disable the handler "ChangeAddressBook"
         # FIXME: otherwise it activates twice
         self._disableHandler()

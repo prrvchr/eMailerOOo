@@ -34,8 +34,8 @@ import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, url, model, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
-        GridManagerBase.__init__(self, ctx, url, model, parent, possize, setting, selection, resource, maxi, multi, name)
+    def __init__(self, ctx, url, model, window, setting, selection, resource=None, maxi=None, multi=False):
+        GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resource, maxi, multi)
 
 # GridManager setter methods
     def setDataModel(self, rowset, identifier):

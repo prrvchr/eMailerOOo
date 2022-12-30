@@ -726,10 +726,10 @@ class MergerModel(MailModel):
         return message
 
 # Private procedures called by WizardPage2
-    def _initPage2(self, table, possize, parent1, parent2, initPage):
+    def _initPage2(self, table, window1, window2, initPage):
         self._address.Command = table
-        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), parent1, possize, 'MergerGrid1', MULTI, None, 8, True, 'Grid1')
-        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), parent2, possize, 'MergerGrid2', MULTI, None, 8, True, 'Grid2')
+        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, 'MergerGrid1', MULTI, None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, 'MergerGrid2', MULTI, None, 8, True)
         initPage(self._grid1, self._grid2, self._address, self._recipient)
         self._executeAddress()
         self._executeResultSet()

@@ -37,5 +37,8 @@
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="3" dlg:disabled="true" dlg:left="224" dlg:top="5" dlg:width="55" dlg:height="14" dlg:help-text="&amp;MergerTab1.CommandButton2.HelpText" dlg:value="&amp;MergerTab1.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Add" script:language="UNO"/>
     </dlg:button>
+    <dlg:titledbox dlg:id="FrameControl1" dlg:tab-index="4" dlg:disabled="true" dlg:left="5" dlg:top="25" dlg:width="274" dlg:height="150" dlg:help-text="&amp;MergerTab1.FrameControl1.HelpText">
+      <dlg:title dlg:value="&amp;MergerTab1.FrameControl1.Label"/>
+    </dlg:titledbox>
   </dlg:bulletinboard>
 </dlg:window>

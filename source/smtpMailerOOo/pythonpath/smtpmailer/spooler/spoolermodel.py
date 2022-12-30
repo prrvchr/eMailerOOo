@@ -97,13 +97,8 @@ class SpoolerModel(unohelper.Base):
     def isDisposed(self):
         return self._diposed
 
-    def getDialogTitle(self):
-        resource = self._resources.get('Title')
-        return self._resolver.resolveString(resource)
-
-    def getTabPageTitle(self, tabid):
-        resource = self._resources.get('TabTitle') % tabid
-        return self._resolver.resolveString(resource)
+    def getDialogTitles(self):
+        return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2)
 
     def getSpoolerState(self, state):
         resource = self._resources.get('State') % state
@@ -160,12 +155,21 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, possize, parent, listener, initView):
+    def _initSpooler(self, window, listener, initView):
         self.DataSource.waitForDataBase()
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
-        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), parent, possize, 'Spooler', MULTI, self._resource, 13)
+        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), window, 'Spooler', MULTI, self._resource, 13)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!
         self.executeRowSet()
+
+    def _getDialogTitle(self):
+        resource = self._resources.get('Title')
+        return self._resolver.resolveString(resource)
+
+    def _getTabTitle(self, tabid):
+        resource = self._resources.get('TabTitle') % tabid
+        return self._resolver.resolveString(resource)
+

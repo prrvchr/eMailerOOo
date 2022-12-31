@@ -76,8 +76,8 @@ class SpoolerModel(unohelper.Base):
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Title': 'SpoolerDialog.Title',
                            'State': 'SpoolerDialog.Label2.Label.%s',
-                           'TabTitle': 'SpoolerTab%s.Title'}
-        self._resource = 'SpoolerTab1.Grid1.Column.%s'
+                           'TabTitle': 'SpoolerTab%s.Title',
+                           'GridColumns': 'SpoolerTab1.Grid1.Column.%s'}
 
     @property
     def DataSource(self):
@@ -159,7 +159,8 @@ class SpoolerModel(unohelper.Base):
         self.DataSource.waitForDataBase()
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
-        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), window, 'Spooler', MULTI, self._resource, 13)
+        resources = (self._resolver, self._resources.get('GridColumns'))
+        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), window, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!

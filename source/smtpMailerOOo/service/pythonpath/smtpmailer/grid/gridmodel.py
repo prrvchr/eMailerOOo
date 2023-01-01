@@ -47,15 +47,15 @@ class GridModel(GridModelBase):
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
         return  getValueFromResult(self._resultset, column +1)
+
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
-    def getRowHeading(self, row):
-        return row
+
     def getRowData(self, row):
         data = []
         self._resultset.absolute(row +1)
-        for index in range(self._column):
-            data.append(getValueFromResult(self._resultset, index +1))
+        for column in range(self._column):
+            data.append(getValueFromResult(self._resultset, column +1))
         return tuple(data)
 
 # GridModel setter methods

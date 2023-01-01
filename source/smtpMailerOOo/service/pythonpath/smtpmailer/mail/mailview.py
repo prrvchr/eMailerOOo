@@ -46,14 +46,14 @@ class MailView(unohelper.Base):
         self._window.setVisible(True)
 
 # MailView getter methods
+    def getRecipientIndex(self):
+        raise NotImplementedError('Need to be implemented!')
+
     def getWindow(self):
-        raise NotImplementedError('Need to be implemented if needed!')
+        return self._window
 
     def isRecipientsValid(self):
-        raise NotImplementedError('Need to be implemented!')
-
-    def getCurrentIdentifier(self):
-        raise NotImplementedError('Need to be implemented!')
+        return self._getRecipients().getItemCount() > 0
 
     def getEmail(self):
         return self.getSender(), self.getRecipients()
@@ -62,7 +62,7 @@ class MailView(unohelper.Base):
         return self._getSenders().getSelectedItem()
 
     def getRecipients(self):
-        return self._getMailerRecipients().getItems()
+        return self._getRecipients().getItems()
 
     def getSelectedSender(self):
         control = self._getSenders()
@@ -147,17 +147,17 @@ class MailView(unohelper.Base):
         raise NotImplementedError('Need to be implemented if needed!')
 
     def addRecipient(self):
-        control = self._getMailerRecipients()
+        control = self._getRecipients()
         email = control.getText()
         self._addRecipient(control, email)
 
     def addToRecipient(self, email):
-        control = self._getMailerRecipients()
+        control = self._getRecipients()
         self._addRecipient(control, email)
 
     def removeRecipient(self):
         self._getRemoveRecipient().Model.Enabled = False
-        control = self._getMailerRecipients()
+        control = self._getRecipients()
         email = control.getText()
         recipients = control.getItems()
         if email in recipients:
@@ -219,6 +219,9 @@ class MailView(unohelper.Base):
         self._getRemoveRecipient().Model.Enabled = False
 
 # MailView private control methods
+    def _getRecipients(self):
+        raise NotImplementedError('Need to be implemented if needed!')
+
     def _getSenders(self):
         return self._window.getControl('ListBox1')
 
@@ -227,9 +230,6 @@ class MailView(unohelper.Base):
 
     def _getAttachments(self):
         return self._window.getControl('ListBox3')
-
-    def _getMailerRecipients(self):
-        return self._window.getControl('ComboBox1')
 
     def _getSubject(self):
         return self._window.getControl('TextField1')

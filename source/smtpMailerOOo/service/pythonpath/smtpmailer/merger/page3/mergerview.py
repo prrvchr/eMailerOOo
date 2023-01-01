@@ -31,42 +31,19 @@ from ...mail import MailView
 
 
 class MergerView(MailView):
+
 # MergerView getter methods
-    def getWindow(self):
-        return self._window
-
-    def isRecipientsValid(self):
-        return self._getMergerRecipients().getItemCount() > 0
-
-    def getEmail(self):
-        recipients, identifiers = self.getRecipients()
-        return self.getSender(), recipients, identifiers
-
-    def getRecipients(self):
-        recipients = []
-        identifiers = []
-        control = self._getMergerRecipients()
-        for index in range(control.Model.ItemCount):
-            recipients.append(control.Model.getItemText(index))
-            identifiers.append(control.Model.getItemData(index))
-        return tuple(recipients), tuple(identifiers)
-
-    def getCurrentIdentifier(self):
-        identifier = None
-        control = self._getMergerRecipients()
-        index = control.getSelectedItemPos()
-        if index != -1:
-            identifier = control.Model.getItemData(index)
-        return identifier
+    def getRecipientIndex(self):
+        return self._getMergerRecipients().getSelectedItemPos()
 
 # MergerView setter methods
     def setRecipients(self, recipients, message):
         self._getMergerMessage().Text = message
         control = self._getMergerRecipients()
-        control.Model.removeAllItems()
-        for recipient in recipients:
-            index = control.Model.ItemCount
-            control.Model.insertItemText(index, recipient.Recipient)
-            control.Model.setItemData(index, recipient.Identifier)
+        control.Model.StringItemList = recipients
         if len(recipients) > 0:
             control.selectItemPos(0, True)
+
+# MergerView private control methods
+    def _getRecipients(self):
+        return self._window.getControl('ListBox2')

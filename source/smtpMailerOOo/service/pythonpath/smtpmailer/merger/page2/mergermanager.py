@@ -142,16 +142,16 @@ class MergerManager(unohelper.Base,
                 self._model.setRecipientRecord(index)
 
     def addItem(self):
-        identifiers = self._model.getGrid1SelectedIdentifiers()
-        self._model.addItem(identifiers)
+        filters = self._model.getGrid1SelectedStructuredFilters()
+        self._model.addItem(filters)
 
     def addAllItem(self):
         table = self._view.getTable()
         self._model.addAllItem(table)
 
     def removeItem(self):
-        identifiers = self._model.getGrid2SelectedIdentifiers()
-        self._model.removeItem(identifiers)
+        filters = self._model.getGrid2SelectedStructuredFilters()
+        self._model.removeItem(filters)
 
     def removeAllItem(self):
         pass

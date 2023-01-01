@@ -32,8 +32,11 @@ from ..mail import MailView
 
 class MailerView(MailView):
 
-    def isRecipientsValid(self):
-        return self._getMailerRecipients().getItemCount() > 0
+# MailerView getter methods
+    def getRecipientIndex(self):
+        return -1
 
-    def getCurrentIdentifier(self):
-        return None
+# MailerView private control methods
+    def _getRecipients(self):
+        return self._window.getControl('ComboBox1')
+

@@ -110,7 +110,7 @@ class SpoolerModel(unohelper.Base):
         Thread(target=self._initSpooler, args=args).start()
 
     def setGridData(self, rowset):
-        self._grid.setDataModel(rowset, 'JobId')
+        self._grid.setDataModel(rowset, ('JobId', ))
 
     def dispose(self):
         self._diposed = True

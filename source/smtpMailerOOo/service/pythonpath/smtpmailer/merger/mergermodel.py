@@ -71,7 +71,6 @@ from ..unotool import getStringResource
 from ..unotool import getUrl
 from ..unotool import getUrlPresentation
 
-from ..dbtool import getObjectSequenceFromResult
 from ..dbtool import getResultValue
 from ..dbtool import getSequenceFromResult
 from ..dbtool import getValueFromResult
@@ -532,6 +531,10 @@ class MergerModel(MailModel):
         return tuple(filters)
 
     # Identifier methods
+    def getIdentifiers(self):
+        filters = self._composer.getStructuredFilter()
+        return (self._getFirstFilterName(filters),)
+
     def getIdentifier(self):
         filters = self._composer.getStructuredFilter()
         return self._getFirstFilterName(filters)
@@ -670,20 +673,16 @@ class MergerModel(MailModel):
         Thread(target=self._initPage2, args=args).start()
 
     def setGrid1Data(self, rowset):
-        identifier = self.getIdentifier()
-        self._grid1.setDataModel(rowset, identifier)
+        self._grid1.setDataModel(rowset, self.getIdentifiers())
 
     def setGrid2Data(self, rowset):
-        identifier = self.getIdentifier()
-        self._grid2.setDataModel(rowset, identifier)
+        self._grid2.setDataModel(rowset, self.getIdentifiers())
 
-    def getGrid1SelectedIdentifiers(self):
-        return self._grid1.getSelectedIdentifiers()
+    def getGrid1SelectedStructuredFilters(self):
+        return self._grid1.getSelectedStructuredFilters()
 
-    def getGrid2SelectedIdentifiers(self):
-        identifiers = self._grid2.getSelectedIdentifiers()
-        self._grid2.deselectAllRows()
-        return identifiers
+    def getGrid2SelectedStructuredFilters(self):
+        return self._grid2.getSelectedStructuredFilters()
 
     def isChanged(self):
         return self._changed
@@ -709,17 +708,13 @@ class MergerModel(MailModel):
     def removeItem(self, *args):
         Thread(target=self._removeItem, args=args).start()
 
-    def setAddressRecord(self, row):
-        identifier= self._grid1.getRowIdentifier(row)
-        index = self._grid1.getIdentifierIndex()
-        if index != -1:
-            self._setDocumentRecord(self._document, self._address, identifier, index)
+    def setAddressRecord(self, index):
+        row = self._grid1.getUnsortedIndex(index) +1
+        self._setDocumentRecord(self._document, self._address, row)
 
-    def setRecipientRecord(self, row):
-        identifier= self._grid2.getRowIdentifier(row)
-        index = self._grid2.getIdentifierIndex()
-        if index != -1:
-            self._setDocumentRecord(self._document, self._recipient, identifier, index)
+    def setRecipientRecord(self, index):
+        row = self._grid2.getUnsortedIndex(index) +1
+        self._setDocumentRecord(self._document, self._recipient, row)
 
     def getMailingMessage(self):
         message = self._getMailingMessage()
@@ -737,8 +732,8 @@ class MergerModel(MailModel):
     def _executeAddress(self):
         self._address.execute()
 
-    def _addItem(self, identifiers):
-        self._updateItem(identifiers, True)
+    def _addItem(self, filters):
+        self._updateItem(filters, True)
 
     def _addAllItem(self, table):
         filters = self._subcomposer.getFilter()
@@ -750,46 +745,31 @@ class MergerModel(MailModel):
         filters = self._getQueryFilters(False)
         self._updateItemFilter(filters)
 
-    def _removeItem(self, identifiers):
-        self._updateItem(identifiers, False)
+    def _removeItem(self, filters):
+        self._updateItem(filters, False)
 
-    def _updateItem(self, identifiers, add):
-        filters = self._getFilters(identifiers, add)
-        self._updateItemFilter(filters)
-
-    def _updateItemFilter(self, filters):
+    def _updateItem(self, news, add):
+        filters = self._getComposerFilter(self._composer)
+        for new in news:
+            self._updateFilters(filters, new, add)
         self._composer.setStructuredFilter(filters)
         self._queries.getByName(self._query).Command = self._composer.getQuery()
         self._addressbook.DatabaseDocument.store()
         self._setRowSetFilter(self._recipient, self._composer)
         self._recipient.execute()
 
-    def _getFilters(self, identifiers, add):
-        filters = self._getComposerFilter(self._composer)
-        identifier = self.getIdentifier()
-        dbtype = self._grid2.getIdentifierDataType()
-        for value in identifiers:
-            self._updateFilters(filters, identifier, value, dbtype, add)
-        return tuple(filters)
-
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
         return list(filters)
 
-    def _updateFilters(self, filters, identifier, value, dbtype, add):
-        filter = self._getFilter(identifier, value, dbtype)
+    def _updateFilters(self, filters, filter, add):
         if add:
             if filter not in filters:
                 filters.append(filter)
         elif filter in filters:
             filters.remove(filter)
 
-    def _getFilter(self, identifier, value, dbtype):
-        filter = getPropertyValue(identifier, self._datasource.getFilterValue(value, dbtype), 0, EQUAL)
-        filters = (filter, )
-        return filters
-
-    def _setDocumentRecord(self, document, rowset, identifier, index):
+    def _setDocumentRecord(self, document, rowset, index):
         url = None
         if document.supportsService('com.sun.star.text.TextDocument'):
             url = '.uno:DataSourceBrowser/InsertContent'
@@ -798,22 +778,9 @@ class MergerModel(MailModel):
         if url is not None:
             result = rowset.createResultSet()
             if result is not None:
-                 row = self._getIdentifierRow(result, identifier, index)
-                 print("MergerModel._setDocumentRecord() Identifier: %s - Index: %s - Row: %s" % (identifier, index, row))
-                 if row != -1:
-                    descriptor = self._getDataDescriptor(result, row)
-                    frame = document.CurrentController.Frame
-                    executeFrameDispatch(self._ctx, frame, url, descriptor)
-
-    def _getIdentifierRow(self, result, identifier, index):
-        row = -1
-        while result.next():
-            value = getResultValue(result, index +1)
-            if value == identifier:
-                row = result.getRow()
-                break
-        result.beforeFirst()
-        return row
+                descriptor = self._getDataDescriptor(result, index)
+                frame = document.CurrentController.Frame
+                executeFrameDispatch(self._ctx, frame, url, descriptor)
 
     def _getDataDescriptor(self, result, row):
         # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
@@ -835,18 +802,10 @@ class MergerModel(MailModel):
     def getUrl(self):
         return self._document.URL
 
-    def getDocumentInfo(self, identifiers):
-        filters = self._getfiltersFromIdentifiers(identifiers)
+    def getDocumentInfo(self):
+        filters = self._grid2.getGridFilters()
         url = getUrlPresentation(self._ctx, self.getUrl())
         return url, self._name, self._query, self._table, filters
-
-    def _getfiltersFromIdentifiers(self, identifiers):
-        filters = []
-        identifier = self.getIdentifier()
-        dbtype = self._grid2.getIdentifierDataType()
-        for value in identifiers:
-            filters.append(self._datasource.getFilter(identifier, value, dbtype))
-        return tuple(filters)
 
     def saveDocument(self):
         self._saved = True
@@ -878,23 +837,20 @@ class MergerModel(MailModel):
     def _getRecipients(self):
         emails = self.getEmails()
         columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
-        identifier = self.getIdentifier()
         filter = self._composer.getFilter()
         command = self._subcomposer.getQuery()
-        format = (columns, identifier, command, filter)
+        format = (columns, command, filter)
         query = getSqlQuery(self._ctx, 'getRecipientQuery', format)
         print("MergerModel._getRecipients() Query: %s" % query)
         result = self._statement.executeQuery(query)
-        recipients = getObjectSequenceFromResult(result)
+        recipients = getSequenceFromResult(result)
         return recipients
 
     def hasMergeMark(self, url):
         return url.endswith('#merge&pdf') or url.endswith('#merge')
 
-    def mergeDocument(self, document, identifier):
-        index = self._grid2.getIdentifierIndex()
-        if index != -1:
-            self._setDocumentRecord(document, self._recipient, identifier, index)
+    def mergeDocument(self, document, index):
+        self._setDocumentRecord(document, self._recipient, index +1)
 
 # Private procedures called by WizardPage3
     def _initPage3(self, handler, initView, initRecipient):

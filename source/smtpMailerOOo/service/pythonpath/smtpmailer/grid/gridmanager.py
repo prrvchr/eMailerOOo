@@ -38,7 +38,7 @@ class GridManager(GridManagerBase):
         GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resource, maxi, multi)
 
 # GridManager setter methods
-    def setDataModel(self, rowset, identifier):
+    def setDataModel(self, rowset, identifiers):
         datasource = rowset.ActiveConnection.Parent.Name
         query = rowset.UpdateTableName
         changed = self._isDataSourceChanged(datasource, query)
@@ -50,10 +50,8 @@ class GridManager(GridManagerBase):
             # but after saving GridColumnModel Widths
             self._view.showGridColumnHeader(False)
             #self._model.resetRowSetData()
-            self._identifier = identifier
-            self._headers, self._index, self._type = self._getHeadersInfo(rowset.getMetaData())
-            identifiers = self._initColumnModel(datasource, query)
-            self._view.initColumns(self._url, self._headers, identifiers)
+            self._headers, self._indexes, self._types = self._getHeadersInfo(rowset.getMetaData(), identifiers)
+            self._view.initColumns(self._url, self._headers, self._initColumnModel(datasource, query))
             self._query = query
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
@@ -70,15 +68,16 @@ class GridManager(GridManagerBase):
     def _isGridLoaded(self):
         return self._datasource is not None
 
-    def _getHeadersInfo(self, metadata):
-        index = type = -1
+    def _getHeadersInfo(self, metadata, identifiers):
         headers = OrderedDict()
+        indexes = OrderedDict([(identifier, -1) for identifier in identifiers])
+        types = {}
         for i in range(metadata.getColumnCount()):
             name = metadata.getColumnLabel(i +1)
             title = self._getColumnTitle(name)
-            if self._identifier == name:
-                index = i
-                type = metadata.getColumnType(i +1)
+            if name in identifiers:
+                indexes[name] = i
+                types[name] = metadata.getColumnType(i +1)
             headers[name] = title
-        return headers, index, type
+        return headers, indexes, types
 

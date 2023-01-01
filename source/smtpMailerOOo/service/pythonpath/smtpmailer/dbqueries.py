@@ -236,7 +236,7 @@ def getSqlQuery(ctx, name, format=None):
             query = 'COALESCE(%s)' % query
 
     elif name == 'getRecipientQuery':
-        query = 'SELECT %s AS "Recipient", "%s" AS "Identifier" FROM (%s) WHERE %s;' % format
+        query = 'SELECT %s AS "Recipient" FROM (%s) WHERE %s;' % format
 
     # Spooler Select Queries
     elif name == 'getViewQuery':

@@ -131,21 +131,21 @@ class MailManager(unohelper.Base):
             self._updateUI()
 
     def viewHtml(self):
-        identifier = self._view.getCurrentIdentifier()
+        index = self._view.getRecipientIndex()
         document = self._model.getDocument()
-        if identifier is not None:
-            self._model.mergeDocument(document, identifier)
+        if index != -1:
+            self._model.mergeDocument(document, index)
         url = self._model.saveDocumentAs(document, 'html')
         self._closeDocument(document)
         if url is not None:
             executeShell(self._ctx, url)
 
     def viewPdf(self):
-        identifier = self._view.getCurrentIdentifier()
+        index = self._view.getRecipientIndex()
         attachment = self._view.getSelectedAttachment()
         document = self._model.getDocument(attachment)
-        if identifier is not None and self._model.hasMergeMark(attachment):
-            self._model.mergeDocument(document, identifier)
+        if index != -1 and self._model.hasMergeMark(attachment):
+            self._model.mergeDocument(document, index)
         url = self._model.saveDocumentAs(document, 'pdf')
         self._closeDocument(document)
         if url is not None:

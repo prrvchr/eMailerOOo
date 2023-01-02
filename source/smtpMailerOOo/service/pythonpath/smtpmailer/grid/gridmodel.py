@@ -29,7 +29,7 @@
 
 from .gridmodelbase import GridModelBase
 
-from ..dbtool import getValueFromResult
+from ..dbtool import getResultValue
 
 import traceback
 
@@ -46,7 +46,7 @@ class GridModel(GridModelBase):
 # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
-        return  getValueFromResult(self._resultset, column +1)
+        return  getResultValue(self._resultset, column +1)
 
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
@@ -55,7 +55,7 @@ class GridModel(GridModelBase):
         data = []
         self._resultset.absolute(row +1)
         for column in range(self._column):
-            data.append(getValueFromResult(self._resultset, column +1))
+            data.append(getResultValue(self._resultset, column +1))
         return tuple(data)
 
 # GridModel setter methods

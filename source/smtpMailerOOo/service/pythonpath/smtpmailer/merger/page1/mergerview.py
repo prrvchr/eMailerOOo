@@ -101,7 +101,13 @@ class MergerView(unohelper.Base):
 
     # Identifier getter method
     def getIdentifier(self):
-        return self._getIdentifier().getItem(0)
+        return self._getIdentifier().getSelectedItem()
+
+    def getIdentifiers(self):
+        return self._getIdentifier().Model.StringItemList
+
+    def getIdentifierPosition(self):
+        return self._getIdentifier().getSelectedItemPos()
 
     def hasIdentifier(self):
         return self._getIdentifier().getItemCount() > 0
@@ -123,8 +129,8 @@ class MergerView(unohelper.Base):
         self._getRemoveQuery().Model.Enabled = enabled
         self._getAddEmail().Model.Enabled = enabled
         self._getRemoveEmail().Model.Enabled = enabled
-        self._getBefore().Model.Enabled = enabled
-        self._getAfter().Model.Enabled = enabled
+        self._getUpEmail().Model.Enabled = enabled
+        self._getDownEmail().Model.Enabled = enabled
         self._getAddIdentifier().Model.Enabled = enabled
         self._getRemoveIdentifier().Model.Enabled = enabled
 
@@ -218,11 +224,11 @@ class MergerView(unohelper.Base):
     def enableRemoveEmail(self, enabled):
         self._getRemoveEmail().Model.Enabled = enabled
 
-    def enableBefore(self, enabled):
-        self._getBefore().Model.Enabled = enabled
+    def enableUpEmail(self, enabled):
+        self._getUpEmail().Model.Enabled = enabled
 
-    def enableAfter(self, enabled):
-        self._getAfter().Model.Enabled = enabled
+    def enableDownEmail(self, enabled):
+        self._getDownEmail().Model.Enabled = enabled
 
     def setEmail(self, emails, index=-1):
         control = self._getEmail()
@@ -231,25 +237,30 @@ class MergerView(unohelper.Base):
             control.selectItemPos(index, True)
 
     # Identifier column methods
-    def setIdentifier(self, identifier, exist):
-        identifiers = () if identifier is None else (identifier, )
-        add = identifier is None if exist else False
-        remove = identifier is not None if exist else False
-        self._getIdentifier().Model.StringItemList = identifiers
-        self.enableAddIdentifier(add)
-        self.enableRemoveIdentifier(remove)
+    def updateAddIdentifier(self, identifiers, enabled):
+        if enabled:
+            column = self.getColumn()
+            enabled = column not in identifiers
+        self.enableAddIdentifier(enabled)
+
+    def setIdentifier(self, identifiers, index=-1):
+        control = self._getIdentifier()
+        control.Model.StringItemList = identifiers
+        if index != -1:
+            control.selectItemPos(index, True)
 
     def addIdentifier(self, identifier):
         self._getIdentifier().Model.insertItemText(0, identifier)
         self.enableRemoveIdentifier(True)
 
-    def removeIdentifier(self, enabled):
-        self._getIdentifier().Model.removeItem(0)
-        self.enableAddIdentifier(enabled)
-
     def enableAddIdentifier(self, enabled):
-        enabled = not self.hasIdentifier() if enabled else False
         self._getAddIdentifier().Model.Enabled = enabled
+
+    def enableUpIdentifier(self, enabled):
+        self._getUpIdentifier().Model.Enabled = enabled
+
+    def enableDownIdentifier(self, enabled):
+        self._getDownIdentifier().Model.Enabled = enabled
 
     def enableRemoveIdentifier(self, enabled):
         self._getRemoveIdentifier().Model.Enabled = enabled
@@ -311,20 +322,26 @@ class MergerView(unohelper.Base):
     def _getAddEmail(self):
         return self._window.getControl('CommandButton4')
 
-    def _getRemoveEmail(self):
+    def _getUpEmail(self):
         return self._window.getControl('CommandButton5')
 
-    def _getBefore(self):
+    def _getDownEmail(self):
         return self._window.getControl('CommandButton6')
 
-    def _getAfter(self):
+    def _getRemoveEmail(self):
         return self._window.getControl('CommandButton7')
 
     def _getAddIdentifier(self):
         return self._window.getControl('CommandButton8')
 
-    def _getRemoveIdentifier(self):
+    def _getUpIdentifier(self):
         return self._window.getControl('CommandButton9')
+
+    def _getDownIdentifier(self):
+        return self._window.getControl('CommandButton10')
+
+    def _getRemoveIdentifier(self):
+        return self._window.getControl('CommandButton11')
 
     def _getProgressMessage(self):
         return self._window.getControl('Label6')

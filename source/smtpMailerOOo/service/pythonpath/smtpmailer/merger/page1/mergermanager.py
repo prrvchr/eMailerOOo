@@ -164,8 +164,9 @@ class MergerManager(unohelper.Base,
             table = self._view.getTable()
             enabled = self._model.isSimilar() or query == table
         emails = self._view.getEmails()
+        identifiers = self._view.getIdentifiers()
         self._view.updateAddEmail(emails, enabled)
-        self._view.enableAddIdentifier(enabled)
+        self._view.updateAddIdentifier(identifiers, enabled)
 
     # Query setter methods
     def editQuery(self, query, table):
@@ -178,17 +179,18 @@ class MergerManager(unohelper.Base,
                 self._disableHandler()
                 self._view.setTable(table)
             enabled = False
-            identifier = self._model.getIdentifier()
+            identifiers = self._model.getIdentifiers()
             emails = self._model.getEmails()
         else:
             enabled = self._model.isQueryValid(query)
-            identifier = None
+            identifiers = ()
             emails = ()
         self._view.enableAddQuery(enabled)
         self._view.enableRemoveQuery(exist)
-        self._view.setIdentifier(identifier, exist)
         self._view.setEmail(emails)
+        self._view.setIdentifier(identifiers)
         self._view.updateAddEmail(emails, exist)
+        self._view.updateAddIdentifier(identifiers, exist)
         self._view.enableRemoveEmail(False)
         self._wizard.updateTravelUI()
 
@@ -218,14 +220,14 @@ class MergerManager(unohelper.Base,
     # Email column setter methods
     def changeEmail(self, imax, position):
         self._view.enableRemoveEmail(position != -1)
-        self._view.enableBefore(position > 0)
-        self._view.enableAfter(-1 < position < imax)
+        self._view.enableUpEmail(position > 0)
+        self._view.enableDownEmail(-1 < position < imax)
 
     def addEmail(self):
         self._view.enableAddEmail(False)
+        self._view.enableUpEmail(False)
+        self._view.enableDownEmail(False)
         self._view.enableRemoveEmail(False)
-        self._view.enableBefore(False)
-        self._view.enableAfter(False)
         query = self._view.getQuery()
         email = self._view.getColumn()
         emails = self._model.addEmail(query, email)
@@ -234,9 +236,9 @@ class MergerManager(unohelper.Base,
 
     def removeEmail(self):
         self._view.enableAddEmail(False)
+        self._view.enableUpEmail(False)
+        self._view.enableDownEmail(False)
         self._view.enableRemoveEmail(False)
-        self._view.enableBefore(False)
-        self._view.enableAfter(False)
         query = self._view.getQuery()
         email = self._view.getEmail()
         emails = self._model.removeEmail(query, email)
@@ -245,20 +247,20 @@ class MergerManager(unohelper.Base,
         self._view.updateAddEmail(emails, enabled)
         self._wizard.updateTravelUI()
 
-    def moveBefore(self):
+    def upEmail(self):
         self._view.enableRemoveEmail(False)
-        self._view.enableBefore(False)
-        self._view.enableAfter(False)
+        self._view.enableUpEmail(False)
+        self._view.enableDownEmail(False)
         query = self._view.getQuery()
         email = self._view.getEmail()
         position = self._view.getEmailPosition() -1
         emails = self._model.moveEmail(query, email, position)
         self._view.setEmail(emails, position)
 
-    def moveAfter(self):
+    def downEmail(self):
         self._view.enableRemoveEmail(False)
-        self._view.enableBefore(False)
-        self._view.enableAfter(False)
+        self._view.enableUpEmail(False)
+        self._view.enableDownEmail(False)
         query = self._view.getQuery()
         email = self._view.getEmail()
         position = self._view.getEmailPosition() +1
@@ -266,24 +268,55 @@ class MergerManager(unohelper.Base,
         self._view.setEmail(emails, position)
 
     # Identifier column setter methods
+    def changeIdentifier(self, imax, position):
+        self._view.enableRemoveIdentifier(position != -1)
+        self._view.enableUpIdentifier(position > 0)
+        self._view.enableDownIdentifier(-1 < position < imax)
+
     def addIdentifier(self):
         self._view.enableAddIdentifier(False)
+        self._view.enableUpIdentifier(False)
+        self._view.enableDownIdentifier(False)
         self._view.enableRemoveIdentifier(False)
         query = self._view.getQuery()
         identifier = self._view.getColumn()
-        self._model.addIdentifier(query, identifier)
-        self._view.addIdentifier(identifier)
+        identifiers = self._model.addIdentifier(query, identifier)
+        self._view.setIdentifier(identifiers)
         self._wizard.updateTravelUI()
 
     def removeIdentifier(self):
         self._view.enableAddIdentifier(False)
+        self._view.enableUpIdentifier(False)
+        self._view.enableDownIdentifier(False)
         self._view.enableRemoveIdentifier(False)
         query = self._view.getQuery()
         identifier = self._view.getIdentifier()
-        self._model.removeIdentifier(query, identifier)
+        identifiers = self._model.removeIdentifier(query, identifier)
         enabled = self._canAddColumn()
-        self._view.removeIdentifier(enabled)
+        enabled = self._canAddColumn()
+        self._view.setIdentifier(identifiers)
+        self._view.updateAddIdentifier(identifiers, enabled)
         self._wizard.updateTravelUI()
+
+    def upIdentifier(self):
+        self._view.enableRemoveIdentifier(False)
+        self._view.enableUpIdentifier(False)
+        self._view.enableDownIdentifier(False)
+        query = self._view.getQuery()
+        identifier = self._view.getIdentifier()
+        position = self._view.getIdentifierPosition() -1
+        emails = self._model.moveIdentifier(query, identifier, position)
+        self._view.setIdentifier(identifier, position)
+
+    def downIdentifier(self):
+        self._view.enableRemoveIdentifier(False)
+        self._view.enableUpIdentifier(False)
+        self._view.enableDownIdentifier(False)
+        query = self._view.getQuery()
+        identifier = self._view.getIdentifier()
+        position = self._view.getIdentifierPosition() -1
+        emails = self._model.moveIdentifier(query, identifier, position)
+        self._view.setIdentifier(identifier, position)
 
     def _canAddColumn(self):
         return self._model.isSimilar() or self._isSameTable()

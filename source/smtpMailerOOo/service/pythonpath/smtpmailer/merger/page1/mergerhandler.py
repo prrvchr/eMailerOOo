@@ -111,20 +111,35 @@ class WindowHandler(unohelper.Base,
                 print("PageHandler.callHandlerMethod() AddEmail ***************")
                 self._manager.addEmail()
                 handled = True
+            elif method == 'UpEmail':
+                print("PageHandler.callHandlerMethod() UpEmail ***************")
+                self._manager.upEmail()
+                handled = True
+            elif method == 'DownEmail':
+                print("PageHandler.callHandlerMethod() DownEmail ***************")
+                self._manager.downEmail()
+                handled = True
             elif method == 'RemoveEmail':
                 print("PageHandler.callHandlerMethod() RemoveEmail ***************")
                 self._manager.removeEmail()
                 handled = True
-            elif method == 'MoveBefore':
-                print("PageHandler.callHandlerMethod() MoveBefore ***************")
-                self._manager.moveBefore()
-                handled = True
-            elif method == 'MoveAfter':
-                print("PageHandler.callHandlerMethod() MoveAfter ***************")
-                self._manager.moveAfter()
+            elif method == 'ChangeIdentifier':
+                print("PageHandler.callHandlerMethod() ChangeIdentifier ***************")
+                control = event.Source
+                imax = control.ItemCount -1
+                position = control.getSelectedItemPos()
+                self._manager.changeIdentifier(imax, position)
                 handled = True
             elif method == 'AddIdentifier':
                 self._manager.addIdentifier()
+                handled = True
+            elif method == 'UpIdentifier':
+                print("PageHandler.callHandlerMethod() UpIdentifier ***************")
+                self._manager.upIdentifier()
+                handled = True
+            elif method == 'DownIdentifier':
+                print("PageHandler.callHandlerMethod() DownIdentifier ***************")
+                self._manager.downIdentifier()
                 handled = True
             elif method == 'RemoveIdentifier':
                 self._manager.removeIdentifier()
@@ -145,8 +160,11 @@ class WindowHandler(unohelper.Base,
                 'RemoveQuery',
                 'ChangeEmail',
                 'AddEmail',
+                'UpEmail',
+                'DownEmail',
                 'RemoveEmail',
-                'MoveBefore',
-                'MoveAfter',
+                'ChangeIdentifier',
                 'AddIdentifier',
+                'UpIdentifier',
+                'DownIdentifier',
                 'RemoveIdentifier')

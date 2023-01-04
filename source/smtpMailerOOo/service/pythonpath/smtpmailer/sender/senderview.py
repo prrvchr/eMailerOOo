@@ -32,8 +32,6 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from .senderhandler import DialogHandler
-
 from ..unotool import getDialog
 
 from ..configuration import g_extension
@@ -42,8 +40,7 @@ import traceback
 
 
 class SenderView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
-        handler = DialogHandler(manager)
+    def __init__(self, ctx, handler, parent):
         self._dialog = getDialog(ctx, g_extension, 'SenderDialog', handler, parent)
 
 # SenderView setter methods

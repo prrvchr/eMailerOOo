@@ -41,6 +41,9 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .mergerview import MergerView
 
+from .mergerhandler import Tab1Handler
+from .mergerhandler import Tab2Handler
+
 from .mergerhandler import AddressHandler
 from .mergerhandler import RecipientHandler
 
@@ -60,8 +63,8 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, table, message = self._model.getPageInfos()
-        self._view = MergerView(ctx, self, parent, tables, message)
+        tables, table, title1, title2, message = self._model.getPageInfos()
+        self._view = MergerView(ctx, Tab1Handler(self), Tab2Handler(self), parent, tables, title1, title2, message)
         window1, window2 = self._view.getGridWindows()
         self._model.initPage2(table, window1, window2, self.initPage)
         # FIXME: We must disable the handler "ChangeAddressBook"
@@ -105,10 +108,6 @@ class MergerManager(unohelper.Base,
         print("MergerManager2.canAdvance() 2 %s" % advance)
         return advance
 
-# MergerManager getter methods
-    def getTabTitle(self, tab):
-        return self._model.getTabTitle(tab)
-
 # MergerManager setter methods
     def initPage(self, grid1, grid2, rowset1, rowset2):
         grid1.addSelectionListener(GridListener(self, 1))
@@ -118,13 +117,11 @@ class MergerManager(unohelper.Base,
 
     def changeAddressRowSet(self, rowset):
         self._model.setGrid1Data(rowset)
-        enabled = rowset.RowCount > 0
-        self._view.enableAddAll(enabled)
 
     def changeRecipientRowSet(self, rowset):
-        self._model.setGrid2Data(rowset)
-        enabled = rowset.RowCount > 0
-        self._view.enableRemoveAll(enabled)
+        count = self._model.setGrid2Data(rowset)
+        self._view.enableAddAll(count < 2)
+        self._view.enableRemoveAll(count == 0)
         self._wizard.updateTravelUI()
 
     def setAddressTable(self, table):
@@ -132,18 +129,20 @@ class MergerManager(unohelper.Base,
 
     def changeGridSelection(self, index, grid):
         selected = index != -1
+        enabled = self._model.hasFilters()
         if grid == 1:
-            self._view.enableAdd(selected)
+            self._view.enableAdd(selected and enabled)
             if selected:
                 self._model.setAddressRecord(index)
         elif grid == 2:
-            self._view.enableRemove(selected)
+            print("MergerModel.changeGrid2Selection() Selected: %s" % selected)
+            self._view.enableRemove(selected and enabled)
             if selected:
                 self._model.setRecipientRecord(index)
 
     def addItem(self):
         filters = self._model.getGrid1SelectedStructuredFilters()
-        self._model.addItem(filters)
+        self._model.addItem(filters, self.enableRemoveAll)
 
     def addAllItem(self):
         table = self._view.getTable()
@@ -151,9 +150,15 @@ class MergerManager(unohelper.Base,
 
     def removeItem(self):
         filters = self._model.getGrid2SelectedStructuredFilters()
-        self._model.removeItem(filters)
+        self._model.removeItem(filters, self.enableAddAll)
 
     def removeAllItem(self):
-        pass
-        #rows = range(self._model.getRecipientCount())
-        #self._model.removeItem(rows)
+        table = self._view.getTable()
+        self._model.removeAllItem(table)
+
+    def enableAddAll(self, hasnofilter):
+        self._view.enableAddAll(hasnofilter)
+
+    def enableRemoveAll(self, hasnofilter):
+        self._view.enableRemoveAll(hasnofilter)
+

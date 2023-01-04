@@ -44,6 +44,7 @@ from .mergerview import MergerView
 from .mergerhandler import RecipientHandler
 
 from ...mail import MailManager
+from ...mail import WindowHandler
 
 from ...unotool import createService
 
@@ -63,7 +64,7 @@ class MergerManager(MailManager,
         self._pageid = pageid
         self._disabled = False
         self._lock = Condition()
-        self._view = MergerView(ctx, self, parent, 2)
+        self._view = MergerView(ctx, WindowHandler(ctx, self), parent, 2)
         self._model.getSenders(self.initSenders)
         handler = RecipientHandler(self)
         self._model.initPage3(handler, self.initView, self.initRecipients)

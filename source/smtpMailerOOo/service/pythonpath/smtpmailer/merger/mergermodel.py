@@ -114,7 +114,6 @@ class MergerModel(MailModel):
         self._recipient = self._getRowSet(QUERY)
         self._grid1 = None
         self._grid2 = None
-        self._resultset = None
         self._composer = None
         self._subcomposer = None
         self._command = None
@@ -124,6 +123,7 @@ class MergerModel(MailModel):
         self._tables = {}
         self._table = None
         self._query = None
+        self._subquery = None
         self._changed = False
         self._disposed = False
         self._similar = False
@@ -160,9 +160,6 @@ class MergerModel(MailModel):
         #self._address = None
         #self._recipient.dispose()
         #self._recipient = None
-        if self._resultset is not None:
-            self._resultset.dispose()
-            self._resultset = None
         self._composer.dispose()
         self._composer = None
         self._subcomposer.dispose()
@@ -231,7 +228,7 @@ class MergerModel(MailModel):
             progress(5)
             queries = label = message = None
             self._tables = {}
-            self._query = self._table = None
+            self._query = self._subquery = self._table = None
             self._command = self._subcommand = None
             progress(10)
             # FIXME: If an addressbook has been loaded we need to close the connection
@@ -337,16 +334,25 @@ class MergerModel(MailModel):
         return url
 
     def _getQueries(self):
+        queries = {}
         names = self._queries.getElementNames()
-        queries = [name for name in names if self._hasSubQuery(names, name)]
-        return self._getQueryTables(queries)
+        for name in names:
+            table = self.getSubQueryTable(name)
+            if table is not None and table in names:
+                queries[name] = table
+        return queries
 
-    def _hasSubQuery(self, names, name):
-        hasquery = False
-        subquery = self._getSubQueryName(name)
-        if not name.startswith(self._prefix) and subquery in names:
-            hasquery = self._checkQueries(name, subquery)
-        return hasquery
+    def getSubQueryTable(self, query):
+        table = None
+        command = self._composer.getQuery()
+        self._composer.setCommand(query, QUERY)
+        tables = self._composer.getTables()
+        if tables.hasElements():
+            print("MergerModel.getSubQueryTable() 1 Tables: '%s'" % (tables.getElementNames(), ))
+            table = tables.getElementNames()[0]
+        if len(command) > 0:
+            self._composer.setQuery(command)
+        return table
 
     def _checkQueries(self, query, subquery):
         return self._checkQuery(query, subquery) and self._checkSubQuery(subquery)
@@ -361,15 +367,14 @@ class MergerModel(MailModel):
         tables = self._subcomposer.getTables()
         return tables.hasElements()
 
-    def _getQueryTables(self, queries):
-        querytable = {}
+    def _getSubQueries(self, queries):
+        subqueries = {}
         for query in queries:
-            subquery = self._getSubQueryName(query)
-            self._composer.setCommand(subquery, QUERY)
+            self._composer.setCommand(query, QUERY)
             tables = self._composer.getTables()
-            if tables.hasElements():
-                querytable[query] = tables.getElementNames()[0]
-        return querytable
+            if tables.hasElements() and tables.getElementNames()[0] in queries:
+                subqueries[query] = tables.getElementNames()[0]
+        return subqueries
 
     # AddressBook Table methods
     def setAddressBookTable(self, name):
@@ -383,85 +388,73 @@ class MergerModel(MailModel):
     def isQueryValid(self, query):
         return len(query) > 0 and self.Connection.getObjectNames().isNameValid(QUERY, query)
 
-    def setQuery(self, query):
-        subquery = self._getSubQueryName(query)
-        self._address.UpdateTableName = subquery
-        self._setComposerCommand(self._subcomposer, subquery)
-        self._setRowSet(self._address, self._subcomposer)
+    def setQuery(self, query, subquery):
+        command = self._getQueryCommand(subquery)
+        # FIXME: com.sun.star.sdb.RowSet.UpdateTableName 
+        self._address.UpdateTableName = command
+        self._subcomposer.setQuery(command)
+        self._setRowSetFilter(self._address, self._subcomposer)
         #self._recipient.Command = subquery
+        command = self._getQueryCommand(query)
         self._recipient.Command = query
-        self._recipient.UpdateTableName = query
-        self._setComposerCommand(self._composer, query)
-        self._setRowSet(self._recipient, self._composer)
+        self._recipient.UpdateTableName = command
+        self._composer.setQuery(command)
+        self._setRowSetFilter(self._recipient, self._composer)
 
-    def addQuery(self, query, table):
-        name = self._getSubQueryName(query)
-        self._addSubQuery(name, table)
-        command = getSqlQuery(self._ctx, 'getQueryCommand', name)
-        self._addQuery(query, command, name)
+    def addQuery(self, name, table):
+        # TODO: If we want to be able to use XObjectNames::suggestName,
+        # TODO: we must first create query then the subquery.
+        query = self._createQuery(name)
+        self._addQueries(name, query)
+        subquery = self.Connection.getObjectNames().suggestName(QUERY, name)
+        print("MergerModel.addQuery() 1 Query: %s - SubQuery: %s" % (name, subquery))
+        self._addSubQuery(subquery, table)
+        command = getSqlQuery(self._ctx, 'getQueryCommand', '"%s"' % subquery)
+        print("MergerModel.addQuery() 2 SubQuery: %s - Command: %s" % (subquery, command))
+        self._addQuery(query, table, command)
         self._addressbook.DatabaseDocument.store()
+        return subquery
 
-    def removeQuery(self, query):
+    def removeQuery(self, query, subquery):
         self._queries.removeByName(query)
-        self._removeSubQuery(query)
+        self._queries.removeByName(subquery)
         self._addressbook.DatabaseDocument.store()
 
     # Query private shared method
-    def _getSubQueryName(self, query):
-        return self._prefix + query
-
-    def _setComposerCommand(self, composer, name):
-        query = self._queries.getByName(name)
-        command = query.Command
-        print("MergerModel._setComposerCommand() '%s'" % query.UpdateTableName)
-        composer.setQuery(query.Command)
+    def _getQueryCommand(self, name):
+        return self._queries.getByName(name).Command
 
     def _addSubQuery(self, name, table):
         command = getSqlQuery(self._ctx, 'getQueryCommand', self._getQuotedTableName(table))
-        query = self._createQuery(name, command, table)
+        query = self._createQuery(name)
+        query.Command = command
         self._addQueries(name, query)
 
     def _getQuotedTableName(self, table):
         return self._datasource.DataBase.getQuotedTableName(table)
 
-    def _addQuery(self, name, command, subquery):
-        query = self._createQuery(name, command, subquery)
+    def _addQuery(self, query, table, command):
         if self._similar:
-            filters = self._getQueryFilters1()
+            identifiers, table = self._getIdentifiers(table)
             self._composer.setQuery(command)
-            self._composer.setStructuredFilter(filters)
+            self._composer.setOrder(self._getSubQueryOrder(identifiers, table))
+            self._composer.setStructuredFilter(self._getQueryNullFilters(identifiers))
             query.Command = self._composer.getQuery()
-        self._addQueries(name, query)
+        else:
+            query.Command = command
 
     def _addQueries(self, name, query):
         if not self._queries.hasByName(name):
             self._queries.insertByName(name, query)
 
-    def _createQuery(self, name, command, table=None):
+    def _createQuery(self, name):
         # FIXME: If a Query already exist we rewrite it content!!!
         if self._queries.hasByName(name):
             query = self._queries.getByName(name)
         else:
             service = 'com.sun.star.sdb.QueryDefinition'
             query = createService(self._ctx, service)
-            if table is not None:
-                query.UpdateTableName = table
-                print("MergerModel._createQuery() '%s'" % query.UpdateTableName)
-        query.Command = command
         return query
-
-    def _getQueryFilters1(self, null=True):
-        f = []
-        identifier = self.getIdentifier()
-        if identifier is not None:
-            filter = self._getIdentifierFilter(identifier, null)
-            f.append(filter)
-        filters = tuple(f)
-        return (filters, )
-
-    def _removeSubQuery(self, query):
-        name = self._getSubQueryName(query)
-        self._queries.removeByName(name)
 
     # Email methods
     def getEmails(self):
@@ -472,46 +465,43 @@ class MergerModel(MailModel):
                 emails.append(filter[0].Name)
         return emails
 
-    def addEmail(self, query, email):
-        name = self._getSubQueryName(query)
-        emails = self._addEmail(name, email)
+    def addEmail(self, subquery, email):
+        emails = self._addEmail(subquery, email)
         self._addressbook.DatabaseDocument.store()
         return emails
 
-    def removeEmail(self, query, email):
-        name = self._getSubQueryName(query)
-        emails = self._removeEmail(name, email)
+    def removeEmail(self, subquery, email):
+        emails = self._removeEmail(subquery, email)
         self._addressbook.DatabaseDocument.store()
         return emails
 
-    def moveEmail(self, query, email, position):
-        name = self._getSubQueryName(query)
-        emails = self._moveEmail(name, email, position)
+    def moveEmail(self, subquery, email, position):
+        emails = self._moveEmail(subquery, email, position)
         self._addressbook.DatabaseDocument.store()
         return emails
 
     # Email private shared methods
-    def _addEmail(self, name, email):
+    def _addEmail(self, subquery, email):
         emails = self.getEmails()
         if email not in emails:
             emails.append(email)
         filters = self._getSubQueryFilters(emails)
         self._subcomposer.setStructuredFilter(filters)
         self._setRowSetFilter(self._address, self._subcomposer)
-        self._setQueryCommand(name, self._subcomposer)
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
         return emails
 
-    def _removeEmail(self, name, email):
+    def _removeEmail(self, subquery, email):
         emails = self.getEmails()
         if email in emails:
             emails.remove(email)
         filters = self._getSubQueryFilters(emails)
         self._subcomposer.setStructuredFilter(filters)
         self._setRowSetFilter(self._address, self._subcomposer)
-        self._setQueryCommand(name, self._subcomposer)
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
         return emails
 
-    def _moveEmail(self, name, email, position):
+    def _moveEmail(self, subquery, email, position):
         emails = self.getEmails()
         if email in emails:
             emails.remove(email)
@@ -520,7 +510,7 @@ class MergerModel(MailModel):
         filters = self._getSubQueryFilters(emails)
         self._subcomposer.setStructuredFilter(filters)
         self._setRowSetFilter(self._address, self._subcomposer)
-        self._setQueryCommand(name, self._subcomposer)
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
         return emails
 
     def _getSubQueryFilters(self, emails):
@@ -533,137 +523,106 @@ class MergerModel(MailModel):
     # Identifier methods
     def getIdentifiers(self):
         identifiers = []
-        filters = self._composer.getStructuredFilter()
-        if len(filters) > 0:
-            for filter in filters[0]:
-                identifiers.append(filter.Name)
+        orders = self._subcomposer.getOrderColumns()
+        for index in range(orders.getCount()):
+            identifiers.append(orders.getByIndex(index).Name)
         return identifiers
 
-    def getIdentifier(self):
-        filters = self._composer.getStructuredFilter()
-        return self._getFirstFilterName(filters)
+    def _getIdentifiers(self, table=None):
+        order = None
+        identifiers = []
+        orders = self._subcomposer.getOrderColumns()
+        for index in range(orders.getCount()):
+            order = orders.getByIndex(index)
+            identifiers.append(order.Name)
+        if order is not None:
+            table = order.TableName
+            print("MergerModel._getIdentifiers() Catalog: %s - Schema: %s - Table: %s" % (order.CatalogName, order.SchemaName, order.TableName))
+        return identifiers, table
 
-    def addIdentifier(self, query, identifier):
-        identifiers = self._addIdentifier(query, identifier)
+    def addIdentifier(self, query, subquery, table, identifier):
+        identifiers = self._addIdentifier(query, subquery, table, identifier)
         self._addressbook.DatabaseDocument.store()
         return identifiers
 
-    def _addIdentifier(self, name, identifier):
-        identifiers = self.getIdentifiers()
+    def _addIdentifier(self, query, subquery, table, identifier):
+        identifiers, table = self._getIdentifiers(table)
         if identifier not in identifiers:
             identifiers.append(identifier)
-        filters = self._getQueryFilters(identifiers)
-        self._composer.setStructuredFilter(filters)
+        self._composer.setStructuredFilter(self._getQueryNullFilters(identifiers))
+        self._subcomposer.setOrder(self._getSubQueryOrder(identifiers, table))
         self._setRowSetFilter(self._recipient, self._composer)
-        self._setQueryCommand(name, self._composer)
+        #self._setRowSetOrder(self._address, self._subcomposer)
+        self._queries.getByName(query).Command = self._composer.getQuery()
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
         return identifiers
 
-    def removeIdentifier(self, query, identifier):
-        identifiers = self._removeIdentifier(query, identifier)
-        self._addressbook.DatabaseDocument.store()
-        return identifiers
-
-    def _removeIdentifier(self, name, identifier):
-        identifiers = self.getIdentifiers()
-        if identifier in identifiers:
-            identifiers.remove(identifier)
-        filters = self._getQueryFilters(identifiers)
-        self._composer.setStructuredFilter(filters)
-        self._setRowSetFilter(self._recipient, self._composer)
-        self._setQueryCommand(name, self._composer)
-        return identifiers
-
-    def moveIdentifier(self, query, identifier, position):
-        identifiers = self._moveEmail(query, identifier, position)
-        self._addressbook.DatabaseDocument.store()
-        return identifiers
-
-    def _moveIdentifier(self, name, identifier, position):
-        identifiers = self.getIdentifiers()
-        if identifier in identifiers:
-            identifiers.remove(identifier)
-            if 0 <= position <= len(identifiers):
-                identifiers.insert(position, identifier)
-        filters = self._getQueryFilters(identifiers)
-        self._composer.setStructuredFilter(filters)
-        self._setRowSetFilter(self._recipient, self._composer)
-        self._setQueryCommand(name, self._composer)
-        return identifiers
-
-
-    def _getIdentifierFilter(self, identifier, null=True):
-        if null:
-            filter = getPropertyValue(identifier, 'IS NULL', 0, SQLNULL)
-        else:
-            filter = getPropertyValue(identifier, 'IS NOT NULL', 0, NOT_SQLNULL)
-        return filter
-
-    def _getQueryFilters(self, identifiers):
+    def _getQueryNullFilters(self, identifiers):
         filters = []
         for identifier in identifiers:
             filter = getPropertyValue(identifier, 'IS NULL', 0, SQLNULL)
             filters.append(filter)
         return (tuple(filters), )
 
-
-    # Index private shared methods
-    def _getFirstFilterName(self, filters):
-        name = None
-        if len(filters) > 0:
-            filter = filters[0]
-            if len(filter):
-                name = filter[0].Name
-        return name
-
-    def _setFilter(self, query, filter, add=True):
-        if self._similar:
-            self._setQueriesFilter(query, filter, add)
-        self._setQueryFilter(query, filter, add)
-        self._setRowSetFilter(self._recipient, self._composer)
+    def removeIdentifier(self, query, subquery, identifier):
+        identifiers = self._removeIdentifier(query, subquery, identifier)
         self._addressbook.DatabaseDocument.store()
+        return identifiers
 
-    def _setQueriesFilter(self, query, filter, add):
-        for name in self._queries.getElementNames():
-            if not name.startswith(self._prefix) and name != query:
-                self._setQueryFilter(name, filter, add)
+    def _removeIdentifier(self, query, subquery, identifier):
+        identifiers, table = self._getIdentifiers()
+        if identifier in identifiers:
+            identifiers.remove(identifier)
+        self._composer.setStructuredFilter(self._getQueryNullFilters(identifiers))
+        self._subcomposer.setOrder(self._getSubQueryOrder(identifiers, table))
+        self._setRowSetFilter(self._recipient, self._composer)
+        #self._setRowSetOrder(self._address, self._subcomposer)
+        self._queries.getByName(query).Command = self._composer.getQuery()
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
+        return identifiers
 
-    def _setQueryFilter(self, name, filter, add):
-        query = self._queries.getByName(name)
-        self._composer.setQuery(query.Command)
-        filters = self._getQueryFilter(filter, add)
-        self._composer.setStructuredFilter(filters)
-        query.Command = self._composer.getQuery()
+    def moveIdentifier(self, query, subquery, identifier, position):
+        identifiers = self._moveIdentifier(query, subquery, identifier, position)
+        self._addressbook.DatabaseDocument.store()
+        return identifiers
 
-    def _getQueryFilter(self, filter, add):
-        filters = list(self._composer.getStructuredFilter())
-        if len(filters) > 0:
-            f = list(filters[0])
-            filters[0] = self._getFirstFilter(f, filter, add)
-        elif add:
-            filters.append((filter, ))
-        return tuple(filters)
+    def _moveIdentifier(self, query, subquery, identifier, position):
+        identifiers, table = self._getIdentifiers()
+        if identifier in identifiers:
+            identifiers.remove(identifier)
+            if 0 <= position <= len(identifiers):
+                identifiers.insert(position, identifier)
+        self._composer.setStructuredFilter(self._getQueryNullFilters(identifiers))
+        self._subcomposer.setOrder(self._getSubQueryOrder(identifiers, table))
+        self._setRowSetFilter(self._recipient, self._composer)
+        #self._setRowSetOrder(self._address, self._subcomposer)
+        self._queries.getByName(query).Command = self._composer.getQuery()
+        self._queries.getByName(subquery).Command = self._subcomposer.getQuery()
+        return identifiers
 
-    def _getFirstFilter(self, filters, filter, add):
-        if add:
-            if filter not in filters:
-                filters.append(filter)
-        else:
-            for f in reversed(filters):
-                if f.Handle == filter.Handle:
-                    filters.remove(f)
-        return filters
+    def _getSubQueryOrder(self, identifiers, table):
+        orders = []
+        table = self._getQuotedTableName(table)
+        for identifier in identifiers:
+            orders.append('%s."%s"' % (table, identifier))
+        order = ', '.join(orders)
+        print("MergerModel._getSubQueryOrder() Order: %s" % order)
+        return order
 
-    # Email, Index and Bookmark shared methods
+    def _getQueryOrder(self, identifiers):
+        orders = []
+        for identifier in identifiers:
+            orders.append('"%s"' % identifier)
+        order = ', '.join(orders)
+        print("MergerModel._getQueryOrder() Order: %s" % order)
+        return order
+
+    # Email and Identifier shared methods
     def isSimilar(self):
         return self._similar
 
-    # Email private shared methods
-    def _setQueryCommand(self, name, composer):
-        command = composer.getQuery()
-        self._queries.getByName(name).Command = command
-
     # WizardPage1 commitPage()
-    def commitPage1(self, query, table):
+    def commitPage1(self, query, subquery, table):
         name = self._addressbook.Name
         command = self._composer.getQuery()
         subcommand = self._subcomposer.getQuery()
@@ -673,9 +632,8 @@ class MergerModel(MailModel):
             changed = False if self._similar else self._table != table
             if self._name != name or changed:
                 self._changed = True
-                self._resultset = None
+                args = (self._recipient, )
                 # The RowSet self._address will be executed in Page2 with setAddressTable()
-                Thread(target=self._executeResultSet).start()
             elif self._query != query:
                 self._changed = True
                 args = (self._recipient, )
@@ -689,6 +647,7 @@ class MergerModel(MailModel):
                 Thread(target=self._executeRowSet, args=args).start()
         self._name = name
         self._query = query
+        self._subquery = subquery
         self._table = table
         self._command = command
         self._subcommand = subcommand
@@ -697,14 +656,6 @@ class MergerModel(MailModel):
         for rowset in rowsets:
             rowset.execute()
 
-    def _executeResultSet(self):
-        self._recipient.execute()
-        rowset = self._getRowSet(TABLE)
-        rowset.ActiveConnection = self.Connection
-        rowset.Command = self._table
-        rowset.execute()
-        self._resultset = rowset.createResultSet()
-
     def _isPage2Loaded(self):
         return self._grid1 is not None
 
@@ -712,7 +663,7 @@ class MergerModel(MailModel):
     def getPageInfos(self):
         tables = self._getTables() if self._similar else self._getSimilarTables()
         message = self._getMailingMessage()
-        return tables, self._table, message
+        return tables, self._table, self._getTabTitle(1), self._getTabTitle(2), message
 
     def _getSimilarTables(self):
         columns = self._tables.get(self._table, ())
@@ -729,6 +680,17 @@ class MergerModel(MailModel):
 
     def setGrid2Data(self, rowset):
         self._grid2.setDataModel(rowset, self.getIdentifiers())
+        return self._getFilterCount()
+
+    def _getFilterCount(self):
+        filters = self._composer.getStructuredFilter()
+        print("MergerModel._getFilterCount() Filters: %s" % (filters, ))
+        return len(filters)
+
+    def hasFilters(self):
+        filters = self._composer.getStructuredFilter()
+        print("MergerModel.hasFilters() Filters: %s" % (filters, ))
+        return len(filters) > 0
 
     def getGrid1SelectedStructuredFilters(self):
         return self._grid1.getSelectedStructuredFilters()
@@ -758,7 +720,12 @@ class MergerModel(MailModel):
         Thread(target=self._addAllItem, args=args).start()
 
     def removeItem(self, *args):
+        self._grid2.deselectAllRows()
         Thread(target=self._removeItem, args=args).start()
+
+    def removeAllItem(self, *args):
+        self._grid2.deselectAllRows()
+        Thread(target=self._removeAllItem, args=args).start()
 
     def setAddressRecord(self, index):
         row = self._grid1.getUnsortedIndex(index) +1
@@ -778,27 +745,62 @@ class MergerModel(MailModel):
         self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, 'MergerGrid1', MULTI, None, 8, True)
         self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, 'MergerGrid2', MULTI, None, 8, True)
         initPage(self._grid1, self._grid2, self._address, self._recipient)
-        self._executeAddress()
-        self._executeResultSet()
+        self._address.execute()
+        self._recipient.execute()
 
     def _executeAddress(self):
         self._address.execute()
 
-    def _addItem(self, filters):
+    def _addItem(self, filters, enableRemoveAll):
         self._updateItem(filters, True)
+        enableRemoveAll(False)
 
     def _addAllItem(self, table):
+        self._composer.setFilter('')
         filters = self._subcomposer.getFilter()
+        order = self._subcomposer.getOrder()
+        command = getSqlQuery(self._ctx, 'getQueryCommand', self._getSubQueryTables(table))
+        print("MergerModel._addAllItem() Command: %s" % command)
+        self._subcomposer.setQuery(command)
+        self._subcomposer.setFilter(filters)
+        self._subcomposer.setOrder(order)
+        self._queries.getByName(self._subquery).Command = self._subcomposer.getQuery()
+        self._queries.getByName(self._query).Command = self._composer.getQuery()
+        self._addressbook.DatabaseDocument.store()
+        self._setRowSetFilter(self._recipient, self._composer)
+        self._recipient.execute()
+
+    def _getSubQueryTables(self, sub):
+        identifiers, main = self._getIdentifiers()
+        if main == sub:
+            query = self._getQuotedTableName(main)
+        else:
+            filters = []
+            main = self._getQuotedTableName(main)
+            sub = self._getQuotedTableName(sub)
+            for identifier in identifiers:
+                filters.append('%s."%s" = %s."%s"' % (main, identifier, sub, identifier))
+            query = '%s INNER JOIN %s ON %s' % (main, sub, ' AND '.join(filters))
+        return query
+
+    def _removeItem(self, filters, enableAddAll):
+        count = self._updateItem(filters, False)
+        enableAddAll(count < 2)
+
+    def _removeAllItem(self, table):
+        identifiers, table = self._getIdentifiers()
+        self._composer.setStructuredFilter(self._getQueryNullFilters(identifiers))
+        filters = self._subcomposer.getFilter()
+        order = self._subcomposer.getOrder()
         command = getSqlQuery(self._ctx, 'getQueryCommand', self._getQuotedTableName(table))
         self._subcomposer.setQuery(command)
         self._subcomposer.setFilter(filters)
-        subquery = self._getSubQueryName(self._query)
-        self._queries.getByName(subquery).Command = command
-        filters = self._getQueryFilters1(False)
-        self._updateItemFilter(filters)
-
-    def _removeItem(self, filters):
-        self._updateItem(filters, False)
+        self._subcomposer.setOrder(order)
+        self._queries.getByName(self._subquery).Command = self._subcomposer.getQuery()
+        self._queries.getByName(self._query).Command = self._composer.getQuery()
+        self._addressbook.DatabaseDocument.store()
+        self._setRowSetFilter(self._recipient, self._composer)
+        self._recipient.execute()
 
     def _updateItem(self, items, add):
         filters = self._getComposerFilter(self._composer)
@@ -809,6 +811,7 @@ class MergerModel(MailModel):
         self._addressbook.DatabaseDocument.store()
         self._setRowSetFilter(self._recipient, self._composer)
         self._recipient.execute()
+        return len(filters)
 
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
@@ -887,15 +890,14 @@ class MergerModel(MailModel):
         return recipients, message
 
     def _getRecipients(self):
-        emails = self.getEmails()
-        columns = getSqlQuery(self._ctx, 'getRecipientColumns', emails)
-        filter = self._composer.getFilter()
-        command = self._subcomposer.getQuery()
-        format = (columns, command, filter)
+        columns = getSqlQuery(self._ctx, 'getRecipientColumns', self.getEmails())
+        order = self._getQueryOrder(self.getIdentifiers())
+        format = (columns, self._query, order)
         query = getSqlQuery(self._ctx, 'getRecipientQuery', format)
         print("MergerModel._getRecipients() Query: %s" % query)
         result = self._statement.executeQuery(query)
         recipients = getSequenceFromResult(result)
+        result.close()
         return recipients
 
     def hasMergeMark(self, url):
@@ -936,10 +938,6 @@ class MergerModel(MailModel):
         rowset.FetchSize = g_fetchsize
         return rowset
 
-    def _setRowSet(self, rowset, composer):
-        self._setRowSetFilter(rowset, composer)
-        self._setRowSetOrder(rowset, composer)
-
     def _setRowSetFilter(self, rowset, composer):
         rowset.ApplyFilter = False
         rowset.Filter = composer.getFilter()
@@ -959,7 +957,7 @@ class MergerModel(MailModel):
         title = self._resolver.resolveString(resource)
         return title
 
-    def getTabTitle(self, tab):
+    def _getTabTitle(self, tab):
         resource = self._resources.get('TabTitle') % tab
         return self._resolver.resolveString(resource)
 

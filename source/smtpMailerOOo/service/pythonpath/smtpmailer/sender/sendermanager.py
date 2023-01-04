@@ -35,6 +35,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .sendermodel import SenderModel
 from .senderview import SenderView
+from .senderhandler import DialogHandler
 
 from ..mailer import MailerManager
 
@@ -52,7 +53,7 @@ class SenderManager(unohelper.Base):
         self._ctx = ctx
         self._lock = Condition()
         self._model = model
-        self._view = SenderView(ctx, self, parent)
+        self._view = SenderView(ctx, DialogHandler(self), parent)
         datasource = self._model.DataSource
         parent = self._view.getParent()
         path = self._model.Path

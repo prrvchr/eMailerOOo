@@ -31,14 +31,15 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from ..mail import MailManager
+from ..mail import WindowHandler
+
+from .mailermodel import MailerModel
+from .mailerview import MailerView
 
 from ..unotool import createService
 
 from ..logger import getMessage
 from ..logger import logMessage
-
-from .mailermodel import MailerModel
-from .mailerview import MailerView
 
 g_message = 'mailermanager'
 
@@ -53,7 +54,7 @@ class MailerManager(MailManager):
         self._disabled = False
         self._lock = Condition()
         self._model = MailerModel(ctx, datasource, path)
-        self._view = MailerView(ctx, self, parent, 1)
+        self._view = MailerView(ctx, WindowHandler(ctx, self), parent, 1)
         self._model.getSenders(self.initSenders)
 
 # MailerManager setter methods

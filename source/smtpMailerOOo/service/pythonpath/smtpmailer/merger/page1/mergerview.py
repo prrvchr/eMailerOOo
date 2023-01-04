@@ -29,8 +29,6 @@
 
 import unohelper
 
-from .mergerhandler import WindowHandler
-
 from ...unotool import getContainerWindow
 
 from ...logger import logMessage
@@ -41,8 +39,7 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, addressbooks):
-        handler = WindowHandler(manager)
+    def __init__(self, ctx, handler, parent, addressbooks):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MergerPage1')
         self.initAddressBook(addressbooks)
         self.setPageStep(3)
@@ -70,21 +67,23 @@ class MergerView(unohelper.Base):
     def getQuery(self):
         return self._getQuery().getText().strip()
 
-    def getQueryTable(self):
-        table = None
+    def getSubQuery(self):
+        subquery = None
         control = self._getQuery()
         item = control.getText()
         items = control.getItems()
         if item in items:
-            index = items.index(item)
-            table = control.Model.getItemData(index)
-        return table
+            subquery = control.Model.getItemData(items.index(item))
+        return subquery
 
     def isQuerySelected(self):
         control = self._getQuery()
         item = control.getText()
         items = control.getItems()
         return item in items
+
+    def isTableSelected(self):
+        return self._getTable().getSelectedItemPos() != -1
 
     # Email getter method
     def getEmail(self):
@@ -156,8 +155,8 @@ class MergerView(unohelper.Base):
     def initTables(self, tables):
         self._getTable().Model.StringItemList = tables
 
-    def initTablesSelection(self):
-        self._getTable().selectItemPos(0, True)
+    def initTablesSelection(self, table):
+        self._getTable().selectItem(table, True)
 
     def setTable(self, table):
         self._getTable().selectItem(table, True)
@@ -176,16 +175,14 @@ class MergerView(unohelper.Base):
     def initQuery(self, queries):
         control = self._getQuery()
         control.Model.removeAllItems()
-        for query, table in queries.items():
+        for query, subquery in queries.items():
             index = control.Model.ItemCount
             control.Model.insertItemText(index, query)
-            control.Model.setItemData(index, table)
-        query = ''
+            control.Model.setItemData(index, subquery)
         initialized = control.Model.ItemCount > 0
         if initialized:
-            query = control.Model.getItemText(0)
-        control.Text = query
-        return not initialized
+            control.Text = control.Model.getItemText(0)
+        return initialized
 
     # Query methods
     def enableAddQuery(self, enabled):
@@ -212,6 +209,11 @@ class MergerView(unohelper.Base):
             control.removeItems(index, 1)
 
     # Email column setter methods
+    def disableEmailButton(self):
+        self._getUpEmail().Model.Enabled = False
+        self._getDownEmail().Model.Enabled = False
+        self._getRemoveEmail().Model.Enabled = False
+
     def enableAddEmail(self, enabled):
         self._getAddEmail().Model.Enabled = enabled
 

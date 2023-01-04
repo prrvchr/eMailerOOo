@@ -35,12 +35,9 @@ from ..unotool import getContainerWindow
 
 from ..configuration import g_extension
 
-from .mailhandler import WindowHandler
-
 class MailView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, step):
+    def __init__(self, ctx, handler, parent, step):
         self._ctx = ctx
-        handler = WindowHandler(ctx, manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailWindow')
         self._window.Model.Step = step
         self._window.setVisible(True)

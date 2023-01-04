@@ -225,7 +225,7 @@ def getSqlQuery(ctx, name, format=None):
 
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
-        query = 'SELECT * FROM "%s"' % format
+        query = 'SELECT * FROM %s' % format
 
     elif name == 'getSubQueryCommand':
         query = 'SELECT * FROM "%s" WHERE %s' % format
@@ -236,7 +236,7 @@ def getSqlQuery(ctx, name, format=None):
             query = 'COALESCE(%s)' % query
 
     elif name == 'getRecipientQuery':
-        query = 'SELECT %s AS "Recipient" FROM (%s) WHERE %s;' % format
+        query = 'SELECT %s AS "Recipient" FROM "%s" ORDER BY %s;' % format
 
     # Spooler Select Queries
     elif name == 'getViewQuery':

@@ -32,9 +32,6 @@ import unohelper
 
 from com.sun.star.view.SelectionType import MULTI
 
-from .mergerhandler import Tab1Handler
-from .mergerhandler import Tab2Handler
-
 from ...unotool import createService
 from ...unotool import getContainerWindow
 
@@ -46,18 +43,13 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, tables, message):
+    def __init__(self, ctx, handler1, handler2, parent, tables, title1, title2, message):
         self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 5, 285, 195)
-        tab1, tab2 = self._getTabPages(manager, 'Tab1', rectangle, 1)
-        parent = tab1.getPeer()
-        handler = Tab1Handler(manager)
-        self._tab1 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab1')
+        tab1, tab2 = self._getTabPages(title1, title2, 'Tab1', 1)
+        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_extension, 'MergerTab1')
         self._tab1.setVisible(True)
-        parent = tab2.getPeer()
-        handler = Tab2Handler(manager)
-        self._tab2 = getContainerWindow(ctx, parent, handler, g_extension, 'MergerTab2')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
         self._initTables(tables)
         self.setMessage(message)
@@ -124,27 +116,23 @@ class MergerView(unohelper.Base):
         return self._tab2.getControl('FrameControl1')
 
 # MergerView private methods
-    def _getTabPages(self, manager, name, rectangle, i):
-        model = self._getTabModel(rectangle)
+    def _getTabPages(self, title1, title2, name, i):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = self._window.Model.createInstance(service)
+        model.PositionX = 0
+        model.PositionY = 0
+        model.Width = self._window.Model.Width
+        model.Height = self._window.Model.Height
         self._window.Model.insertByName(name, model)
         tab = self._window.getControl(name)
-        tab1 = self._getTabPage(manager, model, tab, 0)
-        tab2 = self._getTabPage(manager, model, tab, 1)
+        tab1 = self._getTabPage(model, tab, title1, 0)
+        tab2 = self._getTabPage(model, tab, title2, 1)
         tab.ActiveTabPageID = i
         return tab1, tab2
 
-    def _getTabModel(self, rectangle):
-        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
-        model = self._window.Model.createInstance(service)
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Width = rectangle.Width
-        model.Height = rectangle.Height
-        return model
-
-    def _getTabPage(self, manager, model, tab, i):
+    def _getTabPage(self, model, tab, title, i):
         page = model.createTabPage(i +1)
-        page.Title = manager.getTabTitle(i +1)
+        page.Title = title
         index = model.getCount()
         model.insertByIndex(index, page)
         return tab.getControls()[i]

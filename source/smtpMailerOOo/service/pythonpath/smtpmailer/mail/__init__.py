@@ -30,3 +30,5 @@
 from .mailmanager import MailManager
 from .mailmodel import MailModel
 from .mailview import MailView
+from .mailhandler import WindowHandler
+

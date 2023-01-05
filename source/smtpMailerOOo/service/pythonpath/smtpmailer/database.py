@@ -145,26 +145,24 @@ class DataBase(unohelper.Base):
         return '"%s"' % query
 
     def getInnerJoinTable(self, subquery, identifiers, tables, name, add):
-        filters = [self.getQuotedQueryName(subquery.First)]
+        filters = [self.getQuotedQueryName(subquery)]
         for table in tables:
-            if table == subquery.First:
+            if table == subquery:
                 continue
             if not add and table == name:
                 continue
-            table = self.getQuotedTableName(table)
-            filter = 'INNER JOIN %s ON ' % table
-            conditions = []
-            for identifier in identifiers:
-                conditions.append('"%s" = %s."%s"' % (identifier, table, identifier))
-            filters.append(filter + ' AND '.join(conditions))
-        if add:
-            name = self.getQuotedTableName(name)
-            filter = 'INNER JOIN %s ON ' % name
-            conditions = []
-            for identifier in identifiers:
-                conditions.append('"%s" = %s."%s"' % (identifier, name, identifier))
-            filters.append(filter + ' AND '.join(conditions))
+            filters.append(self._getInnerJoinPart(identifiers, table))
+        if add and name not in tables:
+            filters.append(self._getInnerJoinPart(identifiers, name))
         return ' '.join(filters)
+
+    def _getInnerJoinPart(self, identifiers, name):
+        table = self.getQuotedTableName(name)
+        filter = 'INNER JOIN %s ON ' % table
+        conditions = []
+        for identifier in identifiers:
+            conditions.append('"%s" = %s."%s"' % (identifier, table, identifier))
+        return filter + ' AND '.join(conditions)
 
     def getRecipientColumns(self, emails):
         columns = []

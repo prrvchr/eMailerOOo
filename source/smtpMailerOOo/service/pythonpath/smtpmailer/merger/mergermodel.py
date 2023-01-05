@@ -791,7 +791,7 @@ class MergerModel(MailModel):
 
     def _getSubQueryTables(self, tables, table, add):
         if self._subquery.Second != table:
-            query = self._datasource.DataBase.getInnerJoinTable(self._subquery, self._identifiers, tables, table, add)
+            query = self._datasource.DataBase.getInnerJoinTable(self._subquery.First, self._identifiers, tables, table, add)
         else:
             query = self._datasource.DataBase.getQuotedQueryName(self._subquery.First)
         return query

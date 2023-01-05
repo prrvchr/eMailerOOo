@@ -78,7 +78,6 @@ class GridManager(GridManagerBase):
             if name in identifiers:
                 indexes[name] = i
                 types[name] = metadata.getColumnType(i +1)
-                print("GRidManager.() Identifier: %s - Type: %s" % (name, types[name]))
             headers[name] = title
         return headers, indexes, types
 

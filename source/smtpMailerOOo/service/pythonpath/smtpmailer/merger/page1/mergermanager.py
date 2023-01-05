@@ -93,10 +93,7 @@ class MergerManager(unohelper.Base,
 
     def commitPage(self, reason):
         try:
-            query = self._view.getQuery()
-            subquery = self._view.getSubQuery()
-            table = self._model.getSubQueryTable(subquery)
-            self._model.commitPage1(query, subquery, table)
+            self._model.commitPage1()
             return True
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -129,7 +126,7 @@ class MergerManager(unohelper.Base,
             self._view.initTables(tables)
             if len(tables) > 0:
                 if self._view.initQuery(queries):
-                    table = self._model.getSubQueryTable(self._view.getSubQuery())
+                    table = self._view.getSubQuery().Second
                 else:
                     table = tables[0]
                 # FIXME: We must disable the "ChangeAddressBookTable"
@@ -167,27 +164,23 @@ class MergerManager(unohelper.Base,
         enabled = False
         subquery = self._view.getSubQuery()
         if subquery is not None:
-            table = self._model.getSubQueryTable(subquery)
-            enabled = self._model.isSimilar() or table == self._view.getTable()
+            enabled = self._model.isSimilar() or subquery.Second == self._view.getTable()
         emails = self._view.getEmails()
         identifiers = self._view.getIdentifiers()
         self._view.updateAddEmail(emails, enabled)
         self._view.updateAddIdentifier(identifiers, enabled)
 
     # Query setter methods
-    def editQuery(self, query, subquery):
-        exist = subquery is not None
+    def editQuery(self, query, tables):
+        exist = tables is not None
         if exist:
-            self._model.setQuery(query, subquery)
-            table = self._model.getSubQueryTable(subquery)
-            if self._view.getTable() != table:
+            identifiers, emails = self._model.setQuery(query, tables)
+            if self._view.getTable() != tables.Second:
                 # FIXME: We must disable the "ChangeAddressBookTable"
                 # FIXME: handler otherwise it activates twice
                 self._disableHandler()
-                self._view.setTable(table)
+                self._view.setTable(tables.Second)
             enabled = False
-            identifiers = self._model.getIdentifiers()
-            emails = self._model.getEmails()
         else:
             enabled = self._view.isTableSelected() and self._model.isQueryValid(query)
             identifiers = ()
@@ -212,9 +205,8 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def removeQuery(self):
-        query = self._view.getQuery()
-        subquery = self._view.getSubQuery()
-        self._model.removeQuery(query, subquery)
+        query, subquery, last = self._view.getQueryToRemove()
+        self._model.removeQuery(query, subquery, last)
         self._view.removeQuery(query)
         self._wizard.updateTravelUI()
 
@@ -234,7 +226,7 @@ class MergerManager(unohelper.Base,
     def addEmail(self):
         self._view.enableAddEmail(False)
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         email = self._view.getColumn()
         emails = self._model.addEmail(subquery, email)
         self._view.setEmail(emails)
@@ -243,7 +235,7 @@ class MergerManager(unohelper.Base,
     def removeEmail(self):
         self._view.enableAddEmail(False)
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
         emails = self._model.removeEmail(subquery, email)
         enabled = self._canAddColumn()
@@ -253,7 +245,7 @@ class MergerManager(unohelper.Base,
 
     def upEmail(self):
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
         position = self._view.getEmailPosition() -1
         emails = self._model.moveEmail(subquery, email, position)
@@ -261,7 +253,7 @@ class MergerManager(unohelper.Base,
 
     def downEmail(self):
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
         position = self._view.getEmailPosition() +1
         emails = self._model.moveEmail(subquery, email, position)
@@ -279,7 +271,7 @@ class MergerManager(unohelper.Base,
         self._view.enableDownIdentifier(False)
         self._view.enableRemoveIdentifier(False)
         query = self._view.getQuery()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         table = self._view.getTable()
         identifier = self._view.getColumn()
         identifiers = self._model.addIdentifier(query, subquery, table, identifier)
@@ -292,7 +284,7 @@ class MergerManager(unohelper.Base,
         self._view.enableDownIdentifier(False)
         self._view.enableRemoveIdentifier(False)
         query = self._view.getQuery()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         identifiers = self._model.removeIdentifier(query, subquery, identifier)
         enabled = self._canAddColumn()
@@ -306,7 +298,7 @@ class MergerManager(unohelper.Base,
         self._view.enableUpIdentifier(False)
         self._view.enableDownIdentifier(False)
         query = self._view.getQuery()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() -1
         identifiers = self._model.moveIdentifier(query, subquery, identifier, position)
@@ -317,7 +309,7 @@ class MergerManager(unohelper.Base,
         self._view.enableUpIdentifier(False)
         self._view.enableDownIdentifier(False)
         query = self._view.getQuery()
-        subquery = self._view.getSubQuery()
+        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() +1
         identifiers = self._model.moveIdentifier(query, subquery, identifier, position)
@@ -329,6 +321,5 @@ class MergerManager(unohelper.Base,
     def _isSameTable(self):
         subquery = self._view.getSubQuery()
         if subquery is not None:
-            table = self._model.getSubQueryTable(subquery)
-            return self._view.getTable() == table
+            return self._view.getTable() == subquery.Second
         return False

@@ -141,6 +141,40 @@ class DataBase(unohelper.Base):
     def getQuotedTableName(self, table):
         return '"%s"' % table.replace('.', '"."')
 
+    def getQuotedQueryName(self, query):
+        return '"%s"' % query
+
+    def getInnerJoinTable(self, subquery, identifiers, tables, name, add):
+        filters = [self.getQuotedQueryName(subquery.First)]
+        for table in tables:
+            if table == subquery.First:
+                continue
+            if not add and table == name:
+                continue
+            table = self.getQuotedTableName(table)
+            filter = 'INNER JOIN %s ON ' % table
+            conditions = []
+            for identifier in identifiers:
+                conditions.append('"%s" = %s."%s"' % (identifier, table, identifier))
+            filters.append(filter + ' AND '.join(conditions))
+        if add:
+            name = self.getQuotedTableName(name)
+            filter = 'INNER JOIN %s ON ' % name
+            conditions = []
+            for identifier in identifiers:
+                conditions.append('"%s" = %s."%s"' % (identifier, name, identifier))
+            filters.append(filter + ' AND '.join(conditions))
+        return ' '.join(filters)
+
+    def getRecipientColumns(self, emails):
+        columns = []
+        for email in emails:
+            columns.append(self.getQuotedQueryName(email))
+        column = ', '.join(columns)
+        if len(emails) > 1:
+            column = 'COALESCE(%s)' % column
+        return column
+
     def getDataSource(self):
         return self.Connection.getParent()
 

@@ -66,7 +66,7 @@ class MergerManager(unohelper.Base,
         tables, table, title1, title2, message = self._model.getPageInfos()
         self._view = MergerView(ctx, Tab1Handler(self), Tab2Handler(self), parent, tables, title1, title2, message)
         window1, window2 = self._view.getGridWindows()
-        self._model.initPage2(table, window1, window2, self.initPage)
+        self._model.initPage2(window1, window2, self.initPage)
         # FIXME: We must disable the handler "ChangeAddressBook"
         # FIXME: otherwise it activates twice
         self._disableHandler()
@@ -90,14 +90,14 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        print("MergerManager.activatePage() %s" % self._model.isChanged())
-        if self._model.isChanged():
-            tables, table, enabled, message = self._model.getPageInfos()
+        print("MergerManager.activatePage() %s" % self._model.hasPendingChange())
+        if self._model.hasPendingChange():
+            tables, table, message = self._model.getChangedPageInfos()
             self._view.setMessage(message)
             # FIXME: We must disable the handler "ChangeAddressTable"
             # FIXME: otherwise it activates twice
             self._disableHandler()
-            self._view.initTables(tables, table, enabled)
+            self._view.initTables(tables, table)
 
     def commitPage(self, reason):
         return True

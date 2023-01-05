@@ -70,7 +70,7 @@ class MergerView(unohelper.Base):
     def getSubQuery(self):
         subquery = None
         control = self._getQuery()
-        item = control.getText()
+        item = control.getText().strip()
         items = control.getItems()
         if item in items:
             subquery = control.Model.getItemData(items.index(item))
@@ -81,6 +81,15 @@ class MergerView(unohelper.Base):
         item = control.getText()
         items = control.getItems()
         return item in items
+
+    def getQueryToRemove(self):
+        control = self._getQuery()
+        query = control.getText().strip()
+        last = control.getItemCount() == 1
+        queries = control.getItems()
+        if query in queries:
+            subquery = control.Model.getItemData(queries.index(query))
+        return query, subquery, last
 
     def isTableSelected(self):
         return self._getTable().getSelectedItemPos() != -1
@@ -191,12 +200,12 @@ class MergerView(unohelper.Base):
     def enableRemoveQuery(self, enabled):
         self._getRemoveQuery().Model.Enabled = enabled
 
-    def addQuery(self, query, table):
+    def addQuery(self, query, subquery):
         control = self._getQuery()
         control.setText('')
         index = control.Model.ItemCount
         control.Model.insertItemText(index, query)
-        control.Model.setItemData(index, table)
+        control.Model.setItemData(index, subquery)
 
     def removeQuery(self, query):
         self._getRemoveQuery().Model.Enabled = False

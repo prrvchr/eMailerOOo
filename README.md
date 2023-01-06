@@ -142,7 +142,6 @@ Now that your new mailing list is available in the list, you need to select it.
 
 And add the following columns:
 - Primary key column: `Resource`
-- Bookmark column: `Bookmark`
 - Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
@@ -159,8 +158,8 @@ You can now proceed to the next step.
 ##### Available recipients:
 
 The recipients are selected using 2 buttons `Add all` and `Add` allowing respectively:
-- To add all recipients.
-- Add the selection, which can be multiple using the `CTRL` key.
+- Either add the group of recipients selected from the `Address book` list. This allows during a mailing, that the modifications of the contents of the group are taken into account. A mailing list only accepts one group.
+- Either add the selection, which can be multiple using the `CTRL` key. This selection is immutable regardless of the modification of the address book groups.
 
 ![smtpMailerOOo Merger screenshot 6][36]
 
@@ -171,8 +170,8 @@ Example of multiple selection:
 ##### Selected recipients:
 
 The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing respectively:
-- To remove all recipients.
-- Remove the selection, which can be multiple using the `CTRL` key. 
+- Either remove the group that has been assigned to this mailing list. This is necessary in order to be able to edit the content of this mailing list again.
+- Either remove the selection, which can be multiple using the `CTRL` key. 
 
 ![smtpMailerOOo Merger screenshot 8][38]
 

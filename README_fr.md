@@ -134,7 +134,7 @@ Dans la copie d'écran suivante, on peut voir que la source de données gContact
 
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
-Assurez-vous lors de la création de liste de diffusion que la **table principale** est toujours bien sélectionnée.
+Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée.
 
 ![smtpMailerOOo Merger screenshot 4][33]
 
@@ -142,7 +142,6 @@ Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, v
 
 Et ajouter les colonnes suivantes:
 - Colonne de clef primaire: `Resource`
-- Colonne bookmark: `Bookmark`
 - Colonnes d'adresses électronique: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
 Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient pertinent puisque le courriel sera envoyé à la première adresse disponible.  
@@ -159,8 +158,8 @@ Vous pouvez maintenant passer à l'étape suivante.
 ##### Destinataires disponibles:
 
 Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `Ajouter` permettant respectivement:
-- D'ajouter tous les destinataires.
-- D'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
+- Soit d'ajouter le groupe de destinataires sélectionnés dans la liste `Carnet d'adresses`. Ceci permet lors d'un publipostage, que les modifications du contenu du groupe soient prises en compte. Une liste de diffusion n'accepte qu'un seul groupe.
+- Soit d'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`. Cette sélection est immuable quelle que soit la modification des groupes du carnet d'adresses.
 
 ![smtpMailerOOo Merger screenshot 6][36]
 
@@ -171,8 +170,8 @@ Example de la sélection multiple:
 ##### Destinataires sélectionnés:
 
 Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` et `Retirer` permettant respectivement:
-- De retirer tous les destinataires.
-- De retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
+- Soit de retirer le groupe qui a été affecté à cette liste de diffusion. Ceci est nécessaire afin de pouvoir modifier à nouveau le contenu de cette liste de diffusion.
+- Soit de retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
 
 ![smtpMailerOOo Merger screenshot 8][38]
 

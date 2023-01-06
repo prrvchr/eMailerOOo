@@ -87,9 +87,8 @@ Restart LibreOffice / OpenOffice after installation.
 ### Introduction:
 
 To be able to use the email merge feature using mailing lists, it is necessary to have a datasource with tables having the following columns:
-- One or more columns of email addresses. These columns will be selected from a list and if this selection is not unique, then the first non-null email address will be used.
-- A primary key column to uniquely identify records. This column must be of type SQL VARCHAR.
-- A bookmark column, or row number column or `ROWNUM()`, which corresponds to the row number in the result set of an SQL command.
+- One or more email addresses columns. These columns are chosen from a list and if this choice is not unique, then the first non-null email address column will be used.
+- One or more primary key column to uniquely identify records, it can be a compound primary key. Supported types are VARCHAR and/or INTEGER, or derived. These columns must be declared with the NOT NULL constraint.
 
 In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 

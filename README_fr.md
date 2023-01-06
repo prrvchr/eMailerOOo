@@ -87,9 +87,8 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 ### Introduction:
 
 Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
-- Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes seront sélectionnées dans une liste et si cette sélection n'est pas unique, alors la première adresse courriel non nulle sera utilisée.
-- Une colonne de clé primaire permettant d'identifier de manière unique les enregistrements. Cette colonne doit être de type SQL VARCHAR.
-- Une colonne bookmark, ou numéro de ligne ou `ROWNUM()`, qui correspond au numéro de ligne dans le jeu de résultats d'une commande SQL.
+- Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes sont choisi dans une liste et si ce choix n'est pas unique, alors la première colonne d'adresse courriel non nulle sera utilisée.
+- Une ou plusieurs colonnes de clé primaire permettant d'identifier de manière unique les enregistrements, elle peut être une clé primaire composée. Les types supportés sont VARCHAR et/ou INTEGER, ou derivé. Ces colonnes doivent être declarée avec la contrainte NOT NULL.
 
 De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 

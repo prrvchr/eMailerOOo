@@ -120,7 +120,7 @@ class MergerManager(unohelper.Base,
 
     def changeRecipientRowSet(self, rowset):
         count = self._model.setGrid2Data(rowset)
-        self._view.enableAddAll(count < 2)
+        self._view.enableAddAll(count == 1)
         self._view.enableRemoveAll(count == 0)
         self._wizard.updateTravelUI()
 
@@ -153,8 +153,7 @@ class MergerManager(unohelper.Base,
         self._model.removeItem(filters, self.enableAddAll)
 
     def removeAllItem(self):
-        table = self._view.getTable()
-        self._model.removeAllItem(table)
+        self._model.removeAllItem()
 
     def enableAddAll(self, hasnofilter):
         self._view.enableAddAll(hasnofilter)

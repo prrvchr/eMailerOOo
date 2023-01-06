@@ -144,16 +144,9 @@ class DataBase(unohelper.Base):
     def getQuotedQueryName(self, query):
         return '"%s"' % query
 
-    def getInnerJoinTable(self, subquery, identifiers, tables, name, add):
+    def getInnerJoinTable(self, subquery, identifiers, table):
         filters = [self.getQuotedQueryName(subquery)]
-        for table in tables:
-            if table == subquery:
-                continue
-            if not add and table == name:
-                continue
-            filters.append(self._getInnerJoinPart(identifiers, table))
-        if add and name not in tables:
-            filters.append(self._getInnerJoinPart(identifiers, name))
+        filters.append(self._getInnerJoinPart(identifiers, table))
         return ' '.join(filters)
 
     def _getInnerJoinPart(self, identifiers, name):

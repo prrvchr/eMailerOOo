@@ -277,8 +277,6 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
     - D'être paramètrable sur l'ordre de tri à afficher.
     - De sauvegarder les paramètres d'affichage.
 
-- Encore plein d'autres choses...
-
 ### Ce qui a été fait pour la version 0.0.2:
 
 - Réécriture de [IspDB][54] ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
@@ -291,7 +289,25 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 - Soumission de l'extension smtpMailerOOo à Google et obtention de l'autorisation d'utiliser son API GMail afin d'envoyer des courriels avec un compte Google.
 
-### Que reste-t-il à faire pour la version 0.0.2:
+### Ce qui a été fait pour la version 0.0.3:
+
+- Réécriture du [Grid][59] afin de permettre:
+  - Le tri sur une colonne avec l'intégration le service UNO [SortableGridDataModel][65].
+  - La génération des filtres des enregistrements nécessaires au service [Spouleur][56].
+  - Le partage du module python avec l'extension [jdbcDriverOOo][66].
+
+- Réécriture du [Merger][57] afin de permettre:
+  - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][67] `VARCHAR` et `INTEGER` ou derivé.
+  - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
+  - Un aperçu du document avec les champs de fusion remplis plus rapidement grâce au Grid.
+
+- Réécriture du [Spouleur][56] afin de permettre:
+  - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][57].
+  - L'utilisation du nouveau [Grid][59] permettant le tri sur une colonne.
+
+- Encore plein d'autres choses...
+
+### Que reste-t-il à faire pour la version 0.0.3:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -361,3 +377,6 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 [62]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
 [63]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl>
 [64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/pythonpath/smtpmailer/mailspooler.py>
+[65]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
+[66]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
+[67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>

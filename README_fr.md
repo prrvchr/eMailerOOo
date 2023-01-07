@@ -292,14 +292,14 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 ### Ce qui a été fait pour la version 0.0.3:
 
 - Réécriture du [Grid][59] afin de permettre:
-  - Le tri sur une colonne avec l'intégration le service UNO [SortableGridDataModel][65].
+  - Le tri sur une colonne avec l'intégration du service UNO [SortableGridDataModel][65].
   - La génération des filtres des enregistrements nécessaires au service [Spouleur][56].
   - Le partage du module python avec l'extension [jdbcDriverOOo][66].
 
 - Réécriture du [Merger][57] afin de permettre:
   - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][67] `VARCHAR` et `INTEGER` ou derivé.
   - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
-  - Un aperçu du document avec les champs de fusion remplis plus rapidement grâce au Grid.
+  - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au Grid.
 
 - Réécriture du [Spouleur][56] afin de permettre:
   - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][57].

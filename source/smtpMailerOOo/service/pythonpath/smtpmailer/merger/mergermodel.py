@@ -70,6 +70,7 @@ from ..unotool import getSimpleFile
 from ..unotool import getStringResource
 from ..unotool import getUrl
 from ..unotool import getUrlPresentation
+from ..unotool import hasInterface
 
 from ..dbtool import getResultValue
 from ..dbtool import getSequenceFromResult
@@ -251,10 +252,11 @@ class MergerModel(MailModel):
                     msg = self._getErrorMessage(2, self._service)
                     e = self._getUnoException(msg)
                     raise e
-                #if not connection.getMetaData().supportsCorrelatedSubqueries():
-                #    msg = self._getErrorMessage(3)
-                #    e = self._getUnoException(msg)
-                #    raise e
+                interface = 'com.sun.star.sdb.tools.XConnectionTools'
+                if not hasInterface(connection, interface):
+                    msg = self._getErrorMessage(3, interface)
+                    e = self._getUnoException(msg)
+                    raise e
             except UnoException as e:
                 format = (addressbook, e.Message)
                 message = self._getErrorMessage(0, format)

@@ -48,7 +48,6 @@ class WindowHandler(unohelper.Base,
             # TODO: During WizardPage initialization the listener must be disabled...
             enabled = self._manager.isHandlerEnabled()
             if method == 'ChangeAddressBook':
-                print("MergerHandler.callHandlerMethod() ChangeAddressBook *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     addressbook = control.getSelectedItem()
@@ -58,7 +57,6 @@ class WindowHandler(unohelper.Base,
                 self._manager.newAddressBook()
                 handled = True
             elif method == 'ChangeAddressBookTable':
-                print("MergerHandler.callHandlerMethod() ChangeAddressBookTable *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     if control.getSelectedItemPos() != -1:
@@ -66,7 +64,6 @@ class WindowHandler(unohelper.Base,
                         self._manager.changeAddressBookTable(table)
                 handled = True
             elif method == 'ChangeAddressBookColumn':
-                print("MergerHandler.callHandlerMethod() ChangeAddressBookColumn *************** %s" % enabled)
                 if enabled:
                     control = event.Source
                     if control.getSelectedItemPos() != -1:
@@ -74,7 +71,6 @@ class WindowHandler(unohelper.Base,
                         self._manager.changeAddressBookColumn(column)
                 handled = True
             elif method == 'EditQuery':
-                print("PageHandler.callHandlerMethod() EditQuery *************** %s" % enabled)
                 control = event.Source
                 if control.Model.Enabled:
                     subquery = None
@@ -88,7 +84,6 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'EnterQuery':
                 if event.KeyCode == RETURN:
-                    print("PageHandler.callHandlerMethod() EnterQuery ***************")
                     control = event.Source
                     query = control.getText().strip()
                     if not query in control.getItems():
@@ -101,30 +96,24 @@ class WindowHandler(unohelper.Base,
                 self._manager.removeQuery()
                 handled = True
             elif method == 'ChangeEmail':
-                print("PageHandler.callHandlerMethod() ChangeEmail ***************")
                 control = event.Source
                 imax = control.ItemCount -1
                 position = control.getSelectedItemPos()
                 self._manager.changeEmail(imax, position)
                 handled = True
             elif method == 'AddEmail':
-                print("PageHandler.callHandlerMethod() AddEmail ***************")
                 self._manager.addEmail()
                 handled = True
             elif method == 'UpEmail':
-                print("PageHandler.callHandlerMethod() UpEmail ***************")
                 self._manager.upEmail()
                 handled = True
             elif method == 'DownEmail':
-                print("PageHandler.callHandlerMethod() DownEmail ***************")
                 self._manager.downEmail()
                 handled = True
             elif method == 'RemoveEmail':
-                print("PageHandler.callHandlerMethod() RemoveEmail ***************")
                 self._manager.removeEmail()
                 handled = True
             elif method == 'ChangeIdentifier':
-                print("PageHandler.callHandlerMethod() ChangeIdentifier ***************")
                 control = event.Source
                 imax = control.ItemCount -1
                 position = control.getSelectedItemPos()
@@ -134,11 +123,9 @@ class WindowHandler(unohelper.Base,
                 self._manager.addIdentifier()
                 handled = True
             elif method == 'UpIdentifier':
-                print("PageHandler.callHandlerMethod() UpIdentifier ***************")
                 self._manager.upIdentifier()
                 handled = True
             elif method == 'DownIdentifier':
-                print("PageHandler.callHandlerMethod() DownIdentifier ***************")
                 self._manager.downIdentifier()
                 handled = True
             elif method == 'RemoveIdentifier':

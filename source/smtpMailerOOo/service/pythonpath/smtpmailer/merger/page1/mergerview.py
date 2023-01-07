@@ -200,6 +200,9 @@ class MergerView(unohelper.Base):
     def enableRemoveQuery(self, enabled):
         self._getRemoveQuery().Model.Enabled = enabled
 
+    def setQuery(self, query):
+        self._getQuery().setText(query)
+
     def addQuery(self, query, subquery):
         control = self._getQuery()
         control.setText('')
@@ -247,23 +250,21 @@ class MergerView(unohelper.Base):
             control.selectItemPos(index, True)
 
     # Identifier column methods
+    def disableIdentifierButton(self):
+        self._getUpIdentifier().Model.Enabled = False
+        self._getDownIdentifier().Model.Enabled = False
+        self._getRemoveIdentifier().Model.Enabled = False
+
+    def enableAddIdentifier(self, enabled):
+        self._getAddIdentifier().Model.Enabled = enabled
+
     def updateAddIdentifier(self, enabled):
         items = self.getIdentifiers()
         button = self._getAddIdentifier()
         self._updateAddButton(items, button, enabled)
 
-    def setIdentifier(self, identifiers, index=-1):
-        control = self._getIdentifier()
-        control.Model.StringItemList = identifiers
-        if index != -1:
-            control.selectItemPos(index, True)
-
-    def addIdentifier(self, identifier):
-        self._getIdentifier().Model.insertItemText(0, identifier)
-        self.enableRemoveIdentifier(True)
-
-    def enableAddIdentifier(self, enabled):
-        self._getAddIdentifier().Model.Enabled = enabled
+    def enableRemoveIdentifier(self, enabled):
+        self._getRemoveIdentifier().Model.Enabled = enabled
 
     def enableUpIdentifier(self, enabled):
         self._getUpIdentifier().Model.Enabled = enabled
@@ -271,8 +272,11 @@ class MergerView(unohelper.Base):
     def enableDownIdentifier(self, enabled):
         self._getDownIdentifier().Model.Enabled = enabled
 
-    def enableRemoveIdentifier(self, enabled):
-        self._getRemoveIdentifier().Model.Enabled = enabled
+    def setIdentifier(self, identifiers, index=-1):
+        control = self._getIdentifier()
+        control.Model.StringItemList = identifiers
+        if index != -1:
+            control.selectItemPos(index, True)
 
 # MergerView private setter methods
     def _updateAddButton(self, items, button, enabled):

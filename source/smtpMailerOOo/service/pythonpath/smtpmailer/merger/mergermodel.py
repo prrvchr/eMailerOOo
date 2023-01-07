@@ -130,6 +130,7 @@ class MergerModel(MailModel):
         self._temp = False
         self._saved = False
         self._lock = Condition()
+        self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'MergerPage%s.Step',
@@ -247,8 +248,8 @@ class MergerModel(MailModel):
                     connection = datasource.getIsolatedConnection('', '')
                 progress(40)
                 service = 'com.sun.star.sdb.SingleSelectQueryComposer'
-                if service not in connection.getAvailableServiceNames():
-                    msg = self._getErrorMessage(2, service)
+                if self._service not in connection.getAvailableServiceNames():
+                    msg = self._getErrorMessage(2, self._service)
                     e = self._getUnoException(msg)
                     raise e
                 #if not connection.getMetaData().supportsCorrelatedSubqueries():
@@ -264,8 +265,8 @@ class MergerModel(MailModel):
                 #mri.inspect(connection.createTableName())
                 self._addressbook = datasource
                 self._statement = connection.createStatement()
-                self._composer = connection.createInstance(service)
-                self._subcomposer = connection.createInstance(service)
+                self._composer = connection.createInstance(self._service)
+                self._subcomposer = connection.createInstance(self._service)
                 progress(60)
                 self._tables, self._similar = self._getTablesInfos(connection)
                 progress(70)
@@ -274,7 +275,7 @@ class MergerModel(MailModel):
                 self._queries = datasource.getQueryDefinitions()
                 progress(80)
                 self._names = connection.getObjectNames()
-                composer = connection.createInstance(service)
+                composer = connection.createInstance(self._service)
                 queries = self._getQueries(composer)
                 progress(90)
                 self._setSubQueryTable(composer, queries)
@@ -498,13 +499,15 @@ class MergerModel(MailModel):
 
     def _addSubQuery(self, name, table):
         arg = self._getQuotedTableName(table)
-        subquery = self.Connection.getObjectNames().suggestName(QUERY, name)
+        subquery = self._names.suggestName(QUERY, name)
         command = getSqlQuery(self._ctx, 'getQueryCommand', (arg, arg))
         query = self._createQuery(subquery)
         if self._subquery is not None and self._similar:
-            self._subcomposer.setQuery(command)
-            self._subcomposer.setOrder(self._getSubQueryOrder())
-            command = self._subcomposer.getQuery()
+            composer = self.Connection.createInstance(self._service)
+            composer.setQuery(command)
+            composer.setOrder(self._getSubQueryOrder())
+            command = composer.getQuery()
+            composer.dispose()
         query.Command = command
         self._insertQuery(subquery, query)
         return uno.createUnoStruct('com.sun.star.beans.StringPair', subquery, table)

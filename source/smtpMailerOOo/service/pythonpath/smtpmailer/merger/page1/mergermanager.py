@@ -190,12 +190,12 @@ class MergerManager(unohelper.Base,
     def enterQuery(self, query):
         if self._view.isTableSelected() and self._model.isQueryValid(query):
             self._addQuery(query)
-            self._wizard.updateTravelUI()
+            #self._wizard.updateTravelUI()
 
     def addQuery(self):
         query = self._view.getQuery()
         self._addQuery(query)
-        self._wizard.updateTravelUI()
+        #self._wizard.updateTravelUI()
 
     def removeQuery(self):
         query, subquery, last = self._view.getQueryToRemove()
@@ -209,6 +209,7 @@ class MergerManager(unohelper.Base,
         subquery = self._model.addQuery(query, table)
         self._view.addQuery(query, subquery)
         self._view.enableRemoveQuery(False)
+        self._view.setQuery(query)
 
     # Email column setter methods
     def changeEmail(self, imax, position):
@@ -260,9 +261,7 @@ class MergerManager(unohelper.Base,
 
     def addIdentifier(self):
         self._view.enableAddIdentifier(False)
-        self._view.enableUpIdentifier(False)
-        self._view.enableDownIdentifier(False)
-        self._view.enableRemoveIdentifier(False)
+        self._view.disableIdentifierButton()
         query = self._view.getQuery()
         subquery = self._view.getSubQuery().First
         table = self._view.getTable()
@@ -273,9 +272,7 @@ class MergerManager(unohelper.Base,
 
     def removeIdentifier(self):
         self._view.enableAddIdentifier(False)
-        self._view.enableUpIdentifier(False)
-        self._view.enableDownIdentifier(False)
-        self._view.enableRemoveIdentifier(False)
+        self._view.disableIdentifierButton()
         query = self._view.getQuery()
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
@@ -287,9 +284,7 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def upIdentifier(self):
-        self._view.enableRemoveIdentifier(False)
-        self._view.enableUpIdentifier(False)
-        self._view.enableDownIdentifier(False)
+        self._view.disableIdentifierButton()
         query = self._view.getQuery()
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
@@ -298,9 +293,7 @@ class MergerManager(unohelper.Base,
         self._view.setIdentifier(identifiers, position)
 
     def downIdentifier(self):
-        self._view.enableRemoveIdentifier(False)
-        self._view.enableUpIdentifier(False)
-        self._view.enableDownIdentifier(False)
+        self._view.disableIdentifierButton()
         query = self._view.getQuery()
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()

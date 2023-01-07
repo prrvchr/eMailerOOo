@@ -247,7 +247,6 @@ class MergerModel(MailModel):
                 else:
                     connection = datasource.getIsolatedConnection('', '')
                 progress(40)
-                service = 'com.sun.star.sdb.SingleSelectQueryComposer'
                 if self._service not in connection.getAvailableServiceNames():
                     msg = self._getErrorMessage(2, self._service)
                     e = self._getUnoException(msg)
@@ -261,8 +260,6 @@ class MergerModel(MailModel):
                 message = self._getErrorMessage(0, format)
             else:
                 progress(50)
-                #mri = createService(self._ctx, 'mytools.Mri')
-                #mri.inspect(connection.createTableName())
                 self._addressbook = datasource
                 self._statement = connection.createStatement()
                 self._composer = connection.createInstance(self._service)
@@ -272,8 +269,8 @@ class MergerModel(MailModel):
                 progress(70)
                 self._address.ActiveConnection = connection
                 self._recipient.ActiveConnection = connection
-                self._queries = datasource.getQueryDefinitions()
                 progress(80)
+                self._queries = datasource.getQueryDefinitions()
                 self._names = connection.getObjectNames()
                 composer = connection.createInstance(self._service)
                 queries = self._getQueries(composer)

@@ -317,7 +317,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 [2]: <https://prrvchr.github.io/smtpMailerOOo/>
 [3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr>
 [4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
-[5]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#historique>
+[5]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-003>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>

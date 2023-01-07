@@ -317,7 +317,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
 [2]: <https://prrvchr.github.io/smtpMailerOOo/README_fr>
 [3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_en>
 [4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_en>
-[5]: <https://prrvchr.github.io/smtpMailerOOo/#historical>
+[5]: <https://prrvchr.github.io/smtpMailerOOo/#what-has-been-done-for-version-003>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>

@@ -297,8 +297,9 @@ When the email spooler is started, its activity can be viewed in the activity lo
   - Sharing the python module with the [jdbcDriverOOo][66] extension.
 
 - Rewrote the [Merger][57] to allow:
-  - The use of primary key, which can be composite, supporting [DataType][67] `VARCHAR` and `INTEGER` or derived.
+  - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][67]
   - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
+  - The use of primary key, which can be composite, supporting [DataType][68] `VARCHAR` and `INTEGER` or derived.
   - A preview of the document with merge fields filled in faster thanks to the Grid.
 
 - Rewrote the [Spooler][56] to allow:
@@ -379,4 +380,5 @@ When the email spooler is started, its activity can be viewed in the activity lo
 [64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
 [65]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
 [66]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
-[67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[67]: <https://prrvchr.github.io/jdbcDriverOOo/>
+[68]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>

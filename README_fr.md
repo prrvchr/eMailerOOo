@@ -297,8 +297,9 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
   - Le partage du module python avec l'extension [jdbcDriverOOo][66].
 
 - Réécriture du [Merger][57] afin de permettre:
-  - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][67] `VARCHAR` et `INTEGER` ou derivé.
+  - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][67].
   - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
+  - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][68] `VARCHAR` et `INTEGER` ou derivé.
   - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au Grid.
 
 - Réécriture du [Spouleur][56] afin de permettre:
@@ -379,4 +380,5 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 [64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
 [65]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
 [66]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
-[67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[67]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
+[68]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>

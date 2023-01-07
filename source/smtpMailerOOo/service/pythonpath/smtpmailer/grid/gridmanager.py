@@ -39,10 +39,12 @@ class GridManager(GridManagerBase):
 
 # GridManager setter methods
     def setDataModel(self, rowset, identifiers):
+        print("GridManager.setDataModel()")
         datasource = rowset.ActiveConnection.Parent.Name
         query = rowset.UpdateTableName
         changed = self._isDataSourceChanged(datasource, query)
         if changed:
+            print("GridManager.setDataModel() Column changed")
             if self._isGridLoaded():
                 self._saveWidths()
                 self._saveOrders()

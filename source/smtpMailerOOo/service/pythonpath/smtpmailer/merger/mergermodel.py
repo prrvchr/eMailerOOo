@@ -123,7 +123,7 @@ class MergerModel(MailModel):
         self._subquery = None
         self._identifiers = ()
         self._emails = ()
-        self._changed = False
+        self._changes = 0
         self._disposed = False
         self._similar = False
         self._temp = False
@@ -137,7 +137,7 @@ class MergerModel(MailModel):
                            'Progress': 'MergerPage1.Label6.Label.%s',
                            'Error': 'MergerPage1.Label8.Label.%s',
                            'Index': 'MergerPage1.Label14.Label.%s',
-                           'Message': 'MergerTab2.Label1.Label',
+                           'Query': 'MergerTab2.Label1.Label',
                            'Recipient': 'MailWindow.Label4.Label',
                            'PickerTitle': 'Mail.FilePicker.Title',
                            'Property': 'Mail.Document.Property.%s',
@@ -594,29 +594,48 @@ class MergerModel(MailModel):
             print("MergerModel.commitPage1() *******************************************")
             self._addressbook.DatabaseDocument.store()
         name = self._addressbook.Name
+        # FIXME: It is necessary to discern the reloading of the list
+        # FIXME: of tables of the address book and the grid (or rowset)
         if self._isPage2Loaded():
             # This will only be executed if WizardPage2 has already been loaded
-            args = None
+            args = []
             if self._name != name:
-                self._changed = True
+                print("MergerModel.commitPage1() DataSource changed")
+                # FIXME: The RowSet self._address will be executed in Page2 by
+                # FIXME: setAddressTable() after selecting the main table
+                self._changes |= 2
                 self._initGrid1RowSet()
                 self._initGrid2RowSet()
-                args = (self._recipient, )
-                # The RowSet self._address will be executed in Page2 with setAddressTable()
-            elif saved1 and not saved2:
-                self._initGrid1RowSet()
-                args = (self._recipient, )
-            elif saved2:
-                # Update Grid Address only for a change of filters
-                self._initGrid1RowSet()
-                self._initGrid2RowSet()
-                args = (self._address, self._recipient)
-            if args is not None:
+                args.append(self._recipient)
+            else:
+                changed = self._isGrid1RowSetChanged()
+                if self._isQueryChanged():
+                    # FIXME: If the tables do not all have the same columns (not similar),
+                    # FIXME: the list of tables is reloaded each time the mailing list is changed.
+                    self._changes |= 1
+                    if not self._similar:
+                        # FIXME: The RowSet self._address will be executed in Page2 by
+                        # FIXME: setAddressTable() after selecting the main table
+                        self._changes |= 2
+                        self._initGrid1RowSet()
+                    elif changed:
+                        print("MergerModel.commitPage1() Grid1 changed")
+                        self._initGrid1RowSet()
+                        args.append(self._address)
+                elif changed:
+                    print("MergerModel.commitPage1() Grid1 changed")
+                    self._initGrid1RowSet()
+                    args.append(self._address)
+                if self._isGrid2RowSetChanged():
+                    print("MergerModel.commitPage1() Grid2 changed")
+                    self._initGrid2RowSet()
+                    args.append(self._recipient)
+            if args:
                 Thread(target=self._executeRowSet, args=args).start()
         self._name = name
 
-    def _executeRowSet(self, *rowsets):
-        for rowset in rowsets:
+    def _executeRowSet(self, *args):
+        for rowset in args:
             rowset.execute()
 
     def _isPage2Loaded(self):
@@ -625,13 +644,23 @@ class MergerModel(MailModel):
 # Procedures called by WizardPage2
     def getPageInfos(self):
         tables = self._getTables() if self._similar else self._getSimilarTables()
-        message = self._getMailingMessage()
-        return tables, self._subquery.Second, self._getTabTitle(1), self._getTabTitle(2), message
+        return tables, self._getTabTitle(1), self._getTabTitle(2), self._getQueryLabel()
 
-    def getChangedPageInfos(self):
+    def resetPendingChanges(self):
+        self._changes = 0
+
+    def hasQueryChanged(self):
+        return self._changes & 1 == 1
+
+    def getQueryLabel(self):
+        return self._getQueryLabel()
+
+    def hasTablesChanged(self):
+        return self._changes & 2 == 2
+
+    def getQueryTables(self):
         tables = self._getTables() if self._similar else self._getSimilarTables()
-        message = self._getMailingMessage()
-        return tables, self._subquery.Second, message
+        return tables, self._subquery.Second
 
     def _getSimilarTables(self):
         columns = self._tables.get(self._subquery.Second, ())
@@ -639,16 +668,12 @@ class MergerModel(MailModel):
         return tuple(tables)
 
     def initPage2(self, *args):
-        # We must prevent a second execution of self._address in setAddressTable()
-        self._changed = False
         Thread(target=self._initPage2, args=args).start()
 
-    def commitPage2(self):
-        saved1 = self._saveQuery(self._query, self._composer)
-        saved2 = self._saveQuery(self._subquery.First, self._subcomposer)
-        if saved1 or saved2:
-            print("MergerModel.commitPage2() *******************************************")
-            self._addressbook.DatabaseDocument.store()
+    def setAddressTable(self, table):
+        print("MergerModel.setAddressTable () ****************************")
+        self._address.Command = table
+        Thread(target=self._executeAddress).start()
 
     def setGrid1Data(self, rowset):
         self._grid1.deselectAllRows()
@@ -661,12 +686,10 @@ class MergerModel(MailModel):
 
     def _getFilterCount(self):
         filters = self._composer.getStructuredFilter()
-        print("MergerModel._getFilterCount() Filters: %s" % (filters, ))
         return len(filters)
 
     def hasFilters(self):
         filters = self._composer.getStructuredFilter()
-        print("MergerModel.hasFilters() Filters: %s" % (filters, ))
         return len(filters) > 0
 
     def getGrid1SelectedStructuredFilters(self):
@@ -674,18 +697,6 @@ class MergerModel(MailModel):
 
     def getGrid2SelectedStructuredFilters(self):
         return self._grid2.getSelectedStructuredFilters()
-
-    def hasPendingChange(self):
-        return self._changed
-
-    def setAddressTable(self, table):
-        if self._changed or self._address.Command != table:
-            self._changed = False
-            self._address.Command = table
-            Thread(target=self._executeAddress).start()
-
-    def getAddressCount(self):
-        return self._address.RowCount
 
     def getRecipientCount(self):
         return self._recipient.RowCount
@@ -712,17 +723,12 @@ class MergerModel(MailModel):
         row = self._grid2.getUnsortedIndex(index) +1
         self._setDocumentRecord(self._document, self._recipient, row)
 
-    def getMailingMessage(self):
-        message = self._getMailingMessage()
-        return message
-
 # Private procedures called by WizardPage2
     def _initPage2(self, window1, window2, initPage):
         self._initRowSet()
         self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, 'MergerGrid1', MULTI, None, 8, True)
         self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, 'MergerGrid2', MULTI, None, 8, True)
-        initPage(self._grid1, self._grid2, self._address, self._recipient)
-        self._address.execute()
+        initPage(self._grid1, self._grid2, self._address, self._recipient, self._subquery.Second)
         self._recipient.execute()
 
     def _executeAddress(self):
@@ -812,9 +818,21 @@ class MergerModel(MailModel):
         self._initGrid1RowSet()
         self._initGrid2RowSet()
 
+    def _isQueryChanged(self):
+        return self._recipient.Command != self._query
+
+    def _isGrid1RowSetChanged(self):
+        # Update Grid Address only for a change of Identifiers (order) or Emails (filter)
+        return (self._address.Filter != self._subcomposer.getFilter() or
+                self._address.Order != self._subcomposer.getOrder())
+
+    def _isGrid2RowSetChanged(self):
+        return (self._address.Filter != self._subcomposer.getFilter() or
+                self._recipient.Order != self._subcomposer.getOrder() or
+                self._recipient.ActiveCommand != self._composer.getQuery())
+
     def _initGrid1RowSet(self):
         self._address.ApplyFilter = False
-        self._address.Command = self._subquery.Second
         self._address.Filter = self._subcomposer.getFilter()
         self._address.Order = self._subcomposer.getOrder()
         self._address.ApplyFilter = True
@@ -823,7 +841,7 @@ class MergerModel(MailModel):
     def _initGrid2RowSet(self):
         self._recipient.Command = self._query
         self._recipient.Order = self._subcomposer.getOrder()
-        self._recipient.UpdateTableName = self._subcomposer.getQuery()
+        self._recipient.UpdateTableName = self._composer.getQuery()
 
 # Procedures called by WizardPage3
     def initPage3(self, *args):
@@ -915,8 +933,9 @@ class MergerModel(MailModel):
         return rowset
 
     def _executeRecipient(self):
+        # FIXME: If we want the RowSet listeners to be notified,
+        # FIXME: we need to disable then re-enable RowSet.ApplyFilter
         self._recipient.ApplyFilter = False
-        self._recipient.Filter = self._composer.getFilter()
         self._recipient.ApplyFilter = True
         self._recipient.execute()
 
@@ -959,6 +978,6 @@ class MergerModel(MailModel):
         resource = self._resources.get('Recipient')
         return self._resolver.resolveString(resource) + '%s' % total
 
-    def _getMailingMessage(self):
-        resource = self._resources.get('Message')
+    def _getQueryLabel(self):
+        resource = self._resources.get('Query')
         return self._resolver.resolveString(resource) + self._query

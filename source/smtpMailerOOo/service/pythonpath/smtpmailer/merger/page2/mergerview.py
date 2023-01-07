@@ -43,7 +43,7 @@ import traceback
 
 
 class MergerView(unohelper.Base):
-    def __init__(self, ctx, handler1, handler2, parent, tables, title1, title2, message):
+    def __init__(self, ctx, handler1, handler2, parent, tables, title1, title2, label):
         self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
         tab1, tab2 = self._getTabPages(title1, title2, 'Tab1', 1)
@@ -52,7 +52,7 @@ class MergerView(unohelper.Base):
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'MergerTab2')
         self._tab2.setVisible(True)
         self._initTables(tables)
-        self.setMessage(message)
+        self.setQueryLabel(label)
 
 # MergerView getter methods
     def getWindow(self):
@@ -86,8 +86,8 @@ class MergerView(unohelper.Base):
     def enableRemoveAll(self, enabled):
         self._getRemoveAll().Model.Enabled = enabled
 
-    def setMessage(self, message):
-        self._getMessage().Text = message
+    def setQueryLabel(self, label):
+        self._getQuery().Text = label
 
 # MergerView private getter control methods
     def _getTable(self):
@@ -108,7 +108,7 @@ class MergerView(unohelper.Base):
     def _getRemove(self):
         return self._tab2.getControl('CommandButton2')
 
-    def _getMessage(self):
+    def _getQuery(self):
         return self._tab2.getControl('Label1')
 
     def _getGrid2Windows(self):

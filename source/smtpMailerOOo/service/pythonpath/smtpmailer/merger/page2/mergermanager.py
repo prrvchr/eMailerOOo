@@ -63,14 +63,10 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, table, title1, title2, message = self._model.getPageInfos()
+        tables, title1, title2, message = self._model.getPageInfos()
         self._view = MergerView(ctx, Tab1Handler(self), Tab2Handler(self), parent, tables, title1, title2, message)
         window1, window2 = self._view.getGridWindows()
         self._model.initPage2(window1, window2, self.initPage)
-        # FIXME: We must disable the handler "ChangeAddressBook"
-        # FIXME: otherwise it activates twice
-        self._disableHandler()
-        self._view.setTable(table)
 
     # FIXME: One shot disabler handler
     def isHandlerEnabled(self):
@@ -90,16 +86,20 @@ class MergerManager(unohelper.Base,
         return self._view.getWindow()
 
     def activatePage(self):
-        print("MergerManager.activatePage() %s" % self._model.hasPendingChange())
-        if self._model.hasPendingChange():
-            tables, table, message = self._model.getChangedPageInfos()
-            self._view.setMessage(message)
+        if self._model.hasQueryChanged():
+            label = self._model.getQueryLabel()
+            print("MergerManager.activatePage() Label changed: %s" % label)
+            self._view.setQueryLabel(label)
+        if self._model.hasTablesChanged():
+            tables, table = self._model.getQueryTables()
+            print("MergerManager.activatePage() Tables changed: %s" % table)
             # FIXME: We must disable the handler "ChangeAddressTable"
             # FIXME: otherwise it activates twice
             self._disableHandler()
             self._view.initTables(tables, table)
 
     def commitPage(self, reason):
+        self._model.resetPendingChanges()
         return True
 
     def canAdvance(self):
@@ -109,11 +109,15 @@ class MergerManager(unohelper.Base,
         return advance
 
 # MergerManager setter methods
-    def initPage(self, grid1, grid2, rowset1, rowset2):
+    def initPage(self, grid1, grid2, rowset1, rowset2, table):
         grid1.addSelectionListener(GridListener(self, 1))
         grid2.addSelectionListener(GridListener(self, 2))
         rowset1.addRowSetListener(AddressHandler(self))
         rowset2.addRowSetListener(RecipientHandler(self))
+        # FIXME: We must disable the handler "ChangeAddressBook"
+        # FIXME: otherwise it activates twice
+        self._disableHandler()
+        self._view.setTable(table)
 
     def changeAddressRowSet(self, rowset):
         self._model.setGrid1Data(rowset)

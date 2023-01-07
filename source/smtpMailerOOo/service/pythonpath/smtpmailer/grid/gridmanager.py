@@ -40,9 +40,9 @@ class GridManager(GridManagerBase):
 # GridManager setter methods
     def setDataModel(self, rowset, identifiers):
         print("GridManager.setDataModel()")
-        datasource = rowset.ActiveConnection.Parent.Name
-        query = rowset.UpdateTableName
-        changed = self._isDataSourceChanged(datasource, query)
+        datasource = rowset.DataSourceName
+        table = rowset.UpdateTableName
+        changed = self._isDataSourceChanged(datasource, table)
         if changed:
             print("GridManager.setDataModel() Column changed")
             if self._isGridLoaded():
@@ -53,19 +53,19 @@ class GridManager(GridManagerBase):
             self._view.showGridColumnHeader(False)
             #self._model.resetRowSetData()
             self._headers, self._indexes, self._types = self._getHeadersInfo(rowset.getMetaData(), identifiers)
-            self._view.initColumns(self._url, self._headers, self._initColumnModel(datasource, query))
-            self._query = query
+            self._view.initColumns(self._url, self._headers, self._initColumnModel(datasource, table))
+            self._table = table
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
         self._view.setGridVisible(False)
         self._model.setRowSetData(rowset)
         self._view.setGridVisible(True)
         if changed:
-            self._model.sortByColumn(*self._getSavedOrders(datasource, query))
+            self._model.sortByColumn(*self._getSavedOrders(datasource, table))
 
 # GridManager private methods
-    def _isDataSourceChanged(self, name, query):
-        return self._datasource != name or self._query != query
+    def _isDataSourceChanged(self, name, table):
+        return self._datasource != name or self._table != table
 
     def _isGridLoaded(self):
         return self._datasource is not None

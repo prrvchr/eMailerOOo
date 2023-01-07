@@ -836,12 +836,16 @@ class MergerModel(MailModel):
         self._address.Filter = self._subcomposer.getFilter()
         self._address.Order = self._subcomposer.getOrder()
         self._address.ApplyFilter = True
-        self._address.UpdateTableName = self._subcomposer.getQuery()
+        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
+        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
+        self._address.UpdateTableName = self._subquery.Second
 
     def _initGrid2RowSet(self):
         self._recipient.Command = self._query
         self._recipient.Order = self._subcomposer.getOrder()
-        self._recipient.UpdateTableName = self._composer.getQuery()
+        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
+        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
+        self._recipient.UpdateTableName = self._subquery.Second
 
 # Procedures called by WizardPage3
     def initPage3(self, *args):

@@ -378,5 +378,5 @@ When the email spooler is started, its activity can be viewed in the activity lo
 [63]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl>
 [64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
 [65]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
-[66]: <https://prrvchr.github.io/jdbcDriverOOo/>
+[66]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
 [67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>

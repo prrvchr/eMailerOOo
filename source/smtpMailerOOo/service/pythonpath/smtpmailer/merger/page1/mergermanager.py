@@ -124,15 +124,14 @@ class MergerManager(unohelper.Base,
             self._view.enablePage(True)
             self._view.setColumnLabel(label)
             self._view.initTables(tables)
-            if len(tables) > 0:
-                if self._view.initQuery(queries):
-                    table = self._view.getSubQuery().Second
-                else:
-                    table = tables[0]
+            self._view.initQuery(queries)
+            if len(queries) > 0:
+                self._view.setDefaultQuery()
+            elif len(tables):
                 # FIXME: We must disable the "ChangeAddressBookTable"
                 # FIXME: handler otherwise it activates twice
                 self._disableHandler()
-                self._view.initTablesSelection(table)
+                self._view.setDefaultTable()
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
 
@@ -165,32 +164,26 @@ class MergerManager(unohelper.Base,
         subquery = self._view.getSubQuery()
         if subquery is not None:
             enabled = self._model.isSimilar() or subquery.Second == self._view.getTable()
-        emails = self._view.getEmails()
-        identifiers = self._view.getIdentifiers()
-        self._view.updateAddEmail(emails, enabled)
-        self._view.updateAddIdentifier(identifiers, enabled)
+        self._view.updateAddEmail(enabled)
+        self._view.updateAddIdentifier(enabled)
 
     # Query setter methods
-    def editQuery(self, query, tables):
-        exist = tables is not None
-        if exist:
-            identifiers, emails = self._model.setQuery(query, tables)
-            if self._view.getTable() != tables.Second:
-                # FIXME: We must disable the "ChangeAddressBookTable"
-                # FIXME: handler otherwise it activates twice
-                self._disableHandler()
-                self._view.setTable(tables.Second)
-            enabled = False
-        else:
-            enabled = self._view.isTableSelected() and self._model.isQueryValid(query)
-            identifiers = ()
-            emails = ()
+    def editQuery(self, query, subquery, exist):
+        table = self._view.getTable()
+        self._model.setQuery(query, subquery, exist, table, self.setQuery)
+
+    def setQuery(self, identifiers, emails, exist, table, enabled):
+        if self._view.getTable() != table:
+            # FIXME: We must disable the "ChangeAddressBookTable"
+            # FIXME: handler otherwise it activates twice
+            self._disableHandler()
+            self._view.setTable(table)
         self._view.enableAddQuery(enabled)
         self._view.enableRemoveQuery(exist)
         self._view.setEmail(emails)
         self._view.setIdentifier(identifiers)
-        self._view.updateAddEmail(emails, exist)
-        self._view.updateAddIdentifier(identifiers, exist)
+        self._view.updateAddEmail(exist)
+        self._view.updateAddIdentifier(exist)
         self._view.enableRemoveEmail(False)
         self._wizard.updateTravelUI()
 
@@ -290,7 +283,7 @@ class MergerManager(unohelper.Base,
         enabled = self._canAddColumn()
         enabled = self._canAddColumn()
         self._view.setIdentifier(identifiers)
-        self._view.updateAddIdentifier(identifiers, enabled)
+        self._view.updateAddIdentifier(enabled)
         self._wizard.updateTravelUI()
 
     def upIdentifier(self):

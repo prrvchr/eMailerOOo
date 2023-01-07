@@ -84,7 +84,7 @@ class WindowHandler(unohelper.Base,
                     if exist:
                         index = queries.index(query)
                         subquery = control.Model.getItemData(index)
-                    self._manager.editQuery(query, subquery)
+                    self._manager.editQuery(query, subquery, exist)
                 handled = True
             elif method == 'EnterQuery':
                 if event.KeyCode == RETURN:

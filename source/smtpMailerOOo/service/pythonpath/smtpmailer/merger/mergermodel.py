@@ -117,6 +117,7 @@ class MergerModel(MailModel):
         self._composer = None
         self._subcomposer = None
         self._name = None
+        self._names = None
         self._rows = ()
         self._tables = {}
         self._query = None
@@ -272,6 +273,7 @@ class MergerModel(MailModel):
                 self._recipient.ActiveConnection = connection
                 self._queries = datasource.getQueryDefinitions()
                 progress(80)
+                self._names = connection.getObjectNames()
                 composer = connection.createInstance(service)
                 queries = self._getQueries(composer)
                 progress(90)
@@ -408,36 +410,44 @@ class MergerModel(MailModel):
 
     # Query methods
     def isQueryValid(self, query):
-        name = self.Connection.getObjectNames()
-        return len(query) > 0 and name.isNameValid(QUERY, query) and not name.isNameUsed(QUERY, query)
+        return len(query) > 0 and self._names.isNameValid(QUERY, query) and not self._names.isNameUsed(QUERY, query)
 
-    def setQuery(self, query, subquery):
+    def setQuery(self, *args):
+        Thread(target=self._setQuery, args=args).start()
+
+    def _setQuery(self, query, subquery, exist, table, setQuery):
+        # FIXME: XComboBox can call the event 'on-textchange' multiple time:
+        # FIXME: we have to keep code execution order...
+        with self._lock:
+            if exist:
+                identifiers, emails, table = self._getQuery(query, subquery)
+                enabled = False
+            else:
+                identifiers = emails = ()
+                enabled = table and self.isQueryValid(query)
+            setQuery(identifiers, emails, exist, table, enabled)
+
+    def _getQuery(self, query, subquery):
         saved = False
         if self._query is not None and self._subquery is not None:
             saved = self._saveQuery(self._query, self._composer)
             saved |= self._saveQuery(self._subquery.First, self._subcomposer)
         if saved:
-            print("MergerModel.setQuery() *******************************************")
             self._addressbook.DatabaseDocument.store()
-        # FIXME: If we want to be able to use XSingleSelectQueryAnalyzer::getOrderColumns()
-        # FIXME: we must initialize in this order: clear the Order and set a Query
-        self._subcomposer.setOrder('')
         subcommand = self._queries.getByName(subquery.First).Command
-        self._subcomposer.setQuery(subcommand)
-        count = self._subcomposer.getOrderColumns().getCount()
         command = self._queries.getByName(query).Command
+        self._subcomposer.setQuery(subcommand)
         self._composer.setQuery(command)
         self._query = query
         self._subquery = subquery
         self._identifiers, self._emails = self._getSubQueryInfos()
-        return self._identifiers, self._emails
+        return self._identifiers, self._emails, subquery.Second
 
     def _saveQuery(self, name, composer):
         if self._queries.hasByName(name):
             query = self._queries.getByName(name)
             command = composer.getQuery()
             if query.Command != command:
-                print("MergerModel._saveQuery() *******************************************")
                 query.Command = command
                 return True
         return False

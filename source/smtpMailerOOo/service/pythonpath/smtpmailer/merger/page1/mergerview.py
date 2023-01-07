@@ -164,8 +164,8 @@ class MergerView(unohelper.Base):
     def initTables(self, tables):
         self._getTable().Model.StringItemList = tables
 
-    def initTablesSelection(self, table):
-        self._getTable().selectItem(table, True)
+    def setDefaultTable(self):
+        self._getTable().selectItemPos(0, True)
 
     def setTable(self, table):
         self._getTable().selectItem(table, True)
@@ -188,10 +188,10 @@ class MergerView(unohelper.Base):
             index = control.Model.ItemCount
             control.Model.insertItemText(index, query)
             control.Model.setItemData(index, subquery)
-        initialized = control.Model.ItemCount > 0
-        if initialized:
-            control.Text = control.Model.getItemText(0)
-        return initialized
+
+    def setDefaultQuery(self):
+        control = self._getQuery()
+        control.Text = control.Model.getItemText(0)
 
     # Query methods
     def enableAddQuery(self, enabled):
@@ -226,11 +226,10 @@ class MergerView(unohelper.Base):
     def enableAddEmail(self, enabled):
         self._getAddEmail().Model.Enabled = enabled
 
-    def updateAddEmail(self, emails, enabled):
-        if enabled:
-            column = self.getColumn()
-            enabled = column not in emails
-        self.enableAddEmail(enabled)
+    def updateAddEmail(self, enabled):
+        items = self.getEmails()
+        button = self._getAddEmail()
+        self._updateAddButton(items, button, enabled)
 
     def enableRemoveEmail(self, enabled):
         self._getRemoveEmail().Model.Enabled = enabled
@@ -248,11 +247,10 @@ class MergerView(unohelper.Base):
             control.selectItemPos(index, True)
 
     # Identifier column methods
-    def updateAddIdentifier(self, identifiers, enabled):
-        if enabled:
-            column = self.getColumn()
-            enabled = column not in identifiers
-        self.enableAddIdentifier(enabled)
+    def updateAddIdentifier(self, enabled):
+        items = self.getIdentifiers()
+        button = self._getAddIdentifier()
+        self._updateAddButton(items, button, enabled)
 
     def setIdentifier(self, identifiers, index=-1):
         control = self._getIdentifier()
@@ -277,6 +275,12 @@ class MergerView(unohelper.Base):
         self._getRemoveIdentifier().Model.Enabled = enabled
 
 # MergerView private setter methods
+    def _updateAddButton(self, items, button, enabled):
+        if enabled:
+            column = self.getColumn()
+            enabled = column not in items
+        button.Model.Enabled = enabled
+
     def _enableBox(self, enabled):
         control = self._getQuery()
         self._enableComboBox(control, enabled)

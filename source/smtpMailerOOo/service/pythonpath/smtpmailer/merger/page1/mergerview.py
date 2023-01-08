@@ -82,14 +82,14 @@ class MergerView(unohelper.Base):
         items = control.getItems()
         return item in items
 
-    def getQueryToRemove(self):
+    def getQueries(self):
+        subquery = None
         control = self._getQuery()
         query = control.getText().strip()
-        last = control.getItemCount() == 1
         queries = control.getItems()
         if query in queries:
             subquery = control.Model.getItemData(queries.index(query))
-        return query, subquery, last
+        return query, subquery
 
     def isTableSelected(self):
         return self._getTable().getSelectedItemPos() != -1
@@ -213,12 +213,10 @@ class MergerView(unohelper.Base):
     def removeQuery(self, query):
         self._getRemoveQuery().Model.Enabled = False
         control = self._getQuery()
-        query = control.getText()
         queries = control.getItems()
         if query in queries:
-            control.setText('')
-            index = queries.index(query)
-            control.removeItems(index, 1)
+            control.Model.removeItem(queries.index(query))
+        control.setText('')
 
     # Email column setter methods
     def disableEmailButton(self):

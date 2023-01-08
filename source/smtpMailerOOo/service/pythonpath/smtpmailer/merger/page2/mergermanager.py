@@ -104,7 +104,7 @@ class MergerManager(unohelper.Base,
 
     def canAdvance(self):
         print("MergerManager2.canAdvance() 1")
-        advance = self._model.getRecipientCount() > 0
+        advance = self._model.canAdvancePage2()
         print("MergerManager2.canAdvance() 2 %s" % advance)
         return advance
 
@@ -123,7 +123,8 @@ class MergerManager(unohelper.Base,
         self._model.setGrid1Data(rowset)
 
     def changeRecipientRowSet(self, rowset):
-        count = self._model.setGrid2Data(rowset)
+        self._model.setGrid2Data(rowset)
+        count = self._model.getFilterCount()
         self._view.enableAddAll(count == 1)
         self._view.enableRemoveAll(count == 0)
         self._wizard.updateTravelUI()
@@ -139,14 +140,13 @@ class MergerManager(unohelper.Base,
             if selected:
                 self._model.setAddressRecord(index)
         elif grid == 2:
-            print("MergerModel.changeGrid2Selection() Selected: %s" % selected)
             self._view.enableRemove(selected and enabled)
             if selected:
                 self._model.setRecipientRecord(index)
 
     def addItem(self):
         filters = self._model.getGrid1SelectedStructuredFilters()
-        self._model.addItem(filters, self.enableRemoveAll)
+        self._model.addItem(filters)
 
     def addAllItem(self):
         table = self._view.getTable()
@@ -154,14 +154,8 @@ class MergerManager(unohelper.Base,
 
     def removeItem(self):
         filters = self._model.getGrid2SelectedStructuredFilters()
-        self._model.removeItem(filters, self.enableAddAll)
+        self._model.removeItem(filters)
 
     def removeAllItem(self):
         self._model.removeAllItem()
-
-    def enableAddAll(self, hasnofilter):
-        self._view.enableAddAll(hasnofilter)
-
-    def enableRemoveAll(self, hasnofilter):
-        self._view.enableRemoveAll(hasnofilter)
 

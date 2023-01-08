@@ -300,7 +300,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
   - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][67]
   - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
   - The use of primary key, which can be composite, supporting [DataType][68] `VARCHAR` and `INTEGER` or derived.
-  - A preview of the document with merge fields filled in faster thanks to the Grid.
+  - A preview of the document with merge fields filled in faster thanks to the [Grid][59].
 
 - Rewrote the [Spooler][56] to allow:
   - The use of new filters supporting composite primary keys provided by the [Merger][57].

@@ -300,7 +300,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
   - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][67].
   - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
   - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][68] `VARCHAR` et `INTEGER` ou derivé.
-  - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au Grid.
+  - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au [Grid][59].
 
 - Réécriture du [Spouleur][56] afin de permettre:
   - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][57].

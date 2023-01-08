@@ -137,35 +137,24 @@ class DataBase(unohelper.Base):
         connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
         return connection
 
-# Procedures called by the DataSource
-    def getQuotedTableName(self, table):
-        return '"%s"' % table.replace('.', '"."')
-
-    def getQuotedQueryName(self, query):
-        return '"%s"' % query
-
+# Procedures called by the Merger
     def getInnerJoinTable(self, subquery, identifiers, table):
-        filters = [self.getQuotedQueryName(subquery)]
-        filters.append(self._getInnerJoinPart(identifiers, table))
-        return ' '.join(filters)
+         return subquery + self._getInnerJoinPart(identifiers, table)
 
-    def _getInnerJoinPart(self, identifiers, name):
-        table = self.getQuotedTableName(name)
-        filter = 'INNER JOIN %s ON ' % table
+    def _getInnerJoinPart(self, identifiers, table):
+        query = ' INNER JOIN %s ON ' % table
         conditions = []
         for identifier in identifiers:
-            conditions.append('"%s" = %s."%s"' % (identifier, table, identifier))
-        return filter + ' AND '.join(conditions)
+            conditions.append('%s = %s.%s' % (identifier, table, identifier))
+        return query + ' AND '.join(conditions)
 
     def getRecipientColumns(self, emails):
-        columns = []
-        for email in emails:
-            columns.append(self.getQuotedQueryName(email))
-        column = ', '.join(columns)
+        columns = ', '.join(emails)
         if len(emails) > 1:
-            column = 'COALESCE(%s)' % column
-        return column
+            columns = 'COALESCE(%s)' % columns
+        return columns
 
+# Procedures called by the DataSource
     def getDataSource(self):
         return self.Connection.getParent()
 

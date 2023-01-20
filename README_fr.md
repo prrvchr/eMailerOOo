@@ -213,13 +213,15 @@ Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriel
 
 ![smtpMailerOOo Ispdb screenshot 3][46]
 
-#### Afficher la configuration:
+#### Configuration SMTP:
 
 ![smtpMailerOOo Ispdb screenshot 4][47]
 
-#### Tester la connexion:
+#### Configuration IMAP:
 
 ![smtpMailerOOo Ispdb screenshot 5][48]
+
+#### Tester la connexion:
 
 ![smtpMailerOOo Ispdb screenshot 6][49]
 

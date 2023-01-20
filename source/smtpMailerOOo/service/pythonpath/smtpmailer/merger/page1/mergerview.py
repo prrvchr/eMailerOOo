@@ -120,6 +120,9 @@ class MergerView(unohelper.Base):
     def hasIdentifier(self):
         return self._getIdentifier().getItemCount() > 0
 
+    def getIdentifierCount(self):
+        return self._getIdentifier().getItemCount()
+
 # MergerView setter methods
     def setPageStep(self, step):
         self._window.Model.Step = step

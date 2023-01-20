@@ -545,23 +545,23 @@ class MergerModel(MailModel):
         return self._nominator.getComposedName(ForDataManipulation, self._quoted)
 
     # Email methods
-    def addEmail(self, subquery, email):
+    def addEmail(self, email):
         with self._lock:
             if email not in self._emails:
                 self._emails.append(email)
             self._subcomposer.setStructuredFilter(self._getSubQueryFilters())
             return self._emails
 
-    def removeEmail(self, subquery, email, count):
+    def removeEmail(self, email, filter):
         with self._lock:
             if email in self._emails:
                 self._emails.remove(email)
             self._subcomposer.setStructuredFilter(self._getSubQueryFilters())
-            if count > 1:
+            if filter:
                 self._composer.setStructuredFilter(self._getQueryNullFilters())
             return self._emails
 
-    def moveEmail(self, subquery, email, position):
+    def moveEmail(self, email, position):
         with self._lock:
             if email in self._emails:
                 self._emails.remove(email)
@@ -579,22 +579,21 @@ class MergerModel(MailModel):
         return tuple(filters)
 
     # Identifier methods
-    def addIdentifier(self, query, subquery, table, identifier, filter):
+    def addIdentifier(self, identifier, filter):
         with self._lock:
-            first = len(self._identifiers) == 0
             if identifier not in self._identifiers:
                 self._identifiers.append(identifier)
-            self._updateQueries(first or filter)
+            self._updateQueries(filter)
             return self._identifiers
 
-    def removeIdentifier(self, query, subquery, identifier, filter):
+    def removeIdentifier(self, identifier, filter):
         with self._lock:
             if identifier in self._identifiers:
                 self._identifiers.remove(identifier)
             self._updateQueries(filter)
             return self._identifiers
 
-    def moveIdentifier(self, query, subquery, identifier, position, filter):
+    def moveIdentifier(self, identifier, filter, position):
         with self._lock:
             if identifier in self._identifiers:
                 self._identifiers.remove(identifier)

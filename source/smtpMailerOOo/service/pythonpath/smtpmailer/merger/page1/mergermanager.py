@@ -223,9 +223,8 @@ class MergerManager(unohelper.Base,
     def addEmail(self):
         self._view.enableAddEmail(False)
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery().First
         email = self._view.getColumn()
-        emails = self._model.addEmail(subquery, email)
+        emails = self._model.addEmail(email)
         self._view.setEmail(emails)
         self._wizard.updateTravelUI()
 
@@ -238,9 +237,8 @@ class MergerManager(unohelper.Base,
             return
         self._view.enableAddEmail(False)
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
-        emails = self._model.removeEmail(subquery, email, count)
+        emails = self._model.removeEmail(email, count > 1)
         enabled = self._canAddColumn()
         self._view.setEmail(emails)
         self._view.updateAddEmail(emails, enabled)
@@ -248,18 +246,16 @@ class MergerManager(unohelper.Base,
 
     def upEmail(self):
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
         position = self._view.getEmailPosition() -1
-        emails = self._model.moveEmail(subquery, email, position)
+        emails = self._model.moveEmail(email, position)
         self._view.setEmail(emails, position)
 
     def downEmail(self):
         self._view.disableEmailButton()
-        subquery = self._view.getSubQuery().First
         email = self._view.getEmail()
         position = self._view.getEmailPosition() +1
-        emails = self._model.moveEmail(subquery, email, position)
+        emails = self._model.moveEmail(email, position)
         self._view.setEmail(emails, position)
 
     # Identifier column setter methods
@@ -269,29 +265,26 @@ class MergerManager(unohelper.Base,
         self._view.enableDownIdentifier(-1 < position < imax)
 
     def addIdentifier(self):
-        query = self._view.getQuery()
         count = self._model.getFilterCount()
-        if count > 1 and self._cancelAction(query):
+        if count > 1 and self._cancelAction():
             return
         self._view.enableAddIdentifier(False)
         self._view.disableIdentifierButton()
-        subquery = self._view.getSubQuery().First
-        table = self._view.getTable()
         identifier = self._view.getColumn()
-        identifiers = self._model.addIdentifier(query, subquery, table, identifier, count > 0)
+        first = self._view.getIdentifierCount() == 0 
+        identifiers = self._model.addIdentifier(identifier, first or count > 0)
         self._view.setIdentifier(identifiers)
         self._wizard.updateTravelUI()
 
     def removeIdentifier(self):
-        query = self._view.getQuery()
         count = self._model.getFilterCount()
-        if count > 1 and self._cancelAction(query):
+        last = self._view.getIdentifierCount() == 1
+        if (count > 1 or last) and self._cancelAction():
             return
         self._view.enableAddIdentifier(False)
         self._view.disableIdentifierButton()
-        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
-        identifiers = self._model.removeIdentifier(query, subquery, identifier, count > 0)
+        identifiers = self._model.removeIdentifier(identifier, count > 0)
         enabled = self._canAddColumn()
         enabled = self._canAddColumn()
         self._view.setIdentifier(identifiers)
@@ -299,32 +292,29 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def upIdentifier(self):
-        query = self._view.getQuery()
         count = self._model.getFilterCount()
-        if count > 1 and self._cancelAction(query):
+        if count > 1 and self._cancelAction():
             return
         self._view.disableIdentifierButton()
-        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() -1
-        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count > 0)
+        identifiers = self._model.moveIdentifier(identifier, count > 0, position)
         self._view.setIdentifier(identifiers, position)
         self._wizard.updateTravelUI()
 
     def downIdentifier(self):
-        query = self._view.getQuery()
         count = self._model.getFilterCount()
-        if count > 1 and self._cancelAction(query):
+        if count > 1 and self._cancelAction():
             return
         self._view.disableIdentifierButton()
-        subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() +1
-        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count > 0)
+        identifiers = self._model.moveIdentifier(identifier, count > 0, position)
         self._view.setIdentifier(identifiers, position)
         self._wizard.updateTravelUI()
 
-    def _cancelAction(self, query):
+    def _cancelAction(self):
+        query = self._view.getQuery()
         parent = self._view.getWindow().Peer
         message, title = self._model.getMessageBoxData(query)
         dialog = createMessageBox(parent, message, title, 'warning')

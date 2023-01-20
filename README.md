@@ -128,7 +128,7 @@ The datasource load for the **Email merging** wizard should appear:
 
 The following screenshots use the [gContactOOo][24] extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
-In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `My Google contacts` is selected.
+In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `PUBLIC.All my contacts` is selected.
 
 ![smtpMailerOOo Merger screenshot 3][32]
 

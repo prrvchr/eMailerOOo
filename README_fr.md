@@ -128,7 +128,7 @@ Le chargement de la source de données de l'assistant **Publipostage de courriel
 
 Les captures d'écran suivantes utilisent l'extension [gContactOOo][24] comme source de données. Si vous utilisez votre propre source de données, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
-Dans la copie d'écran suivante, on peut voir que la source de données gContactOOo s'appelle: `Adresses` et que la **table principale**: `Mes contacts Google` est sélectionnée.
+Dans la copie d'écran suivante, on peut voir que la source de données gContactOOo s'appelle: `Adresses` et que la **table principale**: `PUBLIC.Tous mes contacts` est sélectionnée.
 
 ![smtpMailerOOo Merger screenshot 3][32]
 

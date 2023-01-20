@@ -278,7 +278,7 @@ class MergerManager(unohelper.Base,
         subquery = self._view.getSubQuery().First
         table = self._view.getTable()
         identifier = self._view.getColumn()
-        identifiers = self._model.addIdentifier(query, subquery, table, identifier, count)
+        identifiers = self._model.addIdentifier(query, subquery, table, identifier, count > 0)
         self._view.setIdentifier(identifiers)
         self._wizard.updateTravelUI()
 
@@ -291,7 +291,7 @@ class MergerManager(unohelper.Base,
         self._view.disableIdentifierButton()
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
-        identifiers = self._model.removeIdentifier(query, subquery, identifier, count)
+        identifiers = self._model.removeIdentifier(query, subquery, identifier, count > 0)
         enabled = self._canAddColumn()
         enabled = self._canAddColumn()
         self._view.setIdentifier(identifiers)
@@ -307,7 +307,7 @@ class MergerManager(unohelper.Base,
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() -1
-        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count)
+        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count > 0)
         self._view.setIdentifier(identifiers, position)
         self._wizard.updateTravelUI()
 
@@ -320,7 +320,7 @@ class MergerManager(unohelper.Base,
         subquery = self._view.getSubQuery().First
         identifier = self._view.getIdentifier()
         position = self._view.getIdentifierPosition() +1
-        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count)
+        identifiers = self._model.moveIdentifier(query, subquery, identifier, position, count > 0)
         self._view.setIdentifier(identifiers, position)
         self._wizard.updateTravelUI()
 

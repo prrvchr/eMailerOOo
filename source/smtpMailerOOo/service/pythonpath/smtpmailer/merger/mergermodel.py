@@ -579,50 +579,37 @@ class MergerModel(MailModel):
         return tuple(filters)
 
     # Identifier methods
-    def addIdentifier(self, query, subquery, table, identifier, count):
+    def addIdentifier(self, query, subquery, table, identifier, filter):
         with self._lock:
+            first = len(self._identifiers) == 0
             if identifier not in self._identifiers:
                 self._identifiers.append(identifier)
-            self._updateQueries(count)
+            self._updateQueries(first or filter)
             return self._identifiers
 
-    def removeIdentifier(self, query, subquery, identifier, count):
+    def removeIdentifier(self, query, subquery, identifier, filter):
         with self._lock:
             if identifier in self._identifiers:
                 self._identifiers.remove(identifier)
-            self._updateQueries(count)
+            self._updateQueries(filter)
             return self._identifiers
 
-    def moveIdentifier(self, query, subquery, identifier, position, count):
+    def moveIdentifier(self, query, subquery, identifier, position, filter):
         with self._lock:
             if identifier in self._identifiers:
                 self._identifiers.remove(identifier)
                 if 0 <= position <= len(self._identifiers):
                     self._identifiers.insert(position, identifier)
-            self._updateQueries(count)
+            self._updateQueries(filter)
             return self._identifiers
 
     def getMessageBoxData(self, query):
         return self._getDialogMessage(query), self._getDialogTitle()
 
-    def _updateQueries(self, count):
-        if count == 0:
-            query = self._getQuotedIdentifier(self._subquery.First)
-            format = (query, self._getSubQueryTables(query, self._getInnerTable()))
-            command = getSqlQuery(self._ctx, 'getQueryCommand', format)
-            self._composer.setQuery(command)
-        elif count > 1:
+    def _updateQueries(self, filter):
+        if filter:
             self._composer.setStructuredFilter(self._getQueryNullFilters())
         self._subcomposer.setOrder(self._getSubQueryOrder())
-
-    def _getInnerTable(self):
-        table = self._subquery.Second
-        for name in self._composer.getTables().getElementNames():
-            if name != self._subquery.First:
-                table = name
-                break
-        print("MergerModel._getInnerTable() SubQuery: %s - Inner Table: %s" % (self._subquery.First, table))
-        return table
 
     def _getQueryNullFilters(self):
         filters = []

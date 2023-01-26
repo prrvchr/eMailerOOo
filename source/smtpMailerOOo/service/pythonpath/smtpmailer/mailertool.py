@@ -27,10 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-
 from .unotool import createService
-from .unotool import getDesktop
 from .unotool import getFileSequence
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
@@ -45,14 +42,6 @@ def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)
     img = base64.b64encode(sequence.value).decode('utf-8')
     return img
-
-def getDocument(ctx, url):
-    properties = {'Hidden': True,
-                  'OpenNewView': True,
-                  'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-    descriptor = getPropertyValueSet(properties)
-    document = getDesktop(ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
-    return document
 
 def getDocumentFilter(extension, format):
     ext = extension.lower()

@@ -32,9 +32,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from ..mail import MailModel
 
-from ..mailertool import getDocument
-
 from ..unotool import getDesktop
+from ..unotool import getDocument
 from ..unotool import getPropertyValueSet
 from ..unotool import getStringResource
 

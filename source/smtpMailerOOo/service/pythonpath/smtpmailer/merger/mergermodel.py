@@ -81,7 +81,7 @@ from ..dbtool import getValueFromResult
 
 from ..dbqueries import getSqlQuery
 
-from ..mailertool import getDocument
+from ..unotool import getDocument
 
 from ..logger import getMessage
 from ..logger import logMessage

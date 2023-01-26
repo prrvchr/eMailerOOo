@@ -47,6 +47,7 @@ from .unotool import executeFrameDispatch
 from .unotool import getConfiguration
 from .unotool import getConnectionMode
 from .unotool import getDesktop
+from .unotool import getDocument
 from .unotool import getFileSequence
 from .unotool import getInteractionHandler
 from .unotool import getPropertyValueSet
@@ -62,15 +63,12 @@ from .mailerlib import MailTransferable
 
 from .listener import TerminateListener
 
-from .mailertool import getDocument
 from .mailertool import getMail
 from .mailertool import getMessageImage
 from .mailertool import getUrlMimeType
 from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
-
-from .unotool import getUrl
 
 from .logger import Pool
 

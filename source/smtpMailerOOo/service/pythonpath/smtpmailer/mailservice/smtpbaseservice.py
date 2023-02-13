@@ -146,7 +146,7 @@ class SmtpBaseService(SmtpService):
                 server.set_debuglevel(1)
             code, reply = _getReply(*server.connect(host=host, port=port))
             if isDebugMode():
-                msg = getMessage(self._ctx, g_message, 234, (host, port, code, reply))
+                msg = getMessage(self._ctx, g_message, 234, host, port, code, reply)
                 logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
             if code != 220:
                 msg = getMessage(self._ctx, g_message, 236, reply)
@@ -154,7 +154,7 @@ class SmtpBaseService(SmtpService):
             elif connection == 'Tls':
                 code, reply = _getReply(*server.starttls())
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 235, (code, reply))
+                    msg = getMessage(self._ctx, g_message, 235, code, reply)
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
                 if code != 220:
                     msg = getMessage(self._ctx, g_message, 236, reply)
@@ -171,7 +171,7 @@ class SmtpBaseService(SmtpService):
         else:
             self._server = server
         if isDebugMode() and error is None: 
-            msg = getMessage(self._ctx, g_message, 237, (connection, reply))
+            msg = getMessage(self._ctx, g_message, 237, connection, reply)
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_setServer()')
         return error
 
@@ -190,7 +190,7 @@ class SmtpBaseService(SmtpService):
                 code, reply = _getReply(*self._server.login(user, password))
                 if isDebugMode():
                     pwd = '*' * len(password)
-                    msg = getMessage(self._ctx, g_message, 242, (user, pwd, code, reply))
+                    msg = getMessage(self._ctx, g_message, 242, user, pwd, code, reply)
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
             elif authentication == 'Oauth2':
                 token = _getToken(self._ctx, self, server, user, True)
@@ -200,13 +200,13 @@ class SmtpBaseService(SmtpService):
                     msg = getMessage(self._ctx, g_message, 244, reply)
                     error = AuthenticationFailedException(msg, self)
                 if isDebugMode():
-                    msg = getMessage(self._ctx, g_message, 243, (code, reply))
+                    msg = getMessage(self._ctx, g_message, 243, code, reply)
                     logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         except Exception as e:
             msg = getMessage(self._ctx, g_message, 244, getExceptionMessage(e))
             error = AuthenticationFailedException(msg, self)
         if isDebugMode() and error is None:
-            msg = getMessage(self._ctx, g_message, 245, (authentication, reply))
+            msg = getMessage(self._ctx, g_message, 245, authentication, reply)
             logMessage(self._ctx, INFO, msg, 'SmtpService', '_doLogin()')
         return error
 
@@ -233,24 +233,24 @@ class SmtpBaseService(SmtpService):
         try:
             refused = self._server.sendmail(message.SenderAddress, recipients, message.asString(False))
         except smtplib.SMTPSenderRefused as e:
-            msg = getMessage(self._ctx, g_message, 252, (message.Subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 252, message.Subject, getExceptionMessage(e))
             error = MailException(msg, self)
         except smtplib.SMTPRecipientsRefused as e:
-            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, message.Subject, getExceptionMessage(e))
             # TODO: return SendMailMessageFailedException in place of MailException
             # TODO: error = SendMailMessageFailedException(msg, self)
             error = MailException(msg, self)
         except smtplib.SMTPDataError as e:
-            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, message.Subject, getExceptionMessage(e))
             error = MailException(msg, self)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, message.Subject, getExceptionMessage(e))
             error = MailException(msg, self)
         else:
             if len(refused) > 0:
                 for address, result in refused.items():
                     code, reply = _getReply(*result)
-                    msg = getMessage(self._ctx, g_message, 254, (message.Subject, address, code, reply))
+                    msg = getMessage(self._ctx, g_message, 254, message.Subject, address, code, reply)
                     logMessage(self._ctx, SEVERE, msg, 'SmtpService', 'sendMailMessage()')
             elif isDebugMode():
                 msg = getMessage(self._ctx, g_message, 255, message.Subject)

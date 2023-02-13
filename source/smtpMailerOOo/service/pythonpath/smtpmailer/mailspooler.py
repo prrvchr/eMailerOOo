@@ -251,7 +251,7 @@ class MailSpooler(Process):
         server.disconnect()
 
     def _getThreadMessage(self, mailer, batch):
-        title = self._logger.getMessage(131) % (batch, mailer.Query)
+        title = self._logger.getMessage(131, batch, mailer.Query)
         subject = self._logger.getMessage(132)
         document = self._logger.getMessage(133)
         files = self._logger.getMessage(134)
@@ -577,8 +577,8 @@ class MailUrl(unohelper.Base):
         return saveTempDocument(self._document, self._temp, self._title, self._filter)
 
 
-def _getUnoException(logger, source, resource, format=None):
+def _getUnoException(logger, source, resource, *args):
     e = UnoException()
-    e.Message = logger.getMessage(resource, format)
+    e.Message = logger.getMessage(resource, args)
     e.Context = source
     return e

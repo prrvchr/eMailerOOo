@@ -110,7 +110,7 @@ class ImapApiService(ImapService):
         try:
             response = self._server.execute(parameter)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 253, (message.Subject, getExceptionMessage(e)))
+            msg = getMessage(self._ctx, g_message, 253, message.Subject, getExceptionMessage(e))
             raise MailException(msg, self)
         if response.IsPresent:
             messageid = response.Value.getValue('id')

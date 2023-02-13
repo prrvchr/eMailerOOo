@@ -106,9 +106,9 @@ class MailServiceProvider(unohelper.Base,
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplName)
 
-    def _getNoMailServiceProviderException(self, code, format):
+    def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()
-        e.Message = getMessage(self._ctx, g_message, code, format)
+        e.Message = getMessage(self._ctx, g_message, code, args)
         e.Context = self
         return e
 

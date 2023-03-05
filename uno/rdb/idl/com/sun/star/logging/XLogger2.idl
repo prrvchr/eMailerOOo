@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,49 +22,90 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import createWindow
-from .unotool import executeDispatch
-from .unotool import executeFrameDispatch
-from .unotool import executeShell
-from .unotool import generateUuid
-from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getContainerWindow
-from .unotool import getCurrentLocale
-from .unotool import getDateTime
-from .unotool import getDesktop
-from .unotool import getDialog
-from .unotool import getDialogUrl
-from .unotool import getDocument
-from .unotool import getExceptionMessage
-from .unotool import getFilePicker
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getInteractionHandler
-from .unotool import getInterfaceTypes
-from .unotool import getNamedValue
-from .unotool import getNamedValueSet
-from .unotool import getParentWindow
-from .unotool import getPathSettings
-from .unotool import getProperty
-from .unotool import getPropertyValue
-from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getStringResource
-from .unotool import getStringResourceWithLocation
-from .unotool import getTempFile
-from .unotool import getTypeDetection
-from .unotool import getUriFactory
-from .unotool import getUrl
-from .unotool import getUrlPresentation
-from .unotool import getUrlTransformer
-from .unotool import hasInterface
-from .unotool import parseDateTime
-from .unotool import parseUrl
-from .unotool import unparseDateTime
-from .unotool import unparseTimeStamp
+#ifndef __com_sun_star_logging_XLogger2_idl__
+#define __com_sun_star_logging_XLogger2_idl__
+
+#include <com/sun/star/logging/XLogger.idl>
+#include <com/sun/star/util/XModifyListener.idl>
+
+
+module com { module sun { module star { module logging {
+
+interface XLogger2 : com::sun::star::logging::XLogger
+{
+
+    /** logs a given resource string
+    
+        @param level
+            the log level of this message. If this level is smaller than the logger's #Level
+            attribute, then the call will be ignored.
+        
+        @param resource
+            the resouce to log
+        
+        @param arguments
+            the optional arguments
+    */
+    void logrb([in] long level,
+               [in] string resource,
+               [in] sequence<string> arguments);
+
+    /** logs a given resource string
+    
+        @param level
+            the log level of this message. If this level is smaller than the logger's #Level
+            attribute, then the call will be ignored.
+        
+        @param clazz
+            the source class at which the logged event occurred.
+        
+        @param method
+            the source class at which the logged event occurred.
+        
+        @param resource
+            the resouce to log
+        
+        @param arguments
+            the optional arguments
+    */
+    void logprb([in] long level,
+                [in] string clazz,
+                [in] string method,
+                [in] string resource,
+                [in] sequence<string> arguments);
+
+    /** get message from resource string
+    
+        @param resource
+            the resource pointing to the message
+        
+        @param arguments
+            the optional arguments
+    */
+    string getMessage([in] string resource,
+                      [in] sequence<string> arguments);
+
+    /** add a modify listener to the logger.
+    
+        @param listener
+            the listener which will be notified when the logger log message
+    */
+    void addModifyListener([in] com::sun::star::util::XModifyListener listener);
+
+    /** remove a modify listener from the logger.
+    
+        @param listener
+            the listener which will be removed from the logger
+    */
+    void removeModifyListener([in] com::sun::star::util::XModifyListener listener);
+
+};
+
+
+}; }; }; };
+
+
+#endif
+

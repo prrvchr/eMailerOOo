@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,49 +22,63 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import createWindow
-from .unotool import executeDispatch
-from .unotool import executeFrameDispatch
-from .unotool import executeShell
-from .unotool import generateUuid
-from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getContainerWindow
-from .unotool import getCurrentLocale
-from .unotool import getDateTime
-from .unotool import getDesktop
-from .unotool import getDialog
-from .unotool import getDialogUrl
-from .unotool import getDocument
-from .unotool import getExceptionMessage
-from .unotool import getFilePicker
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getInteractionHandler
-from .unotool import getInterfaceTypes
-from .unotool import getNamedValue
-from .unotool import getNamedValueSet
-from .unotool import getParentWindow
-from .unotool import getPathSettings
-from .unotool import getProperty
-from .unotool import getPropertyValue
-from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getStringResource
-from .unotool import getStringResourceWithLocation
-from .unotool import getTempFile
-from .unotool import getTypeDetection
-from .unotool import getUriFactory
-from .unotool import getUrl
-from .unotool import getUrlPresentation
-from .unotool import getUrlTransformer
-from .unotool import hasInterface
-from .unotool import parseDateTime
-from .unotool import parseUrl
-from .unotool import unparseDateTime
-from .unotool import unparseTimeStamp
+#ifndef __com_sun_star_logging_XLoggerPool2_idl__
+#define __com_sun_star_logging_XLoggerPool2_idl__
+
+#include <com/sun/star/logging/XLoggerPool.idl>
+#include <com/sun/star/logging/XLogger2.idl>
+#include <com/sun/star/util/XModifyListener.idl>
+
+
+module com { module sun { module star { module logging {
+
+interface XLoggerPool2 : com::sun::star::logging::XLoggerPool
+{
+
+    /** get a localized logger from the pool.
+
+        @param name
+            the name of the logger
+
+        @param url
+            the location of the resource file
+
+        @param name
+            the name of the resource file
+    */
+    com::sun::star::logging::XLogger2 getLocalizedLogger([in] string name,
+                                                         [in] string url,
+                                                         [in] string basename);
+
+    /** retrieves all logger names
+    */
+    sequence<string> getLoggerNames();
+
+    /** retrieves filtered logger names (ie: all logger names which starts with filter)
+    */
+    sequence<string> getFilteredLoggerNames([in] string filter);
+
+    /** add a modify listener to the pool.
+
+        @param listener
+            the listener that will be notified when a new logger is requested or released from the pool
+    */
+    void addModifyListener([in] com::sun::star::util::XModifyListener listener);
+
+    /** remove a modify listener from the pool.
+
+        @param listener
+            the listener which will be removed from the pool
+    */
+    void removeModifyListener([in] com::sun::star::util::XModifyListener listener);
+
+
+};
+
+}; }; }; };
+
+
+#endif
+

@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,40 +25,58 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="0.0.3"/>
-  <identifier value="io.github.prrvchr.smtpMailerOOo"/>
-  <platform value="all"/>
-  <dependencies>
-    <OpenOffice.org-minimal-version value="4.1" d:name="OpenOffice.org 4.1"/>
-  </dependencies>
-  <update-information>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo.update.xml"/>
-  </update-information>
-  <publisher>
-    <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en">SMTP finally available in LibreOffice / OpenOffice</name>
-    <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
-  </publisher>
-  <registration>
-    <simple-license accept-by="admin" suppress-on-update="true">
-      <license-text xlink:href="registration/TermsOfUse_en.md" lang="en"/>
-      <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr"/>
-    </simple-license>
-  </registration>
-  <release-notes>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en"/>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr"/>
-  </release-notes>
-  <display-name>
-    <name lang="en">smtpMailerOOo</name>
-  </display-name>
-  <icon>
-    <default xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
-    <high-contrast xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
-  </icon>
-  <extension-description>
-    <src xlink:href="description/desc_en.txt" lang="en"/>
-    <src xlink:href="description/desc_fr.txt" lang="fr"/>
-  </extension-description>
-</description>
+"""
+
+import unohelper
+
+from ..datasource import DataSource
+
+from ..ispdb import IspdbModel
+
+from ..unotool import createService
+from ..unotool import getStringResource
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
+
+import traceback
+
+
+class OptionsModel():
+    def __init__(self, ctx):
+        self._ctx = ctx
+        self._ispdb = IspdbModel(ctx, DataSource(ctx), True)
+        self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
+        self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
+        self._resources = {'SpoolerStatus': 'OptionsDialog.Label4.Label.%s'}
+
+    def addSpoolerListener(self, listener):
+        self._spooler.addListener(listener)
+
+    def getViewData(self):
+        return self._ispdb.Timeout, self._getSpoolerStatus()
+
+    def setTimeout(self, timeout):
+        self._ispdb.Timeout = int(timeout)
+
+    def saveTimeout(self):
+        self._ispdb.saveTimeout()
+
+    def toogleSpooler(self):
+        if self._spooler.isStarted():
+            self._spooler.stop()
+        else:
+            self._spooler.start()
+        return self._getSpoolerStatus()
+
+    def getSpoolerStatus(self, started):
+        resource = self._resources.get('SpoolerStatus') % started
+        return self._resolver.resolveString(resource)
+
+    # OptionsModel private methods
+    def _getSpoolerStatus(self):
+        started = int(self._spooler.isStarted())
+        resource = self._resources.get('SpoolerStatus') % started
+        return self._resolver.resolveString(resource)
+
+

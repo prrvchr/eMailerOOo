@@ -70,8 +70,6 @@ from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
 
-from .logger import Pool
-
 from .configuration import g_dns
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -79,17 +77,16 @@ from .configuration import g_logo
 from .configuration import g_logourl
 from .configuration import g_fetchsize
 
-#from multiprocessing.context import ForkProcess as Process
-from threading import Thread as Process
+from threading import Thread
 from threading import Condition
 from threading import Event
 import traceback
 import time
 
 
-class MailSpooler(Process):
+class MailSpooler(Thread):
     def __init__(self, ctx, database, logger, listeners):
-        Process.__init__(self)
+        Thread.__init__(self)
         self._ctx = ctx
         self._database = database
         self._lock = Condition()
@@ -105,7 +102,7 @@ class MailSpooler(Process):
         self._timeout = configuration.getByName('ConnectTimeout')
         self._logger = logger
 
-# Process
+    # Thread
     def run(self):
         try:
             print("MailSpooler._run() **********************************")
@@ -115,25 +112,22 @@ class MailSpooler(Process):
             print("MailSpooler._run() 2")
             if total > 0:
                 print("MailSpooler._run() 3")
-                self._logger.logResource(INFO, 111, total)
+                self._logger.logprb(INFO, 1011, 'MailSpooler', 'run()', total)
                 count = self._send(connection, jobs)
-                format = (count, total)
                 print("MailSpooler._run() 4")
-                self._logger.logResource(INFO, 112, format)
+                self._logger.logprb(INFO, 1012, 'MailSpooler', 'run()', count, total)
             else:
                 print("MailSpooler._run() 5")
-                self._logger.logResource(INFO, 113)
+                self._logger.logprb(INFO, 1013, 'MailSpooler', 'run()')
             print("MailSpooler._run() 6")
             connection.close()
         except UnoException as e:
-            msg = self._logger.getMessage(114, e.Message)
-            print(msg)
-            self._logger.logMessage(INFO, msg)
+            self._logger.logprb(INFO, 1014, 'MailSpooler', 'run()', e.Message)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
         print("MailSpooler._run() 7")
-        self._logger.logResource(INFO, 115)
+        self._logger.logprb(INFO, 1015, 'MailSpooler', 'run()')
         print("MailSpooler._run() 8")
         self._stopped()
         #if not self._terminated:
@@ -189,9 +183,9 @@ class MailSpooler(Process):
         count = 0
         for job in jobs:
             if self._disposed.is_set():
-                self._logger.logResource(INFO, 124, job)
+                self._logger.logprb(INFO, 1024, 'MailSpooler', '_send()', job)
                 break
-            self._logger.logResource(INFO, 121, job)
+            self._logger.logprb(INFO, 1021, 'MailSpooler', '_send()', job)
             recipient = self._database.getRecipient(connection, job)
             batch = recipient.BatchId
             if mailer.isNewBatch(batch):
@@ -199,7 +193,7 @@ class MailSpooler(Process):
                     print("MailSpooler._send() 2")
                     metadata = self._database.getMailer(connection, batch, self._timeout)
                     if metadata is None:
-                        self._logger.logResource(INFO, 124, job)
+                        self._logger.logprb(INFO, 1024, 'MailSpooler', '_send()', job)
                         continue
                     print("MailSpooler._send() 3")
                     attachments = self._database.getAttachments(connection, batch)
@@ -207,7 +201,7 @@ class MailSpooler(Process):
                     mailer.setBatch(batch, metadata, attachments, job, recipient.Filter)
                     print("MailSpooler._send() 5")
                     if self._disposed.is_set():
-                        self._logger.logResource(INFO, 124, job)
+                        self._logger.logprb(INFO, 1024, 'MailSpooler', '_send()', job)
                         break
                     if mailer.needThreadId():
                         print("MailSpooler._send() 6")
@@ -217,8 +211,7 @@ class MailSpooler(Process):
                 except UnoException as e:
                     print("MailSpooler._send() 8 break %s" % e.Message)
                     self._database.setJobState(connection, 2, job)
-                    msg = self._logger.getMessage(122, e.Message)
-                    self._logger.logMessage(INFO, msg)
+                    self._logger.logprb(INFO, 1022, 'MailSpooler', '_send()', e.Message)
                     print("MailSpooler._send() 9 break %s" % msg)
                     continue
             elif mailer.Merge:
@@ -228,11 +221,11 @@ class MailSpooler(Process):
             print("MailSpooler._send() 10 Filter: %s" % recipient.Filter)
             if self._disposed.is_set():
                 print("MailSpooler._send() 11 break")
-                self._logger.logResource(INFO, 124, job)
+                self._logger.logprb(INFO, 1024, 'MailSpooler', '_send()', job)
                 break
             server.sendMailMessage(mail)
             self._database.updateRecipient(connection, 1, mail.MessageId, job)
-            self._logger.logResource(INFO, 123, job)
+            self._logger.logprb(INFO, 1023, 'MailSpooler', '_send()', job)
             count += 1
             print("MailSpooler._send() 12")
         self._dispose(server, mailer)
@@ -251,16 +244,16 @@ class MailSpooler(Process):
         server.disconnect()
 
     def _getThreadMessage(self, mailer, batch):
-        title = self._logger.getMessage(131, batch, mailer.Query)
-        subject = self._logger.getMessage(132)
-        document = self._logger.getMessage(133)
-        files = self._logger.getMessage(134)
+        title = self._logger.getMessage(1031, batch, mailer.Query)
+        subject = self._logger.getMessage(1032)
+        document = self._logger.getMessage(1033)
+        files = self._logger.getMessage(1034)
         if mailer.hasAttachments():
             tag = '<a href="%s">%s</a>'
             separator = '</li><li>'
             attachments = '<ol><li>%s</li></ol>' % mailer.getAttachments(tag, separator)
         else:
-            attachments = '<p>%s</p>' % self._logger.getMessage(135)
+            attachments = '<p>%s</p>' % self._logger.getMessage(1035)
         logo = getMessageImage(self._ctx, self._logo)
         return '''\
 <!DOCTYPE html>
@@ -300,8 +293,7 @@ class MailSpooler(Process):
 
     def _checkUrl(self, sf, url, job, resource):
         if not sf.exists(url):
-            format = (job, url)
-            raise _getUnoException(self._logger, self, resource, format)
+            raise _getUnoException(self._logger, self, resource, job, url)
 
     def _getMailServer(self, mailtype, config):
         context = CurrentContext(mailtype.value, config)
@@ -313,8 +305,7 @@ class MailSpooler(Process):
             server.connect(context, authenticator)
         except UnoException as e:
             mailserver = '%s:%s' % (server['ServerName'], server['Port'])
-            format = (job, sender.Sender, mailserver, e.Message)
-            raise _getUnoException(self._logger, self, 141, format)
+            raise _getUnoException(self._logger, self, 1041, job, sender.Sender, mailserver, e.Message)
         return server
 
 
@@ -509,8 +500,7 @@ class Mailer(unohelper.Base):
 
     def _checkUrl(self, url, job, resource):
         if not self._sf.exists(url):
-            format = (job, url)
-            raise _getUnoException(self._logger, self, resource, format)
+            raise _getUnoException(self._logger, self, resource, job, url)
 
 
 class MailUrl(unohelper.Base):
@@ -579,6 +569,6 @@ class MailUrl(unohelper.Base):
 
 def _getUnoException(logger, source, resource, *args):
     e = UnoException()
-    e.Message = logger.getMessage(resource, args)
+    e.Message = logger.getMessage(resource, *args)
     e.Context = source
     return e

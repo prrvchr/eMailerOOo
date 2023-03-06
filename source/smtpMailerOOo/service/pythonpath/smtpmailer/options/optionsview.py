@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,40 +25,31 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="0.0.3"/>
-  <identifier value="io.github.prrvchr.smtpMailerOOo"/>
-  <platform value="all"/>
-  <dependencies>
-    <OpenOffice.org-minimal-version value="4.1" d:name="OpenOffice.org 4.1"/>
-  </dependencies>
-  <update-information>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/smtpMailerOOo.update.xml"/>
-  </update-information>
-  <publisher>
-    <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en">SMTP finally available in LibreOffice / OpenOffice</name>
-    <name xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr">SMTP enfin disponible dans LibreOffice / OpenOffice</name>
-  </publisher>
-  <registration>
-    <simple-license accept-by="admin" suppress-on-update="true">
-      <license-text xlink:href="registration/TermsOfUse_en.md" lang="en"/>
-      <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr"/>
-    </simple-license>
-  </registration>
-  <release-notes>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/" lang="en"/>
-    <src xlink:href="https://prrvchr.github.io/smtpMailerOOo/README_fr" lang="fr"/>
-  </release-notes>
-  <display-name>
-    <name lang="en">smtpMailerOOo</name>
-  </display-name>
-  <icon>
-    <default xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
-    <high-contrast xlink:href="smtpMailerOOo/smtpMailerOOo.png"/>
-  </icon>
-  <extension-description>
-    <src xlink:href="description/desc_en.txt" lang="en"/>
-    <src xlink:href="description/desc_fr.txt" lang="fr"/>
-  </extension-description>
-</description>
+"""
+
+import uno
+import unohelper
+
+import traceback
+
+
+class OptionsView(unohelper.Base):
+    def __init__(self, ctx, dialog, timeout, status):
+        self._dialog = dialog
+        self.initControl(timeout, status)
+
+# OptionsView setter methods
+    def initControl(self, timeout, status):
+        self._getTimeout().Value = timeout
+        self._getSpoolerStatus().Text = status
+
+    def setSpoolerStatus(self, status):
+        self._getSpoolerStatus().Text = status
+
+# OptionsView private control methods
+    def _getTimeout(self):
+        return self._dialog.getControl('NumericField1')
+
+    def _getSpoolerStatus(self):
+        return self._dialog.getControl('Label4')
+

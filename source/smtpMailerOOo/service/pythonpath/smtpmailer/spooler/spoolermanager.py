@@ -51,12 +51,13 @@ from ..unotool import executeDispatch
 from ..unotool import getFileSequence
 from ..unotool import getPropertyValueSet
 
-from ..logger import LogHandler
-from ..logger import Pool
+from ..logger import LogModel
+from ..logger import LoggerListener
 
 from ..logger import getMessage
 from ..logger import logMessage
 
+from ..configuration import g_spoolerlog
 
 g_message = 'spoolermanager'
 
@@ -79,10 +80,10 @@ class SpoolerManager(unohelper.Base):
         self._refreshSpoolerState()
         window = self._view.getGridWindow()
         self._model.initSpooler(window, GridListener(self), self.initView)
-        self._logger = Pool(ctx).getLogger('SpoolerLogger')
-        self._loghandler = LogHandler(ctx, self.refreshLog)
-        self._logger.addLogHandler(self._loghandler)
-        self.refreshLog()
+        self._loggerlistener = LoggerListener(self)
+        self._logger = LogModel(ctx, g_spoolerlog)
+        self._logger.addListener(self._loggerlistener)
+        self.updateLogger()
 
     @property
     def HandlerEnabled(self):
@@ -118,8 +119,6 @@ class SpoolerManager(unohelper.Base):
 
     def stopped(self):
         self._model.executeRowSet()
-        # TODO: We dont have the last line of the Logger through the LogHandler
-        self.refreshLog()
         self._refreshSpoolerView(0)
 
     def saveGrid(self):
@@ -129,7 +128,7 @@ class SpoolerManager(unohelper.Base):
         with self._lock:
             print("SpoolerManager.dispose() 1 ***************************")
             self._spooler.removeListener(self._spoolerlistener)
-            self._logger.removeLogHandler(self._loghandler)
+            self._logger.removeListener(self._loggerlistener)
             self._model.dispose()
             self._view.dispose()
             print("SpoolerManager.dispose() 2 ***************************")
@@ -157,16 +156,13 @@ class SpoolerManager(unohelper.Base):
     def closeSpooler(self):
         self._view.endDialog()
 
-    def refreshLog(self):
-        url = self._logger.getLoggerUrl()
-        length, sequence = getFileSequence(self._ctx, url)
-        text = sequence.value.decode('utf-8')
-        self._view.refreshLog(text, length)
+    def updateLogger(self):
+        print("SpoolerManager.updateLogger()")
+        self._view.updateLog(*self._logger.getLogContent())
 
     def clearLog(self):
-        msg = self._logger.getMessage(201)
-        self._logger.clearLogger(msg)
-        self.refreshLog()
+        self._logger.clearLogger()
+        self.updateLogger()
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

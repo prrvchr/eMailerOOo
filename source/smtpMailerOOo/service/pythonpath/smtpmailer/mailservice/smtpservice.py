@@ -74,7 +74,9 @@ from ..logger import getMessage
 from ..logger import isDebugMode
 from ..logger import logMessage
 
-g_message = 'MailServiceProvider'
+from ..logger import LogModel
+
+from ..configuration import g_mailservicelog
 
 import traceback
 
@@ -82,9 +84,9 @@ import traceback
 class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
-        if isDebugMode():
-            msg = getMessage(ctx, g_message, 211)
-            logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
+        self._logger = LogModel(ctx, g_mailservicelog)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 211, 'SmtpService', '__init__()')
         self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
@@ -92,9 +94,8 @@ class SmtpService(unohelper.Base,
         self._server = None
         self._context = None
         self._notify = EventObject(self)
-        if isDebugMode():
-            msg = getMessage(ctx, g_message, 212)
-            logMessage(ctx, INFO, msg, 'SmtpService', '__init__()')
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 212, 'SmtpService', '__init__()')
 
 # XMailService2 interface implementation
     def addConnectionListener(self, listener):

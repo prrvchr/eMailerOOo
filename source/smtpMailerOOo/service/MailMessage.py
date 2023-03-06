@@ -82,11 +82,8 @@ from email.utils import make_msgid
 from email.utils import parseaddr
 
 from smtpmailer import getConfiguration
-from smtpmailer import getMessage
-from smtpmailer import isDebugMode
-from smtpmailer import logMessage
-
-g_message = 'MailServiceProvider'
+from smtpmailer import LogModel
+from smtpmailer import g_mailservicelog
 
 import re
 import sys
@@ -103,6 +100,7 @@ class MailMessage(unohelper.Base,
                   XServiceInfo):
     def __init__(self, ctx):
         self._ctx = ctx
+        self._logger = LogModel(ctx, g_mailservicelog)
         self._recipients = []
         self._ccrecipients = []
         self._bccrecipients = []
@@ -194,9 +192,8 @@ class MailMessage(unohelper.Base,
 
     def _getMessage(self):
         COMMASPACE = ', '
-        if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 251, self.Subject)
-            logMessage(self._ctx, INFO, msg, 'SmtpService', 'sendMailMessage()')
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 251, 'SmtpService', 'sendMailMessage()', self.Subject)
         textmsg = Message()
         #Use first flavor that's sane for an email body
         for flavor in self.Body.getTransferDataFlavors():

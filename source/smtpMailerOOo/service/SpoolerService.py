@@ -41,19 +41,18 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from smtpmailer import DataSource
 from smtpmailer import MailSpooler
-from smtpmailer import Pool
+from smtpmailer import LogModel
 
+from smtpmailer import createService
 from smtpmailer import getConnectionMode
-from smtpmailer import g_identifier
+from smtpmailer import g_spoolerlog
 from smtpmailer import g_dns
-
-g_service = 'SpoolerService'
 
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'com.sun.star.mail.%s' % g_service
+g_ImplementationName = 'com.sun.star.mail.SpoolerService'
 
 
 class SpoolerService(unohelper.Base,
@@ -62,7 +61,7 @@ class SpoolerService(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._datasource = DataSource(ctx)
-        self._logger = Pool(ctx).getLogger('SpoolerLogger')
+        self._logger = LogModel(ctx, g_spoolerlog)
         self._logger.setDebugMode(True)
         self._listeners = []
 
@@ -75,12 +74,12 @@ class SpoolerService(unohelper.Base,
     # XSpoolerService
     def start(self):
         if not self.isStarted():
-            self._logger.logResource(INFO, 101)
+            self._logger.logrb(INFO, 1001)
             if self._isOffLine():
-                self._logger.logResource(INFO, 102)
+                self._logger.logrb(INFO, 1002)
             else:
                 SpoolerService.__spooler = self._getSpooler()
-                self._logger.logResource(INFO, 103)
+                self._logger.logrb(INFO, 1003)
                 self._spooler.started()
                 self._spooler.start()
 

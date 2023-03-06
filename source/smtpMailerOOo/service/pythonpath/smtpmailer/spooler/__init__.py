@@ -28,3 +28,4 @@
 """
 
 from .spoolermanager import SpoolerManager
+from .spoolerhandler import SpoolerListener

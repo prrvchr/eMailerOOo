@@ -31,40 +31,65 @@ import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
-from com.sun.star.lang import XInitialization
+from com.sun.star.awt import XContainerWindowEventHandler
 
-from com.sun.star.task import XAsyncJob
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
+from smtpmailer import OptionsManager
 
 from smtpmailer import g_identifier
 
-g_service = 'SpoolerJob'
-
-import time
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'com.sun.star.mail.%s' % g_service
+g_ImplementationName = '%s.OptionsHandler' % g_identifier
 
 
-class SpoolerJob(unohelper.Base,
-                 XServiceInfo,
-                 XAsyncJob):
+class OptionsHandler(unohelper.Base,
+                     XServiceInfo,
+                     XContainerWindowEventHandler):
     def __init__(self, ctx):
         self._ctx = ctx
+        self._manager = None
 
-# XAsyncJob
-    def executeAsync(self, arguments, listener):
-        print("SpoolerJob.executeAsync() 1")
-        time.sleep(30)
-        print("SpoolerJob.executeAsync() 2")
-        time.sleep(30)
-        print("SpoolerJob.executeAsync() 3")
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
+        try:
+            handled = False
+            if method == 'external_event':
+                if event == 'initialize':
+                    self._manager = OptionsManager(self._ctx, window)
+                    handled = True
+                elif event == 'ok':
+                    self._manager.saveSetting()
+                    handled = True
+                elif event == 'back':
+                    self._manager.loadSetting()
+                    handled = True
+            elif method == 'ChangeTimeout':
+                self._manager.changeTimeout(event.Source.Value)
+                handled = True
+            elif method == 'ShowWizard':
+                self._manager.showSmtpServer()
+                handled = True
+            elif method == 'ToggleSpooler':
+                self._manager.toogleSpooler()
+                handled = True
+            elif method == 'ShowSpooler':
+                self._manager.showSmtpSpooler()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "OptionsHandler.callHandlerMethod() Error: %s" % traceback.print_exc()
+            print(msg)
 
-# XServiceInfo
+        def getSupportedMethodNames(self):
+            return ('external_event',
+                    'ChangeTimeout',
+                    'ShowWizard',
+                    'ToggleSpooler',
+                    'ShowSpooler')
+
+    # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
     def getImplementationName(self):
@@ -73,6 +98,6 @@ class SpoolerJob(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(SpoolerJob,                                # UNO object class
+g_ImplementationHelper.addImplementation(OptionsHandler,                            # UNO object class
                                          g_ImplementationName,                      # Implementation name
                                         (g_ImplementationName,))                    # List of implemented services

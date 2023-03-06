@@ -48,9 +48,9 @@ from smtpmailer import Pop3Service
 from smtpmailer import ImapApiService
 from smtpmailer import ImapBaseService
 
-from smtpmailer import getMessage
-from smtpmailer import isDebugMode
-from smtpmailer import logMessage
+from smtpmailer import LogModel
+
+from smtpmailer import g_mailservicelog
 
 g_message = 'MailServiceProvider'
 
@@ -65,18 +65,16 @@ class MailServiceProvider(unohelper.Base,
                           XMailServiceProvider2,
                           XServiceInfo):
     def __init__(self, ctx):
-        if isDebugMode():
-            msg = getMessage(ctx, g_message, 111)
-            logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
+        self._logger = LogModel(ctx, g_mailservicelog)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 111, 'MailServiceProvider', '__init__()')
         self._ctx = ctx
-        if isDebugMode():
-            msg = getMessage(ctx, g_message, 112)
-            logMessage(ctx, INFO, msg, 'MailServiceProvider', '__init__()')
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 112, 'MailServiceProvider', '__init__()')
 
     def create(self, mailtype, host):
-        if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 121, mailtype.value)
-            logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 121, 'MailServiceProvider', 'create()', mailtype.value)
         if mailtype == SMTP:
             if host.endswith('gmail.com'):
                 service = SmtpApiService(self._ctx)
@@ -91,11 +89,10 @@ class MailServiceProvider(unohelper.Base,
                 service = ImapBaseService(self._ctx)
         else:
             e = self._getNoMailServiceProviderException(123, mailtype)
-            logMessage(self._ctx, SEVERE, e.Message, 'MailServiceProvider', 'create()')
+            self._logger.logprb(SEVERE, e.Message, 'MailServiceProvider', 'create()')
             raise e
-        if isDebugMode():
-            msg = getMessage(self._ctx, g_message, 122, mailtype.value)
-            logMessage(self._ctx, INFO, msg, 'MailServiceProvider', 'create()')
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 122, 'MailServiceProvider', 'create()', mailtype.value)
         return service
 
     # XServiceInfo
@@ -108,7 +105,7 @@ class MailServiceProvider(unohelper.Base,
 
     def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()
-        e.Message = getMessage(self._ctx, g_message, code, args)
+        e.Message = self._logger.getMessage(code, *args)
         e.Context = self
         return e
 

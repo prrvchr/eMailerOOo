@@ -30,9 +30,14 @@
 from .configuration import g_dns
 from .configuration import g_extension
 from .configuration import g_identifier
+from .configuration import g_spoolerlog
+from .configuration import g_resource
+from .configuration import g_basename
+from .configuration import g_mailservicelog
 
-from .logger import Pool
+from .options import OptionsManager
 
+from .logger import LogModel
 from .logger import getMessage
 from .logger import isDebugMode
 from .logger import logMessage

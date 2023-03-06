@@ -104,7 +104,7 @@ class Tab2Handler(unohelper.Base,
             self._manager.clearLog()
             handled = True
         elif method == 'RefreshLog':
-            self._manager.refreshLog()
+            self._manager.updateLogger()
             handled = True
         return handled
 

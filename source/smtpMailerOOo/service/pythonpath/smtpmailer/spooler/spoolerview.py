@@ -80,7 +80,8 @@ class SpoolerView(unohelper.Base):
     def dispose(self):
         self._dialog.dispose()
 
-    def refreshLog(self, text, length):
+    def updateLog(self, text, length):
+        print("SpoolerView.updateLog()")
         control = self._getActivityLog()
         selection = uno.createUnoStruct('com.sun.star.awt.Selection')
         selection.Min = length

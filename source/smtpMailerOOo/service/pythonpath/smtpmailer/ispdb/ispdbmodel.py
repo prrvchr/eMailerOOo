@@ -54,10 +54,11 @@ from ..unotool import getUrl
 from ..mailertool import getMail
 from ..mailertool import getMessageImage
 
-from ..logger import setDebugMode
+from ..logger import LogModel
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
+from ..configuration import g_mailservicelog
 from ..configuration import g_logo
 from ..configuration import g_logourl
 
@@ -86,12 +87,14 @@ class IspdbModel(unohelper.Base):
         self._updated = False
         self._version = 0
         self._messageid = None
+        self._listener = None
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
         self._configuration = getConfiguration(ctx, g_identifier, True)
+        self._logger = LogModel(ctx, g_mailservicelog)
         self._timeout = self._configuration.getByName('ConnectTimeout')
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'IspdbPage%s.Step',
@@ -142,6 +145,9 @@ class IspdbModel(unohelper.Base):
 # IspdbModel getter methods called by IspdbWizard
     def dispose(self):
         self._diposed = True
+        if self._listener is not None:
+            self._logger.removeListener(self._listener)
+            self._listener = None
         if self._close:
             self.DataSource.dispose()
 
@@ -187,7 +193,7 @@ class IspdbModel(unohelper.Base):
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, url, domain):
-        service = 'com.gmail.prrvchr.extensions.OAuth2OOo.OAuth2Service'
+        service = 'io.github.prrvchr.OAuth2OOo.OAuth2Service'
         request = createService(self._ctx, service)
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'
@@ -255,11 +261,18 @@ class IspdbModel(unohelper.Base):
         return message, level
 
 # IspdbModel getter methods called by WizardPage5
+    def addLogListener(self, listener):
+        self._logger.addListener(listener)
+        self._listener = listener
+
+    def getLogContent(self):
+        return self._logger.getLogContent()
+
     def connectServers(self, *args):
         Thread(target=self._connectServers, args=args).start()
 
     def _connectServers(self, reset, progress, setlabel, setstep):
-        setDebugMode(self._ctx, True)
+        self._logger.setDebugMode(True)
         i = 0
         step = 2
         range = 100
@@ -271,7 +284,7 @@ class IspdbModel(unohelper.Base):
             stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
             step = self._connectServer(context, authenticator, stype, i * range, progress)
             i += 1
-        setDebugMode(self._ctx, False)
+        self._logger.setDebugMode(False)
         setstep(step)
 
     def _connectServer(self, context, authenticator, stype, i, progress):
@@ -306,7 +319,7 @@ class IspdbModel(unohelper.Base):
         Thread(target=self._sendMessage, args=args).start()
 
     def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
-        setDebugMode(self._ctx, True)
+        self._logger.setDebugMode(True)
         if self._user.hasThread():
             i = 0
             reset(100)
@@ -345,7 +358,7 @@ class IspdbModel(unohelper.Base):
                     step = 5
                 server.disconnect()
         progress(i + 100)
-        setDebugMode(self._ctx, False)
+        self._logger.setDebugMode(False)
         setstep(step)
 
     def _uploadMessage(self, subject, progress):

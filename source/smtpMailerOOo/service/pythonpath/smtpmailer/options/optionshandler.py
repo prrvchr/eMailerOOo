@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,26 +25,26 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_mail_XIspDBService_idl__
-#define __com_sun_star_mail_XIspDBService_idl__
+import unohelper
 
-#include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/uno/XCurrentContext.idl>
-#include <com/sun/star/mail/XAuthenticator.idl>
+from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.lang import XEventListener
 
-module com { module sun { module star { module mail {
+import traceback
 
-interface XIspDBService: com::sun::star::uno::XInterface
-{
 
-    void initialize([in] string Email);
-    com::sun::star::uno::XCurrentContext getConnectionContext();
-    XAuthenticator getAuthenticator();
+class OptionsListener(unohelper.Base,
+                      XEventListener):
+    def __init__(self, manager):
+        self._manager = manager
 
-};
+# com.sun.star.lang.XEventListener
+    def disposing(self, source):
+        try:
+            self._manager.dispose()
+        except Exception as e:
+            msg = "OptionsListener.disposing() Error: %s" % traceback.print_exc()
+            print(msg)
 
-}; }; }; };
-
-#endif

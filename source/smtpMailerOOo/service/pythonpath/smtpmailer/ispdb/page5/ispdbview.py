@@ -33,11 +33,6 @@ import unohelper
 from .ispdbhandler import WindowHandler
 
 from ...unotool import getContainerWindow
-from ...unotool import getFileSequence
-
-from ...logger import clearLogger
-from ...logger import getLoggerUrl
-from ...logger import logMessage
 
 from ...configuration import g_extension
 
@@ -47,7 +42,6 @@ import traceback
 class IspdbView(unohelper.Base):
     def __init__(self, ctx, manager, parent):
         self._ctx = ctx
-        self._url = getLoggerUrl(ctx)
         handler = WindowHandler(manager)
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage5')
 
@@ -56,6 +50,12 @@ class IspdbView(unohelper.Base):
         return self._window
 
 # IspdbView setter methods
+    def updateLogger(self, text, length):
+        control = self._getLogger()
+        control.Text = text
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
+
     def setPageLabel(self, text):
         self._getPageLabel().Text = text
 
@@ -64,22 +64,11 @@ class IspdbView(unohelper.Base):
 
     def updateProgress(self, value):
         self._getProgressBar().Value = value
-        self._updateLogger()
 
     def resetProgress(self, value):
         control = self._getProgressBar()
         control.setRange(0, value)
         control.Value = 0
-        clearLogger()
-        self._updateLogger()
-
-# IspdbView private setter methods
-    def _updateLogger(self):
-        length, sequence = getFileSequence(self._ctx, self._url)
-        control = self._getLogger()
-        control.Text = sequence.value.decode('utf-8')
-        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
-        control.setSelection(selection)
 
 # IspdbView private getter control methods
     def _getPageLabel(self):

@@ -38,7 +38,10 @@ from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from ...unotool import createService
 from ...unotool import getDialog
 
-from ...logger import Logger
+from ...logger import LogModel
+from ...logger import LoggerListener
+
+from ...configuration import g_mailservicelog
 
 from .ispdbview import IspdbView
 from .send import SendView
@@ -55,6 +58,8 @@ class IspdbManager(unohelper.Base):
         self._connected = False
         self._dialog = None
         self._view = IspdbView(ctx, self, parent)
+        self._model.addLogListener(LoggerListener(self))
+        self.updateLogger()
 
 # XWizardPage
     @property
@@ -78,6 +83,9 @@ class IspdbManager(unohelper.Base):
         return self._connected
 
 # IspdbManager setter methods
+    def updateLogger(self):
+        self._view.updateLogger(*self._model.getLogContent())
+
     def setLabel(self, *format):
         if not self._model.isDisposed():
             label = self._model.getPageLabel(self._pageid)

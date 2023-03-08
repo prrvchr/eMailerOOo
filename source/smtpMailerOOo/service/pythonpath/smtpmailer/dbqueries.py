@@ -33,9 +33,9 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .dbconfig import g_csv
 
 from .logger import getLogger
+g_message = 'dbqueries'
 
 from .configuration import g_extension
-from .configuration import g_identifier
 
 
 def getSqlQuery(ctx, name, format=None):
@@ -634,8 +634,8 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
 
 # Queries don't exist!!!
     else:
-        logger = getLogger(ctx, g_extension, 'dbqueries')
-        logger.logprb(SEVERE, 'dbqueries', 'getSqlQuery()', 101, name)
+        logger = getLogger(ctx, g_extension, g_message)
+        logger.logprb(SEVERE, g_message, 'getSqlQuery()', 101, name)
         query = None
     return query
 

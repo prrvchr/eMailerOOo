@@ -41,7 +41,7 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from smtpmailer import DataSource
 from smtpmailer import MailSpooler
-from smtpmailer import getLogger
+from smtpmailer import LogModel
 
 from smtpmailer import createService
 from smtpmailer import getConnectionMode
@@ -61,7 +61,7 @@ class SpoolerService(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._datasource = DataSource(ctx)
-        self._logger = getLogger(ctx, g_spoolerlog)
+        self._logger = LogModel(ctx, g_spoolerlog)
         self._logger.setDebugMode(True)
         self._listeners = []
 
@@ -128,7 +128,7 @@ class SpoolerService(unohelper.Base,
 # Private methods
     def _getSpooler(self):
         self._datasource.waitForDataBase()
-        spooler = MailSpooler(self._ctx, self._datasource.DataBase, self._logger, self._listeners)
+        spooler = MailSpooler(self._ctx, self._datasource.DataBase, self._listeners)
         return spooler
 
     def _isOffLine(self):

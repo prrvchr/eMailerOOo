@@ -70,9 +70,12 @@ from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
 
+from .logger import getLogger
+
 from .configuration import g_dns
 from .configuration import g_extension
 from .configuration import g_identifier
+from .configuration import g_spoolerlog
 from .configuration import g_logo
 from .configuration import g_logourl
 from .configuration import g_fetchsize
@@ -85,7 +88,7 @@ import time
 
 
 class MailSpooler(Thread):
-    def __init__(self, ctx, database, logger, listeners):
+    def __init__(self, ctx, database, listeners):
         Thread.__init__(self)
         self._ctx = ctx
         self._database = database
@@ -100,7 +103,7 @@ class MailSpooler(Thread):
         #getDesktop(ctx).addTerminateListener(self._listener)
         configuration = getConfiguration(ctx, g_identifier, False)
         self._timeout = configuration.getByName('ConnectTimeout')
-        self._logger = logger
+        self._logger = getLogger(ctx, g_spoolerlog)
 
     # Thread
     def run(self):

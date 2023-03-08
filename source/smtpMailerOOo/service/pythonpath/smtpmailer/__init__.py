@@ -38,9 +38,7 @@ from .configuration import g_mailservicelog
 from .options import OptionsManager
 
 from .logger import getLogger
-from .logger import getMessage
-from .logger import isDebugMode
-from .logger import logMessage
+from .logger import LogModel
 
 from .unotool import createService
 from .unotool import executeDispatch

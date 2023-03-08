@@ -40,8 +40,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from smtpmailer import SmtpDispatch
 
-from smtpmailer import getMessage
-from smtpmailer import logMessage
 from smtpmailer import g_identifier
 
 import traceback
@@ -58,7 +56,6 @@ class SmtpDispatcher(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
-        logMessage(self._ctx, INFO, "Loading ... Done", 'SmtpDispatcher', '__init__()')
 
 # XInitialization
     def initialize(self, args):

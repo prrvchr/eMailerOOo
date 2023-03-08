@@ -41,9 +41,6 @@ from ..unotool import getPropertyValueSet
 from ..unotool import getStringResource
 from ..unotool import getUrlPresentation
 
-from ..logger import getMessage
-from ..logger import logMessage
-
 from ..configuration import g_identifier
 from ..configuration import g_extension
 

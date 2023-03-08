@@ -56,10 +56,6 @@ from .mailertool import getMail
 
 from .unotool import createService
 
-from .logger import getMessage
-from .logger import logMessage
-from .logger import setDebugMode
-
 from threading import Thread
 import traceback
 import time
@@ -92,9 +88,7 @@ class DataSource(unohelper.Base,
     # XCloseListener
     def queryClosing(self, source, ownership):
         self.DataBase.shutdownDataBase()
-        msg = "DataBase  '%s' closing ... Done" % self._dbname
-        logMessage(self._ctx, INFO, msg, 'DataSource', 'queryClosing()')
-        print(msg)
+
     def notifyClosing(self, source):
         pass
 

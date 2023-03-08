@@ -70,11 +70,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.lang import EventObject
 from com.sun.star.mail import XSmtpService2
 
-from ..logger import getMessage
-from ..logger import isDebugMode
-from ..logger import logMessage
-
-from ..logger import LogModel
+from ..logger import getLogger
 
 from ..configuration import g_mailservicelog
 
@@ -84,9 +80,9 @@ import traceback
 class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
-        self._logger = LogModel(ctx, g_mailservicelog)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 211, 'SmtpService', '__init__()')
+        self._logger = getLogger(ctx, g_mailservicelog)
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'SmtpService', '__init__()', 211)
         self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
@@ -94,8 +90,8 @@ class SmtpService(unohelper.Base,
         self._server = None
         self._context = None
         self._notify = EventObject(self)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 212, 'SmtpService', '__init__()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'SmtpService', '__init__()', 212)
 
 # XMailService2 interface implementation
     def addConnectionListener(self, listener):

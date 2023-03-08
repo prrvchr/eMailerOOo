@@ -48,9 +48,6 @@ from ...mail import WindowHandler
 
 from ...unotool import createService
 
-from ...logger import getMessage
-from ...logger import logMessage
-
 from threading import Condition
 import traceback
 

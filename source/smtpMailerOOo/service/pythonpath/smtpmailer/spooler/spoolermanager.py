@@ -54,9 +54,6 @@ from ..unotool import getPropertyValueSet
 from ..logger import LogModel
 from ..logger import LoggerListener
 
-from ..logger import getMessage
-from ..logger import logMessage
-
 from ..configuration import g_spoolerlog
 
 g_message = 'spoolermanager'

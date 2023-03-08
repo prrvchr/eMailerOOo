@@ -83,9 +83,6 @@ from ..dbqueries import getSqlQuery
 
 from ..unotool import getDocument
 
-from ..logger import getMessage
-from ..logger import logMessage
-
 from ..configuration import g_identifier
 from ..configuration import g_extension
 from ..configuration import g_fetchsize

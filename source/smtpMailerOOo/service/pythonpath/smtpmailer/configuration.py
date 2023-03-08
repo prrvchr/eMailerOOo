@@ -38,8 +38,9 @@ g_merger_paths = (1, 2, 3)
 g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
-# Resource strings files folder
+# Logger resource strings files folder
 g_resource = 'resource'
+# Logger resource strings files basename
 g_basename = 'smtpMailer'
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)

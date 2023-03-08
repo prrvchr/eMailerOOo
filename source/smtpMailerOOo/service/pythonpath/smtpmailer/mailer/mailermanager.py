@@ -38,11 +38,6 @@ from .mailerview import MailerView
 
 from ..unotool import createService
 
-from ..logger import getMessage
-from ..logger import logMessage
-
-g_message = 'mailermanager'
-
 from threading import Condition
 import traceback
 

@@ -77,9 +77,6 @@ from .dbinit import getTablesAndStatements
 
 from .configuration import g_identifier
 
-from .logger import logMessage
-from .logger import getMessage
-
 import time
 import traceback
 

@@ -52,9 +52,6 @@ from .wizard import Wizard
 
 from .unotool import getPathSettings
 
-from .logger import getMessage
-from .logger import logMessage
-
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_ispdb_page
@@ -128,7 +125,6 @@ class SmtpDispatch(unohelper.Base,
                 msg +=  " Retrieving SMTP configuration OK..."
             controller.dispose()
             print(msg)
-            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showIspdb()')
             return state, email
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
@@ -185,7 +181,6 @@ class SmtpDispatch(unohelper.Base,
                 msg +=  " Merging SMTP email OK..."
             controller.dispose()
             print(msg)
-            logMessage(self._ctx, INFO, msg, 'SmtpDispatch', '_showMerger()')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)

@@ -41,9 +41,6 @@ from ..mailertool import getDocumentFilter
 from ..mailertool import getNamedExtension
 from ..mailertool import saveDocumentAs
 
-from ..logger import logMessage
-from ..logger import getMessage
-
 from collections import OrderedDict
 import validators
 import json

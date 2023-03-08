@@ -49,9 +49,6 @@ from .mergerhandler import RecipientHandler
 
 from ...grid import GridListener
 
-from ...logger import getMessage
-from ...logger import logMessage
-
 import traceback
 
 

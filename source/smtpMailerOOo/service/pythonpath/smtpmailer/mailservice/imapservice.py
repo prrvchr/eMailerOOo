@@ -36,7 +36,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.lang import EventObject
 from com.sun.star.mail import XImapService
 
-from ..logger import LogModel
+from ..logger import getLogger
 
 from ..configuration import g_mailservicelog
 
@@ -48,18 +48,18 @@ import traceback
 class ImapService(unohelper.Base,
                   XImapService):
     def __init__(self, ctx):
-        self._logger = LogModel(ctx, g_mailservicelog)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 311, 'ImapService', '__init__()')
         self._ctx = ctx
+        self._logger = getLogger(ctx, g_mailservicelog)
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'ImapService', '__init__()', 311)
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None
         self._notify = EventObject(self)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 312, 'ImapService', '__init__()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'ImapService', '__init__()', 312)
 
 # XMailService2 interface implementation
     def addConnectionListener(self, listener):

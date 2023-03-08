@@ -66,15 +66,15 @@ class MailServiceProvider(unohelper.Base,
                           XServiceInfo):
     def __init__(self, ctx):
         self._logger = LogModel(ctx, g_mailservicelog)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 111, 'MailServiceProvider', '__init__()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
         self._ctx = ctx
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 112, 'MailServiceProvider', '__init__()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
 
     def create(self, mailtype, host):
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 121, 'MailServiceProvider', 'create()', mailtype.value)
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, mailtype.value)
         if mailtype == SMTP:
             if host.endswith('gmail.com'):
                 service = SmtpApiService(self._ctx)
@@ -89,10 +89,10 @@ class MailServiceProvider(unohelper.Base,
                 service = ImapBaseService(self._ctx)
         else:
             e = self._getNoMailServiceProviderException(123, mailtype)
-            self._logger.logprb(SEVERE, e.Message, 'MailServiceProvider', 'create()')
+            self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
             raise e
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 122, 'MailServiceProvider', 'create()', mailtype.value)
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, mailtype.value)
         return service
 
     # XServiceInfo
@@ -105,7 +105,7 @@ class MailServiceProvider(unohelper.Base,
 
     def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()
-        e.Message = self._logger.getMessage(code, *args)
+        e.Message = self._logger.resolveString(code, *args)
         e.Context = self
         return e
 

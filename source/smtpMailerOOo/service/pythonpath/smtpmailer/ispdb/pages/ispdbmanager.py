@@ -44,13 +44,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from ...unotool import createService
 from ...unotool import getDialog
 
-from ...logger import getMessage
-from ...logger import logMessage
-
 from .ispdbview import IspdbView
-
-g_message = 'pagemanager'
-
 
 import traceback
 

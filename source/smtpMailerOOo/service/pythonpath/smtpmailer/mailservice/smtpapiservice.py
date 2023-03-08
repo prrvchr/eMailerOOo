@@ -43,12 +43,6 @@ from ..oauth2lib import getRequest
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface
 
-from ..logger import getMessage
-from ..logger import isDebugMode
-from ..logger import logMessage
-
-g_message = 'MailServiceProvider'
-
 import sys
 import six
 import base64
@@ -59,8 +53,8 @@ import traceback
 class SmtpApiService(SmtpService):
 
     def connect(self, context, authenticator):
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 221, 'SmtpService', 'connect()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'SmtpService', 'connect()', 221)
         if self.isConnected():
             raise AlreadyConnectedException()
         if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
@@ -73,22 +67,22 @@ class SmtpApiService(SmtpService):
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 224, 'SmtpService', 'connect()')
+        #if self._logger.isDebugMode():
+        self._logger.logprb(INFO, 'SmtpService', 'connect()', 224)
 
     def isConnected(self):
         return self._server is not None
 
     def disconnect(self):
         if self.isConnected():
-            if self._logger.isDebugMode():
-                self._logger.logprb(INFO, 261, 'SmtpService', 'disconnect()')
+            #if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 261)
             self._server = None
             self._context = None
             for listener in self._listeners:
                 listener.disconnected(self._notify)
-            if self._logger.isDebugMode():
-                self._logger.logprb(INFO, 262, 'SmtpService', 'disconnect()')
+            #if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 262)
 
     def sendMailMessage(self, message):
         url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'
@@ -99,7 +93,7 @@ class SmtpApiService(SmtpService):
         try:
             response = self._server.execute(parameter)
         except Exception as e:
-            msg = self._logger.getMessage(253, message.Subject, getExceptionMessage(e))
+            msg = self._logger.resolveString(253, message.Subject, getExceptionMessage(e))
             raise MailException(msg, self)
         if response.IsPresent:
             messageid = response.Value.getValue('id')

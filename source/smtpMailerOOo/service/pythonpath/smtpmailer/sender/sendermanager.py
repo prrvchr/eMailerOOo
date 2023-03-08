@@ -39,11 +39,6 @@ from .senderhandler import DialogHandler
 
 from ..mailer import MailerManager
 
-from ..logger import getMessage
-from ..logger import logMessage
-
-g_message = 'sendermanager'
-
 from threading import Condition
 import traceback
 

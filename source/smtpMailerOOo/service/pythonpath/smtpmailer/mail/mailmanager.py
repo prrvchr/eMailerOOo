@@ -36,11 +36,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 from ..unotool import executeShell
 from ..unotool import getFileUrl
 
-from ..logger import getMessage
-from ..logger import logMessage
-
-g_message = 'basemanager'
-
 import traceback
 
 

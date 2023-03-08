@@ -48,9 +48,6 @@ from ...unotool import createMessageBox
 from ...unotool import createService
 from ...unotool import executeDispatch
 
-from ...logger import getMessage
-from ...logger import logMessage
-
 import traceback
 
 

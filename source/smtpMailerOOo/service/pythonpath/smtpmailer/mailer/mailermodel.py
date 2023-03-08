@@ -37,9 +37,6 @@ from ..unotool import getDocument
 from ..unotool import getPropertyValueSet
 from ..unotool import getStringResource
 
-from ..logger import logMessage
-from ..logger import getMessage
-
 from ..configuration import g_identifier
 from ..configuration import g_extension
 

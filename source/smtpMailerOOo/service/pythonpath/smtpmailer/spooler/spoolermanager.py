@@ -51,7 +51,7 @@ from ..unotool import executeDispatch
 from ..unotool import getFileSequence
 from ..unotool import getPropertyValueSet
 
-from ..logger import LogModel
+from ..logger import getLogger
 from ..logger import LoggerListener
 
 from ..configuration import g_spoolerlog
@@ -78,7 +78,7 @@ class SpoolerManager(unohelper.Base):
         window = self._view.getGridWindow()
         self._model.initSpooler(window, GridListener(self), self.initView)
         self._loggerlistener = LoggerListener(self)
-        self._logger = LogModel(ctx, g_spoolerlog)
+        self._logger = getLogger(ctx, g_spoolerlog)
         self._logger.addListener(self._loggerlistener)
         self.updateLogger()
 

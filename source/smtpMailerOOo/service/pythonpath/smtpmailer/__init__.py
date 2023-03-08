@@ -37,7 +37,7 @@ from .configuration import g_mailservicelog
 
 from .options import OptionsManager
 
-from .logger import LogModel
+from .logger import getLogger
 from .logger import getMessage
 from .logger import isDebugMode
 from .logger import logMessage

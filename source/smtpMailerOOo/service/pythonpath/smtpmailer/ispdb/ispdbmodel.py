@@ -54,7 +54,7 @@ from ..unotool import getUrl
 from ..mailertool import getMail
 from ..mailertool import getMessageImage
 
-from ..logger import LogModel
+from ..logger import getLogger
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
@@ -94,7 +94,7 @@ class IspdbModel(unohelper.Base):
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
         self._configuration = getConfiguration(ctx, g_identifier, True)
-        self._logger = LogModel(ctx, g_mailservicelog)
+        self._logger = getLogger(ctx, g_mailservicelog)
         self._timeout = self._configuration.getByName('ConnectTimeout')
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'IspdbPage%s.Step',

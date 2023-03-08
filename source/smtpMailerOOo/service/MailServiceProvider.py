@@ -48,7 +48,7 @@ from smtpmailer import Pop3Service
 from smtpmailer import ImapApiService
 from smtpmailer import ImapBaseService
 
-from smtpmailer import LogModel
+from smtpmailer import getLogger
 
 from smtpmailer import g_mailservicelog
 
@@ -65,7 +65,7 @@ class MailServiceProvider(unohelper.Base,
                           XMailServiceProvider2,
                           XServiceInfo):
     def __init__(self, ctx):
-        self._logger = LogModel(ctx, g_mailservicelog)
+        self._logger = getLogger(ctx, g_mailservicelog)
         #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
         self._ctx = ctx

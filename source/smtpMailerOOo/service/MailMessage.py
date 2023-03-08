@@ -82,7 +82,7 @@ from email.utils import make_msgid
 from email.utils import parseaddr
 
 from smtpmailer import getConfiguration
-from smtpmailer import LogModel
+from smtpmailer import getLogger
 from smtpmailer import g_mailservicelog
 
 import re
@@ -100,7 +100,7 @@ class MailMessage(unohelper.Base,
                   XServiceInfo):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._logger = LogModel(ctx, g_mailservicelog)
+        self._logger = getLogger(ctx, g_mailservicelog)
         self._recipients = []
         self._ccrecipients = []
         self._bccrecipients = []

@@ -38,7 +38,6 @@ from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 from ...unotool import createService
 from ...unotool import getDialog
 
-from ...logger import LogModel
 from ...logger import LoggerListener
 
 from ...configuration import g_mailservicelog

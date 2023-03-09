@@ -81,8 +81,8 @@ class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
         self._logger = getLogger(ctx, g_mailservicelog)
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'SmtpService', '__init__()', 211)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'SmtpService', '__init__()', 211)
         self._ctx = ctx
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
@@ -90,8 +90,8 @@ class SmtpService(unohelper.Base,
         self._server = None
         self._context = None
         self._notify = EventObject(self)
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'SmtpService', '__init__()', 212)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'SmtpService', '__init__()', 212)
 
 # XMailService2 interface implementation
     def addConnectionListener(self, listener):

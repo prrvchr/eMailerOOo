@@ -56,7 +56,7 @@ class OptionsManager(unohelper.Base):
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         infos = {111: version, 112: path}
-        self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, 'Logger', True)
+        self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, 'Logger')
         window.addEventListener(OptionsListener(self))
         self._model.addSpoolerListener(SpoolerListener(self))
         print("OptionsManager.__init__() 2")

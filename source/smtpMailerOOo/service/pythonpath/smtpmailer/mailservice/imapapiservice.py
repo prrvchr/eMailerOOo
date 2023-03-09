@@ -51,8 +51,8 @@ import traceback
 class ImapApiService(ImapService):
 
     def connect(self, context, authenticator):
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'ImapService', 'connect()', 321)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'ImapService', 'connect()', 321)
         if self.isConnected():
             raise AlreadyConnectedException()
         if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
@@ -65,19 +65,19 @@ class ImapApiService(ImapService):
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'ImapService', 'connect()', 324)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'ImapService', 'connect()', 324)
 
     def disconnect(self):
         if self.isConnected():
-            #if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 'ImapService', 'disconnect()', 361)
+            if self._logger.isDebugMode():
+                self._logger.logprb(INFO, 'ImapService', 'disconnect()', 361)
             self._server = None
             self._context = None
             for listener in self._listeners:
                 listener.disconnected(self._notify)
-            #if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 'ImapService', 'disconnect()', 362)
+            if self._logger.isDebugMode():
+                self._logger.logprb(INFO, 'ImapService', 'disconnect()', 362)
 
     def isConnected(self):
         return self._server is not None

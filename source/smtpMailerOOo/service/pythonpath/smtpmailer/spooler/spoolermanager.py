@@ -51,12 +51,11 @@ from ..unotool import executeDispatch
 from ..unotool import getFileSequence
 from ..unotool import getPropertyValueSet
 
-from ..logger import LogModel
+from ..logger import LogController
 from ..logger import LoggerListener
 
 from ..configuration import g_spoolerlog
-
-g_message = 'spoolermanager'
+from ..configuration import g_basename
 
 from threading import Condition
 import traceback
@@ -70,16 +69,14 @@ class SpoolerManager(unohelper.Base):
         self._model = SpoolerModel(ctx, datasource)
         titles = self._model.getDialogTitles()
         self._view = SpoolerView(ctx, DialogHandler(self),Tab1Handler(self), Tab1Handler(self), parent, *titles)
-        service = 'com.sun.star.mail.SpoolerService'
-        self._spooler = createService(ctx, service)
+        self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
         self._spoolerlistener = SpoolerListener(self)
         self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
         window = self._view.getGridWindow()
         self._model.initSpooler(window, GridListener(self), self.initView)
         self._loggerlistener = LoggerListener(self)
-        self._logger = LogModel(ctx, g_spoolerlog)
-        self._logger.addListener(self._loggerlistener)
+        self._logger = LogController(ctx, g_spoolerlog, g_basename, self._loggerlistener)
         self.updateLogger()
 
     @property

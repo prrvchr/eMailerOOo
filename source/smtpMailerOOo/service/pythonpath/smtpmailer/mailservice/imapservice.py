@@ -50,16 +50,16 @@ class ImapService(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._logger = getLogger(ctx, g_mailservicelog)
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'ImapService', '__init__()', 311)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'ImapService', '__init__()', 311)
         self._listeners = []
         self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None
         self._notify = EventObject(self)
-        #if self._logger.isDebugMode():
-        self._logger.logprb(INFO, 'ImapService', '__init__()', 312)
+        if self._logger.isDebugMode():
+            self._logger.logprb(INFO, 'ImapService', '__init__()', 312)
 
 # XMailService2 interface implementation
     def addConnectionListener(self, listener):

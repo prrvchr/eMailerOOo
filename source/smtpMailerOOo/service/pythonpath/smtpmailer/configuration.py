@@ -50,4 +50,5 @@ g_logourl = 'https://prrvchr.github.io/%s/img/%s' %(g_extension, g_logo)
 # Logger configuration
 g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'
+g_errorlog = 'smtpMailerError'
 

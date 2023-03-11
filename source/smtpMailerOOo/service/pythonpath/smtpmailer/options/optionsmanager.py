@@ -71,7 +71,7 @@ class OptionsManager(unohelper.Base):
         self._logger.dispose()
 
     def loadSetting(self):
-        self._logger.reloadSetting()
+        self._logger.loadSetting()
         self._view.initControl(*self._model.getViewData())
 
     def saveSetting(self):

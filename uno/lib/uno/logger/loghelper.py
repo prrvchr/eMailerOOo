@@ -57,20 +57,22 @@ def getLoggerName(name):
     return '%s.%s' % (g_identifier, name)
 
 def getPool(ctx):
-    return createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+    pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+    if pool is None:
+        pool = ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        localized = False
+    else:
+        localized = True
+    return pool, localized
 
 
 # This logger wrapper allows using variable number of argument in python
 # while the UNO API does not allow it
 class LogWrapper(object):
     def __init__(self, ctx, name, basename):
-        pool = getPool(ctx)
-        self._init(ctx, pool, name, basename)
-
-    def _init(self, ctx, pool, name, basename):
         self._ctx = ctx
         self._basename = basename
-        self._url, self._logger = _getLogger(ctx, pool, name, basename)
+        self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
 
     _debug = {}
 
@@ -106,19 +108,19 @@ class LogWrapper(object):
         self._logger.logp(level, clazz, method, message)
 
     def logrb(self, level, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             self._logger.logrb(level, resource, args)
         else:
             self._logger.log(level, self._getErrorMessage(resource))
 
     def logprb(self, level, clazz, method, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             self._logger.logprb(level, clazz, method, resource, args)
         else:
             self._logger.logp(level, clazz, method, self._getErrorMessage(resource))
 
     def resolveString(self, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             return self._logger.resolveString(resource, args)
         else:
             return self._getErrorMessage(resource)
@@ -131,19 +133,28 @@ class LogWrapper(object):
 
     def _getErrorMessage(self, resource):
         resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
-        return resolver.resolveString(141) % (resource, self._url, self._basename)
+        return self._resolveErrorMessage(resolver, resource)
+
+    def _resolveErrorMessage(self, resolver, resource):
+        if self._localized:
+            msg = resolver.resolveString(141) % (resource, self._url, self._basename)
+        else:
+            msg = resolver.resolveString(142)
+        return msg
 
 
 # This logger controller allows using listener and access content of logger
 class LogController(LogWrapper):
     def __init__(self, ctx, name, basename=g_basename, listener=None):
-        pool = getPool(ctx)
-        self._init(ctx, pool, name, basename)
+        self._ctx = ctx
+        self._basename = basename
+        self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
-        self._debug = (True, 7, 'com.sun.star.logging.FileHandler')
-        self._settings = None
-        if listener is not None:
+        self._debug = (True, 7, True)
+        self._setting = None
+        self._config = getConfiguration(ctx, '/org.openoffice.Office.Logging/Settings', True)
+        if self._localized and listener is not None:
             self._logger.addModifyListener(listener)
 
     def getLogContent(self):
@@ -154,7 +165,7 @@ class LogController(LogWrapper):
 
 # Public setter method
     def dispose(self):
-        if self._listener is not None:
+        if self._localized and self._listener is not None:
             self._logger.removeModifyListener(self._listener)
 
     def logInfos(self, level, infos, clazz, method):
@@ -163,10 +174,13 @@ class LogController(LogWrapper):
             self._logger.logp(level, msg, clazz, method)
 
     def clearLogger(self):
-        name = self._logger.Name
+        name = self.Name
         self._logger = None
-        pool = createService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
-        self._logger = pool.getLocalizedLogger(name, self._url, self._basename)
+        if self._localized:
+            pool = createService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+        else:
+            pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        self._logger = _getLogger(self._ctx, pool, self._localized, self._url, name, self._basename)
         msg = self._resolver.resolveString(131)
         self._logMessage(SEVERE, msg, 'Logger', 'clearLogger')
 
@@ -177,14 +191,16 @@ class LogController(LogWrapper):
             self._setDebugModeOff()
 
     def addListener(self, listener):
-        self._logger.addModifyListener(listener)
+        if self._localized:
+            self._logger.addModifyListener(listener)
 
     def removeListener(self, listener):
-        self._logger.removeModifyListener(listener)
+        if self._localized:
+            self._logger.removeModifyListener(listener)
 
 # Private getter method
     def _getErrorMessage(self, resource):
-        return self._resolver.resolveString(141) % (resource, self._url, self._basename)
+        return self._resolveErrorMessage(self._resolver, resource)
 
     def _getLoggerUrl(self):
         url = '$(userurl)/$(loggername).log'
@@ -193,24 +209,19 @@ class LogController(LogWrapper):
             url = settings.getByName('FileURL')
         service = 'com.sun.star.util.PathSubstitution'
         path = createService(self._ctx, service)
-        url = url.replace('$(loggername)', self._logger.Name)
+        url = url.replace('$(loggername)', self.Name)
         return path.substituteVariables(url, True)
 
     def _getLoggerSetting(self):
         configuration = self._getLogConfig()
         enabled, index = self._getLogIndex(configuration)
-        handler = configuration.DefaultHandler
-        return enabled, index, handler
+        state = self._getLogHandler(configuration)
+        return enabled, index, state
 
     def _getLogConfig(self):
-        name = self._logger.Name
-        nodepath = '/org.openoffice.Office.Logging/Settings'
-        configuration = getConfiguration(self._ctx, nodepath, True)
-        if not configuration.hasByName(name):
-            configuration.insertByName(name, configuration.createInstance())
-            configuration.commitChanges()
-        nodepath += '/%s' % name
-        return getConfiguration(self._ctx, nodepath, True)
+        if not self._config.hasByName(self.Name):
+            self._config.insertByName(self.Name, self._config.createInstance())
+        return self._config.getByName(self.Name)
 
     def _getLogIndex(self, configuration):
         level = configuration.LogLevel
@@ -218,7 +229,7 @@ class LogController(LogWrapper):
         if enabled:
             index = self._getLogLevels().index(level)
         else:
-            index = 7
+            index = self._getLogLevels().index(ALL)
         return enabled, index
     
     def _getLogLevels(self):
@@ -235,20 +246,29 @@ class LogController(LogWrapper):
     def _isLogEnabled(self, level):
         return level != OFF
 
-# Private setter method
-    def _setLoggerSetting(self, enabled, index, handler):
-        configuration = self._getLogConfig()
-        self._setLogIndex(configuration, enabled, index)
-        self._setLogHandler(configuration, handler, index)
-        if configuration.hasPendingChanges():
-            configuration.commitChanges()
+    def _getLogHandler(self, configuration):
+        handler = configuration.DefaultHandler
+        return self._getHandlerState(handler)
 
-    def _setLogIndex(self, configuration, enabled, index):
+# Private setter method
+    def _setLoggerSetting(self, enabled, index, state):
+        configuration = self._getLogConfig()
+        self._setLogIndex(configuration, index, enabled)
+        self._setLogHandler(configuration, state)
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
+
+    def _setLogIndex(self, configuration, index, enabled):
         level = self._getLogLevels()[index] if enabled else OFF
         if configuration.LogLevel != level:
-            configuration.LogLevel = level
+             configuration.LogLevel = level
 
-    def _setLogHandler(self, configuration, handler, index):
+    def _setLogHandler(self, configuration, state):
+        handler = self._getHandler(state)
+        if configuration.DefaultHandler != handler:
+           configuration.DefaultHandler = handler
+
+    def _setLogHandler1(self, configuration, handler, index):
         if configuration.DefaultHandler != handler:
             configuration.DefaultHandler = handler
         settings = configuration.getByName('HandlerSettings')
@@ -259,16 +279,25 @@ class LogController(LogWrapper):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        if self._settings is None:
-            self._settings = self._getLoggerSetting()
+        if self._setting is None:
+            self._setting = self._getLoggerSetting()
         self._setLoggerSetting(*self._debug)
         LogWrapper._debug[self.Name] = True
 
     def _setDebugModeOff(self):
-        if self._settings is not None:
-            self._setLoggerSetting(*self._settings)
-            self._settings = None
+        if self._setting is not None:
+            self._setLoggerSetting(*self._setting)
+            self._setting = None
         LogWrapper._debug[self.Name] = False
+
+    def _getHandlerState(self, handler):
+        states = {'com.sun.star.logging.ConsoleHandler': False,
+                  'com.sun.star.logging.FileHandler': True}
+        return states.get(handler)
+
+    def _getHandler(self, state):
+        handlers = {False: 'ConsoleHandler', True: 'FileHandler'}
+        return 'com.sun.star.logging.%s' % handlers.get(state)
 
     def _logMessage(self, level, msg, clazz=None, method=None):
         if clazz is None or method is None:
@@ -277,8 +306,16 @@ class LogController(LogWrapper):
             self._logger.logp(level, clazz, method, msg)
 
 
-def _getLogger(ctx, pool, name, basename):
+def _getPoolLogger(ctx, name, basename):
+    pool, localized = getPool(ctx)
     url = getResourceLocation(ctx, g_identifier, g_resource)
-    logger = pool.getLocalizedLogger(getLoggerName(name), url, basename)
-    return url, logger
+    logger = _getLogger(ctx, pool, localized, url, name, basename)
+    return url, logger, localized
+
+def _getLogger(ctx, pool, localized, url, name, basename):
+    if localized:
+        logger = pool.getLocalizedLogger(getLoggerName(name), url, basename)
+    else:
+        logger = pool.getNamedLogger(getLoggerName(name))
+    return logger
 

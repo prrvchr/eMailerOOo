@@ -122,7 +122,7 @@ class SpoolerManager(unohelper.Base):
         with self._lock:
             print("SpoolerManager.dispose() 1 ***************************")
             self._spooler.removeListener(self._spoolerlistener)
-            self._logger.removeListener(self._loggerlistener)
+            self._logger.removeModifyListener(self._loggerlistener)
             self._model.dispose()
             self._view.dispose()
             print("SpoolerManager.dispose() 2 ***************************")

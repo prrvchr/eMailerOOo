@@ -146,7 +146,7 @@ class IspdbModel(unohelper.Base):
     def dispose(self):
         self._diposed = True
         if self._listener is not None:
-            self._logger.removeListener(self._listener)
+            self._logger.removeModifyListener(self._listener)
             self._listener = None
         if self._close:
             self.DataSource.dispose()
@@ -262,7 +262,7 @@ class IspdbModel(unohelper.Base):
 
 # IspdbModel getter methods called by WizardPage5
     def addLogListener(self, listener):
-        self._logger.addListener(listener)
+        self._logger.addModifyListener(listener)
         self._listener = listener
 
     def getLogContent(self):

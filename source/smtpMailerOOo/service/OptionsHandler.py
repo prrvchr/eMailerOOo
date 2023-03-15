@@ -72,7 +72,9 @@ class OptionsHandler(unohelper.Base,
                 self._manager.showSmtpServer()
                 handled = True
             elif method == 'ToggleSpooler':
-                self._manager.toogleSpooler()
+                control = event.Source.Model
+                control.Enabled = False
+                self._manager.toogleSpooler(control.State)
                 handled = True
             elif method == 'ShowSpooler':
                 self._manager.showSmtpSpooler()

@@ -51,7 +51,6 @@ class OptionsManager(unohelper.Base):
     def __init__(self, ctx, window):
         self._ctx = ctx
         self._model = OptionsModel(ctx)
-        print("OptionsManager.__init__() 1")
         self._view = OptionsView(ctx, window, *self._model.getViewData())
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
@@ -59,13 +58,12 @@ class OptionsManager(unohelper.Base):
         self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, 'Logger')
         window.addEventListener(OptionsListener(self))
         self._model.addSpoolerListener(SpoolerListener(self))
-        print("OptionsManager.__init__() 2")
 
     def started(self):
-        self._view.setSpoolerStatus(self._model.getSpoolerStatus(1))
+        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
 
     def stopped(self):
-        self._view.setSpoolerStatus(self._model.getSpoolerStatus(0))
+        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
 
     def dispose(self):
         self._logger.dispose()
@@ -88,8 +86,8 @@ class OptionsManager(unohelper.Base):
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
 
-    def toogleSpooler(self):
-        self._view.setSpoolerStatus(self._model.toogleSpooler())
+    def toogleSpooler(self, state):
+        self._model.toogleSpooler(state)
 
     def showSmtpSpooler(self):
         try:

@@ -38,15 +38,15 @@ g_merger_paths = (1, 2, 3)
 g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
-# Logger resource strings files folder
-g_resource = 'resource'
-# Logger resource strings files basename
-g_basename = 'smtpMailer'
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)
 # Thread Logo
 g_logo = 'smtpMailerOOo.png'
 g_logourl = 'https://prrvchr.github.io/%s/img/%s' %(g_extension, g_logo)
+# Logger resource strings files folder
+g_resource = 'resource'
+# Logger resource strings files basename
+g_basename = 'smtpMailer'
 # Logger configuration
 g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'

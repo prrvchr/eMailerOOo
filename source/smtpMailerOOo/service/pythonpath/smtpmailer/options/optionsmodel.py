@@ -54,7 +54,8 @@ class OptionsModel():
         self._spooler.addListener(listener)
 
     def getViewData(self):
-        return self._ispdb.Timeout, self._getSpoolerStatus()
+        msg, state = self._getSpoolerStatus()
+        return self._ispdb.Timeout, msg, state
 
     def setTimeout(self, timeout):
         self._ispdb.Timeout = int(timeout)
@@ -62,21 +63,20 @@ class OptionsModel():
     def saveTimeout(self):
         self._ispdb.saveTimeout()
 
-    def toogleSpooler(self):
-        if self._spooler.isStarted():
-            self._spooler.stop()
-        else:
+    def toogleSpooler(self, state):
+        if state:
             self._spooler.start()
-        return self._getSpoolerStatus()
+        else:
+            self._spooler.stop()
 
     def getSpoolerStatus(self, started):
         resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource)
+        return self._resolver.resolveString(resource), started
 
     # OptionsModel private methods
     def _getSpoolerStatus(self):
         started = int(self._spooler.isStarted())
         resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource)
+        return self._resolver.resolveString(resource), started
 
 

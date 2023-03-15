@@ -57,6 +57,7 @@ from .mailertool import getMail
 from .unotool import createService
 
 from threading import Thread
+from threading import Lock
 import traceback
 import time
 
@@ -64,22 +65,31 @@ import time
 class DataSource(unohelper.Base,
                  XCloseListener):
     def __init__(self, ctx):
-        print("DataSource.__init__() 1")
         self._ctx = ctx
         self._dbname = 'SmtpMailer'
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        if not self._isInitialized():
-            print("DataSource.__init__() 2")
-            DataSource._init = Thread(target=self._initDataBase)
-            DataSource._init.start()
-        print("DataSource.__init__() 3")
+        if self._initialize:
+            with self._lock:
+                if self._initialize:
+                    DataSource.__init = Thread(target=self._initDataBase)
+                    self._init.start()
 
-    _init = None
-    _database = None
+    __lock = Lock()
+    __init = None
+    __database = None
 
     @property
     def DataBase(self):
-        return DataSource._database
+        return DataSource.__database
+    @property
+    def _lock(self):
+        return DataSource.__lock
+    @property
+    def _init(self):
+        return DataSource.__init
+    @property
+    def _initialize(self):
+        return self.DataBase is None and self._init is None
 
     def dispose(self):
         self.waitForDataBase()
@@ -112,7 +122,7 @@ class DataSource(unohelper.Base,
             self.DataBase.updateServer(host, port, server)
 
     def waitForDataBase(self):
-        DataSource._init.join()
+        self._init.join()
 
 # Procedures called by the Mailer
     def getSenders(self, *args):
@@ -164,10 +174,7 @@ class DataSource(unohelper.Base,
         callback()
 
 # Private methods
-    def _isInitialized(self):
-        return DataSource._init is not None
-
     def _initDataBase(self):
-        time.sleep(0.5)
         database = DataBase(self._ctx, self._dbname)
-        DataSource._database = database
+        with self._lock:
+            DataSource.__database = database

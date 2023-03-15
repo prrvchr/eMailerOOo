@@ -39,15 +39,15 @@ from ..configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, handler, handler1, handler2, parent, title, title1, title2):
-        self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
+    def __init__(self, ctx, handler1, handler2, parent, title, title1, title2):
+        self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler1, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
         tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
         parent = tab1.getPeer()
-        self._tab1 = getContainerWindow(ctx, parent, handler1, g_extension, 'SpoolerTab1')
+        self._tab1 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab1')
         self._tab1.setVisible(True)
         parent = tab2.getPeer()
-        self._tab2 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, parent, None, g_extension, 'SpoolerTab2')
         self._tab2.setVisible(True)
         self._dialog.setTitle(title)
 
@@ -64,15 +64,17 @@ class SpoolerView(unohelper.Base):
 # SpoolerView setter methods
     def initView(self):
         self._enableButtonStartSpooler(True)
-        self._enableButtonCancel(True)
         self._enableButtonClose(True)
         self._enableButtonAdd(True)
 
     def enableButtonRemove(self, enabled):
         self._getButtonRemove().Model.Enabled = enabled
 
-    def setSpoolerState(self, label):
-        self._getLabelState().Text = label
+    def setSpoolerState(self, text, state):
+        control = self._getButtonStartSpooler().Model
+        control.State = state
+        control.Enabled = True
+        self._getLabelState().Text = text
 
     def endDialog(self):
         self._dialog.endDialog(OK)
@@ -93,9 +95,6 @@ class SpoolerView(unohelper.Base):
     def _enableButtonStartSpooler(self, enabled):
         self._getButtonStartSpooler().Model.Enabled = enabled
 
-    def _enableButtonCancel(self, enabled):
-        self._getButtonCancel().Model.Enabled = enabled
-
     def _enableButtonClose(self, enabled):
         self._getButtonClose().Model.Enabled = enabled
 
@@ -106,11 +105,8 @@ class SpoolerView(unohelper.Base):
     def _getButtonStartSpooler(self):
         return self._dialog.getControl('CommandButton1')
 
-    def _getButtonCancel(self):
-        return self._dialog.getControl('CommandButton2')
-
     def _getButtonClose(self):
-        return self._dialog.getControl('CommandButton3')
+        return self._dialog.getControl('CommandButton2')
 
     def _getButtonAdd(self):
         return self._tab1.getControl('CommandButton1')

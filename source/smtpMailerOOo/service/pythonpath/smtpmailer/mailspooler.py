@@ -33,6 +33,8 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.ucb.ConnectionMode import OFFLINE
+
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
 
@@ -70,7 +72,7 @@ from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
 
-from .logger import getLogger
+from .logger import LogController
 
 from .configuration import g_dns
 from .configuration import g_extension
@@ -81,111 +83,116 @@ from .configuration import g_logourl
 from .configuration import g_fetchsize
 
 from threading import Thread
-from threading import Condition
+from threading import Lock
 from threading import Event
 import traceback
 import time
 
 
-class MailSpooler(Thread):
-    def __init__(self, ctx, database, listeners):
-        Thread.__init__(self)
+class MailSpooler():
+    def __init__(self, ctx, datasource):
+        print("MailSpooler.__init__() 1")
         self._ctx = ctx
-        self._database = database
-        self._lock = Condition()
-        self._disposed = Event()
-        self._disposed.clear()
-        self._listeners = listeners
+        self._database = None
+        self._lock = Lock()
+        self._stop = Event()
+        self._listeners = []
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
-        #self._listener = TerminateListener(self)
-        #self._terminated = False
-        #getDesktop(ctx).addTerminateListener(self._listener)
-        configuration = getConfiguration(ctx, g_identifier, False)
-        self._timeout = configuration.getByName('ConnectTimeout')
-        self._logger = getLogger(ctx, g_spoolerlog)
+        self._logger = LogController(ctx, g_spoolerlog)
+        self._thread = Thread(target=self._init, args=(datasource, ))
+        self._thread.start()
 
-    # Thread
-    def run(self):
-        try:
-            print("MailSpooler._run() **********************************")
-            connection = self._database.getConnection()
-            print("MailSpooler._run() 1")
-            jobs, total = self._database.getSpoolerJobs(connection)
-            print("MailSpooler._run() 2")
-            if total > 0:
-                print("MailSpooler._run() 3")
-                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1011, total)
-                count = self._send(connection, jobs)
-                print("MailSpooler._run() 4")
-                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1012, count, total)
-            else:
-                print("MailSpooler._run() 5")
-                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1013)
-            print("MailSpooler._run() 6")
-            connection.close()
-        except UnoException as e:
-            self._logger.logprb(INFO, 'MailSpooler', 'run()', 1014, e.Message)
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
+# Procedures called by TerminateListener and SpoolerService
+    def stop(self):
+        with self._lock:
+            if self._thread.is_alive():
+                self._stop.set()
+                self._thread.join()
+
+# Procedures called by SpoolerService
+    def isStarted(self):
+        with self._lock:
+            return self._thread.is_alive() and self._database is not None
+
+    def start(self):
+        with self._lock:
+            if not self._thread.is_alive():
+                self._thread = Thread(target=self._run)
+                self._stop.clear()
+                self._thread.start()
+                self._started()
+
+    def addListener(self, listener):
+        print("MailSpooler.addListener()")
+        self._listeners.append(listener)
+
+    def removeListener(self, listener):
+        if listener in self._listeners:
+            print("MailSpooler.removeListener()")
+            self._listeners.remove(listener)
+
+# Private methods
+    def _init(self, datasource):
+        datasource.waitForDataBase()
+        with self._lock:
+            self._database = datasource.DataBase
+
+    def _run(self):
+        self._logger.setDebugMode(True)
+        self._logger.logprb(INFO, 'MailSpooler', 'run()', 1001)
+        if self._isOffLine():
+            self._logger.logprb(INFO, 'MailSpooler', 'run()', 1002)
+        else:
+            self._logger.logprb(INFO, 'MailSpooler', 'run()', 1003)
+            try:
+                print("MailSpooler._run() **********************************")
+                connection = self._database.getConnection()
+                print("MailSpooler._run() 1")
+                jobs, total = self._database.getSpoolerJobs(connection)
+                print("MailSpooler._run() 2")
+                if total > 0:
+                    configuration = getConfiguration(self._ctx, g_identifier, False)
+                    timeout = configuration.getByName('ConnectTimeout')
+                    print("MailSpooler._run() 3")
+                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1011, total)
+                    count = self._send(connection, jobs, timeout)
+                    print("MailSpooler._run() 4")
+                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1012, count, total)
+                else:
+                    print("MailSpooler._run() 5")
+                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1013)
+                print("MailSpooler._run() 6")
+                connection.close()
+            except UnoException as e:
+                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1014, e.Message)
+            except Exception as e:
+                msg = "Error: %s" % traceback.print_exc()
+                print(msg)
         print("MailSpooler._run() 7")
         self._logger.logprb(INFO, 'MailSpooler', 'run()', 1015)
         print("MailSpooler._run() 8")
+        self._logger.setDebugMode(False)
         self._stopped()
-        #if not self._terminated:
-        #    getDesktop(self._ctx).removeTerminateListener(self._listener)
         print("MailSpooler._run() 9")
 
-# Procedures called by SpoolerService
-    def clearDisposed(self):
-        self._disposed.clear()
+    def _started(self):
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        for listener in self._listeners:
+            listener.started(event)
 
-    def setDisposed(self):
-        self._disposed.set()
-
-    def addListener(self, listener):
-        with self._lock:
-            print("MailSpooler.addListener()")
-            self._listeners.append(listener)
-
-    def removeListener(self, listener):
-        with self._lock:
-            if listener in self._listeners:
-                print("MailSpooler.removeListener()")
-                self._listeners.remove(listener)
-
-    def started(self):
-        with self._lock:
-            event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-            for listener in self._listeners:
-                listener.started(event)
-
-# Procedures called by TerminateListener
-    def stop(self):
-        print("MailSpooler.stop() 1")
-        if self.is_alive():
-            print("MailSpooler.stop() 2")
-            self._terminated = True
-            self._disposed.set()
-            print("MailSpooler.stop() 3")
-            self.join()
-        print("MailSpooler.stop() 4")
-
-# Private methods
     def _stopped(self):
-        with self._lock:
-            event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-            for listener in self._listeners:
-                listener.stopped(event)
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        for listener in self._listeners:
+            listener.stopped(event)
 
-    def _send(self, connection, jobs):
+    def _send(self, connection, jobs, timeout):
         print("MailSpooler._send() 1 begin ****************************************")
         mailer = Mailer(self._ctx, self._database, self._logger)
         server = None
         count = 0
         for job in jobs:
-            if self._disposed.is_set():
+            if self._stop.is_set():
                 self._logger.logprb(INFO, 'MailSpooler', '_send()', 1024, job)
                 break
             self._logger.logprb(INFO, 'MailSpooler', '_send()', 1021, job)
@@ -194,7 +201,7 @@ class MailSpooler(Thread):
             if mailer.isNewBatch(batch):
                 try:
                     print("MailSpooler._send() 2")
-                    metadata = self._database.getMailer(connection, batch, self._timeout)
+                    metadata = self._database.getMailer(connection, batch, timeout)
                     if metadata is None:
                         self._logger.logprb(INFO, 'MailSpooler', '_send()', 1024, job)
                         continue
@@ -203,7 +210,7 @@ class MailSpooler(Thread):
                     print("MailSpooler._send() 4")
                     mailer.setBatch(batch, metadata, attachments, job, recipient.Filter)
                     print("MailSpooler._send() 5")
-                    if self._disposed.is_set():
+                    if self._stop.is_set():
                         self._logger.logprb(INFO, 'MailSpooler', '_send()', 1024, job)
                         break
                     if mailer.needThreadId():
@@ -219,20 +226,24 @@ class MailSpooler(Thread):
                     continue
             elif mailer.Merge:
                 mailer.merge(recipient.Filter)
+            if self._stop.is_set():
+                print("MailSpooler._send() 10 break")
+                self._logger.logprb(INFO, 'MailSpooler', '_send()', 1024, job)
+                break
             mail = self._getMail(mailer, recipient)
             mailer.addAttachments(mail, recipient.Filter)
-            print("MailSpooler._send() 10 Filter: %s" % recipient.Filter)
-            if self._disposed.is_set():
-                print("MailSpooler._send() 11 break")
+            print("MailSpooler._send() 11 Filter: %s" % recipient.Filter)
+            if self._stop.is_set():
+                print("MailSpooler._send() 12 break")
                 self._logger.logprb(INFO, 'MailSpooler', '_send()', 1024, job)
                 break
             server.sendMailMessage(mail)
             self._database.updateRecipient(connection, 1, mail.MessageId, job)
             self._logger.logprb(INFO, 'MailSpooler', '_send()', 1023, job)
             count += 1
-            print("MailSpooler._send() 12")
+            print("MailSpooler._send() 13")
         self._dispose(server, mailer)
-        print("MailSpooler._send() 13 end.........................")
+        print("MailSpooler._send() 14 end.........................")
         return count
 
     def _createThreadId(self, connection, mailer, batch):
@@ -310,6 +321,11 @@ class MailSpooler(Thread):
             mailserver = '%s:%s' % (server['ServerName'], server['Port'])
             raise _getUnoException(self._logger, self, 1041, job, sender.Sender, mailserver, e.Message)
         return server
+
+    def _isOffLine(self):
+        mode = getConnectionMode(self._ctx, *g_dns)
+        return mode == OFFLINE
+
 
 
 class Mailer(unohelper.Base):

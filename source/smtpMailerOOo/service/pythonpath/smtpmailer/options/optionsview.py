@@ -34,17 +34,20 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, ctx, dialog, timeout, status):
+    def __init__(self, ctx, dialog, timeout, msg, state):
         self._dialog = dialog
-        self.initControl(timeout, status)
+        self.initControl(timeout, msg, state)
 
 # OptionsView setter methods
-    def initControl(self, timeout, status):
+    def initControl(self, timeout, msg, state):
         self._getTimeout().Value = timeout
-        self._getSpoolerStatus().Text = status
+        self.setSpoolerStatus(msg, state)
 
-    def setSpoolerStatus(self, status):
-        self._getSpoolerStatus().Text = status
+    def setSpoolerStatus(self, msg, state):
+        control = self._getSpoolerButton().Model
+        control.State = state
+        control.Enabled = True
+        self._getSpoolerStatus().Text = msg
 
 # OptionsView private control methods
     def _getTimeout(self):
@@ -52,4 +55,7 @@ class OptionsView(unohelper.Base):
 
     def _getSpoolerStatus(self):
         return self._dialog.getControl('Label4')
+
+    def _getSpoolerButton(self):
+        return self._dialog.getControl('CommandButton2')
 

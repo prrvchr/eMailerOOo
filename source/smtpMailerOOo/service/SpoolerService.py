@@ -37,17 +37,14 @@ from com.sun.star.mail import XSpoolerService
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.ucb.ConnectionMode import OFFLINE
-
 from smtpmailer import DataSource
 from smtpmailer import MailSpooler
-from smtpmailer import LogController
 
 from smtpmailer import createService
-from smtpmailer import getConnectionMode
-from smtpmailer import g_spoolerlog
+
 from smtpmailer import g_dns
 
+from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -59,14 +56,17 @@ class SpoolerService(unohelper.Base,
                      XServiceInfo,
                      XSpoolerService):
     def __init__(self, ctx):
-        self._ctx = ctx
         self._datasource = DataSource(ctx)
-        self._logger = LogController(ctx, g_spoolerlog)
-        self._logger.setDebugMode(True)
-        self._listeners = []
+        if self._spooler is None:
+            with self._lock:
+                if self._spooler is None:
+                    SpoolerService.__spooler = MailSpooler(ctx, self._datasource)
 
+    __lock = Lock()
     __spooler = None
-
+    @property
+    def _lock(self):
+        return SpoolerService.__lock
     @property
     def _spooler(self):
         return SpoolerService.__spooler
@@ -74,22 +74,20 @@ class SpoolerService(unohelper.Base,
     # XSpoolerService
     def start(self):
         if not self.isStarted():
-            self._logger.logrb(INFO, 1001)
-            if self._isOffLine():
-                self._logger.logrb(INFO, 1002)
-            else:
-                SpoolerService.__spooler = self._getSpooler()
-                self._logger.logrb(INFO, 1003)
-                self._spooler.started()
-                self._spooler.start()
+            self._spooler.start()
 
     def stop(self):
         if self.isStarted():
-            self._spooler.setDisposed()
-            self._spooler.join()
+            self._spooler.stop()
 
     def isStarted(self):
-        return self._spooler is not None and self._spooler.is_alive()
+        return self._spooler.isStarted()
+
+    def addListener(self, listener):
+        self._spooler.addListener(listener)
+
+    def removeListener(self, listener):
+        self._spooler.removeListener(listener)
 
     def addJob(self, sender, subject, document, recipients, attachments):
         return self._datasource.insertJob(sender, subject, document, recipients, attachments)
@@ -106,17 +104,6 @@ class SpoolerService(unohelper.Base,
     def getJobIds(self, batchid):
         return self._datasource.getJobIds(batchid)
 
-    def addListener(self, listener):
-        self._listeners.append(listener)
-        if self.isStarted():
-            self._spooler.addListener(listener)
-
-    def removeListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
-        if self.isStarted():
-            self._spooler.removeListener(listener)
-
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
@@ -124,16 +111,6 @@ class SpoolerService(unohelper.Base,
         return g_ImplementationName
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
-
-# Private methods
-    def _getSpooler(self):
-        self._datasource.waitForDataBase()
-        spooler = MailSpooler(self._ctx, self._datasource.DataBase, self._listeners)
-        return spooler
-
-    def _isOffLine(self):
-        mode = getConnectionMode(self._ctx, *g_dns)
-        return mode == OFFLINE
 
 
 g_ImplementationHelper.addImplementation(SpoolerService,                            # UNO object class

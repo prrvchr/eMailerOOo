@@ -52,7 +52,9 @@ class DialogHandler(unohelper.Base,
         try:
             handled = False
             if method == 'ToogleSpooler':
-                self._manager.toogleSpooler()
+                control = event.Source.Model
+                control.Enabled = False
+                self._manager.toogleSpooler(control.State)
                 handled = True
             elif method == 'Close':
                 self._manager.closeSpooler()
@@ -67,8 +69,8 @@ class DialogHandler(unohelper.Base,
                 'Close')
 
 
-class Tab1Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabHandler(unohelper.Base,
+                 XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -90,27 +92,6 @@ class Tab1Handler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('Add',
                 'Remove')
-
-
-class Tab2Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        handled = False
-        if method == 'ClearLog':
-            self._manager.clearLog()
-            handled = True
-        elif method == 'RefreshLog':
-            self._manager.updateLogger()
-            handled = True
-        return handled
-
-    def getSupportedMethodNames(self):
-        return ('ClearLog',
-                'RefreshLog')
 
 
 class DispatchListener(unohelper.Base,

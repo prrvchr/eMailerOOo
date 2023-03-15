@@ -40,8 +40,7 @@ from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
 from .spoolerhandler import SpoolerListener
 from .spoolerhandler import DialogHandler
-from .spoolerhandler import Tab1Handler
-from .spoolerhandler import Tab2Handler
+from .spoolerhandler import TabHandler
 
 from ..grid import GridListener
 from ..grid import RowSetListener
@@ -68,7 +67,7 @@ class SpoolerManager(unohelper.Base):
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
         titles = self._model.getDialogTitles()
-        self._view = SpoolerView(ctx, DialogHandler(self),Tab1Handler(self), Tab1Handler(self), parent, *titles)
+        self._view = SpoolerView(ctx, DialogHandler(self), TabHandler(self), parent, *titles)
         self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
         self._spoolerlistener = SpoolerListener(self)
         self._spooler.addListener(self._spoolerlistener)
@@ -141,11 +140,11 @@ class SpoolerManager(unohelper.Base):
         rows = self._model.getGridSelectedRows()
         self._model.removeRows(rows)
 
-    def toogleSpooler(self):
-        if self._spooler.isStarted():
-            self._spooler.stop()
-        else:
+    def toogleSpooler(self, state):
+        if state:
             self._spooler.start()
+        else:
+            self._spooler.stop()
 
     def closeSpooler(self):
         self._view.endDialog()
@@ -154,10 +153,6 @@ class SpoolerManager(unohelper.Base):
         print("SpoolerManager.updateLogger()")
         self._view.updateLog(*self._logger.getLogContent())
 
-    def clearLog(self):
-        self._logger.clearLogger()
-        self.updateLogger()
-
 # SpoolerManager private methods
     def _refreshSpoolerState(self):
         state = int(self._spooler.isStarted())
@@ -165,4 +160,4 @@ class SpoolerManager(unohelper.Base):
 
     def _refreshSpoolerView(self, state):
         label = self._model.getSpoolerState(state)
-        self._view.setSpoolerState(label)
+        self._view.setSpoolerState(label, state)

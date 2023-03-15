@@ -42,7 +42,7 @@
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="5" dlg:left="6" dlg:top="115" dlg:width="244" dlg:height="14" dlg:help-text="&amp;OptionsDialog.FixedLine2.HelpText" dlg:value="&amp;OptionsDialog.FixedLine2.Label"/>
     <dlg:text dlg:id="Label3" dlg:tab-index="6" dlg:left="10" dlg:top="129" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label3.HelpText" dlg:value="&amp;OptionsDialog.Label3.Label" dlg:valign="center" dlg:tabstop="false"/>
     <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="7" dlg:left="85" dlg:top="129" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label4.HelpText" dlg:value="&amp;OptionsDialog.Label4.Label.1" dlg:valign="center" dlg:tabstop="false"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="155" dlg:top="129" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="155" dlg:top="129" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label" dlg:toggled="1">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ToggleSpooler" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label5" dlg:tab-index="9" dlg:left="10" dlg:top="149" dlg:width="140" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label" dlg:valign="center" dlg:tabstop="false"/>

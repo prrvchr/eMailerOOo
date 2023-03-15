@@ -56,7 +56,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, WindowHandler(self), parent)
+        self._view = IspdbView(ctx, WindowHandler(self), parent, pageid, self._model.isOAuth2())
         self._service = service.value
         self._version = 0
 

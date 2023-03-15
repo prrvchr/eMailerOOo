@@ -42,12 +42,17 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, handler, parent):
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPages')
+    def __init__(self, ctx, handler, parent, pageid, isoauth2):
+        idl = 'IspdbPage%s' % pageid
+        self._dialog = getContainerWindow(ctx, parent, None, g_extension, idl)
+        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_extension, 'IspdbPages')
+        if not isoauth2:
+            self._removeAuthentication()
+        self._window.setVisible(True)
 
 # IspdbView getter methods
     def getWindow(self):
-        return self._window
+        return self._dialog
 
     def getAuthentication(self):
         return self._getAuthentication().getSelectedItemPos()
@@ -123,6 +128,10 @@ class IspdbView(unohelper.Base):
         return connection, authentication
 
 # IspdbView private setter methods
+    def _removeAuthentication(self):
+        control = self._getAuthentication()
+        control.Model.removeItem(control.getItemCount() -1)
+
     def _updateServerPage(self, config):
         default = config.getValue('Default')
         control = self._getServerPage()

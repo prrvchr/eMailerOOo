@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.awt.FontWeight import NORMAL
+
 from .ispdbview import IspdbView
 
 import traceback
@@ -71,10 +73,10 @@ class IspdbManager(unohelper.Base):
         return self._finish
 
 # IspdbManager setter methods
-    def updateProgress(self, value, offset=0):
+    def updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
             message = self._model.getProgressMessage(value + offset)
-            self._view.updateProgress(value, message)
+            self._view.updateProgress(value, message, style)
 
     def updateModel(self, user, servers, offline):
         if not self._model.isDisposed():

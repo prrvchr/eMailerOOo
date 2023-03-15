@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.FontWeight import BOLD
+
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from com.sun.star.mail.MailServiceType import IMAP
@@ -88,6 +90,7 @@ class IspdbModel(unohelper.Base):
         self._services = [SMTP.value, IMAP.value]
         self._count = 0
         self._offline = 0
+        self._isoauth2 = True
         self._isnew = False
         self._diposed = False
         self._updated = False
@@ -186,25 +189,26 @@ class IspdbModel(unohelper.Base):
         if servers.hasServers(self._services):
             progress(100, 1)
         elif mode == OFFLINE:
-            progress(100, 2)
+            progress(100, 2, BOLD)
         else:
             progress(60)
             request = createService(self._ctx, g_oauth2)
             if request is None:
-                progress(100, 3)
+                self._isoauth2 = False
+                progress(100, 3, BOLD)
             else:
                 progress(70)
                 try:
                     response = self._getIspdbConfig(request, url.Complete, user.getDomain())
                 except RequestException as e:
-                    progress(100, 4)
+                    progress(100, 4, BOLD)
                 else:
                     if response.IsPresent:
                         progress(80)
                         self.DataSource.setServerConfig(self._services, servers, response.Value)
                         progress(100, 5)
                     else:
-                        progress(100, 6)
+                        progress(100, 6, BOLD)
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
@@ -226,6 +230,9 @@ class IspdbModel(unohelper.Base):
         self._offline = offline
 
 # IspdbModel getter methods called by WizardPage3 / WizardPage4
+    def isOAuth2(self):
+        return self._isoauth2
+
     def refreshView(self, version):
         return version < self._version
 

@@ -44,18 +44,19 @@ from com.sun.star.logging.LogLevel import SEVERE
 from ...unotool import createService
 from ...unotool import getDialog
 
+from .ispdbhandler import WindowHandler
 from .ispdbview import IspdbView
 
 import traceback
 
 
 class IspdbManager(unohelper.Base):
-    def __init__(self, ctx, wizard, model, pageid, parent, idl, service):
+    def __init__(self, ctx, wizard, model, pageid, parent, service):
         self._ctx = ctx
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, self, parent, idl)
+        self._view = IspdbView(ctx, WindowHandler(self), parent)
         self._service = service.value
         self._version = 0
 

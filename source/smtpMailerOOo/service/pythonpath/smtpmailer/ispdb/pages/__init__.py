@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .page3 import IspdbManager as WizardPage3
-from .page4 import IspdbManager as WizardPage4
+from .ispdbmanager import IspdbManager
 from .ispdbserver import IspdbServer
 from .ispdbuser import IspdbUser

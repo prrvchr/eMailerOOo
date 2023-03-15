@@ -30,8 +30,8 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;IspdbPage1.FixedLine1.HelpText" dlg:value="&amp;IspdbPage1.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="120" dlg:height="15" dlg:help-text="&amp;IspdbPage1.Label1.HelpText" dlg:value="&amp;IspdbPage1.Label1.Label" dlg:valign="center"/>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="5" dlg:width="305" dlg:height="1" dlg:help-text="&amp;IspdbPage1.FixedLine1.HelpText" dlg:value="&amp;IspdbPage1.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="6" dlg:width="120" dlg:height="15" dlg:help-text="&amp;IspdbPage1.Label1.HelpText" dlg:value="&amp;IspdbPage1.Label1.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPage1.Label2.HelpText" dlg:value="&amp;IspdbPage1.Label2.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="13" dlg:left="95" dlg:top="25" dlg:width="205" dlg:height="15" dlg:default="true" dlg:help-text="&amp;IspdbPage1.TextField1.HelpText" dlg:value="&amp;IspdbPage1.TextField1.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeEmail" script:language="UNO"/>

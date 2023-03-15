@@ -30,8 +30,8 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="3" dlg:width="305" dlg:height="5" dlg:help-text="&amp;IspdbPage2.FixedLine1.HelpText" dlg:value="&amp;IspdbPage2.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="5" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label1.HelpText" dlg:value="&amp;IspdbPage2.Label1.Label" dlg:valign="center"/>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="5" dlg:width="305" dlg:height="1" dlg:help-text="&amp;IspdbPage2.FixedLine1.HelpText" dlg:value="&amp;IspdbPage2.FixedLine1.Label"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label1.HelpText" dlg:value="&amp;IspdbPage2.Label1.Label" dlg:valign="center"/>
     <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="12" dlg:left="8" dlg:top="25" dlg:width="292" dlg:height="15" dlg:help-text="&amp;IspdbPage2.ProgressBar1.HelpText" dlg:value="0"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="13" dlg:left="10" dlg:top="45" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label2.HelpText" dlg:value="&amp;IspdbPage2.Label2.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>

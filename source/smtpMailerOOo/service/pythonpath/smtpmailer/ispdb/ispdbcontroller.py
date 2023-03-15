@@ -30,6 +30,9 @@
 import uno
 import unohelper
 
+from com.sun.star.mail.MailServiceType import SMTP
+from com.sun.star.mail.MailServiceType import IMAP
+
 from com.sun.star.ui.dialogs import XWizardController
 
 from com.sun.star.logging.LogLevel import INFO
@@ -41,8 +44,7 @@ from .ispdbmodel import IspdbModel
 
 from .page1 import IspdbManager as WizardPage1
 from .page2 import IspdbManager as WizardPage2
-from .pages import WizardPage3
-from .pages import WizardPage4
+from .pages import IspdbManager as WizardPages
 from .page5 import IspdbManager as WizardPage5
 
 import traceback
@@ -72,9 +74,9 @@ class IspdbController(unohelper.Base,
             elif pageid == 2:
                 page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
             elif pageid == 3:
-                page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
+                page = WizardPages(self._ctx, self._wizard, self._model, pageid, parent, SMTP)
             elif pageid == 4:
-                page = WizardPage4(self._ctx, self._wizard, self._model, pageid, parent)
+                page = WizardPages(self._ctx, self._wizard, self._model, pageid, parent, IMAP)
             elif pageid == 5:
                 page = WizardPage5(self._ctx, self._wizard, self._model, pageid, parent)
             msg += " Done"

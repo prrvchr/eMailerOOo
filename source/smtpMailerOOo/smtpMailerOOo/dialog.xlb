@@ -32,8 +32,6 @@
   <library:element library:name="Wizard"/>
   <library:element library:name="IspdbPage1"/>
   <library:element library:name="IspdbPage2"/>
-  <library:element library:name="IspdbPage3"/>
-  <library:element library:name="IspdbPage4"/>
   <library:element library:name="IspdbPages"/>
   <library:element library:name="IspdbPage5"/>
   <library:element library:name="SendDialog"/>

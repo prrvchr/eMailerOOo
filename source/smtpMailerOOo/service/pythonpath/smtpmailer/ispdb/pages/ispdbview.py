@@ -32,8 +32,6 @@ import unohelper
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
-from .ispdbhandler import WindowHandler
-
 from ...unolib import KeyMap
 
 from ...unotool import getContainerWindow
@@ -44,15 +42,12 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, idl):
-        self._dialog = getContainerWindow(ctx, parent, None, g_extension, idl)
-        handler = WindowHandler(manager)
-        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_extension, 'IspdbPages')
-        self._window.setVisible(True)
+    def __init__(self, ctx, handler, parent):
+        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPages')
 
 # IspdbView getter methods
     def getWindow(self):
-        return self._dialog
+        return self._window
 
     def getAuthentication(self):
         return self._getAuthentication().getSelectedItemPos()

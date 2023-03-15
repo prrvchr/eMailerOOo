@@ -35,6 +35,10 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
 
+from com.sun.star.rest.HTTPStatusCode import NOT_FOUND
+from com.sun.star.rest import HTTPException
+from com.sun.star.rest import RequestException
+
 from com.sun.star.uno import Exception as UnoException
 
 from ..unolib import KeyMap
@@ -55,6 +59,8 @@ from ..mailertool import getMail
 from ..mailertool import getMessageImage
 
 from ..logger import LogController
+
+from ..oauth2lib import g_oauth2
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
@@ -183,23 +189,35 @@ class IspdbModel(unohelper.Base):
             progress(100, 2)
         else:
             progress(60)
-            response = self._getIspdbConfig(url.Complete, user.getDomain())
-            if response.IsPresent:
-                progress(80)
-                self.DataSource.setServerConfig(self._services, servers, response.Value)
+            request = createService(self._ctx, g_oauth2)
+            if request is None:
                 progress(100, 3)
             else:
-                progress(100, 4)
+                progress(70)
+                try:
+                    response = self._getIspdbConfig(request, url.Complete, user.getDomain())
+                except RequestException as e:
+                    progress(100, 4)
+                else:
+                    if response.IsPresent:
+                        progress(80)
+                        self.DataSource.setServerConfig(self._services, servers, response.Value)
+                        progress(100, 5)
+                    else:
+                        progress(100, 6)
         updateModel(user, servers, mode)
 
-    def _getIspdbConfig(self, url, domain):
-        service = 'io.github.prrvchr.OAuth2OOo.OAuth2Service'
-        request = createService(self._ctx, service)
+    def _getIspdbConfig(self, request, url, domain):
         parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
-        response = request.getRequest(parameter, DataParser()).execute()
+        try:
+            response = request.getRequest(parameter, DataParser()).execute()
+        except HTTPException as e:
+            if e.StatusCode == NOT_FOUND:
+                return uno.createUnoStruct('com.sun.star.beans.Optional<com.sun.star.auth.XRestKeyMap>')
+            raise e
         return response
 
     def setServerConfig(self, user, servers, offline):

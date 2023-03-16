@@ -53,6 +53,9 @@ class OptionsModel():
     def addSpoolerListener(self, listener):
         self._spooler.addListener(listener)
 
+    def removeSpoolerListener(self, listener):
+        self._spooler.removeListener(listener)
+
     def getViewData(self):
         msg, state = self._getSpoolerStatus()
         return self._ispdb.Timeout, msg, state

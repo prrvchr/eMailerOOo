@@ -69,8 +69,8 @@ class DialogHandler(unohelper.Base,
                 'Close')
 
 
-class TabHandler(unohelper.Base,
-                 XContainerWindowEventHandler):
+class Tab1Handler(unohelper.Base,
+                  XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -92,6 +92,26 @@ class TabHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('Add',
                 'Remove')
+
+class Tab2Handler(unohelper.Base,
+                  XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ClearLogger':
+                self._manager.clearLogger()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ClearLogger', )
 
 
 class DispatchListener(unohelper.Base,

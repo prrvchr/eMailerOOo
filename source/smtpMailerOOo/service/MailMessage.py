@@ -192,7 +192,6 @@ class MailMessage(unohelper.Base,
 
     def _getMessage(self):
         COMMASPACE = ', '
-        #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'SmtpService', 'sendMailMessage()', 251, self.Subject)
         textmsg = Message()
         #Use first flavor that's sane for an email body

@@ -40,7 +40,8 @@ from .spoolerview import SpoolerView
 from .spoolerhandler import DispatchListener
 from .spoolerhandler import SpoolerListener
 from .spoolerhandler import DialogHandler
-from .spoolerhandler import TabHandler
+from .spoolerhandler import Tab1Handler
+from .spoolerhandler import Tab2Handler
 
 from ..grid import GridListener
 from ..grid import RowSetListener
@@ -49,6 +50,7 @@ from ..unotool import createService
 from ..unotool import executeDispatch
 from ..unotool import getFileSequence
 from ..unotool import getPropertyValueSet
+from ..unotool import getSimpleFile
 
 from ..logger import LogController
 from ..logger import LoggerListener
@@ -67,7 +69,7 @@ class SpoolerManager(unohelper.Base):
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
         titles = self._model.getDialogTitles()
-        self._view = SpoolerView(ctx, DialogHandler(self), TabHandler(self), parent, *titles)
+        self._view = SpoolerView(ctx, DialogHandler(self), Tab1Handler(self), Tab2Handler(self), parent, *titles)
         self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
         self._spoolerlistener = SpoolerListener(self)
         self._spooler.addListener(self._spoolerlistener)
@@ -122,6 +124,8 @@ class SpoolerManager(unohelper.Base):
             print("SpoolerManager.dispose() 1 ***************************")
             self._spooler.removeListener(self._spoolerlistener)
             self._logger.removeModifyListener(self._loggerlistener)
+            #self._logger.removeLogHandler(self._loghandler)
+            #self._loghandler.dispose()
             self._model.dispose()
             self._view.dispose()
             print("SpoolerManager.dispose() 2 ***************************")
@@ -149,9 +153,12 @@ class SpoolerManager(unohelper.Base):
     def closeSpooler(self):
         self._view.endDialog()
 
+    def clearLogger(self):
+        self._logger.clearLogger()
+
     def updateLogger(self):
         print("SpoolerManager.updateLogger()")
-        self._view.updateLog(*self._logger.getLogContent())
+        self._view.updateLog(*self._logger.getLogContent(True))
 
 # SpoolerManager private methods
     def _refreshSpoolerState(self):

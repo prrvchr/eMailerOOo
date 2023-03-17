@@ -48,6 +48,7 @@ g_resource = 'resource'
 # Logger resource strings files basename
 g_basename = 'smtpMailer'
 # Logger configuration
+g_folderlog = 'log'
 g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'
 g_errorlog = 'smtpMailerError'

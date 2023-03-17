@@ -30,6 +30,7 @@
 import uno
 import unohelper
 
+from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -72,7 +73,8 @@ from .mailertool import saveDocumentAs
 from .mailertool import saveDocumentTmp
 from .mailertool import saveTempDocument
 
-from .logger import LogController
+from .logger import getLogger
+from .logger import RollerHandler
 
 from .configuration import g_dns
 from .configuration import g_extension
@@ -99,7 +101,7 @@ class MailSpooler():
         self._listeners = []
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
-        self._logger = LogController(ctx, g_spoolerlog)
+        self._logger = getLogger(ctx, g_spoolerlog)
         self._thread = Thread(target=self._init, args=(datasource, ))
         self._thread.start()
 
@@ -139,7 +141,8 @@ class MailSpooler():
             self._database = datasource.DataBase
 
     def _run(self):
-        self._logger.setDebugMode(True)
+        handler = RollerHandler(self._ctx, self._logger.Name)
+        self._logger.addRollerHandler(handler)
         self._logger.logprb(INFO, 'MailSpooler', 'run()', 1001)
         if self._isOffLine():
             self._logger.logprb(INFO, 'MailSpooler', 'run()', 1002)
@@ -172,7 +175,7 @@ class MailSpooler():
         print("MailSpooler._run() 7")
         self._logger.logprb(INFO, 'MailSpooler', 'run()', 1015)
         print("MailSpooler._run() 8")
-        self._logger.setDebugMode(False)
+        self._logger.removeRollerHandler(handler)
         self._stopped()
         print("MailSpooler._run() 9")
 

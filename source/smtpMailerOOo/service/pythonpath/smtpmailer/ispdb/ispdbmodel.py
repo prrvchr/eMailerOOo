@@ -34,6 +34,8 @@ from com.sun.star.awt.FontWeight import BOLD
 
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
+from com.sun.star.logging.LogLevel import ALL
+
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
 
@@ -61,6 +63,7 @@ from ..mailertool import getMail
 from ..mailertool import getMessageImage
 
 from ..logger import LogController
+from ..logger import RollerHandler
 
 from ..oauth2lib import g_oauth2
 
@@ -291,13 +294,14 @@ class IspdbModel(unohelper.Base):
         self._listener = listener
 
     def getLogContent(self):
-        return self._logger.getLogContent()
+        return self._logger.getLogContent(True)
 
     def connectServers(self, *args):
         Thread(target=self._connectServers, args=args).start()
 
     def _connectServers(self, reset, progress, setlabel, setstep):
-        self._logger.setDebugMode(True)
+        handler = RollerHandler(self._ctx, self._logger.Name)
+        self._logger.addRollerHandler(handler)
         i = 0
         step = 2
         range = 100
@@ -309,7 +313,7 @@ class IspdbModel(unohelper.Base):
             stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
             step = self._connectServer(context, authenticator, stype, i * range, progress)
             i += 1
-        self._logger.setDebugMode(False)
+        self._logger.removeRollerHandler(handler)
         setstep(step)
 
     def _connectServer(self, context, authenticator, stype, i, progress):
@@ -344,7 +348,8 @@ class IspdbModel(unohelper.Base):
         Thread(target=self._sendMessage, args=args).start()
 
     def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
-        self._logger.setDebugMode(True)
+        handler = RollerHandler(self._ctx, self._logger.Name)
+        self._logger.addRollerHandler(handler)
         if self._user.hasThread():
             i = 0
             reset(100)
@@ -383,7 +388,7 @@ class IspdbModel(unohelper.Base):
                     step = 5
                 server.disconnect()
         progress(i + 100)
-        self._logger.setDebugMode(False)
+        self._logger.removeRollerHandler(handler)
         setstep(step)
 
     def _uploadMessage(self, subject, progress):

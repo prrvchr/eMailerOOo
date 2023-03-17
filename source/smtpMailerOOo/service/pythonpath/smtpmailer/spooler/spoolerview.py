@@ -39,15 +39,15 @@ from ..configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, handler1, handler2, parent, title, title1, title2):
-        self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler1, parent)
+    def __init__(self, ctx, handler, handler1, handler2, parent, title, title1, title2):
+        self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
         tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
         parent = tab1.getPeer()
-        self._tab1 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab1')
+        self._tab1 = getContainerWindow(ctx, parent, handler1, g_extension, 'SpoolerTab1')
         self._tab1.setVisible(True)
         parent = tab2.getPeer()
-        self._tab2 = getContainerWindow(ctx, parent, None, g_extension, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab2')
         self._tab2.setVisible(True)
         self._dialog.setTitle(title)
 
@@ -75,6 +75,7 @@ class SpoolerView(unohelper.Base):
         control.State = state
         control.Enabled = True
         self._getLabelState().Text = text
+        self._getButtonClearLog().Model.Enabled = not bool(state)
 
     def endDialog(self):
         self._dialog.endDialog(OK)
@@ -116,6 +117,9 @@ class SpoolerView(unohelper.Base):
 
     def _getGridWindow(self):
         return self._tab1.getControl('FrameControl1')
+
+    def _getButtonClearLog(self):
+        return self._tab2.getControl('CommandButton1')
 
     def _getLabelState(self):
         return self._dialog.getControl('Label2')

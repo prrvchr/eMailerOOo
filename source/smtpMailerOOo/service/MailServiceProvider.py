@@ -66,14 +66,11 @@ class MailServiceProvider(unohelper.Base,
                           XServiceInfo):
     def __init__(self, ctx):
         self._logger = getLogger(ctx, g_mailservicelog)
-        #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
         self._ctx = ctx
-        #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
 
     def create(self, mailtype, host):
-        #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, mailtype.value)
         if mailtype == SMTP:
             if host.endswith('gmail.com'):
@@ -91,7 +88,6 @@ class MailServiceProvider(unohelper.Base,
             e = self._getNoMailServiceProviderException(123, mailtype)
             self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
             raise e
-        #if self._logger.isDebugMode():
         self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, mailtype.value)
         return service
 

@@ -53,8 +53,7 @@ import traceback
 class SmtpApiService(SmtpService):
 
     def connect(self, context, authenticator):
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 'SmtpService', 'connect()', 221)
+        self._logger.logprb(INFO, 'SmtpService', 'connect()', 221)
         if self.isConnected():
             raise AlreadyConnectedException()
         if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
@@ -67,22 +66,19 @@ class SmtpApiService(SmtpService):
         self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
-        if self._logger.isDebugMode():
-            self._logger.logprb(INFO, 'SmtpService', 'connect()', 224)
+        self._logger.logprb(INFO, 'SmtpService', 'connect()', 224)
 
     def isConnected(self):
         return self._server is not None
 
     def disconnect(self):
         if self.isConnected():
-            if self._logger.isDebugMode():
-                self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 261)
+            self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 261)
             self._server = None
             self._context = None
             for listener in self._listeners:
                 listener.disconnected(self._notify)
-            if self._logger.isDebugMode():
-                self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 262)
+            self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 262)
 
     def sendMailMessage(self, message):
         url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'

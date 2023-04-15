@@ -48,8 +48,6 @@ from .database import DataBase
 
 from .dbtool import Array
 
-from .dataparser import DataParser
-
 from .mailerlib import MailTransferable
 
 from .mailertool import getMail

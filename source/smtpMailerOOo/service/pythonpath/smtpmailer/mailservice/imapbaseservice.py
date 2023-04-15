@@ -38,7 +38,7 @@ from com.sun.star.io import AlreadyConnectedException
 
 from .imapservice import ImapService
 
-from ..oauth2lib import getOAuth2Token
+from ..oauth2 import getOAuth2Token
 
 from ..unotool import hasInterface
 

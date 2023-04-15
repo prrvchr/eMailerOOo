@@ -43,8 +43,8 @@ from .apihelper import setDefaultFolder
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface
 
-from ..oauth2lib import getOAuth2Token
-from ..oauth2lib import getRequest
+from ..oauth2 import getOAuth2Token
+from ..oauth2 import getRequest
 
 import traceback
 

@@ -46,7 +46,6 @@ from com.sun.star.rest import RequestException
 from com.sun.star.uno import Exception as UnoException
 
 from ..unolib import KeyMap
-from ..dataparser import DataParser
 
 from ..mailerlib import CurrentContext
 from ..mailerlib import Authenticator
@@ -65,7 +64,7 @@ from ..mailertool import getMessageImage
 from ..logger import LogController
 from ..logger import RollerHandler
 
-from ..oauth2lib import g_oauth2
+from ..oauth2 import g_oauth2
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
@@ -76,6 +75,7 @@ from ..configuration import g_logourl
 from .pages import IspdbServer
 from .pages import IspdbUser
 
+import xml.etree.ElementTree as ET
 from threading import Thread
 import validators
 import json
@@ -100,6 +100,7 @@ class IspdbModel(unohelper.Base):
         self._version = 0
         self._messageid = None
         self._listener = None
+        self._chunk = 64 * 1024
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
@@ -202,30 +203,73 @@ class IspdbModel(unohelper.Base):
             else:
                 progress(70)
                 try:
-                    response = self._getIspdbConfig(request, url.Complete, user.getDomain())
+                    config = self._getIspdbConfig(request, url.Complete, user.getDomain())
                 except RequestException as e:
                     progress(100, 4, BOLD)
                 else:
-                    if response.IsPresent:
-                        progress(80)
-                        self.DataSource.setServerConfig(self._services, servers, response.Value)
-                        progress(100, 5)
-                    else:
-                        progress(100, 6, BOLD)
+                    progress(80)
+                    self.DataSource.setServerConfig(self._services, servers, config)
+                    progress(100, 5)
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter = uno.createUnoStruct('com.sun.star.rest.RequestParameter')
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
-        try:
-            response = request.getRequest(parameter, DataParser()).execute()
-        except HTTPException as e:
-            if e.StatusCode == NOT_FOUND:
+        response = request.executeRequest(parameter)
+        if not response.Ok:
+            if response.StatusCode == NOT_FOUND:
                 return uno.createUnoStruct('com.sun.star.beans.Optional<com.sun.star.auth.XRestKeyMap>')
-            raise e
-        return response
+            response.raiseForStatus()
+        config = self._parseIspdbConfig(response)
+        response.close()
+        return config
+
+    def _parseIspdbConfig(self, response):
+        smtps = []
+        imaps = []
+        domains = []
+        config = KeyMap()
+        map1 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
+        map2 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
+                'password-encrypted': 2, 'secure': 2, 'OAuth2': 3}
+        map3 = {'%EMAILLOCALPART%': 0, '%EMAILADDRESS%': 1, '%EMAILDOMAIN%': 2}
+        parser = ET.XMLPullParser(('end', ))
+        iterator = response.iterContent(self._chunk, False)
+        while iterator.hasMoreElements():
+            # FIXME: As Decode is False we obtain a sequence of bytes
+            parser.feed(iterator.nextElement().value)
+            for event, element in parser.read_events():
+                if element.tag != 'emailProvider':
+                    continue
+                provider = element.get('id')
+                config.setValue('Provider', provider)
+                config.setValue('DisplayName', element.find('displayName').text)
+                config.setValue('DisplayShortName', element.find('displayShortName').text)
+                for child in element.findall('domain'):
+                    if child.text != provider:
+                        domains.append(child.text)
+                for child in element.findall('outgoingServer'):
+                    if child.get('type') == 'smtp':
+                        smtps.append(self._parseServer(child, SMTP.value, map1, map2, map3))
+                for child in element.findall('incomingServer'):
+                    if child.get('type') == 'imap':
+                        imaps.append(self._parseServer(child, IMAP.value, map1, map2, map3))
+        config.setValue('Domains', tuple(domains))
+        config.setValue(SMTP.value, tuple(smtps))
+        config.setValue(IMAP.value, tuple(imaps))
+        return config
+
+    def _parseServer(self, element, service, map1, map2, map3):
+        server = KeyMap()
+        server.setValue('Service', service)
+        server.setValue('Server', element.find('hostname').text)
+        server.setValue('Port', int(element.find('port').text))
+        server.setValue('Connection', map1.get(element.find('socketType').text, 0))
+        server.setValue('Authentication', map2.get(element.find('authentication').text, 0))
+        server.setValue('LoginMode', map3.get(element.find('username').text, 1))
+        return server
 
     def setServerConfig(self, user, servers, offline):
         self._user = user

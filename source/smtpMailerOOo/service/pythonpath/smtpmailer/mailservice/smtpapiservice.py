@@ -38,7 +38,7 @@ from com.sun.star.mail import MailException
 from .smtpservice import SmtpService
 from .apihelper import setDefaultFolder
 
-from ..oauth2lib import getRequest
+from ..oauth2 import getRequest
 
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface

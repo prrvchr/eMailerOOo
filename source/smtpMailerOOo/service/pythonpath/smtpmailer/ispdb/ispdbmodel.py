@@ -213,11 +213,11 @@ class IspdbModel(unohelper.Base):
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
-        parameter = uno.createUnoStruct('com.sun.star.rest.RequestParameter')
+        parameter = request.getRequestParameter('getIspdbConfig')
         parameter.Method = 'GET'
         parameter.Url = '%s%s' % (url, domain)
         parameter.NoAuth = True
-        response = request.executeRequest(parameter)
+        response = request.execute(parameter)
         if not response.Ok:
             if response.StatusCode == NOT_FOUND:
                 return uno.createUnoStruct('com.sun.star.beans.Optional<com.sun.star.auth.XRestKeyMap>')

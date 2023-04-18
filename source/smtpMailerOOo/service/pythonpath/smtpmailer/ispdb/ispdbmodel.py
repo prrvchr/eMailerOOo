@@ -71,6 +71,7 @@ from ..configuration import g_extension
 from ..configuration import g_mailservicelog
 from ..configuration import g_logo
 from ..configuration import g_logourl
+from ..configuration import g_chunk
 
 from .pages import IspdbServer
 from .pages import IspdbUser
@@ -99,7 +100,6 @@ class IspdbModel(unohelper.Base):
         self._version = 0
         self._messageid = None
         self._listener = None
-        self._chunk = 64 * 1024
         secure = {0: 3, 1: 4, 2: 4, 3: 5}
         unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
@@ -235,7 +235,7 @@ class IspdbModel(unohelper.Base):
                 'password-encrypted': 2, 'secure': 2, 'OAuth2': 3}
         map3 = {'%EMAILLOCALPART%': 0, '%EMAILADDRESS%': 1, '%EMAILDOMAIN%': 2}
         parser = ET.XMLPullParser(('end', ))
-        iterator = response.iterContent(self._chunk, False)
+        iterator = response.iterContent(g_chunk, False)
         while iterator.hasMoreElements():
             # FIXME: As Decode is False we obtain a sequence of bytes
             parser.feed(iterator.nextElement().value)

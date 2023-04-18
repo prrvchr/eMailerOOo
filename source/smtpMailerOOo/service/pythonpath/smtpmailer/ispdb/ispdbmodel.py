@@ -78,7 +78,6 @@ from .pages import IspdbUser
 import xml.etree.ElementTree as ET
 from threading import Thread
 import validators
-import json
 import traceback
 
 

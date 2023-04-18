@@ -38,6 +38,7 @@ from com.sun.star.io import AlreadyConnectedException
 from com.sun.star.mail import MailException
 
 from .imapservice import ImapService
+from .apihelper import parseMessage
 from .apihelper import setDefaultFolder
 
 from ..unotool import getExceptionMessage
@@ -45,6 +46,7 @@ from ..unotool import hasInterface
 
 from ..oauth2 import getOAuth2Token
 from ..oauth2 import getRequest
+
 
 import traceback
 
@@ -89,7 +91,7 @@ class ImapApiService(ImapService):
 
     def uploadMessage(self, folder, message):
         url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter = self._server.getRequestParameter('uploadMessage')
         parameter.Method = 'POST'
         parameter.Url = url + 'send'
         parameter.Json = '{"raw": "%s"}' % message.asString(True)
@@ -98,8 +100,10 @@ class ImapApiService(ImapService):
         except Exception as e:
             msg = self._logger.resolveString(253, message.Subject, getExceptionMessage(e))
             raise MailException(msg, self)
-        if response.IsPresent:
-            messageid = response.Value.getValue('id')
-            labels = response.Value.getValue('labelIds')
-            setDefaultFolder(self._server, url, messageid, labels, folder)
-            message.MessageId = messageid
+        else:
+            if response.Ok:
+                messageid, labels = parseMessage(response)
+                setDefaultFolder(self._server, url, messageid, labels, folder)
+                message.MessageId = messageid
+            response.close()
+

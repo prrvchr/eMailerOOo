@@ -52,4 +52,5 @@ g_defaultlog = 'smtpMailerLogger'
 g_errorlog = 'smtpMailerError'
 g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'
+g_chunk = 256 * 1024
 

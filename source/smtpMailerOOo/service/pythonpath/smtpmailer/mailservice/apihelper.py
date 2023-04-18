@@ -27,9 +27,31 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
+from ..configuration import g_chunk
 
+from .. import ijson
 import traceback
+
+
+def parseMessage(response):
+    messageid = None
+    labels = []
+    events = ijson.sendable_list()
+    parser = ijson.parse_coro(events)
+    iterator = response.iterContent(g_chunk, False)
+    while iterator.hasMoreElements():
+        chunk = iterator.nextElement().value
+        print("ApiHelper.parseMessage() Content:\n%s" % chunk.decode('utf-8'))
+        parser.send(chunk)
+        for prefix, event, value in events:
+            print("ApiHelper.parseMessage() Prefix: %s - Event: %s - Value: %s" % (prefix, event, value))
+            if (prefix, event) == ('id', 'string'):
+                messageid = value
+            elif (prefix, event) == ('labelIds.item', 'string'):
+                labels.append(value)
+        del events[:]
+    parser.close()
+    return messageid, labels
 
 def setDefaultFolder(server, url, messageid, labels, folder='SENT'):
     labelids = []
@@ -37,8 +59,9 @@ def setDefaultFolder(server, url, messageid, labels, folder='SENT'):
         if label != folder:
             labelids.append(label)
     if labelids:
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter = server.getRequestParameter('getDefaultFolder')
         parameter.Method = 'POST'
         parameter.Url = url + '%s/modify' % messageid
         parameter.Json = '{"addLabelIds": [], "removeLabelIds": ["%s"]}' % '","'.join(labelids)
         response = server.execute(parameter)
+

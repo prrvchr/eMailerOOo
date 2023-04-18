@@ -36,6 +36,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.mail import MailException
 
 from .smtpservice import SmtpService
+
+from .apihelper import parseMessage
 from .apihelper import setDefaultFolder
 
 from ..oauth2 import getRequest
@@ -82,7 +84,7 @@ class SmtpApiService(SmtpService):
 
     def sendMailMessage(self, message):
         url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'
-        parameter = uno.createUnoStruct('com.sun.star.auth.RestRequestParameter')
+        parameter = self._server.getRequestParameter('sendMailMessage')
         parameter.Method = 'POST'
         parameter.Url = url + 'send'
         parameter.Json = '{"threadId": "%s", "raw": "%s"}' % (message.ThreadId, message.asString(True))
@@ -91,8 +93,10 @@ class SmtpApiService(SmtpService):
         except Exception as e:
             msg = self._logger.resolveString(253, message.Subject, getExceptionMessage(e))
             raise MailException(msg, self)
-        if response.IsPresent:
-            messageid = response.Value.getValue('id')
-            labels = response.Value.getValue('labelIds')
-            setDefaultFolder(self._server, url, messageid, labels)
-            message.MessageId = messageid
+        else:
+            if response.Ok:
+                messageid, labels = parseMessage(response)
+                setDefaultFolder(self._server, url, messageid, labels)
+                message.MessageId = messageid
+            response.close()
+

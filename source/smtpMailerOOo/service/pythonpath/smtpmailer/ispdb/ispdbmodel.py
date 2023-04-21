@@ -219,8 +219,8 @@ class IspdbModel(unohelper.Base):
         response = request.execute(parameter)
         if not response.Ok:
             if response.StatusCode == NOT_FOUND:
-                return uno.createUnoStruct('com.sun.star.beans.Optional<com.sun.star.auth.XRestKeyMap>')
-            response.raiseForStatus()
+                return KeyMap()
+            response.raiseForStatus(False)
         config = self._parseIspdbConfig(response)
         response.close()
         return config

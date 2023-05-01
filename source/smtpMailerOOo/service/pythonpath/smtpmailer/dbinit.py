@@ -35,6 +35,7 @@ from .unotool import getSimpleFile
 
 from .dbconfig import g_folder
 from .dbconfig import g_version
+from .dbconfig import g_csv
 
 from .dbqueries import getSqlQuery
 
@@ -80,7 +81,7 @@ def _createDataBase(ctx, datasource, url, dbname):
         version, error = checkDataBase(ctx, connection)
         if error is None:
             statement = connection.createStatement()
-            createStaticTable(ctx, statement, _getStaticTables())
+            createStaticTable(ctx, statement, _getStaticTables(), g_csv)
             tables, queries = _getTablesAndStatements(ctx, statement, version)
             executeSqlQueries(statement, tables)
             _executeQueries(ctx, statement, _getQueries())

@@ -53,6 +53,7 @@ from .dbqueries import getSqlQuery
 
 from .dbconfig import g_folder
 from .dbconfig import g_jar
+from .dbconfig import g_csv
 
 from .dbtool import checkDataBase
 from .dbtool import createDataSource
@@ -441,7 +442,7 @@ class DataBase(unohelper.Base):
         version, error = checkDataBase(self._ctx, connection)
         if error is None:
             statement = connection.createStatement()
-            createStaticTable(self._ctx, statement, getStaticTables(), True)
+            createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
             tables, statements = getTablesAndStatements(self._ctx, connection, version)
             executeSqlQueries(statement, tables)
             executeQueries(self._ctx, statement, getQueries())

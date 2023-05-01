@@ -40,6 +40,7 @@ from .unotool import getSimpleFile
 from .dbconfig import g_path
 from .dbconfig import g_version
 from .dbconfig import g_role
+from .dbconfig import g_csv
 
 from .dbtool import registerDataSource
 from .dbtool import executeQueries
@@ -78,7 +79,7 @@ def createDataBase(ctx, connection):
     version, error = checkDataBase(ctx, connection)
     if error is None:
         statement = connection.createStatement()
-        createStaticTable(statement, getStaticTables(), True)
+        createStaticTable(statement, getStaticTables(), g_csv, True)
         tables, statements = getTablesAndStatements(statement, version)
         executeSqlQueries(statement, tables)
         executeQueries(statement, getViews())
@@ -188,6 +189,7 @@ def getQueries():
             ('createGetItemParentIds',{'Role': g_role}),
             ('createInsertUser',{'Role': g_role}),
             ('createMergeItem',{'Role': g_role}),
+            ('createMergeParent',{'Role': g_role}),
             ('createInsertItem',{'Role': g_role}),
             ('createPullChanges',{'Role': g_role}),
             ('createUpdateNewItemId',{'Role': g_role}))

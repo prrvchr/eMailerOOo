@@ -78,7 +78,10 @@ This extension is necessary to use HsqlDB version 2.5.1 with all its features.
   - ![gContactOOo logo][23] **[gContactOOo.oxt][24]** version 0.0.6.  
   This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 
-- Install ![smtpMailerOOo logo][25] **[smtpMailerOOo.oxt][26]** extension version 0.0.3.  
+  - ![mContactOOo logo][25] **[mContactOOo.oxt][26]** version 0.0.1.  
+  This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
+
+- Install ![smtpMailerOOo logo][27] **[smtpMailerOOo.oxt][28]** extension version 0.0.3.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -97,11 +100,13 @@ If you do not have such a data source then I invite you to install one of the fo
 This extension will allow you to use your contacts present on a [**Nextcloud**][22] platform as a data source.
 - [gContactOOo][24] extension.  
 This extension will allow you to use your Android phone (your phone contacts) as a datasource.
+- [mContactOOo][25] extension.  
+This extension will allow you to use your Microsoft Outlook contacts as a datasource.
 
 This mode of use is made up of 3 sections:
-- [Merging emails to mailing lists][27].
-- [Configure connection][28].
-- [Outgoing emails][29].
+- [Merging emails to mailing lists][29].
+- [Configure connection][30].
+- [Outgoing emails][31].
 
 ### Merging emails to mailing lists:
 
@@ -118,25 +123,25 @@ These merge fields should only reference the **main table** of the data source.
 
 In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 
-![smtpMailerOOo Merger screenshot 1][30]
+![smtpMailerOOo Merger screenshot 1][32]
 
 #### Data source selection:
 
 The datasource load for the **Email merging** wizard should appear: 
 
-![smtpMailerOOo Merger screenshot 2][31]
+![smtpMailerOOo Merger screenshot 2][33]
 
 The following screenshots use the [gContactOOo][24] extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
 In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `PUBLIC.All my contacts` is selected.
 
-![smtpMailerOOo Merger screenshot 3][32]
+![smtpMailerOOo Merger screenshot 3][34]
 
 If no mailing list exists, you need to create one, by entering its name and validating with: `ENTER` or the `Add` button.
 
 Make sure when creating the mailing list that the **main table** is always selected.
 
-![smtpMailerOOo Merger screenshot 4][33]
+![smtpMailerOOo Merger screenshot 4][35]
 
 Now that your new mailing list is available in the list, you need to select it.
 
@@ -145,10 +150,10 @@ And add the following columns:
 - Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
-In addition, on Recipients selection step of the wizard, in the [Available recipients][34] tab, only records with at least one email address column entered will be listed.  
+In addition, on Recipients selection step of the wizard, in the [Available recipients][36] tab, only records with at least one email address column entered will be listed.  
 So make sure you have an address book with at least one of the email address columns entered.
 
-![smtpMailerOOo Merger screenshot 5][35]
+![smtpMailerOOo Merger screenshot 5][37]
 
 This setting is to be made only for new mailing lists.  
 You can now proceed to the next step.
@@ -161,11 +166,11 @@ The recipients are selected using 2 buttons `Add all` and `Add` allowing respect
 - Either add the group of recipients selected from the `Address book` list. This allows during a mailing, that the modifications of the contents of the group are taken into account. A mailing list only accepts one group.
 - Either add the selection, which can be multiple using the `CTRL` key. This selection is immutable regardless of the modification of the address book groups.
 
-![smtpMailerOOo Merger screenshot 6][36]
+![smtpMailerOOo Merger screenshot 6][38]
 
 Example of multiple selection:
 
-![smtpMailerOOo Merger screenshot 7][37]
+![smtpMailerOOo Merger screenshot 7][39]
 
 ##### Selected recipients:
 
@@ -173,7 +178,7 @@ The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing
 - Either remove the group that has been assigned to this mailing list. This is necessary in order to be able to edit the content of this mailing list again.
 - Either remove the selection, which can be multiple using the `CTRL` key. 
 
-![smtpMailerOOo Merger screenshot 8][38]
+![smtpMailerOOo Merger screenshot 8][40]
 
 If you have selected at least 1 recipient, you can proceed to the next step.
 
@@ -181,21 +186,21 @@ If you have selected at least 1 recipient, you can proceed to the next step.
 
 If this is not already done, you must create a new sender using the `Add` button.
 
-![smtpMailerOOo Merger screenshot 9][39]
+![smtpMailerOOo Merger screenshot 9][41]
 
-The creation of the new sender is described in the [Configure connection][40] section.
+The creation of the new sender is described in the [Configure connection][42] section.
 
 The email must have a subject. It can be saved in the Writer document.
 
-![smtpMailerOOo Merger screenshot 10][41]
+![smtpMailerOOo Merger screenshot 10][43]
 
 The email may optionally have attached files. They can be saved in the Writer document.  
 The following screenshot shows 1 attached file which will be merged on the data source then converted to PDF format before being attached to the email.
 
-![smtpMailerOOo Merger screenshot 11][42]
+![smtpMailerOOo Merger screenshot 11][44]
 
 Make sure to always exit the wizard with the `Finish` button to confirm submitting the send jobs.  
-To submit mailing jobs, please follow the section [Outgoing emails][43].
+To submit mailing jobs, please follow the section [Outgoing emails][45].
 
 ### Configure connection:
 
@@ -203,27 +208,27 @@ To submit mailing jobs, please follow the section [Outgoing emails][43].
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
 
-![smtpMailerOOo Ispdb screenshot 1][44]
+![smtpMailerOOo Ispdb screenshot 1][46]
 
 #### Account selection:
 
-![smtpMailerOOo Ispdb screenshot 2][45]
+![smtpMailerOOo Ispdb screenshot 2][47]
 
 #### Find the configuration:
 
-![smtpMailerOOo Ispdb screenshot 3][46]
+![smtpMailerOOo Ispdb screenshot 3][48]
 
 #### SMTP configuration:
 
-![smtpMailerOOo Ispdb screenshot 4][47]
+![smtpMailerOOo Ispdb screenshot 4][49]
 
 #### IMAP configuration:
 
-![smtpMailerOOo Ispdb screenshot 5][48]
+![smtpMailerOOo Ispdb screenshot 5][50]
 
 #### Connection test:
 
-![smtpMailerOOo Ispdb screenshot 6][49]
+![smtpMailerOOo Ispdb screenshot 6][51]
 
 Always exit the wizard with the `Finish` button to save the connection settings.
 
@@ -233,16 +238,16 @@ Always exit the wizard with the `Finish` button to save the connection settings.
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
 
-![smtpMailerOOo Spooler screenshot 1][50]
+![smtpMailerOOo Spooler screenshot 1][52]
 
 #### List of outgoing emails:
 
 Each send job has 3 different states:
 - State **0**: the email is ready for sending.
 - State **1**: the email was sent successfully.
-- State **2**: An error occurred while sending the email. You can view the error message in the [Spooler activity log][51]. 
+- State **2**: An error occurred while sending the email. You can view the error message in the [Spooler activity log][53]. 
 
-![smtpMailerOOo Spooler screenshot 2][52]
+![smtpMailerOOo Spooler screenshot 2][54]
 
 The email spooler is stopped by default. **It must be started with the `Start / Stop` button so that the pending emails are sent**.
 
@@ -250,31 +255,31 @@ The email spooler is stopped by default. **It must be started with the `Start / 
 
 When the email spooler is started, its activity can be viewed in the activity log.
 
-![smtpMailerOOo Spooler screenshot 3][53]
+![smtpMailerOOo Spooler screenshot 3][55]
 
 ## Historical:
 
 ### What has been done for version 0.0.1:
 
-- Writing an [IspDB][54] or SMTP servers connection configuration wizard allowing:
-    - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database][55] or IspDB, which made this challenge possible...
+- Writing an [IspDB][56] or SMTP servers connection configuration wizard allowing:
+    - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database][57] or IspDB, which made this challenge possible...
     - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
 
-- Writing an email [Spooler][56] allowing:
+- Writing an email [Spooler][58] allowing:
     - View the email sending jobs with their respective status.
     - Display the activity of the UNO service `com.sun.star.mail.SpoolerService` when sending emails.
     - Start and stop the spooler service.
 
-- Writing an email [Merger][57] allowing:
+- Writing an email [Merger][59] allowing:
     - To create mailing lists.
     - To merge and convert the current document to HTML format to make it the email message.
     - To merge and/or convert in PDF format any possible files attached to the email. 
 
-- Writing a document [Mailer][58] allowing:
+- Writing a document [Mailer][60] allowing:
     - To convert the document to HTML format to make it the email message.
     - To convert in PDF format any possible files attached to the email.
 
-- Writing a [Grid][59] driven by a `com.sun.star.sdb.RowSet` allowing:
+- Writing a [Grid][61] driven by a `com.sun.star.sdb.RowSet` allowing:
     - To be configurable on the columns to be displayed.
     - To be configurable on the sort order to be displayed.
     - Save the display settings.
@@ -282,31 +287,31 @@ When the email spooler is started, its activity can be viewed in the activity lo
 ### What has been done for version 0.0.2:
 
 - Rewrite of [IspDB][54] or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
-  - Use of [IMAPClient][60] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
-  - Extension of [com.sun.star.mail.*][61] IDL files:
-    - [XMailMessage2.idl][62] now supports email threading.
-    - The new [XImapService.idl][63] interface allows access to part of the IMAPClient library.
+  - Use of [IMAPClient][62] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
+  - Extension of [com.sun.star.mail.*][63] IDL files:
+    - [XMailMessage2.idl][64] now supports email threading.
+    - The new [XImapService.idl][65] interface allows access to part of the IMAPClient library.
 
-- Rewriting of the [Spooler][64] in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
+- Rewriting of the [Spooler][66] in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
 
 - Submitting the smtpMailerOOo extension to Google and obtaining permission to use its GMail API to send emails with a Google account.
 
 ### What has been done for version 0.0.3:
 
-- Rewrote the [Grid][59] to allow:
-  - Sorting on a column with the integration of the UNO service [SortableGridDataModel][65].
-  - To generate the filter of records needed by the service [Spooler][56].
-  - Sharing the python module with the [jdbcDriverOOo][66] extension.
+- Rewrote the [Grid][61] to allow:
+  - Sorting on a column with the integration of the UNO service [SortableGridDataModel][67].
+  - To generate the filter of records needed by the service [Spooler][58].
+  - Sharing the python module with the [jdbcDriverOOo][68] extension.
 
-- Rewrote the [Merger][57] to allow:
-  - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][67]
+- Rewrote the [Merger][59] to allow:
+  - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][69]
   - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
-  - The use of primary key, which can be composite, supporting [DataType][68] `VARCHAR` and `INTEGER` or derived.
-  - A preview of the document with merge fields filled in faster thanks to the [Grid][59].
+  - The use of primary key, which can be composite, supporting [DataType][70] `VARCHAR` and `INTEGER` or derived.
+  - A preview of the document with merge fields filled in faster thanks to the [Grid][61].
 
-- Rewrote the [Spooler][56] to allow:
-  - The use of new filters supporting composite primary keys provided by the [Merger][57].
-  - The use of the new [Grid][59] allowing sorting on a column.
+- Rewrote the [Spooler][58] to allow:
+  - The use of new filters supporting composite primary keys provided by the [Merger][59].
+  - The use of the new [Grid][61] allowing sorting on a column.
 
 - Many other things...
 
@@ -340,47 +345,49 @@ When the email spooler is started, its activity can be viewed in the activity lo
 [22]: <https://en.wikipedia.org/wiki/Nextcloud>
 [23]: <https://prrvchr.github.io/gContactOOo/img/gContactOOo.png>
 [24]: <https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt>
-[25]: <img/smtpMailerOOo.png>
-[26]: <https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt>
-[27]: <https://prrvchr.github.io/smtpMailerOOo/#merging-emails-to-mailing-lists>
-[28]: <https://prrvchr.github.io/smtpMailerOOo/#configure-connection>
-[29]: <https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails>
-[30]: <img/smtpMailerOOo-Merger1.png>
-[31]: <img/smtpMailerOOo-Merger2.png>
-[32]: <img/smtpMailerOOo-Merger3.png>
-[33]: <img/smtpMailerOOo-Merger4.png>
-[34]: <https://prrvchr.github.io/smtpMailerOOo/#available-recipients>
-[35]: <img/smtpMailerOOo-Merger5.png>
-[36]: <img/smtpMailerOOo-Merger6.png>
-[37]: <img/smtpMailerOOo-Merger7.png>
-[38]: <img/smtpMailerOOo-Merger8.png>
-[39]: <img/smtpMailerOOo-Merger9.png>
-[40]: <https://prrvchr.github.io/smtpMailerOOo/#configure-connection>
-[41]: <img/smtpMailerOOo-Merger10.png>
-[42]: <img/smtpMailerOOo-Merger11.png>
-[43]: <https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails>
-[44]: <img/smtpMailerOOo-Ispdb1.png>
-[45]: <img/smtpMailerOOo-Ispdb2.png>
-[46]: <img/smtpMailerOOo-Ispdb3.png>
-[47]: <img/smtpMailerOOo-Ispdb4.png>
-[48]: <img/smtpMailerOOo-Ispdb5.png>
-[49]: <img/smtpMailerOOo-Ispdb6.png>
-[50]: <img/smtpMailerOOo-Spooler1.png>
-[51]: <https://prrvchr.github.io/smtpMailerOOo/#spooler-activity-log>
-[52]: <img/smtpMailerOOo-Spooler2.png>
-[53]: <img/smtpMailerOOo-Spooler3.png>
-[54]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/ispdb>
-[55]: <https://wiki.mozilla.org/Thunderbird/ISPDB>
-[56]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/spooler>
-[57]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/merger>
-[58]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailer>
-[59]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid>
-[60]: <https://github.com/mjs/imapclient#readme>
-[61]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/idl/com/sun/star/mail>
-[62]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
-[63]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
-[65]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
-[66]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
-[67]: <https://prrvchr.github.io/jdbcDriverOOo/>
-[68]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[25]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.png>
+[26]: <https://github.com/prrvchr/mContactOOo/raw/main/mContactOOo.oxt>
+[27]: <img/smtpMailerOOo.png>
+[28]: <https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt>
+[29]: <https://prrvchr.github.io/smtpMailerOOo/#merging-emails-to-mailing-lists>
+[30]: <https://prrvchr.github.io/smtpMailerOOo/#configure-connection>
+[31]: <https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails>
+[32]: <img/smtpMailerOOo-Merger1.png>
+[33]: <img/smtpMailerOOo-Merger2.png>
+[34]: <img/smtpMailerOOo-Merger3.png>
+[35]: <img/smtpMailerOOo-Merger4.png>
+[36]: <https://prrvchr.github.io/smtpMailerOOo/#available-recipients>
+[37]: <img/smtpMailerOOo-Merger5.png>
+[38]: <img/smtpMailerOOo-Merger6.png>
+[39]: <img/smtpMailerOOo-Merger7.png>
+[40]: <img/smtpMailerOOo-Merger8.png>
+[41]: <img/smtpMailerOOo-Merger9.png>
+[42]: <https://prrvchr.github.io/smtpMailerOOo/#configure-connection>
+[43]: <img/smtpMailerOOo-Merger10.png>
+[44]: <img/smtpMailerOOo-Merger11.png>
+[45]: <https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails>
+[46]: <img/smtpMailerOOo-Ispdb1.png>
+[47]: <img/smtpMailerOOo-Ispdb2.png>
+[48]: <img/smtpMailerOOo-Ispdb3.png>
+[49]: <img/smtpMailerOOo-Ispdb4.png>
+[50]: <img/smtpMailerOOo-Ispdb5.png>
+[51]: <img/smtpMailerOOo-Ispdb6.png>
+[52]: <img/smtpMailerOOo-Spooler1.png>
+[53]: <https://prrvchr.github.io/smtpMailerOOo/#spooler-activity-log>
+[54]: <img/smtpMailerOOo-Spooler2.png>
+[55]: <img/smtpMailerOOo-Spooler3.png>
+[56]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/ispdb>
+[57]: <https://wiki.mozilla.org/Thunderbird/ISPDB>
+[58]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/spooler>
+[59]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/merger>
+[60]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailer>
+[61]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid>
+[62]: <https://github.com/mjs/imapclient#readme>
+[63]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/idl/com/sun/star/mail>
+[64]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
+[65]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl>
+[66]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
+[67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
+[68]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
+[69]: <https://prrvchr.github.io/jdbcDriverOOo/>
+[70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>

@@ -100,7 +100,7 @@ If you do not have such a data source then I invite you to install one of the fo
 This extension will allow you to use your contacts present on a [**Nextcloud**][22] platform as a data source.
 - [gContactOOo][24] extension.  
 This extension will allow you to use your Android phone (your phone contacts) as a datasource.
-- [mContactOOo][25] extension.  
+- [mContactOOo][26] extension.  
 This extension will allow you to use your Microsoft Outlook contacts as a datasource.
 
 This mode of use is made up of 3 sections:

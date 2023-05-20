@@ -24,41 +24,39 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<oor:component-data
-  xml:lang="en-US"
-  xmlns:oor="http://openoffice.org/2001/registry"
+<oor:component-data oor:name="smtpMailerOOo" oor:package="io.github.prrvchr"
+  xsi:schemaLocation="http://openoffice.org/2001/registry/component-update.xsd"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  oor:package="io.github.prrvchr"
-  oor:name="smtpMailerOOo">
-    <prop oor:name="ConnectTimeout" oor:op="fuse">
-        <value>15</value>
-    </prop>
-    <prop oor:name="IspDBUrl" oor:op="fuse">
-        <value>https://autoconfig.thunderbird.net/v1.1/</value>
-    </prop>
-    <prop oor:name="SpoolerTable" oor:op="fuse">
-        <value>Spooler</value>
-    </prop>
-    <prop oor:name="SpoolerColumns" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="SpoolerOrders" oor:op="fuse">
-        <value>[-1, true]</value>
-    </prop>
-    <prop oor:name="MergerLoadDataSource" oor:op="fuse">
-        <value>true</value>
-    </prop>
-    <prop oor:name="MergerGrid1Columns" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="MergerGrid2Columns" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="MergerGrid1Orders" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="MergerGrid2Orders" oor:op="fuse">
-        <value>{}</value>
-    </prop>
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <prop oor:name="ConnectTimeout" oor:op="fuse">
+    <value>15</value>
+  </prop>
+  <prop oor:name="IspDBUrl" oor:op="fuse">
+    <value>https://autoconfig.thunderbird.net/v1.1/</value>
+  </prop>
+  <prop oor:name="SpoolerTable" oor:op="fuse">
+    <value>Spooler</value>
+  </prop>
+  <prop oor:name="SpoolerColumns" oor:op="fuse">
+    <value>{}</value>
+  </prop>
+  <prop oor:name="SpoolerOrders" oor:op="fuse">
+    <value>[-1, true]</value>
+  </prop>
+  <prop oor:name="MergerLoadDataSource" oor:op="fuse">
+    <value>true</value>
+  </prop>
+  <prop oor:name="MergerGrid1Columns" oor:op="fuse">
+    <value>{}</value>
+  </prop>
+  <prop oor:name="MergerGrid2Columns" oor:op="fuse">
+    <value>{}</value>
+  </prop>
+  <prop oor:name="MergerGrid1Orders" oor:op="fuse">
+    <value>{}</value>
+  </prop>
+  <prop oor:name="MergerGrid2Orders" oor:op="fuse">
+    <value>{}</value>
+  </prop>
 </oor:component-data>

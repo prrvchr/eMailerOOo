@@ -27,13 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .parameterizedprovider import ParameterizedProvider
-
-from .options import OptionsManager
-
-from .logger import getLogger
-
-from .configuration import g_identifier
-from .configuration import g_basename
-from .configuration import g_defaultlog
-
+# FIXME: For OpenOffice with python 2.7.x we need to be able to do absolute import
+# FIXME: ie: import from PYTHONPATH module before inner modules
+from __future__ import absolute_import
+try:
+    # FIXME: We try to load the _cffi_backend module from the PYTHONPATH
+    import _cffi_backend
+except:
+    # FIXME: If _cffi_backend if not fount we load the embedded inner _cffi_backend module
+    from . import _cffi_backend

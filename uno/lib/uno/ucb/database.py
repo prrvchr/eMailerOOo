@@ -227,9 +227,12 @@ class DataBase():
         #    ['Title', 'Size', 'DateModified', 'DateCreated', 'IsFolder', 'TargetURL', 'IsHidden',
         #    'IsVolume', 'IsRemote', 'IsRemoveable', 'IsFloppy', 'IsCompactDisc']
         # "TargetURL" is done by: the database view Path
-        select.setString(1, scheme)
-        select.setShort(2, mode)
-        select.setString(3, itemid)
+        i = 1
+        if 'TargetURL' in (property.Name for property in properties):
+            select.setString(i, scheme)
+            i += 1
+        select.setShort(i , mode)
+        select.setString(i +1, itemid)
         return select
 
     def updateConnectionMode(self, userid, itemid, value, default):
@@ -520,7 +523,7 @@ class DataBase():
     def _mergeParent(self, call, item, timestamp):
         call.setString(1, item[0])
         self._setPath(call, 2, item[-2])
-        call.setArray(3, Array('VARCHAR', item[-1]))
+        call.setArray(3, Array('VARCHAR', tuple(item[-1])))
         call.setObject(4, timestamp)
         call.addBatch()
 

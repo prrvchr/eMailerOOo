@@ -399,7 +399,7 @@ I will try to solve it ;-)
 [55]: <img/smtpMailerOOo-Spooler2.png>
 [56]: <img/smtpMailerOOo-Spooler3.png>
 [57]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/ispdb>
-[58]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration:ConfigFileFormat>
+[58]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
 [59]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/spooler>
 [60]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/merger>
 [61]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailer>

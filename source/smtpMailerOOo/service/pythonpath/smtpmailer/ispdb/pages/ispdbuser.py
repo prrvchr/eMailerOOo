@@ -32,19 +32,20 @@ import unohelper
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
+import json
 import traceback
 
 
 class IspdbUser(unohelper.Base):
     def __init__(self, user):
         self._user = user
-        self._metadata = user.toJson()
+        self._metadata = json.dumps(user, sort_keys=True)
         self._smtp = SMTP.value
         self._imap = IMAP.value
 
     @property
     def ThreadId(self):
-        return self._user.getValue('ThreadId')
+        return self._user.get('ThreadId')
     @ThreadId.setter
     def ThreadId(self, thread):
         self._user.setValue('ThreadId', thread)
@@ -53,19 +54,20 @@ class IspdbUser(unohelper.Base):
         self._user.update(user)
 
     def isUpdated(self):
-        return self._user.toJson() != self._metadata
+        metadata = json.dumps(self._user, sort_keys=True)
+        return metadata != self._metadata
 
     def getServer(self, service):
-        return self._user.getValue(service + 'Server')
+        return self._user.get(service + 'Server')
 
     def getPort(self, service):
-        return self._user.getValue(service + 'Port')
+        return self._user.get(service + 'Port')
 
     def getLogin(self, service):
-        return self._user.getValue(service + 'Login')
+        return self._user.get(service + 'Login')
 
     def getPassword(self, service):
-        return self._user.getValue(service + 'Password')
+        return self._user.get(service + 'Password')
 
     def hasThread(self):
         return self.ThreadId is not None
@@ -76,7 +78,7 @@ class IspdbUser(unohelper.Base):
                     self.getLogin(self._imap)))
 
     def getDomain(self):
-        return self._user.getValue('Domain')
+        return self._user.get('Domain')
 
     def getConfig(self):
         return self._user

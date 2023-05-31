@@ -50,10 +50,11 @@ class Authenticator(unohelper.Base,
 
 # XAuthenticator
     def getUserName(self):
-        return self._user.getValue(self._service + 'Login')
+        return self._user.get(self._service + 'Login')
 
     def getPassword(self):
-        return self._user.getValue(self._service + 'Password')
+        return self._user.get(self._service + 'Password')
+
 
 class CurrentContext(unohelper.Base,
                      XCurrentContext):
@@ -63,7 +64,7 @@ class CurrentContext(unohelper.Base,
 
 # XCurrentContext
     def getValueByName(self, name):
-        return self._context.getValue(self._service + name)
+        return self._context.get(self._service + name)
 
 
 class MailTransferable(unohelper.Base,

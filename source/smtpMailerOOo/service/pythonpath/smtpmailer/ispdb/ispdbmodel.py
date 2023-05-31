@@ -45,8 +45,6 @@ from com.sun.star.rest import RequestException
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..unolib import KeyMap
-
 from ..mailerlib import CurrentContext
 from ..mailerlib import Authenticator
 from ..mailerlib import MailTransferable
@@ -219,7 +217,7 @@ class IspdbModel(unohelper.Base):
         response = request.execute(parameter)
         if not response.Ok:
             if response.StatusCode == NOT_FOUND:
-                return KeyMap()
+                return {}
             response.raiseForStatus(False)
         config = self._parseIspdbConfig(response)
         response.close()
@@ -229,7 +227,7 @@ class IspdbModel(unohelper.Base):
         smtps = []
         imaps = []
         domains = []
-        config = KeyMap()
+        config = {}
         map1 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
         map2 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
                 'password-encrypted': 2, 'secure': 2, 'OAuth2': 3}
@@ -243,9 +241,9 @@ class IspdbModel(unohelper.Base):
                 if element.tag != 'emailProvider':
                     continue
                 provider = element.get('id')
-                config.setValue('Provider', provider)
-                config.setValue('DisplayName', element.find('displayName').text)
-                config.setValue('DisplayShortName', element.find('displayShortName').text)
+                config['Provider'] = provider
+                config['DisplayName'] = element.find('displayName').text
+                config['DisplayShortName'] = element.find('displayShortName').text
                 for child in element.findall('domain'):
                     if child.text != provider:
                         domains.append(child.text)
@@ -255,19 +253,19 @@ class IspdbModel(unohelper.Base):
                 for child in element.findall('incomingServer'):
                     if child.get('type') == 'imap':
                         imaps.append(self._parseServer(child, IMAP.value, map1, map2, map3))
-        config.setValue('Domains', tuple(domains))
-        config.setValue(SMTP.value, tuple(smtps))
-        config.setValue(IMAP.value, tuple(imaps))
+        config['Domains'] = tuple(domains)
+        config[SMTP.value] = tuple(smtps)
+        config[IMAP.value] = tuple(imaps)
         return config
 
     def _parseServer(self, element, service, map1, map2, map3):
-        server = KeyMap()
-        server.setValue('Service', service)
-        server.setValue('Server', element.find('hostname').text)
-        server.setValue('Port', int(element.find('port').text))
-        server.setValue('Connection', map1.get(element.find('socketType').text, 0))
-        server.setValue('Authentication', map2.get(element.find('authentication').text, 0))
-        server.setValue('LoginMode', map3.get(element.find('username').text, 1))
+        server = {}
+        server['Service'] = service
+        server['Server'] = element.find('hostname').text
+        server['Port'] = int(element.find('port').text)
+        server['Connection'] = map1.get(element.find('socketType').text, 0)
+        server['Authentication'] = map2.get(element.find('authentication').text, 0)
+        server['LoginMode'] = map3.get(element.find('username').text, 1)
         return server
 
     def setServerConfig(self, user, servers, offline):
@@ -286,14 +284,14 @@ class IspdbModel(unohelper.Base):
         return self._version
 
     def getConfig(self, service):
-        config = KeyMap()
-        config.setValue('First', self._servers.isFirst(service))
-        config.setValue('Last', self._servers.isLast(service))
-        config.setValue('Page', self._servers.getServerPage(service))
-        config.setValue('Default', self._servers.isDefaultPage(service, self._user))
+        config = {}
+        config['First'] = self._servers.isFirst(service)
+        config['Last'] = self._servers.isLast(service)
+        config['Page'] = self._servers.getServerPage(service)
+        config['Default'] = self._servers.isDefaultPage(service, self._user)
         config.update(self._servers.getCurrentServer(service))
-        config.setValue('Login', self._getLogin(service))
-        config.setValue('Password', self._getPassword(service))
+        config['Login'] = self._getLogin(service)
+        config['Password'] = self._getPassword(service)
         return config
 
     def isConnectionValid(self, host, port):

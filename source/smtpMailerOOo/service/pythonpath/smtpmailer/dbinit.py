@@ -29,7 +29,6 @@
 
 from com.sun.star.sdbc import SQLException
 
-from .unolib import KeyMap
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 
@@ -46,7 +45,6 @@ from .dbtool import executeSqlQueries
 from .dbtool import getDataFromResult
 from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
-from .dbtool import getKeyMapFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import registerDataSource
 
@@ -143,33 +141,33 @@ def getTablesAndStatements(ctx, connection, version=g_version):
         call.setString(1, table)
         result = call.executeQuery()
         while result.next():
-            data = getKeyMapFromResult(result, KeyMap())
-            view = data.getValue('View')
-            versioned = data.getValue('Versioned')
-            column = data.getValue('Column')
+            data = getDataFromResult(result)
+            view = data.get('View')
+            versioned = data.get('Versioned')
+            column = data.get('Column')
             definition = '"%s"' % column
-            definition += ' %s' % data.getValue('Type')
-            default = data.getValue('Default')
+            definition += ' %s' % data.get('Type')
+            default = data.get('Default')
             definition += ' DEFAULT %s' % default if default else ''
-            options = data.getValue('Options')
+            options = data.get('Options')
             definition += ' %s' % options if options else ''
             columns.append(definition)
-            if data.getValue('Primary'):
+            if data.get('Primary'):
                 primary.append('"%s"' % column)
-            if data.getValue('Unique'):
+            if data.get('Unique'):
                 unique.append({'Table': table, 'Column': column})
-            if data.getValue('ForeignTable') and data.getValue('ForeignColumn'):
-                foreign = data.getValue('ForeignTable')
+            if data.get('ForeignTable') and data.get('ForeignColumn'):
+                foreign = data.get('ForeignTable')
                 if foreign in constraint:
                     constraint[foreign]['ColumnNames'] += column
                     constraint[foreign]['Columns'] += ',"%s"' % column
-                    constraint[foreign]['ForeignColumns'] += ',"%s"' % data.getValue('ForeignColumn')
+                    constraint[foreign]['ForeignColumns'] += ',"%s"' % data.get('ForeignColumn')
                 else:
                     constraint[foreign] = {'Table': table,
                                            'ColumnNames': column,
                                            'Columns': '"%s"' % column,
                                            'ForeignTable': foreign,
-                                           'ForeignColumns': '"%s"' % data.getValue('ForeignColumn')}
+                                           'ForeignColumns': '"%s"' % data.get('ForeignColumn')}
         result.close()
         if primary:
             columns.append(getSqlQuery(ctx, 'getPrimayKey', primary))

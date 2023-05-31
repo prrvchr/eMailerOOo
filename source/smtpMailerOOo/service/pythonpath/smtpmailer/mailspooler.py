@@ -347,28 +347,28 @@ class Mailer(unohelper.Base):
 
     @property
     def Merge(self):
-        return self._metadata.getValue('Merge')
+        return self._metadata.get('Merge')
     @property
     def Sender(self):
-        return self._metadata.getValue('Sender')
+        return self._metadata.get('Sender')
     @property
     def Subject(self):
-        return self._metadata.getValue('Subject')
+        return self._metadata.get('Subject')
     @property
     def Document(self):
-        return self._metadata.getValue('Document')
+        return self._metadata.get('Document')
     @property
     def DataSource(self):
-        return self._metadata.getValue('DataSource')
+        return self._metadata.get('DataSource')
     @property
     def Table(self):
-        return self._metadata.getValue('Table')
+        return self._metadata.get('Table')
     @property
     def Query(self):
-        return self._metadata.getValue('Query')
+        return self._metadata.get('Query')
     @property
     def ThreadId(self):
-        return self._metadata.getValue('ThreadId')
+        return self._metadata.get('ThreadId')
 
     def isNewBatch(self, batch):
         new = self._batch != batch
@@ -388,7 +388,7 @@ class Mailer(unohelper.Base):
 
     def setThreadId(self, connection, batchid, thread):
         self._database.updateMailer(connection, batchid, thread)
-        self._metadata.setValue('ThreadId', thread)
+        self._metadata['ThreadId'] = thread
 
     def dispose(self):
         if self._batch is not None:
@@ -434,11 +434,11 @@ class Mailer(unohelper.Base):
             url.dispose()
 
     def _hasImapConfig(self):
-        return all((self._metadata.getValue('IMAPServerName'),
-                    self._metadata.getValue('IMAPPort'),
-                    self._metadata.getValue('IMAPLogin'),
-                    self._metadata.getValue('IMAPConnectionType'),
-                    self._metadata.getValue('IMAPAuthenticationType')))
+        return all((self._metadata.get('IMAPServerName'),
+                    self._metadata.get('IMAPPort'),
+                    self._metadata.get('IMAPLogin'),
+                    self._metadata.get('IMAPConnectionType'),
+                    self._metadata.get('IMAPAuthenticationType')))
 
     def _hasThreadId(self):
         return self.ThreadId is not None

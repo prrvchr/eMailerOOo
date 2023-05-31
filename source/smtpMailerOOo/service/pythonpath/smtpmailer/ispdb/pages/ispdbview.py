@@ -32,8 +32,6 @@ import unohelper
 from com.sun.star.awt.FontWeight import BOLD
 from com.sun.star.awt.FontWeight import NORMAL
 
-from ...unolib import KeyMap
-
 from ...unotool import getContainerWindow
 
 from ...configuration import g_extension
@@ -105,21 +103,21 @@ class IspdbView(unohelper.Base):
 
 # IspdbView private getter methods
     def _getServer(self, service, host, port):
-        server = KeyMap()
-        server.setValue('Service', service)
-        server.setValue('Server', host)
-        server.setValue('Port', port)
+        server = {}
+        server['Service'] = service
+        server['Server'] = host
+        server['Port'] = port
         connection, authentication = self._getSecurityIndex()
-        server.setValue('Connection', connection)
-        server.setValue('Authentication', authentication)
+        server['Connection'] = connection
+        server['Authentication'] = authentication
         return server
 
     def _getUser(self, service, host, port):
-        user = KeyMap()
-        user.setValue('%sServer' % service, host)
-        user.setValue('%sPort' % service, port)
-        user.setValue('%sLogin' % service, self._getLogin().Text)
-        user.setValue('%sPassword' % service, self._getPassword().Text)
+        user = {}
+        user[service + 'Server'] = host
+        user[service + 'Port'] = port
+        user[service + 'Login'] = self._getLogin().Text
+        user[service + 'Password'] = self._getPassword().Text
         return user
 
     def _getSecurityIndex(self):
@@ -133,25 +131,25 @@ class IspdbView(unohelper.Base):
         control.Model.removeItem(control.getItemCount() -1)
 
     def _updateServerPage(self, config):
-        default = config.getValue('Default')
+        default = config.get('Default')
         control = self._getServerPage()
         control.Model.FontWeight = BOLD if default else NORMAL
-        control.Text = config.getValue('Page')
+        control.Text = config.get('Page')
 
     def _setConfiguration(self, config):
-        self._getHost().Text = config.getValue('Server')
-        self._getPort().Value = config.getValue('Port')
-        index = config.getValue('Connection')
+        self._getHost().Text = config.get('Server')
+        self._getPort().Value = config.get('Port')
+        index = config.get('Connection')
         self._getConnection().selectItemPos(index, True)
-        index = config.getValue('Authentication')
+        index = config.get('Authentication')
         self._getAuthentication().selectItemPos(index, True)
-        self._getLogin().Text = config.getValue('Login')
-        self._getPassword().Text = config.getValue('Password')
-        self._getConfirmPwd().Text = config.getValue('Password')
+        self._getLogin().Text = config.get('Login')
+        self._getPassword().Text = config.get('Password')
+        self._getConfirmPwd().Text = config.get('Password')
 
     def _enableNavigation(self, config):
-        self._enablePrevious(config.getValue('First'))
-        self._enableNext(config.getValue('Last'))
+        self._enablePrevious(config.get('First'))
+        self._enableNext(config.get('Last'))
 
     def _enablePrevious(self, isfirst):
         self._getPrevious().Model.Enabled = not isfirst

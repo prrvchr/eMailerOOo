@@ -32,8 +32,6 @@ import unohelper
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
-from ...unolib import KeyMap
-
 import json
 import traceback
 
@@ -66,7 +64,7 @@ class IspdbServer(unohelper.Base):
 
     def _setDefault(self, service, servers, user):
         if len(servers) > 0:
-            self._metadata[service] = tuple(server.toJson() for server in servers)
+            self._metadata[service] = tuple(json.dumps(server, sort_keys=True) for server in servers)
         else:
             self._metadata[service] = ()
             servers = self._getDefaultServers(service, user)
@@ -84,13 +82,13 @@ class IspdbServer(unohelper.Base):
 
     def _getDefaultServers(self, service, user):
         host = '%s.%s' % (service.lower(), user.getDomain())
-        server = KeyMap()
-        server.setValue('Service', service)
-        server.setValue('Server', host)
-        server.setValue('Port', self._default[service])
-        server.setValue('Connection', 0)
-        server.setValue('Authentication', 0)
-        server.setValue('LoginMode', 1)
+        server = {}
+        server['Service'] = service
+        server['Server'] = host
+        server['Port'] = self._default[service]
+        server['Connection'] = 0
+        server['Authentication'] = 0
+        server['LoginMode'] = 1
         return (server, )
 
     def _getIndex(self, service):
@@ -108,7 +106,7 @@ class IspdbServer(unohelper.Base):
         servers = self._servers[service]
         if port != 0:
             for s in servers:
-                if s.getValue('Server') == server and s.getValue('Port') == port:
+                if s.get('Server') == server and s.get('Port') == port:
                     default = servers.index(s)
                     break;
         return default
@@ -132,34 +130,34 @@ class IspdbServer(unohelper.Base):
         return self._getIndex(service) == self._getServerIndex(service, user)
 
     def getLoginMode(self, service):
-        return self.getCurrentServer(service).getValue('LoginMode')
+        return self.getCurrentServer(service).get('LoginMode')
 
     def getServerHost(self, service):
-        return self.getCurrentServer(service).getValue('Server')
+        return self.getCurrentServer(service).get('Server')
         
     def getServerPort(self, service):
-        return self.getCurrentServer(service).getValue('Port')
+        return self.getCurrentServer(service).get('Port')
 
     def getServerConnection(self, service):
-        return self.getCurrentServer(service).getValue('Connection')
+        return self.getCurrentServer(service).get('Connection')
         
     def getServerAuthentication(self, service):
-        return self.getCurrentServer(service).getValue('Authentication')
+        return self.getCurrentServer(service).get('Authentication')
 
     def getConfig(self, service, timeout, connections, authentications):
-        config = KeyMap()
-        config.setValue(service + 'ServerName', self.getServerHost(service))
-        config.setValue(service + 'Port', self.getServerPort(service))
-        config.setValue(service + 'ConnectionType', connections.get(self.getServerConnection(service)))
-        config.setValue(service + 'AuthenticationType', authentications.get(self.getServerAuthentication(service)))
-        config.setValue(service + 'Timeout', timeout)
+        config = {}
+        config[service + 'ServerName'] = self.getServerHost(service)
+        config[service + 'Port'] = self.getServerPort(service)
+        config[service + 'ConnectionType'] = connections.get(self.getServerConnection(service))
+        config[service + 'AuthenticationType'] = authentications.get(self.getServerAuthentication(service))
+        config[service + 'Timeout'] = timeout
         return config
 
     def saveServer(self, datasource, service, provider):
         new = self._isNew(service)
         server = self.getCurrentServer(service)
         metadata = self._getServerMetaData(service)
-        if new or server.toJson() != metadata:
+        if new or json.dumps(server, sort_keys=True) != metadata:
             host, port = self._getServerKeys(metadata)
             datasource.saveServer(new, provider, server, host, port)
 

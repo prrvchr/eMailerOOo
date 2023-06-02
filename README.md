@@ -103,28 +103,28 @@ To be able to use the email merge feature using mailing lists, it is necessary t
 In addition, this datasource must have at least one **main table**, including all the records that can be used during the email merge.
 
 If you do not have such a data source then I invite you to install one of the following extensions:
-- [vCardOOo][22] extension.  
-This extension will allow you to use your contacts present on a [**Nextcloud**][23] platform as a data source.
-- [gContactOOo][25] extension.  
-This extension will allow you to use your Android phone (your phone contacts) as a datasource.
-- [mContactOOo][27] extension.  
-This extension will allow you to use your Microsoft Outlook contacts as a datasource.
+- [vCardOOo][22]. This extension will allow you to use your contacts present on a [**Nextcloud**][23] platform as a data source.
+- [gContactOOo][25]. This extension will allow you to use your Android phone (your phone contacts) as a datasource.
+- [mContactOOo][27]. This extension will allow you to use your Microsoft Outlook contacts as a datasource.
+
+For these 3 extensions the name of the **main table** can be found (and even changed before any connection) in:  
+**Tools -> Options -> Internet -> Extension name -> Main table name**
 
 This mode of use is made up of 3 sections:
-- [Merging emails to mailing lists][30].
+- [Merge emails with mailing lists][30].
 - [Configure connection][31].
 - [Outgoing emails][32].
 
-### Merging emails to mailing lists:
+### Merge emails with mailing lists:
 
 #### Requirement:
 
 To be able to post emails to a mailing list, you must:
 - Have a data source as described in the previous introduction.
-- Open a Writer document in LibreOffice / OpenOffice.
+- Open a new Writer document in LibreOffice / OpenOffice.
 
-This Writer document can include merge fields (insertable by the command: **Insert -> Field -> More fields -> Database -> Mail merge fields**), this is even necessary if you want to be able to customize the content of the email.  
-These merge fields should only reference the **main table** of the data source.
+This Writer document can include merge fields (insertable by the command: **Insert -> Field -> More fields -> Database -> Mail merge fields**), this is even necessary if you want to be able to customize the content of the email and any attached files.  
+These merge fields should only refer to the **main table** of the data source and if this recommendation is not followed then **merging of documents will not work**.
 
 #### Starting the mail merge wizard:
 
@@ -140,25 +140,25 @@ The datasource load for the **Email merging** wizard should appear:
 
 The following screenshots use the [gContactOOo][25] extension as the data source. If you are using your own data source, it is necessary to adapt the settings in relation to it.
 
-In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that the **main table**: `PUBLIC.All my contacts` is selected.
+In the following screenshot, we can see that the data source gContactOOo is called: `Addresses` and that in the list of tables the table: `PUBLIC.All my contacts` is selected.
 
 ![smtpMailerOOo Merger screenshot 3][35]
 
 If no mailing list exists, you need to create one, by entering its name and validating with: `ENTER` or the `Add` button.
 
-Make sure when creating the mailing list that the **main table** is always selected.
+Make sure when creating the mailing list that the **main table** is always selected in the list of tables and if this recommendation is not followed then **merging of documents will not work**.
 
 ![smtpMailerOOo Merger screenshot 4][36]
 
 Now that your new mailing list is available in the list, you need to select it.
 
 And add the following columns:
-- Primary key column: `Resource`
+- Primary key column: `Uri`
 - Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
 In addition, on Recipients selection step of the wizard, in the [Available recipients][37] tab, only records with at least one email address column entered will be listed.  
-So make sure you have an address book with at least one of the email address columns entered.
+So make sure you have an address book with at least one of the email address field (Home, Work or Other) entered.
 
 ![smtpMailerOOo Merger screenshot 5][38]
 
@@ -371,7 +371,7 @@ I will try to solve it ;-)
 [27]: <https://github.com/prrvchr/mContactOOo/raw/main/mContactOOo.oxt>
 [28]: <img/smtpMailerOOo.png>
 [29]: <https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt>
-[30]: <https://prrvchr.github.io/smtpMailerOOo/#merging-emails-to-mailing-lists>
+[30]: <https://prrvchr.github.io/smtpMailerOOo/#merge-emails-with-mailing-lists>
 [31]: <https://prrvchr.github.io/smtpMailerOOo/#configure-connection>
 [32]: <https://prrvchr.github.io/smtpMailerOOo/#outgoing-emails>
 [33]: <img/smtpMailerOOo-Merger1.png>

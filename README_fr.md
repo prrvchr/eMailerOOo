@@ -96,13 +96,13 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ### Introduction:
 
-Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisant des listes de diffusion, il est nécessaire d'avoir une source de données avec des tables ayant les colonnes suivantes:
+Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisant des listes de diffusion, il est nécessaire d'avoir une **source de données** avec des tables ayant les colonnes suivantes:
 - Une ou plusieurs colonnes d'adresses électroniques. Ces colonnes sont choisi dans une liste et si ce choix n'est pas unique, alors la première colonne d'adresse courriel non nulle sera utilisée.
 - Une ou plusieurs colonnes de clé primaire permettant d'identifier de manière unique les enregistrements, elle peut être une clé primaire composée. Les types supportés sont VARCHAR et/ou INTEGER, ou derivé. Ces colonnes doivent être declarée avec la contrainte NOT NULL.
 
-De plus, cette source de données doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
+De plus, cette **source de données** doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
-Si vous ne disposez pas d'une telle source de données alors je vous invite à installer une des extensions suivantes :
+Si vous ne disposez pas d'une telle **source de données** alors je vous invite à installer une des extensions suivantes :
 - [vCardOOo][22]. Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [**Nextcloud**][23] comme source de données.
 - [gContactOOo][25]. Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
 - [mContactOOo][27]. Cette extension vous permettra d'utiliser vos contacts Microsoft Outlook comme source de données.
@@ -120,11 +120,15 @@ Ce mode d'utilisation est composé de 3 sections:
 #### Prérequis:
 
 Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez:
-- Disposer d'une source de données comme décrit dans l'introduction précédente.
-- Ouvrir un nouveau document Writer dans LibreOffice / OpenOffice.
+- Disposer d'une **source de données** comme décrit dans l'introduction précédente.
+- Ouvrir un **nouveau document** Writer dans LibreOffice / OpenOffice.
 
 Ce document Writer peut inclure des champs de fusion (insérables par la commande: **Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage**), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel et d'eventuel fichiers attachés.  
-Ces champs de fusion doivent uniquement faire référence à la **table principale** de la source de données et si cette recommandation n'est pas suivie alors **la fusion de documents de fonctionnera pas**.
+Ces champs de fusion doivent uniquement faire référence à la **table principale** de la **source de données**.
+
+Si vous souhaitez utiliser un **document Writer déja existant**, vous devez vous assurer en plus que la **source de données** et la **table principale** sont bien rattachées au document dans : **Outils -> Source du carnet d'adresses...**.
+
+Si ces recommandations ne sont pas suivies alors **la fusion de documents de fonctionnera pas** et ceci silencieusement.
 
 #### Démarrage de l'assistant de publipostage de courriels:
 
@@ -138,15 +142,16 @@ Le chargement de la source de données de l'assistant **Publipostage de courriel
 
 ![smtpMailerOOo Merger screenshot 2][34]
 
-Les captures d'écran suivantes utilisent l'extension [gContactOOo][25] comme source de données. Si vous utilisez votre propre source de données, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
+Les captures d'écran suivantes utilisent l'extension [gContactOOo][25] comme **source de données**. Si vous utilisez votre propre **source de données**, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
-Dans la copie d'écran suivante, on peut voir que la source de données gContactOOo s'appelle: `Adresses` et que dans la liste des tables la table: `PUBLIC.Tous mes contacts` est sélectionnée.
+Dans la copie d'écran suivante, on peut voir que la **source de données** gContactOOo s'appelle: `Adresses` et que dans la liste des tables la table: `PUBLIC.Tous mes contacts` est sélectionnée.
 
 ![smtpMailerOOo Merger screenshot 3][35]
 
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
-Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée dans la liste des tables et si cette recommandation n'est pas suivie alors **la fusion de documents de fonctionnera pas**.
+Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée dans la liste des tables.  
+Si cette recommandation n'est pas suivie alors **la fusion de documents de fonctionnera pas** et ceci silencieusement.
 
 ![smtpMailerOOo Merger screenshot 4][36]
 

@@ -27,13 +27,13 @@
 
 **Ce [document][2] en français.**
 
-**The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4]**
+**The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4].**
 
-# version [0.0.3][5]
+# version [1.0.0][5]
 
 ## Introduction:
 
-**eMailerOOo** is part of a [Suite][6] of [LibreOffice][7] and/or [OpenOffice][8] extensions allowing to offer you innovative services in these office suites.  
+**eMailerOOo** is part of a [Suite][6] of [LibreOffice][7] ~~and/or [OpenOffice][8]~~ extensions allowing to offer you innovative services in these office suites.  
 This extension allows you to send documents in LibreOffice / OpenOffice as an email, possibly by mail merge, to your telephone contacts.
 
 Being free software I encourage you:

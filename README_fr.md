@@ -1,5 +1,3 @@
-# ![smtpMailerOOo logo][1] smtpMailerOOo
-
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -25,6 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+# Documentation
 
 **This [document][2] in english.**
 
@@ -34,7 +33,7 @@
 
 ## Introduction:
 
-**smtpMailerOOo** fait partie d'une [Suite][6] d'extensions [LibreOffice][7] et/ou [OpenOffice][8] permettant de vous offrir des services inovants dans ces suites bureautique.  
+**eMailerOOo** fait partie d'une [Suite][6] d'extensions [LibreOffice][7] et/ou [OpenOffice][8] permettant de vous offrir des services inovants dans ces suites bureautique.  
 Cette extension vous permet d'envoyer des documents dans LibreOffice / OpenOffice sous forme de courriel, éventuellement par publipostage, à vos contacts téléphoniques.
 
 Etant un logiciel libre je vous encourage:
@@ -49,7 +48,7 @@ Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
 Si vous utilisez **OpenOffice sous Windows** quelle que soit la version, vous êtes sujet au [dysfonctionnement 128569][11]. Je n'ai pas trouvé de solution de contournement, pour l'instant je ne peux que vous conseiller d'installer **LibreOffice**...
 
-smtpMailerOOo utilise une base de données locale [HsqlDB][12] version 2.7.1.  
+eMailerOOo utilise une base de données locale [HsqlDB][12] version 2.7.2.  
 HsqlDB étant une base de données écrite en Java, son utilisation nécessite [l'installation et la configuration][13] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium][14] comme source d'installation de Java.
 
@@ -88,7 +87,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.5.1 avec toutes s
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 0.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![smtpMailerOOo logo][28] **[smtpMailerOOo.oxt][29]** version 0.0.3.  
+- Installer l'extension ![eMailerOOo logo][28] **[eMailerOOo.oxt][29]** version 0.0.3.  
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -134,26 +133,26 @@ Si ces recommandations ne sont pas suivies alors **la fusion de documents de fon
 
 Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
-![smtpMailerOOo Merger screenshot 1][33]
+![eMailerOOo Merger screenshot 1][33]
 
 #### Sélection de la source de données:
 
 Le chargement de la source de données de l'assistant **Publipostage de courriels** devrait apparaître :
 
-![smtpMailerOOo Merger screenshot 2][34]
+![eMailerOOo Merger screenshot 2][34]
 
 Les captures d'écran suivantes utilisent l'extension [gContactOOo][25] comme **source de données**. Si vous utilisez votre propre **source de données**, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
 Dans la copie d'écran suivante, on peut voir que la **source de données** gContactOOo s'appelle: `Adresses` et que dans la liste des tables la table: `PUBLIC.Tous mes contacts` est sélectionnée.
 
-![smtpMailerOOo Merger screenshot 3][35]
+![eMailerOOo Merger screenshot 3][35]
 
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
 Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée dans la liste des tables.  
 Si cette recommandation n'est pas suivie alors **la fusion de documents de fonctionnera pas** et ceci silencieusement.
 
-![smtpMailerOOo Merger screenshot 4][36]
+![eMailerOOo Merger screenshot 4][36]
 
 Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, vous devez la sélectionner.
 
@@ -165,7 +164,7 @@ Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre de
 De plus, à l'étape Sélection des destinataires de l'assistant, dans l'onglet [Destinataires disponibles][37], seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
 Assurez-vous donc d'avoir un carnet d'adresses avec au moins un des champs d'adresse e-mail (Home, Work ou Other) renseigné.
 
-![smtpMailerOOo Merger screenshot 5][38]
+![eMailerOOo Merger screenshot 5][38]
 
 Ce paramètrage ne doit être effectué que pour les nouvelles listes de diffusion.  
 Vous pouvez maintenant passer à l'étape suivante.
@@ -178,11 +177,11 @@ Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `
 - Soit d'ajouter le groupe de destinataires sélectionnés dans la liste `Carnet d'adresses`. Ceci permet lors d'un publipostage, que les modifications du contenu du groupe soient prises en compte. Une liste de diffusion n'accepte qu'un seul groupe.
 - Soit d'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`. Cette sélection est immuable quelle que soit la modification des groupes du carnet d'adresses.
 
-![smtpMailerOOo Merger screenshot 6][39]
+![eMailerOOo Merger screenshot 6][39]
 
 Example de la sélection multiple:
 
-![smtpMailerOOo Merger screenshot 7][40]
+![eMailerOOo Merger screenshot 7][40]
 
 ##### Destinataires sélectionnés:
 
@@ -190,7 +189,7 @@ Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` e
 - Soit de retirer le groupe qui a été affecté à cette liste de diffusion. Ceci est nécessaire afin de pouvoir modifier à nouveau le contenu de cette liste de diffusion.
 - Soit de retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
 
-![smtpMailerOOo Merger screenshot 8][41]
+![eMailerOOo Merger screenshot 8][41]
 
 Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'étape suivante.
 
@@ -198,18 +197,18 @@ Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'éta
 
 Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide du bouton `Ajouter`.
 
-![smtpMailerOOo Merger screenshot 9][42]
+![eMailerOOo Merger screenshot 9][42]
 
 La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion][43].
 
 Le courriel doit avoir un sujet. Il peut être enregistré dans le document Writer.
 
-![smtpMailerOOo Merger screenshot 10][44]
+![eMailerOOo Merger screenshot 10][44]
 
 Le courriel peut éventuellement contenir des fichiers joints. Ils peuvent être enregistrés dans le document Writer.  
 La capture d'écran suivante montre 1 fichier joint qui sera fusionné sur la source de données puis converti au format PDF avant d'être joint au courriel.
 
-![smtpMailerOOo Merger screenshot 11][45]
+![eMailerOOo Merger screenshot 11][45]
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` pour confirmer la soumission des travaux d'envoi.  
 Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants][46].
@@ -220,27 +219,27 @@ Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants
 
 Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
 
-![smtpMailerOOo Ispdb screenshot 1][47]
+![eMailerOOo Ispdb screenshot 1][47]
 
 #### Sélection du compte:
 
-![smtpMailerOOo Ispdb screenshot 2][48]
+![eMailerOOo Ispdb screenshot 2][48]
 
 #### Trouver la configuration:
 
-![smtpMailerOOo Ispdb screenshot 3][49]
+![eMailerOOo Ispdb screenshot 3][49]
 
 #### Configuration SMTP:
 
-![smtpMailerOOo Ispdb screenshot 4][50]
+![eMailerOOo Ispdb screenshot 4][50]
 
 #### Configuration IMAP:
 
-![smtpMailerOOo Ispdb screenshot 5][51]
+![eMailerOOo Ispdb screenshot 5][51]
 
 #### Tester la connexion:
 
-![smtpMailerOOo Ispdb screenshot 6][52]
+![eMailerOOo Ispdb screenshot 6][52]
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
 
@@ -250,7 +249,7 @@ Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'en
 
 Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
 
-![smtpMailerOOo Spooler screenshot 1][53]
+![eMailerOOo Spooler screenshot 1][53]
 
 #### Liste des courriels sortants:
 
@@ -259,7 +258,7 @@ Chaque travaux d'envoi possède 3 états différents:
 - État **1**: le courriel a été envoyé avec succès.
 - État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le [Journal d'activité du spouleur][54].
 
-![smtpMailerOOo Spooler screenshot 2][55]
+![eMailerOOo Spooler screenshot 2][55]
 
 Le spouleur de courriels est arrêté par défaut. **Il doit être démarré avec le bouton `Démarrer / Arrêter` pour que les courriels en attente soient envoyés**.
 
@@ -267,7 +266,7 @@ Le spouleur de courriels est arrêté par défaut. **Il doit être démarré ave
 
 Lorsque le spouleur de courriel est démarré, son activité peut être visualisée dans le journal d'activité.
 
-![smtpMailerOOo Spooler screenshot 3][56]
+![eMailerOOo Spooler screenshot 3][56]
 
 ## A été testé avec:
 
@@ -320,7 +319,7 @@ J'essaierai de le résoudre ;-)
 
 - Réécriture du [Spouleur][67] afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
 
-- Soumission de l'extension smtpMailerOOo à Google et obtention de l'autorisation d'utiliser son API GMail afin d'envoyer des courriels avec un compte Google.
+- Soumission de l'extension eMailerOOo à Google et obtention de l'autorisation d'utiliser son API GMail afin d'envoyer des courriels avec un compte Google.
 
 ### Ce qui a été fait pour la version 0.0.3:
 
@@ -347,16 +346,16 @@ J'essaierai de le résoudre ;-)
 
 - Tout ce qui est bienvenu...
 
-[1]: <https://prrvchr.github.io/smtpMailerOOo/img/smtpMailerOOo.png>
-[2]: <https://prrvchr.github.io/smtpMailerOOo/>
-[3]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/TermsOfUse_fr>
-[4]: <https://prrvchr.github.io/smtpMailerOOo/source/smtpMailerOOo/registration/PrivacyPolicy_fr>
-[5]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-003>
+[1]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.png>
+[2]: <https://prrvchr.github.io/eMailerOOo/>
+[3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
+[4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
+[5]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-003>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
-[9]: <https://github.com/prrvchr/smtpMailerOOo>
-[10]: <https://github.com/prrvchr/smtpMailerOOo/issues/new>
+[9]: <https://github.com/prrvchr/eMailerOOo>
+[10]: <https://github.com/prrvchr/eMailerOOo/issues/new>
 [11]: <https://bz.apache.org/ooo/show_bug.cgi?id=128569>
 [12]: <http://hsqldb.org/>
 [13]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
@@ -374,46 +373,46 @@ J'essaierai de le résoudre ;-)
 [25]: <https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt>
 [26]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.png>
 [27]: <https://github.com/prrvchr/mContactOOo/raw/main/mContactOOo.oxt>
-[28]: <img/smtpMailerOOo.png>
-[29]: <https://github.com/prrvchr/smtpMailerOOo/raw/master/smtpMailerOOo.oxt>
-[30]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
-[31]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion>
-[32]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants>
-[33]: <img/smtpMailerOOo-Merger1_fr.png>
-[34]: <img/smtpMailerOOo-Merger2_fr.png>
-[35]: <img/smtpMailerOOo-Merger3_fr.png>
-[36]: <img/smtpMailerOOo-Merger4_fr.png>
-[37]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#destinataires-disponibles>
-[38]: <img/smtpMailerOOo-Merger5_fr.png>
-[39]: <img/smtpMailerOOo-Merger6_fr.png>
-[40]: <img/smtpMailerOOo-Merger7_fr.png>
-[41]: <img/smtpMailerOOo-Merger8_fr.png>
-[42]: <img/smtpMailerOOo-Merger9_fr.png>
-[43]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#configuration-de-la-connexion>
-[44]: <img/smtpMailerOOo-Merger10_fr.png>
-[45]: <img/smtpMailerOOo-Merger11_fr.png>
-[46]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#courriels-sortants>
-[47]: <img/smtpMailerOOo-Ispdb1_fr.png>
-[48]: <img/smtpMailerOOo-Ispdb2_fr.png>
-[49]: <img/smtpMailerOOo-Ispdb3_fr.png>
-[50]: <img/smtpMailerOOo-Ispdb4_fr.png>
-[51]: <img/smtpMailerOOo-Ispdb5_fr.png>
-[52]: <img/smtpMailerOOo-Ispdb6_fr.png>
-[53]: <img/smtpMailerOOo-Spooler1_fr.png>
-[54]: <https://prrvchr.github.io/smtpMailerOOo/README_fr#journal-dactivité-du-spouleur>
-[55]: <img/smtpMailerOOo-Spooler2_fr.png>
-[56]: <img/smtpMailerOOo-Spooler3_fr.png>
-[57]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/ispdb>
+[28]: <img/eMailerOOo.png>
+[29]: <https://github.com/prrvchr/eMailerOOo/raw/master/eMailerOOo.oxt>
+[30]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
+[31]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
+[32]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
+[33]: <img/eMailerOOo-Merger1_fr.png>
+[34]: <img/eMailerOOo-Merger2_fr.png>
+[35]: <img/eMailerOOo-Merger3_fr.png>
+[36]: <img/eMailerOOo-Merger4_fr.png>
+[37]: <https://prrvchr.github.io/eMailerOOo/README_fr#destinataires-disponibles>
+[38]: <img/eMailerOOo-Merger5_fr.png>
+[39]: <img/eMailerOOo-Merger6_fr.png>
+[40]: <img/eMailerOOo-Merger7_fr.png>
+[41]: <img/eMailerOOo-Merger8_fr.png>
+[42]: <img/eMailerOOo-Merger9_fr.png>
+[43]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
+[44]: <img/eMailerOOo-Merger10_fr.png>
+[45]: <img/eMailerOOo-Merger11_fr.png>
+[46]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
+[47]: <img/eMailerOOo-Ispdb1_fr.png>
+[48]: <img/eMailerOOo-Ispdb2_fr.png>
+[49]: <img/eMailerOOo-Ispdb3_fr.png>
+[50]: <img/eMailerOOo-Ispdb4_fr.png>
+[51]: <img/eMailerOOo-Ispdb5_fr.png>
+[52]: <img/eMailerOOo-Ispdb6_fr.png>
+[53]: <img/eMailerOOo-Spooler1_fr.png>
+[54]: <https://prrvchr.github.io/eMailerOOo/README_fr#journal-dactivité-du-spouleur>
+[55]: <img/eMailerOOo-Spooler2_fr.png>
+[56]: <img/eMailerOOo-Spooler3_fr.png>
+[57]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/ispdb>
 [58]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
-[59]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/spooler>
-[60]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/merger>
-[61]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailer>
-[62]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/uno/lib/uno/grid>
+[59]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/spooler>
+[60]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/merger>
+[61]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailer>
+[62]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
 [63]: <https://github.com/mjs/imapclient#readme>
-[64]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/idl/com/sun/star/mail>
-[65]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
-[66]: <https://github.com/prrvchr/smtpMailerOOo/blob/master/source/smtpMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[67]: <https://github.com/prrvchr/smtpMailerOOo/tree/master/source/smtpMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
+[64]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
+[65]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
+[66]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
+[67]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
 [68]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
 [70]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>

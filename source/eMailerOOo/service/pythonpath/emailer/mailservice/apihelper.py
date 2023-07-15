@@ -29,7 +29,7 @@
 
 from ..configuration import g_chunk
 
-from .. import ijson
+import ijson
 import traceback
 
 

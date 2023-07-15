@@ -44,27 +44,24 @@ Etant un logiciel libre je vous encourage:
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
+___
 ## Prérequis:
 
-Si vous utilisez **OpenOffice sous Windows** quelle que soit la version, vous êtes sujet au [dysfonctionnement 128569][11]. Je n'ai pas trouvé de solution de contournement, pour l'instant je ne peux que vous conseiller d'installer **LibreOffice**...
+Afin de profiter des dernières versions des bibliothèques Python utilisées dans eMailerOOo, la version 2 de Python a été abandonnée au profit de **Python 3.8 minimum**.  
+Cela signifie que **eMailerOOo ne supporte plus OpenOffice et LibreOffice 6.x sous Windows depuis sa version 1.0.0**.
+Je ne peux que vous conseiller **de migrer vers LibreOffice 7.x**.
 
 eMailerOOo utilise une base de données locale [HsqlDB][12] version 2.7.2.  
 HsqlDB étant une base de données écrite en Java, son utilisation nécessite [l'installation et la configuration][13] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium][14] comme source d'installation de Java.
 
-Si vous utilisez **LibreOffice sous Linux**, vous devez vous assurez de deux choses:
-  - Vous êtes sujet au [dysfonctionnement 139538][15]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
-    - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
-    - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
+Si vous utilisez **LibreOffice sous Linux**, vous êtes sujet au [dysfonctionnement 139538][15]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
+- `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
+- `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
 Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDBembeddedOOo][16].  
 
-  - Si le paquet python3-cffi-backend est installé alors vous devez **installer le paquet python3-cffi** avec les commandes:
-    - `dpkg -s python3-cffi-backend` (pour savoir si le paquet python3-cffi-backend est installé)
-    - `sudo apt install python3-cffi` (pour installer le paquet python3-cffi si nécessaire)
-
-OpenOffice sous Linux et LibreOffice sous Windows ne sont pas soumis à ces dysfonctionnements.
-
+___
 ## Installation:
 
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
@@ -91,6 +88,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
+___
 ## Utilisation:
 
 ### Introduction:
@@ -268,20 +266,22 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ![eMailerOOo Spooler screenshot 3][55]
 
+___
 ## A été testé avec:
 
-* LibreOffice 7.3.7.2 - Lubuntu 22.04 - OpenJDK-11-JRE (amd64)
+* LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
 
-* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Adoptium JDK Hotspot 11.0.17 (x64) (sous Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.5.4.2(x86) - Windows 10 - Python version 3.8.16 - Adoptium JDK Hotspot 11.0.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* OpenOffice 4.1.13 - Lubuntu 22.04 - OpenJDK-11-JRE (amd64) (sous Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Python version 3.8.15  - Adoptium JDK Hotspot 11.0.17 (x64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
 * **Ne fonctionne pas avec OpenOffice sous Windows** voir [dysfonctionnement 128569][11]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
 
-Je vous encourage en cas de problème :-(  
+Je vous encourage en cas de problème :confused:  
 de créer un [dysfonctionnement][10]  
-J'essaierai de le résoudre ;-)
+J'essaierai de le résoudre :smile:
 
+___
 ## Historique:
 
 ### Ce qui a été fait pour la version 0.0.1:

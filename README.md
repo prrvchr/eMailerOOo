@@ -44,27 +44,24 @@ Being free software I encourage you:
 In short, to participate in the development of this extension.  
 Because it is together that we can make Free Software smarter.
 
+___
 ## Requirement:
 
-If you are using **OpenOffice on Windows** regardless of the version then you are subject to [bug 128569][11]. I haven't found a workaround, for now I can only advise you to install **LibreOffice**...
+In order to take advantage of the latest versions of the Python libraries used in eMailerOOo, version 2 of Python has been abandoned in favor of **Python 3.8 minimum**.  
+This means that **eMailerOOo no longer supports OpenOffice and LibreOffice 6.x on Windows since version 1.0.0**.
+I can only advise you **to migrate to LibreOffice 7.x**.
 
 eMailerOOo uses a local [HsqlDB][12] database version 2.7.2.  
 HsqlDB being a database written in Java, its use requires the [installation and configuration][13] in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium][14] as your Java installation source.
 
-If you are using **LibreOffice on Linux**, you need to make sure of two things:
-  - You are subject to [bug 139538][15]. To work around the problem, please **uninstall the packages** with commands:
-    - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
-    - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
+If you are using **LibreOffice on Linux**, you are subject to [bug 139538][15]. To work around the problem, please **uninstall the packages** with commands:
+- `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
+- `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
-If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDBembeddedOOo][16] extension.  
+If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDriverOOo][16] extension.  
 
-  - If the python3-cffi-backend package is installed then you need to **install the python3-cffi package** with the command:
-    - `dpkg -s python3-cffi-backend` (to know if the python3-cffi-backend package is installed)
-    - `sudo apt install python3-cffi` (to install the python3-cffi package if needed)
-
-OpenOffice on Linux and LibreOffice on Windows are not subject to these malfunctions.
-
+___
 ## Installation:
 
 It seems important that the file was not renamed when it was downloaded.
@@ -91,6 +88,7 @@ This extension is necessary to use HsqlDB version 2.7.2 with all its features.
 
 Restart LibreOffice / OpenOffice after installation.
 
+___
 ## Use:
 
 ### Introduction:
@@ -268,20 +266,22 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ![eMailerOOo Spooler screenshot 3][55]
 
+___
 ## Has been tested with:
 
-* LibreOffice 7.3.7.2 - Lubuntu 22.04 - OpenJDK-11-JRE (amd64)
+* LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
 
-* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Adoptium JDK Hotspot 11.0.17 (x64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.5.4.2(x86) - Windows 10 - Python version 3.8.16 - Adoptium JDK Hotspot 11.0.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* OpenOffice 4.1.13 - Lubuntu 22.04 - OpenJDK-11-JRE (amd64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Python version 3.8.15  - Adoptium JDK Hotspot 11.0.17 (x64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
 * **Does not work with OpenOffice on Windows** see [bug 128569][11]. Having no solution, I encourage you to install **LibreOffice**.
 
-I encourage you in case of problem :-(  
+I encourage you in case of problem :confused:  
 to create an [issue][10]  
-I will try to solve it ;-)
+I will try to solve it :smile:
 
+___
 ## Historical:
 
 ### What has been done for version 0.0.1:

@@ -36,12 +36,6 @@
           <value xml:lang="en">Sending emails</value>
           <value xml:lang="fr">Envoi de courriels</value>
         </prop>
-        <prop oor:name="Target" oor:type="xs:string">
-          <value>_self</value>
-        </prop>
-        <prop oor:name="ImageIdentifier" oor:type="xs:string">
-          <value/>
-        </prop>
         <prop oor:name="Context" oor:type="xs:string">
           <value/>
         </prop>
@@ -53,9 +47,6 @@
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
-            </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
             </prop>
             <prop oor:name="Context" oor:type="xs:string">
               <value>com.sun.star.text.TextDocument,com.sun.star.sheet.SpreadsheetDocument</value>
@@ -72,12 +63,6 @@
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
             </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
-            </prop>
-            <prop oor:name="Context" oor:type="xs:string">
-              <value/>
-            </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:mailer</value>
             </prop>
@@ -90,12 +75,6 @@
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
             </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
-            </prop>
-            <prop oor:name="Context" oor:type="xs:string">
-              <value/>
-            </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:spooler</value>
             </prop>
@@ -107,12 +86,6 @@
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
-            </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
-            </prop>
-            <prop oor:name="Context" oor:type="xs:string">
-              <value/>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:ispdb</value>

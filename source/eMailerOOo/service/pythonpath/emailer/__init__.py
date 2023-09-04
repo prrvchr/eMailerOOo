@@ -40,6 +40,7 @@ from .options import OptionsManager
 from .logger import getLogger
 from .logger import LogController
 
+from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
@@ -50,6 +51,7 @@ from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 from .unotool import getStringResource
 from .unotool import getUrl
+from .unotool import hasService
 
 from .datasource import DataSource
 

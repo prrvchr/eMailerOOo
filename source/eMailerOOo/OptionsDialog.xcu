@@ -44,8 +44,8 @@
             <value>io.github.prrvchr.eMailerOOo</value>
           </prop>
           <prop oor:name="Label">
-            <value xml:lang="en-US">SMTP server</value>
-            <value xml:lang="fr-FR">serveur SMTP</value>
+            <value xml:lang="en-US">eMailerOOo</value>
+            <value xml:lang="fr-FR">eMailerOOo</value>
           </prop>
           <prop oor:name="OptionsPage">
             <value>%origin%/eMailerOOo/OptionsDialog.xdl</value>

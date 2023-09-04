@@ -40,7 +40,14 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from emailer import SmtpDispatch
 
+from emailer import createMessageBox
+from emailer import getStringResource
+from emailer import hasService
+
 from emailer import g_identifier
+from emailer import g_extension
+from emailer import g_resource
+from emailer import g_basename
 
 import traceback
 
@@ -67,7 +74,12 @@ class SmtpDispatcher(unohelper.Base,
         dispatch = None
         if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
             parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, parent)
+            if not hasService(self._ctx, 'io.github.prrvchr.OAuth2OOo.OAuth2Service'):
+                self._showMsgBox('OAuth2OOo', parent)
+            elif not hasService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.Driver'):
+                self._showMsgBox('jdbcDriverOOo', parent)
+            else:
+                dispatch = SmtpDispatch(self._ctx, parent)
         return dispatch
 
     def queryDispatches(self, requests):
@@ -84,6 +96,15 @@ class SmtpDispatcher(unohelper.Base,
         return g_ImplementationName
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+    # Private methods
+    def _showMsgBox(self, extension, parent):
+        resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
+        title = resource.resolveString(501) % g_extension
+        message = resource.resolveString(502) % (extension, g_extension)
+        msgbox = createMessageBox(parent, message, title, 'error', 1)
+        msgbox.execute()
+        msgbox.dispose()
 
 
 g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class

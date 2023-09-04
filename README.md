@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4].**
 
-# version [1.0.0][5]
+# version [1.0.1][5]
 
 ## Introduction:
 
@@ -67,10 +67,10 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** extension version 1.1.0.  
+- Install ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** extension version 1.1.1.  
 You must first install this extension, if it is not already installed.
 
-- Install ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** extension version 1.0.3.  
+- Install ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** extension version 1.0.4.  
 This extension is necessary to use HsqlDB version 2.7.2 with all its features.
 
 - If you don't have a datasource, you can install one of the following extensions:
@@ -84,7 +84,7 @@ This extension is necessary to use HsqlDB version 2.7.2 with all its features.
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.0.  
   This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.0.0.  
+- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.0.1.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -340,7 +340,15 @@ ___
 
 - Many other things...
 
-### What remains to be done for version 0.0.3:
+### What has been done for version 1.0.0:
+
+- The **smtpMailerOOo** extension has been renamed to **eMailerOOo**.
+
+### What has been done for version 1.0.1:
+
+- The absence of the **OAuth2OOo** and/or **jdbcDriverOOo** extensions necessary for the proper functioning of **eMailerOOo** now displays an error message.
+
+### What remains to be done for version 1.0.1:
 
 - Add new languages for internationalization...
 

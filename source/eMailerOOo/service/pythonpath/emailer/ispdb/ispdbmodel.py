@@ -571,4 +571,4 @@ class IspdbModel(unohelper.Base):
 
     def _getThreadTitle(self):
         resource = self._resources.get('ThreadTitle')
-        return self._resolver.resolveString(resource)
+        return self._resolver.resolveString(resource) % g_extension

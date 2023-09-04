@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3] et à notre [Politique de protection des données][4].**
 
-# version [1.0.0][5]
+# version [1.0.1][5]
 
 ## Introduction:
 
@@ -67,10 +67,10 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.1.0.  
+- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.1.1.  
 Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
-- Installer l'extension ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** version 1.0.3.  
+- Installer l'extension ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** version 1.0.4.  
 Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
 
 - Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
@@ -84,7 +84,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.0.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.0.0.  
+- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.0.1.  
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -340,7 +340,15 @@ ___
 
 - Encore plein d'autres choses...
 
-### Que reste-t-il à faire pour la version 0.0.3:
+### Ce qui a été fait pour la version 1.0.0:
+
+- L'extension **smtpMailerOOo** a été renomé en **eMailerOOo**.
+
+### Ce qui a été fait pour la version 1.0.1:
+
+- L'absence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaire au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur.
+
+### Que reste-t-il à faire pour la version 1.0.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 

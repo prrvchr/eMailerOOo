@@ -261,7 +261,7 @@ class MailSpooler():
         server.disconnect()
 
     def _getThreadMessage(self, mailer, batch):
-        title = self._logger.resolveString(1031, batch, mailer.Query)
+        title = self._logger.resolveString(1031, g_extension, batch, mailer.Query)
         subject = self._logger.resolveString(1032)
         document = self._logger.resolveString(1033)
         files = self._logger.resolveString(1034)

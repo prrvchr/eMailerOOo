@@ -184,6 +184,14 @@ def getProperty(name, type=None, attributes=None, handle=-1):
         property.Attributes = attributes
     return property
 
+def getExtensionVersion(ctx, extension):
+    service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
+    provider = ctx.getValueByName(service)
+    for name, version in provider.getExtensionList():
+        if name == extension:
+            return version
+    return None
+
 def getResourceLocation(ctx, identifier, path=None):
     service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
     provider = ctx.getValueByName(service)

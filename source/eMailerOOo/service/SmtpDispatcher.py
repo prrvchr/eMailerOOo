@@ -41,14 +41,16 @@ from com.sun.star.logging.LogLevel import SEVERE
 from emailer import SmtpDispatch
 
 from emailer import createMessageBox
+from emailer import getExtensionVersion
+from emailer import getOAuth2Version
 from emailer import getStringResource
-from emailer import hasService
 
 from emailer import g_identifier
 from emailer import g_extension
 from emailer import g_resource
 from emailer import g_basename
 
+from packaging import version
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -74,10 +76,16 @@ class SmtpDispatcher(unohelper.Base,
         dispatch = None
         if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
             parent = self._frame.getContainerWindow()
-            if not hasService(self._ctx, 'io.github.prrvchr.OAuth2OOo.OAuth2Service'):
-                self._showMsgBox('OAuth2OOo', parent)
-            elif not hasService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.Driver'):
-                self._showMsgBox('jdbcDriverOOo', parent)
+            oauth2 = getOAuth2Version(self._ctx)
+            driver = getExtensionVersion(self._ctx, 'io.github.prrvchr.jdbcDriverOOo')
+            if oauth2 is None:
+                self._showMsgBox(parent, 500, 'OAuth2OOo', g_extension)
+            elif not self._checkVersion(oauth2, '1.1.1'):
+                self._showMsgBox(parent, 502, oauth2, 'OAuth2OOo', '1.1.1')
+            elif driver is None:
+                self._showMsgBox(parent, 500, 'jdbcDriverOOo', g_extension)
+            elif not self._checkVersion(driver, '1.0.5'):
+                self._showMsgBox(parent, 502, driver, 'jdbcDriverOOo', '1.0.5')
             else:
                 dispatch = SmtpDispatch(self._ctx, parent)
         return dispatch
@@ -98,13 +106,16 @@ class SmtpDispatcher(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
     # Private methods
-    def _showMsgBox(self, extension, parent):
+    def _showMsgBox(self, parent, code, *args):
         resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
-        title = resource.resolveString(501) % g_extension
-        message = resource.resolveString(502) % (extension, g_extension)
+        title = resource.resolveString(code +1) % g_extension
+        message = resource.resolveString(code +2) % args
         msgbox = createMessageBox(parent, message, title, 'error', 1)
         msgbox.execute()
         msgbox.dispose()
+
+    def _checkVersion(self, ver, minimum):
+        return version.parse(ver) >= version.parse(minimum)
 
 
 g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class

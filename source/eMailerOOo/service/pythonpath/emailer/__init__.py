@@ -46,12 +46,14 @@ from .unotool import executeDispatch
 from .unotool import getConfiguration
 from .unotool import getConnectionMode
 from .unotool import getDialog
+from .unotool import getExtensionVersion
 from .unotool import getFileSequence
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 from .unotool import getStringResource
 from .unotool import getUrl
-from .unotool import hasService
+
+from .oauth2 import getOAuth2Version
 
 from .datasource import DataSource
 

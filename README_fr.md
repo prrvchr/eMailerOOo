@@ -346,7 +346,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.0.1:
 
-- L'absence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaire au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur.
+- L'absence ou l'obsolescence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaires au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur. Ceci afin d'éviter qu'un dysfonctionnement tel que le [dysfonctionnement #3][71] ne se reproduise...
 
 ### Que reste-t-il à faire pour la version 1.0.1:
 
@@ -424,3 +424,4 @@ ___
 [68]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
 [69]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[71]: <https://github.com/prrvchr/eMailerOOo/issues/3>

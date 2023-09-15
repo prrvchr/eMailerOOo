@@ -42,8 +42,6 @@ from emailer import MailSpooler
 
 from emailer import createService
 
-from emailer import g_dns
-
 from threading import Lock
 import traceback
 

@@ -50,15 +50,23 @@ from .datasource import DataSource
 
 from .wizard import Wizard
 
+from .unotool import createMessageBox
 from .unotool import getPathSettings
+from .unotool import getExtensionVersion
+from .unotool import getStringResource
+
+from .oauth2 import getOAuth2Version
 
 from .configuration import g_extension
 from .configuration import g_identifier
+from .configuration import g_resource
+from .configuration import g_basename
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 
+from packaging import version
 import traceback
 
 
@@ -71,10 +79,6 @@ class SmtpDispatch(unohelper.Base,
 
     _datasource = None
 
-    @property
-    def DataSource(self):
-        return SmtpDispatch._datasource
-
 # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
         state, result = self.dispatch(url, arguments)
@@ -83,18 +87,30 @@ class SmtpDispatch(unohelper.Base,
         listener.dispatchFinished(notification)
 
     def dispatch(self, url, arguments):
-        if self.DataSource is None:
-            SmtpDispatch._datasource = DataSource(self._ctx)
-        state = SUCCESS
+        state = FAILURE
         result = None
-        if url.Path == 'ispdb':
-            state, result = self._showIspdb(arguments)
-        elif url.Path == 'spooler':
-            self._showSpooler()
-        elif url.Path == 'mailer':
-            state, result = self._showMailer(arguments)
-        elif url.Path == 'merger':
-            self._showMerger()
+        if not self._isInitialized():
+            oauth2 = getOAuth2Version(self._ctx)
+            driver = getExtensionVersion(self._ctx, 'io.github.prrvchr.jdbcDriverOOo')
+            if oauth2 is None:
+                self._showMsgBox(500, 'OAuth2OOo', g_extension)
+            elif not self._checkVersion(oauth2, '1.1.1'):
+                self._showMsgBox(502, oauth2, 'OAuth2OOo', '1.1.1')
+            elif driver is None:
+                self._showMsgBox(500, 'jdbcDriverOOo', g_extension)
+            elif not self._checkVersion(driver, '1.0.5'):
+                self._showMsgBox(502, driver, 'jdbcDriverOOo', '1.0.5')
+            else:
+                SmtpDispatch._datasource = DataSource(self._ctx)
+        if self._isInitialized():
+            if url.Path == 'ispdb':
+                state, result = self._showIspdb(arguments)
+            elif url.Path == 'spooler':
+                state, result = self._showSpooler()
+            elif url.Path == 'mailer':
+                state, result = self._showMailer(arguments)
+            elif url.Path == 'merger':
+                state, result = self._showMerger()
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -115,7 +131,7 @@ class SmtpDispatch(unohelper.Base,
                 if argument.Name == 'Close':
                     close = argument.Value
             wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
-            controller = IspdbController(self._ctx, wizard, self.DataSource, close)
+            controller = IspdbController(self._ctx, wizard, self._getDataSource(), close)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
@@ -133,10 +149,11 @@ class SmtpDispatch(unohelper.Base,
     #Spooler methods
     def _showSpooler(self):
         try:
-            manager = SpoolerManager(self._ctx, self.DataSource, self._parent)
+            manager = SpoolerManager(self._ctx, self._getDataSource(), self._parent)
             if manager.execute() == OK:
                 manager.saveGrid()
             manager.dispose()
+            return SUCCESS, None
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
@@ -154,7 +171,7 @@ class SmtpDispatch(unohelper.Base,
                     close = argument.Value
             if path is None:
                 path = getPathSettings(self._ctx).Work
-            model = SenderModel(self._ctx, self.DataSource, path, close)
+            model = SenderModel(self._ctx, self._getDataSource(), path, close)
             url = model.getDocumentUrl()
             if url is not None:
                 sender = SenderManager(self._ctx, model, self._parent, url)
@@ -172,7 +189,7 @@ class SmtpDispatch(unohelper.Base,
         try:
             msg = "Wizard Loading ..."
             wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
-            controller = MergerController(self._ctx, wizard, self.DataSource)
+            controller = MergerController(self._ctx, wizard, self._getDataSource())
             arguments = (g_merger_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
@@ -181,6 +198,26 @@ class SmtpDispatch(unohelper.Base,
                 msg +=  " Merging SMTP email OK..."
             controller.dispose()
             print(msg)
+            return SUCCESS, None
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    # Private methods
+    def _isInitialized(self):
+        return SmtpDispatch._datasource is not None
+
+    def _getDataSource(self):
+        return SmtpDispatch._datasource
+
+    def _showMsgBox(self, code, *args):
+        resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
+        title = resource.resolveString(code +1) % g_extension
+        message = resource.resolveString(code +2) % args
+        msgbox = createMessageBox(self._parent, message, title, 'error', 1)
+        msgbox.execute()
+        msgbox.dispose()
+
+    def _checkVersion(self, ver, minimum):
+        return version.parse(ver) >= version.parse(minimum)
+

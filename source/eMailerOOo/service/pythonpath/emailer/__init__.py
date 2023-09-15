@@ -27,33 +27,16 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_dns
-from .configuration import g_extension
 from .configuration import g_identifier
-from .configuration import g_spoolerlog
-from .configuration import g_resource
-from .configuration import g_basename
 from .configuration import g_mailservicelog
 
 from .options import OptionsManager
 
 from .logger import getLogger
-from .logger import LogController
 
-from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getDialog
-from .unotool import getExtensionVersion
-from .unotool import getFileSequence
-from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getStringResource
-from .unotool import getUrl
-
-from .oauth2 import getOAuth2Version
 
 from .datasource import DataSource
 
@@ -61,10 +44,9 @@ from .smtpdispatch import SmtpDispatch
 
 from .mailspooler import MailSpooler
 
-from .ispdb import IspdbModel
-
 from .mailservice import SmtpBaseService
 from .mailservice import SmtpApiService
 from .mailservice import ImapBaseService
 from .mailservice import ImapApiService
 from .mailservice import Pop3Service
+

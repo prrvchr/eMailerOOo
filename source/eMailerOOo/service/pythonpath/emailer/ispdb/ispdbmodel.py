@@ -159,9 +159,6 @@ class IspdbModel(unohelper.Base):
             return True
         return False
 
-    def isDataBaseValid(self):
-        return self.DataSource.DataBase.isValid()
-
 # IspdbModel getter methods called by WizardPage2
     def getServerConfig(self, *args):
         self._version += 1

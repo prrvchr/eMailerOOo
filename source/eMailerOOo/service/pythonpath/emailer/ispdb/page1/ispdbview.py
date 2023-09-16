@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from .ispdbhandler import WindowHandler
-
 from ...unotool import getContainerWindow
 
 from ...configuration import g_extension
@@ -40,8 +38,7 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, email):
-        handler = WindowHandler(manager)
+    def __init__(self, ctx, handler, parent, email):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage1')
         self._getEmail().Text = email
 
@@ -59,3 +56,4 @@ class IspdbView(unohelper.Base):
 # IspdbView private getter control methods
     def _getEmail(self):
         return self._window.getControl('TextField1')
+

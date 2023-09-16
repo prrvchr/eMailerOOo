@@ -44,6 +44,8 @@ from com.sun.star.sdb.CommandType import TABLE
 
 from com.sun.star.uno import Exception as UnoException
 
+from .oauth2 import getOAuth2Version
+
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import executeFrameDispatch
@@ -51,6 +53,7 @@ from .unotool import getConfiguration
 from .unotool import getConnectionMode
 from .unotool import getDesktop
 from .unotool import getDocument
+from .unotool import getExtensionVersion
 from .unotool import getFileSequence
 from .unotool import getInteractionHandler
 from .unotool import getPropertyValueSet
@@ -66,6 +69,7 @@ from .mailerlib import MailTransferable
 
 from .listener import TerminateListener
 
+from .mailertool import checkVersion
 from .mailertool import getMail
 from .mailertool import getMessageImage
 from .mailertool import getUrlMimeType
@@ -75,6 +79,8 @@ from .mailertool import saveTempDocument
 
 from .logger import getLogger
 from .logger import RollerHandler
+
+from .dbconfig import g_version
 
 from .configuration import g_dns
 from .configuration import g_extension
@@ -92,18 +98,18 @@ import time
 
 
 class MailSpooler():
-    def __init__(self, ctx, datasource):
+    def __init__(self, ctx, database):
         print("MailSpooler.__init__() 1")
         self._ctx = ctx
-        self._database = None
+        self._database = database
         self._lock = Lock()
         self._stop = Event()
         self._listeners = []
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
         self._logger = getLogger(ctx, g_spoolerlog)
-        self._thread = Thread(target=self._init, args=(datasource, ))
-        self._thread.start()
+        self._init = False
+        self._thread = Thread(target=self._run)
 
 # Procedures called by TerminateListener and SpoolerService
     def stop(self):
@@ -115,7 +121,7 @@ class MailSpooler():
 # Procedures called by SpoolerService
     def isStarted(self):
         with self._lock:
-            return self._thread.is_alive() and self._database is not None
+            return self._thread.is_alive()
 
     def start(self):
         with self._lock:
@@ -135,11 +141,6 @@ class MailSpooler():
             self._listeners.remove(listener)
 
 # Private methods
-    def _init(self, datasource):
-        datasource.waitForDataBase()
-        with self._lock:
-            self._database = datasource.DataBase
-
     def _run(self):
         handler = RollerHandler(self._ctx, self._logger.Name)
         self._logger.addRollerHandler(handler)
@@ -147,31 +148,50 @@ class MailSpooler():
         if self._isOffLine():
             self._logger.logprb(INFO, 'MailSpooler', 'run()', 1002)
         else:
-            self._logger.logprb(INFO, 'MailSpooler', 'run()', 1003)
-            try:
-                print("MailSpooler._run() **********************************")
-                connection = self._database.getConnection()
-                print("MailSpooler._run() 1")
-                jobs, total = self._database.getSpoolerJobs(connection)
-                print("MailSpooler._run() 2")
-                if total > 0:
-                    configuration = getConfiguration(self._ctx, g_identifier, False)
-                    timeout = configuration.getByName('ConnectTimeout')
-                    print("MailSpooler._run() 3")
-                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1011, total)
-                    count = self._send(connection, jobs, timeout)
-                    print("MailSpooler._run() 4")
-                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1012, count, total)
+            print("MailSpooler._run() **********************************")
+            if not self._init:
+                oauth2 = getOAuth2Version(self._ctx)
+                driver = getExtensionVersion(self._ctx, 'io.github.prrvchr.jdbcDriverOOo')
+                if oauth2 is None:
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 502, 'OAuth2OOo', ' ', g_extension)
+                elif not checkVersion(oauth2, '1.1.1'):
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 504, oauth2, 'OAuth2OOo', ' ', '1.1.1')
+                elif driver is None:
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 502, 'jdbcDriverOOo', ' ', g_extension)
+                elif not checkVersion(driver, '1.0.5'):
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 504, driver, 'jdbcDriverOOo', ' ', '1.0.5')
+                elif not self._database.isValid():
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 506, self._database.Url, '. ', self._database.Error)
+                elif not self._database.isUptoDate():
+                    self._logger.logprb(SEVERE, 'MailSpooler', 'run()', 508, self._database.Version, ' ', g_version)
                 else:
-                    print("MailSpooler._run() 5")
-                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1013)
-                print("MailSpooler._run() 6")
-                connection.close()
-            except UnoException as e:
-                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1014, e.Message)
-            except Exception as e:
-                msg = "Error: %s" % traceback.print_exc()
-                print(msg)
+                    self._init = True
+            if self._init:
+                self._logger.logprb(INFO, 'MailSpooler', 'run()', 1003)
+                try:
+                    self._database.wait()
+                    connection = self._database.getConnection()
+                    print("MailSpooler._run() 1")
+                    jobs, total = self._database.getSpoolerJobs(connection)
+                    print("MailSpooler._run() 2")
+                    if total > 0:
+                        configuration = getConfiguration(self._ctx, g_identifier, False)
+                        timeout = configuration.getByName('ConnectTimeout')
+                        print("MailSpooler._run() 3")
+                        self._logger.logprb(INFO, 'MailSpooler', 'run()', 1011, total)
+                        count = self._send(connection, jobs, timeout)
+                        print("MailSpooler._run() 4")
+                        self._logger.logprb(INFO, 'MailSpooler', 'run()', 1012, count, total)
+                    else:
+                        print("MailSpooler._run() 5")
+                        self._logger.logprb(INFO, 'MailSpooler', 'run()', 1013)
+                    print("MailSpooler._run() 6")
+                    connection.close()
+                except UnoException as e:
+                    self._logger.logprb(INFO, 'MailSpooler', 'run()', 1014, e.Message)
+                except Exception as e:
+                    msg = "Error: %s" % traceback.print_exc()
+                    print(msg)
         print("MailSpooler._run() 7")
         self._logger.logprb(INFO, 'MailSpooler', 'run()', 1015)
         print("MailSpooler._run() 8")

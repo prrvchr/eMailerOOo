@@ -42,7 +42,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, self, parent)
+        self._view = IspdbView(ctx, parent)
         self._loaded = False
         self._refresh = False
         self._finish = False

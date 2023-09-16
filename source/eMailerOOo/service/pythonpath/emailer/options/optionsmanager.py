@@ -51,7 +51,7 @@ class OptionsManager(unohelper.Base):
     def __init__(self, ctx, window):
         self._ctx = ctx
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(ctx, window, *self._model.getViewData())
+        self._view = OptionsView(window, *self._model.getViewData())
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         infos = {111: version, 112: path}
@@ -76,12 +76,12 @@ class OptionsManager(unohelper.Base):
 
     def saveSetting(self):
         self._logger.saveSetting()
-        self._model.saveTimeout()
+        self._model.saveTimeout(self._view.getTimeout())
 
     def changeTimeout(self, timeout):
         self._model.setTimeout(timeout)
 
-    def showSmtpServer(self):
+    def showIspdb(self):
         try:
             executeDispatch(self._ctx, 'smtp:ispdb')
         except Exception as e:
@@ -91,9 +91,10 @@ class OptionsManager(unohelper.Base):
     def toogleSpooler(self, state):
         self._model.toogleSpooler(state)
 
-    def showSmtpSpooler(self):
+    def showSpooler(self):
         try:
             executeDispatch(self._ctx, 'smtp:spooler')
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+

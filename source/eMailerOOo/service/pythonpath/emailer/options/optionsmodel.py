@@ -29,11 +29,8 @@
 
 import unohelper
 
-from ..datasource import DataSource
-
-from ..ispdb import IspdbModel
-
 from ..unotool import createService
+from ..unotool import getConfiguration
 from ..unotool import getStringResource
 
 from ..configuration import g_identifier
@@ -45,7 +42,7 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
-        self._ispdb = IspdbModel(ctx, DataSource(ctx), True)
+        self._configuration = getConfiguration(ctx, g_identifier, True)
         self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
         self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
         self._resources = {'SpoolerStatus': 'OptionsDialog.Label4.Label.%s'}
@@ -57,14 +54,14 @@ class OptionsModel():
         self._spooler.removeListener(listener)
 
     def getViewData(self):
+        timeout = self._configuration.getByName('ConnectTimeout')
         msg, state = self._getSpoolerStatus()
-        return self._ispdb.Timeout, msg, state
+        return timeout, msg, state
 
-    def setTimeout(self, timeout):
-        self._ispdb.Timeout = int(timeout)
-
-    def saveTimeout(self):
-        self._ispdb.saveTimeout()
+    def saveTimeout(self, timeout):
+        self._configuration.replaceByName('ConnectTimeout', timeout)
+        if self._configuration.hasPendingChanges():
+            self._configuration.commitChanges()
 
     def toogleSpooler(self, state):
         if state:
@@ -81,5 +78,4 @@ class OptionsModel():
         started = int(self._spooler.isStarted())
         resource = self._resources.get('SpoolerStatus') % started
         return self._resolver.resolveString(resource), started
-
 

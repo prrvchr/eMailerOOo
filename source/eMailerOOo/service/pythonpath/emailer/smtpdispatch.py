@@ -50,12 +50,16 @@ from .datasource import DataSource
 
 from .wizard import Wizard
 
+from .mailertool import checkVersion
+
 from .unotool import createMessageBox
 from .unotool import getPathSettings
 from .unotool import getExtensionVersion
 from .unotool import getStringResource
 
 from .oauth2 import getOAuth2Version
+
+from .dbconfig import g_version
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -66,7 +70,6 @@ from .configuration import g_ispdb_paths
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 
-from packaging import version
 import traceback
 
 
@@ -93,15 +96,21 @@ class SmtpDispatch(unohelper.Base,
             oauth2 = getOAuth2Version(self._ctx)
             driver = getExtensionVersion(self._ctx, 'io.github.prrvchr.jdbcDriverOOo')
             if oauth2 is None:
-                self._showMsgBox(500, 'OAuth2OOo', g_extension)
-            elif not self._checkVersion(oauth2, '1.1.1'):
-                self._showMsgBox(502, oauth2, 'OAuth2OOo', '1.1.1')
+                self._showMsgBox(500, 'OAuth2OOo', '\n', g_extension)
+            elif not checkVersion(oauth2, '1.1.1'):
+                self._showMsgBox(502, oauth2, 'OAuth2OOo', '\n', '1.1.1')
             elif driver is None:
-                self._showMsgBox(500, 'jdbcDriverOOo', g_extension)
-            elif not self._checkVersion(driver, '1.0.5'):
-                self._showMsgBox(502, driver, 'jdbcDriverOOo', '1.0.5')
+                self._showMsgBox(500, 'jdbcDriverOOo', '\n', g_extension)
+            elif not checkVersion(driver, '1.0.5'):
+                self._showMsgBox(502, driver, 'jdbcDriverOOo', '\n', '1.0.5')
             else:
-                SmtpDispatch._datasource = DataSource(self._ctx)
+                datasource = DataSource(self._ctx)
+                if not datasource.DataBase.isValid():
+                    self._showMsgBox(504, datasource.DataBase.Url, '\n', datasource.DataBase.Error)
+                elif not datasource.DataBase.isUptoDate():
+                    self._showMsgBox(506, datasource.DataBase.Version, '\n', g_version)
+                else:
+                    SmtpDispatch._datasource = datasource
         if self._isInitialized():
             if url.Path == 'ispdb':
                 state, result = self._showIspdb(arguments)
@@ -217,7 +226,4 @@ class SmtpDispatch(unohelper.Base,
         msgbox = createMessageBox(self._parent, message, title, 'error', 1)
         msgbox.execute()
         msgbox.dispose()
-
-    def _checkVersion(self, ver, minimum):
-        return version.parse(ver) >= version.parse(minimum)
 

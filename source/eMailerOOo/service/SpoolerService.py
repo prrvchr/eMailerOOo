@@ -58,7 +58,7 @@ class SpoolerService(unohelper.Base,
         if self._spooler is None:
             with self._lock:
                 if self._spooler is None:
-                    SpoolerService.__spooler = MailSpooler(ctx, self._datasource)
+                    SpoolerService.__spooler = MailSpooler(ctx, self._datasource.DataBase)
 
     __lock = Lock()
     __spooler = None

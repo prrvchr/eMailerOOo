@@ -34,9 +34,13 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, ctx, dialog, timeout, msg, state):
+    def __init__(self, dialog, timeout, msg, state):
         self._dialog = dialog
         self.initControl(timeout, msg, state)
+
+# OptionsView getter methods
+    def getTimeout(self):
+        return int(self._getTimeout().Value)
 
 # OptionsView setter methods
     def initControl(self, timeout, msg, state):

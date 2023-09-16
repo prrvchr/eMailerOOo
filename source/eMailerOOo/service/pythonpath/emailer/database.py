@@ -38,10 +38,13 @@ from com.sun.star.mail.MailServiceType import IMAP
 
 from com.sun.star.sdb.CommandType import QUERY
 
+from com.sun.star.sdbc import SQLException
+
 from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbc.DataType import SMALLINT
 
-from .unotool import createService
+from .mailertool import checkVersion
+
 from .unotool import getDateTime
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
@@ -49,23 +52,16 @@ from .unotool import getUrlPresentation
 
 from .dbqueries import getSqlQuery
 
-from .dbconfig import g_folder
-from .dbconfig import g_jar
 from .dbconfig import g_csv
+from .dbconfig import g_folder
+from .dbconfig import g_version
 
-from .dbtool import checkDataBase
-from .dbtool import createDataSource
 from .dbtool import createStaticTable
-from .dbtool import getConnectionInfo
-from .dbtool import getDataBaseConnection
-from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
 from .dbtool import getDataFromResult
 from .dbtool import getObjectFromResult
 from .dbtool import getResultValue
-from .dbtool import getRowDict
-from .dbtool import getRowValue
 from .dbtool import getSequenceFromResult
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
@@ -76,42 +72,48 @@ from .dbinit import getTablesAndStatements
 
 from .configuration import g_identifier
 
-import time
+from threading import Thread
 import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, dbname):
+    def __init__(self, ctx, dbname, user='', pwd=''):
+        self._ctx = ctx
+        self._dbname = dbname
+        self._statement = self._error = None
+        self._version = '0.0.0'
+        path = g_folder + '/' + dbname
+        location = getResourceLocation(ctx, g_identifier, path)
+        self._url = getUrlPresentation(ctx, location)
+        odb = self._url + '.odb'
+        new = not getSimpleFile(ctx).exists(odb)
         try:
-            print("smtpMailer.DataBase.__init__() 1")
-            self._ctx = ctx
-            self._dbname = dbname
-            self._statement = None
-            self._embedded = False
-            time.sleep(0.2)
-            print("smtpMailer.DataBase.__init__() 2")
-            location = getResourceLocation(ctx, g_identifier, g_folder)
-            url = getUrlPresentation(ctx, location)
-            self._url = url + '/' + dbname
-            if self._embedded:
-                self._path = url + '/' + g_jar
+            connection = getDataSourceConnection(ctx, self._url, user, pwd, new, False)
+        except SQLException as e:
+            self._error = e.Message
+        else:
+            self._version = connection.getMetaData().getDriverVersion()
+            if new and self._init is None and self.isUptoDate():
+                DataBase.__init = Thread(target=self._initialize, args=(connection, odb))
+                self._init.start()
             else:
-                self._path = None
-            odb = self._url + '.odb'
-            exist = getSimpleFile(ctx).exists(odb)
-            print("smtpMailer.DataBase.__init__() 3")
-            if not exist:
-                print("smtpMailer.DataBase.__init__() 4")
-                connection = getDataSourceConnection(ctx, self._url)
-                error = self._createDataBase(connection)
-                if error is None:
-                    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
                 connection.close()
-                print("smtpMailer.DataBase.__init__() 5")
-            print("smtpMailer.DataBase.__init__() 6")
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
+
+    __init = None
+
+    @property
+    def _init(self):
+        return DataBase.__init
+
+    @property
+    def Version(self):
+        return self._version
+    @property
+    def Error(self):
+        return '' if self.isValid() else self._error
+    @property
+    def Url(self):
+        return self._url
 
     @property
     def Connection(self):
@@ -128,6 +130,16 @@ class DataBase(unohelper.Base):
             #connection.getParent().dispose()
             connection.close()
             print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
+
+    def isValid(self):
+        return self._error is None
+
+    def isUptoDate(self):
+        return checkVersion(self._version, g_version)
+
+    def wait(self):
+        if self._init is not None:
+            self._init.join()
 
     def getConnection(self, user='', password=''):
         connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
@@ -438,16 +450,17 @@ class DataBase(unohelper.Base):
         result = call.executeUpdate()
 
 # Procedures called internally
-    def _createDataBase(self, connection):
-        version, error = checkDataBase(self._ctx, connection)
-        if error is None:
-            statement = connection.createStatement()
-            createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
-            tables, statements = getTablesAndStatements(self._ctx, connection, version)
-            executeSqlQueries(statement, tables)
-            executeQueries(self._ctx, statement, getQueries())
-            statement.close()
-        return error
+    def _initialize(self, connection, odb):
+        print("smtpMailer.DataBase._initialize() 1")
+        statement = connection.createStatement()
+        createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
+        tables, statements = getTablesAndStatements(self._ctx, connection, self._version)
+        executeSqlQueries(statement, tables)
+        executeQueries(self._ctx, statement, getQueries())
+        statement.close()
+        connection.getParent().DatabaseDocument.storeAsURL(odb, ())
+        connection.close()
+        print("smtpMailer.DataBase._initialize() 2")
 
     def _getCall(self, name, format=None):
         return self._getDataBaseCall(self.Connection, name, format)

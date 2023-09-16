@@ -32,9 +32,9 @@ from com.sun.star.sdbc import SQLException
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 
+from .dbconfig import g_csv
 from .dbconfig import g_folder
 from .dbconfig import g_version
-from .dbconfig import g_csv
 
 from .dbqueries import getSqlQuery
 
@@ -47,6 +47,8 @@ from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
 from .dbtool import getSequenceFromResult
 from .dbtool import registerDataSource
+
+from .mailertool import checkVersion
 
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable
@@ -76,11 +78,11 @@ def _createDataBase(ctx, datasource, url, dbname):
     except SQLException as e:
         error = e
     else:
-        version, error = checkDataBase(ctx, connection)
+        ver, error = checkDataBase(ctx, connection)
         if error is None:
             statement = connection.createStatement()
             createStaticTable(ctx, statement, _getStaticTables(), g_csv)
-            tables, queries = _getTablesAndStatements(ctx, statement, version)
+            tables, queries = _getTablesAndStatements(ctx, statement, ver)
             executeSqlQueries(statement, tables)
             _executeQueries(ctx, statement, _getQueries())
             executeSqlQueries(statement, queries)
@@ -175,11 +177,11 @@ def getTablesAndStatements(ctx, connection, version=g_version):
             columns.append(getSqlQuery(ctx, 'getUniqueConstraint', format))
         for format in constraint.values():
             columns.append(getSqlQuery(ctx, 'getForeignConstraint', format))
-        if version >= '2.5.0' and versioned:
+        if checkVersion(version, g_version) and versioned:
             columns.append(getSqlQuery(ctx, 'getPeriodColumns'))
         format = (table, ','.join(columns))
         query = getSqlQuery(ctx, 'createTable', format)
-        if version >= '2.5.0' and versioned:
+        if checkVersion(version, g_version) and versioned:
             query += getSqlQuery(ctx, 'getSystemVersioning')
         tables.append(query)
     call.close()

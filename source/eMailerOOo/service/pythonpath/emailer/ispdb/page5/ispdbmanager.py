@@ -43,7 +43,9 @@ from ...logger import LoggerListener
 from ...configuration import g_mailservicelog
 
 from .ispdbview import IspdbView
+from .ispdbhandler import WindowHandler
 from .send import SendView
+from .send import DialogHandler
 
 import traceback
 
@@ -56,7 +58,7 @@ class IspdbManager(unohelper.Base):
         self._pageid = pageid
         self._connected = False
         self._dialog = None
-        self._view = IspdbView(ctx, self, parent)
+        self._view = IspdbView(ctx, WindowHandler(self), parent)
         self._model.addLogListener(LoggerListener(self))
         self.updateLogger()
 
@@ -110,7 +112,7 @@ class IspdbManager(unohelper.Base):
         email = self._model.Email
         subject = self._model.getSendSubject()
         msg = self._model.getSendMessage()
-        self._dialog = SendView(self._ctx, self, parent, title, email, subject, msg)
+        self._dialog = SendView(self._ctx, DialogHandler(self), parent, title, email, subject, msg)
         if self._dialog.execute() == OK:
             self._view.setPageStep(1)
             recipient = self._dialog.getRecipient()

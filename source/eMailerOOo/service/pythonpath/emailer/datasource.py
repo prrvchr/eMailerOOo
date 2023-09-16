@@ -31,11 +31,6 @@ import uno
 import unohelper
 
 from com.sun.star.util import XCloseListener
-from com.sun.star.datatransfer import XTransferable
-
-from com.sun.star.uno import Exception as UnoException
-
-from com.sun.star.mail.MailServiceType import SMTP
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -48,12 +43,6 @@ from .database import DataBase
 
 from .dbtool import Array
 
-from .mailerlib import MailTransferable
-
-from .mailertool import getMail
-
-from .unotool import createService
-
 from threading import Thread
 from threading import Lock
 import traceback
@@ -62,18 +51,15 @@ import time
 
 class DataSource(unohelper.Base,
                  XCloseListener):
-    def __init__(self, ctx):
+    def __init__(self, ctx, dbname='SmtpMailer'):
         self._ctx = ctx
-        self._dbname = 'SmtpMailer'
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        if self._initialize:
+        if self.DataBase is None:
             with self._lock:
-                if self._initialize:
-                    DataSource.__init = Thread(target=self._initDataBase)
-                    self._init.start()
+                if self.DataBase is None:
+                    DataSource.__database = DataBase(ctx, dbname)
 
     __lock = Lock()
-    __init = None
     __database = None
 
     @property
@@ -82,12 +68,6 @@ class DataSource(unohelper.Base,
     @property
     def _lock(self):
         return DataSource.__lock
-    @property
-    def _init(self):
-        return DataSource.__init
-    @property
-    def _initialize(self):
-        return self.DataBase is None and self._init is None
 
     def dispose(self):
         self.waitForDataBase()
@@ -120,7 +100,7 @@ class DataSource(unohelper.Base,
             self.DataBase.updateServer(host, port, server)
 
     def waitForDataBase(self):
-        self._init.join()
+        self.DataBase.wait()
 
 # Procedures called by the Mailer
     def getSenders(self, *args):
@@ -172,7 +152,7 @@ class DataSource(unohelper.Base,
         callback()
 
 # Private methods
-    def _initDataBase(self):
-        database = DataBase(self._ctx, self._dbname)
+    def _initDataBase(self, dbname):
+        database = DataBase(self._ctx, dbname)
         with self._lock:
             DataSource.__database = database

@@ -65,11 +65,8 @@ class OptionsHandler(unohelper.Base,
                 elif event == 'back':
                     self._manager.loadSetting()
                     handled = True
-            elif method == 'ChangeTimeout':
-                self._manager.changeTimeout(event.Source.Value)
-                handled = True
-            elif method == 'ShowWizard':
-                self._manager.showSmtpServer()
+            elif method == 'ShowIspdb':
+                self._manager.showIspdb()
                 handled = True
             elif method == 'ToggleSpooler':
                 control = event.Source.Model
@@ -77,7 +74,7 @@ class OptionsHandler(unohelper.Base,
                 self._manager.toogleSpooler(control.State)
                 handled = True
             elif method == 'ShowSpooler':
-                self._manager.showSmtpSpooler()
+                self._manager.showSpooler()
                 handled = True
             return handled
         except Exception as e:
@@ -86,8 +83,7 @@ class OptionsHandler(unohelper.Base,
 
         def getSupportedMethodNames(self):
             return ('external_event',
-                    'ChangeTimeout',
-                    'ShowWizard',
+                    'ShowIspdb',
                     'ToggleSpooler',
                     'ShowSpooler')
 
@@ -103,3 +99,4 @@ class OptionsHandler(unohelper.Base,
 g_ImplementationHelper.addImplementation(OptionsHandler,                            # UNO object class
                                          g_ImplementationName,                      # Implementation name
                                         (g_ImplementationName,))                    # List of implemented services
+

@@ -103,9 +103,10 @@ class IspdbModel(unohelper.Base):
         self._levels = {0: unsecure, 1: secure, 2: secure}
         self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
-        self._configuration = getConfiguration(ctx, g_identifier, True)
+        configuration = getConfiguration(ctx, g_identifier)
+        self._url = configuration.getByName('IspDBUrl')
+        self._timeout = configuration.getByName('ConnectTimeout')
         self._logger = LogController(ctx, g_mailservicelog)
-        self._timeout = self._configuration.getByName('ConnectTimeout')
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'IspdbPage%s.Step',
                            'Title': 'IspdbPage%s.Title.%s',
@@ -133,24 +134,11 @@ class IspdbModel(unohelper.Base):
         self._offline = offline
 
     @property
-    def Timeout(self):
-        return self._timeout
-    @Timeout.setter
-    def Timeout(self, timeout):
-        self._timeout = timeout
-
-    @property
     def DataSource(self):
         return self._datasource
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
-
-# IspdbModel getter methods
-    def saveTimeout(self):
-        self._configuration.replaceByName('ConnectTimeout', self._timeout)
-        if self._configuration.hasPendingChanges():
-            self._configuration.commitChanges()
 
 # IspdbModel getter methods called by IspdbWizard
     def dispose(self):
@@ -171,6 +159,9 @@ class IspdbModel(unohelper.Base):
             return True
         return False
 
+    def isDataBaseValid(self):
+        return self.DataSource.DataBase.isValid()
+
 # IspdbModel getter methods called by WizardPage2
     def getServerConfig(self, *args):
         self._version += 1
@@ -178,9 +169,8 @@ class IspdbModel(unohelper.Base):
 
     def _getServerConfig(self, progress, updateModel):
         servers = IspdbServer()
-        url = self._configuration.getByName('IspDBUrl')
         progress(5)
-        url = getUrl(self._ctx, url)
+        url = getUrl(self._ctx, self._url)
         progress(10)
         mode = getConnectionMode(self._ctx, url.Server)
         progress(20)

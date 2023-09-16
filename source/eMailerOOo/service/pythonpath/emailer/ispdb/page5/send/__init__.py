@@ -28,3 +28,4 @@
 """
 
 from .sendview import SendView
+from .sendhandler import DialogHandler

@@ -30,6 +30,7 @@
 import unohelper
 
 from .ispdbview import IspdbView
+from .ispdbhandler import WindowHandler
 
 import traceback
 
@@ -40,7 +41,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, self, parent, model.Email)
+        self._view = IspdbView(ctx, WindowHandler(self), parent, model.Email)
         self._wizard.activatePath(1, False)
 
 # XWizardPage
@@ -60,9 +61,7 @@ class IspdbManager(unohelper.Base):
         return True
 
     def canAdvance(self):
-        email = self._view.getEmail()
-        advance = self._model.isEmailValid(email)
-        return advance
+        return self._model.isEmailValid(self._view.getEmail())
 
 # IspdbManager setter methods
     def updateTravelUI(self):

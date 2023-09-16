@@ -34,9 +34,13 @@ from .unotool import getPropertyValueSet
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
+from packaging import version
 import base64
 import traceback
 
+
+def checkVersion(ver, minimum):
+    return version.parse(ver) >= version.parse(minimum)
 
 def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)

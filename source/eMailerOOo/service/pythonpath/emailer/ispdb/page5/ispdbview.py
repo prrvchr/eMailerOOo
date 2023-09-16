@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from .ispdbhandler import WindowHandler
-
 from ...unotool import getContainerWindow
 
 from ...configuration import g_extension
@@ -40,9 +38,7 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, manager, parent):
-        self._ctx = ctx
-        handler = WindowHandler(manager)
+    def __init__(self, ctx, handler, parent):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage5')
 
 # IspdbView getter methods

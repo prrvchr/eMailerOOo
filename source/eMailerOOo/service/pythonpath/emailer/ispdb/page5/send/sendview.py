@@ -33,12 +33,9 @@ from ....unotool import getDialog
 
 from ....configuration import g_extension
 
-from .sendhandler import DialogHandler
-
 
 class SendView(unohelper.Base):
-    def __init__(self, ctx, manager, parent, title, email, subject, msg):
-        handler = DialogHandler(manager)
+    def __init__(self, ctx, handler, parent, title, email, subject, msg):
         self._dialog = getDialog(ctx, g_extension, 'SendDialog', handler, parent)
         self._dialog.setTitle(title)
         self._getRecipient().Text = email

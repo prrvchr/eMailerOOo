@@ -37,10 +37,7 @@ from com.sun.star.mail import XSpoolerService
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from emailer import DataSource
 from emailer import MailSpooler
-
-from emailer import createService
 
 from threading import Lock
 import traceback
@@ -54,11 +51,10 @@ class SpoolerService(unohelper.Base,
                      XServiceInfo,
                      XSpoolerService):
     def __init__(self, ctx):
-        self._datasource = DataSource(ctx)
         if self._spooler is None:
             with self._lock:
                 if self._spooler is None:
-                    SpoolerService.__spooler = MailSpooler(ctx, self._datasource.DataBase)
+                    SpoolerService.__spooler = MailSpooler(ctx)
 
     __lock = Lock()
     __spooler = None
@@ -88,19 +84,19 @@ class SpoolerService(unohelper.Base,
         self._spooler.removeListener(listener)
 
     def addJob(self, sender, subject, document, recipients, attachments):
-        return self._datasource.insertJob(sender, subject, document, recipients, attachments)
+        return self._spooler.addJob(sender, subject, document, recipients, attachments)
 
     def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
-        return self._datasource.insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
+        return self._spooler.addMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
 
     def removeJobs(self, jobids):
-        return self._datasource.deleteJob(jobids)
+        return self._spooler.removeJobs(jobids)
 
     def getJobState(self, jobid):
-        return self._datasource.getJobState(jobid)
+        return self._spooler.getJobState(jobid)
 
     def getJobIds(self, batchid):
-        return self._datasource.getJobIds(batchid)
+        return self._spooler.getJobIds(batchid)
 
     # XServiceInfo
     def supportsService(self, service):

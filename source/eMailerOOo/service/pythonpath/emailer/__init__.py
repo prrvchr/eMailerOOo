@@ -34,11 +34,7 @@ from .options import OptionsManager
 
 from .logger import getLogger
 
-from .unotool import createService
-from .unotool import executeDispatch
 from .unotool import getConfiguration
-
-from .datasource import DataSource
 
 from .smtpdispatch import SmtpDispatch
 

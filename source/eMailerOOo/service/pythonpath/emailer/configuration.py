@@ -28,7 +28,8 @@
 """
 
 # General configuration
-g_extension = 'eMailerOOo'
+g_basename = 'eMailer'
+g_extension = '%sOOo' % g_basename
 g_identifier = 'io.github.prrvchr.%s' % g_extension
 # Ispdb roadmap wizard paths (Online and Offline)
 g_ispdb_paths = ((1, 2, 3, 4, 5), (1, 2, 3, 4))
@@ -41,16 +42,17 @@ g_fetchsize = 500
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)
 # Thread Logo
-g_logo = 'eMailerOOo.png'
+g_logo = '%s.png' % g_extension
 g_logourl = 'https://prrvchr.github.io/%s/img/%s' %(g_extension, g_logo)
 # Logger resource strings files folder
 g_resource = 'resource'
-# Logger resource strings files basename
-g_basename = 'eMailer'
 # Logger configuration
-g_defaultlog = 'eMailerLogger'
-g_errorlog = 'eMailerError'
+g_defaultlog = '%sLogger' % g_basename
+g_errorlog = '%sError' % g_basename
 g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'
 g_chunk = 320 * 1024
+# The URL separator
+g_separator = '/'
+
 

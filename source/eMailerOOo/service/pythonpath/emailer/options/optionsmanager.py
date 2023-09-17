@@ -39,6 +39,7 @@ from ..logger import LogManager
 from ..spooler import SpoolerListener
 
 from ..unotool import executeDispatch
+from ..unotool import getDesktop
 
 from ..configuration import g_identifier
 
@@ -97,4 +98,8 @@ class OptionsManager(unohelper.Base):
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
             print(msg)
+
+    def showDataBase(self):
+        url = self._model.getDataBaseUrl()
+        getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, ())
 

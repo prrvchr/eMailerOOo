@@ -36,7 +36,7 @@
     <value>https://autoconfig.thunderbird.net/v1.1/</value>
   </prop>
   <prop oor:name="SpoolerTable" oor:op="fuse">
-    <value>Spooler</value>
+    <value>PUBLIC.PUBLIC.Spooler</value>
   </prop>
   <prop oor:name="SpoolerColumns" oor:op="fuse">
     <value>{}</value>

@@ -348,6 +348,8 @@ ___
 
 - L'absence ou l'obsolescence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaires au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur. Ceci afin d'éviter qu'un dysfonctionnement tel que le [dysfonctionnement #3][71] ne se reproduise...
 
+- La base de données HsqlDB sous-jacente peut être ouverte dans Base avec: **Outils -> Options -> Internet -> eMailerOOo -> Base de données**.
+
 ### Que reste-t-il à faire pour la version 1.0.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...

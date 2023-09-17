@@ -43,31 +43,19 @@ from .database import DataBase
 
 from .dbtool import Array
 
+from .configuration import g_basename
+
 from threading import Thread
-from threading import Lock
 import traceback
 import time
 
 
 class DataSource(unohelper.Base,
                  XCloseListener):
-    def __init__(self, ctx, dbname='SmtpMailer'):
+    def __init__(self, ctx):
         self._ctx = ctx
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        if self.DataBase is None:
-            with self._lock:
-                if self.DataBase is None:
-                    DataSource.__database = DataBase(ctx, dbname)
-
-    __lock = Lock()
-    __database = None
-
-    @property
-    def DataBase(self):
-        return DataSource.__database
-    @property
-    def _lock(self):
-        return DataSource.__lock
+        self.DataBase = DataBase(ctx, g_basename)
 
     def dispose(self):
         self.waitForDataBase()
@@ -151,8 +139,3 @@ class DataSource(unohelper.Base,
         self.waitForDataBase()
         callback()
 
-# Private methods
-    def _initDataBase(self, dbname):
-        database = DataBase(self._ctx, dbname)
-        with self._lock:
-            DataSource.__database = database

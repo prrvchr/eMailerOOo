@@ -348,6 +348,8 @@ ___
 
 - The absence or obsolescence of the **OAuth2OOo** and/or **jdbcDriverOOo** extensions necessary for the proper functioning of **eMailerOOo** now displays an error message. This is to prevent a malfunction such as [issue #3][71] from recurring...
 
+- The underlying HsqlDB database can be opened in Base with: **Tools -> Options -> Internet -> eMailerOOo -> Database**.
+
 ### What remains to be done for version 1.0.1:
 
 - Add new languages for internationalization...

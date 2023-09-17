@@ -47,5 +47,10 @@
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="10" dlg:left="155" dlg:top="149" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton3.HelpText" dlg:value="&amp;OptionsDialog.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSpooler" script:language="UNO"/>
     </dlg:button>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine3" dlg:tab-index="11" dlg:left="6" dlg:top="170" dlg:width="244" dlg:height="14" dlg:help-text="&amp;OptionsDialog.FixedLine3.HelpText" dlg:value="&amp;OptionsDialog.FixedLine3.Label"/>
+    <dlg:text dlg:id="Label6" dlg:tab-index="12" dlg:left="10" dlg:top="184" dlg:width="140" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label6.HelpText" dlg:value="&amp;OptionsDialog.Label6.Label" dlg:valign="center" dlg:tabstop="false"/>
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="13" dlg:left="155" dlg:top="184" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton4.HelpText" dlg:value="&amp;OptionsDialog.CommandButton4.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowDataBase" script:language="UNO"/>
+    </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>

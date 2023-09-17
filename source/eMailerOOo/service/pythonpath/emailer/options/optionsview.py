@@ -34,16 +34,17 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, dialog, timeout, msg, state):
+    def __init__(self, dialog, exist, timeout, msg, state):
         self._dialog = dialog
-        self.initControl(timeout, msg, state)
+        self.initControl(exist, timeout, msg, state)
 
 # OptionsView getter methods
     def getTimeout(self):
         return int(self._getTimeout().Value)
 
 # OptionsView setter methods
-    def initControl(self, timeout, msg, state):
+    def initControl(self, exist, timeout, msg, state):
+        self._getDataBaseButton().Model.Enabled = exist
         self._getTimeout().Value = timeout
         self.setSpoolerStatus(msg, state)
 
@@ -62,4 +63,7 @@ class OptionsView(unohelper.Base):
 
     def _getSpoolerButton(self):
         return self._dialog.getControl('CommandButton2')
+
+    def _getDataBaseButton(self):
+        return self._dialog.getControl('CommandButton4')
 

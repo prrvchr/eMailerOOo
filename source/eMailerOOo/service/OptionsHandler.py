@@ -76,6 +76,9 @@ class OptionsHandler(unohelper.Base,
             elif method == 'ShowSpooler':
                 self._manager.showSpooler()
                 handled = True
+            elif method == 'ShowDataBase':
+                self._manager.showDataBase()
+                handled = True
             return handled
         except Exception as e:
             msg = "OptionsHandler.callHandlerMethod() Error: %s" % traceback.print_exc()
@@ -85,7 +88,8 @@ class OptionsHandler(unohelper.Base,
             return ('external_event',
                     'ShowIspdb',
                     'ToggleSpooler',
-                    'ShowSpooler')
+                    'ShowSpooler',
+                    'ShowDataBase')
 
     # XServiceInfo
     def supportsService(self, service):

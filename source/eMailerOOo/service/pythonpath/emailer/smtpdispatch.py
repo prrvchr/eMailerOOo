@@ -46,20 +46,13 @@ from .sender import SenderModel
 from .sender import SenderManager
 from .spooler import SpoolerManager
 
-from .datasource import DataSource
-
 from .wizard import Wizard
 
-from .mailertool import checkVersion
+from .mailertool import checkSetup
 
 from .unotool import createMessageBox
 from .unotool import getPathSettings
-from .unotool import getExtensionVersion
 from .unotool import getStringResource
-
-from .oauth2 import getOAuth2Version
-
-from .dbconfig import g_version
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -93,25 +86,10 @@ class SmtpDispatch(unohelper.Base,
         state = FAILURE
         result = None
         if not self._isInitialized():
-            oauth2 = getOAuth2Version(self._ctx)
-            driver = getExtensionVersion(self._ctx, 'io.github.prrvchr.jdbcDriverOOo')
-            if oauth2 is None:
-                self._showMsgBox(500, 'OAuth2OOo', '\n', g_extension)
-            elif not checkVersion(oauth2, '1.1.1'):
-                self._showMsgBox(502, oauth2, 'OAuth2OOo', '\n', '1.1.1')
-            elif driver is None:
-                self._showMsgBox(500, 'jdbcDriverOOo', '\n', g_extension)
-            elif not checkVersion(driver, '1.0.5'):
-                self._showMsgBox(502, driver, 'jdbcDriverOOo', '\n', '1.0.5')
-            else:
-                datasource = DataSource(self._ctx)
-                if not datasource.DataBase.isValid():
-                    self._showMsgBox(504, datasource.DataBase.Url, '\n', datasource.DataBase.Error)
-                elif not datasource.DataBase.isUptoDate():
-                    self._showMsgBox(506, datasource.DataBase.Version, '\n', g_version)
-                else:
-                    SmtpDispatch._datasource = datasource
+            # FIXME: We need to check the configuration
+            SmtpDispatch._datasource = checkSetup(self._ctx, g_extension, '\n', self._showMsgBox)
         if self._isInitialized():
+            # FIXME: Configuration has been checked we can continue
             if url.Path == 'ispdb':
                 state, result = self._showIspdb(arguments)
             elif url.Path == 'spooler':
@@ -219,10 +197,10 @@ class SmtpDispatch(unohelper.Base,
     def _getDataSource(self):
         return SmtpDispatch._datasource
 
-    def _showMsgBox(self, code, *args):
+    def _showMsgBox(self, method, code, *args):
         resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
-        title = resource.resolveString(code +1) % g_extension
-        message = resource.resolveString(code +2) % args
+        message = resource.resolveString(code) % args
+        title = resource.resolveString(code +1) % method
         msgbox = createMessageBox(self._parent, message, title, 'error', 1)
         msgbox.execute()
         msgbox.dispose()

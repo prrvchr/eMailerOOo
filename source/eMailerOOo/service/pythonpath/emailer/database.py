@@ -43,8 +43,7 @@ from com.sun.star.sdbc import SQLException
 from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbc.DataType import SMALLINT
 
-from .mailertool import checkVersion
-
+from .unotool import checkVersion
 from .unotool import getDateTime
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
@@ -131,7 +130,7 @@ class DataBase(unohelper.Base):
             connection.close()
             print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
 
-    def isValid(self):
+    def isConnected(self):
         return self._error is None
 
     def isUptoDate(self):

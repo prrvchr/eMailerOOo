@@ -29,6 +29,7 @@
 
 from com.sun.star.sdbc import SQLException
 
+from .unotool import checkVersion
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 
@@ -47,8 +48,6 @@ from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
 from .dbtool import getSequenceFromResult
 from .dbtool import registerDataSource
-
-from .mailertool import checkVersion
 
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable

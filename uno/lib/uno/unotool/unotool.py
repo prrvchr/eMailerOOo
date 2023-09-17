@@ -44,9 +44,10 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from six import binary_type, string_types
-import datetime
 import binascii
+import datetime
+from packaging import version
+from six import binary_type, string_types
 import traceback
 
 
@@ -151,6 +152,9 @@ def _getSequence(inputstream, length):
     length, sequence = inputstream.readBytes(None, length)
     inputstream.closeInput()
     return length, sequence
+
+def checkVersion(ver, minimum):
+    return version.parse(ver) >= version.parse(minimum)
 
 def hasInterface(component, interface):
     for t in getComponentTypes(component):

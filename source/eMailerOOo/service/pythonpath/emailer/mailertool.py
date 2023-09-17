@@ -27,20 +27,49 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .datasource import DataSource
+
+from .oauth2 import getOAuth2Version
+
+from .unotool import checkVersion
 from .unotool import createService
+from .unotool import getExtensionVersion
 from .unotool import getFileSequence
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
-from packaging import version
+from .configuration import g_extension
+
+from .dbconfig import g_version
+
 import base64
 import traceback
 
 
-def checkVersion(ver, minimum):
-    return version.parse(ver) >= version.parse(minimum)
+def checkSetup(ctx, method, sep, callback):
+    moauth2 = '1.1.1'
+    mdriver = '1.0.5'
+    oauth2 = getOAuth2Version(ctx)
+    driver = getExtensionVersion(ctx, 'io.github.prrvchr.jdbcDriverOOo')
+    if oauth2 is None:
+        callback(method, 501, 'OAuth2OOo', sep, g_extension)
+    elif not checkVersion(oauth2, moauth2):
+        callback(method, 503, oauth2, 'OAuth2OOo', sep, moauth2)
+    elif driver is None:
+        callback(method, 501, 'jdbcDriverOOo', sep, g_extension)
+    elif not checkVersion(driver, mdriver):
+        callback(method, 503, driver, 'jdbcDriverOOo', sep, mdriver)
+    else:
+        datasource = DataSource(ctx)
+        if not datasource.DataBase.isConnected():
+            callback(method, 505, datasource.DataBase.Url, sep, datasource.DataBase.Error)
+        elif not datasource.DataBase.isUptoDate():
+            callback(method, 507, datasource.DataBase.Version, sep, g_version)
+        else:
+            return datasource
+    return None
 
 def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)

@@ -31,11 +31,11 @@ from ..unotool import createService
 from ..unotool import getExtensionVersion
 
 from .configuration import g_identifier
-from .configuration import g_oauth2
+from .configuration import g_service
 
 
 def getOAuth2(ctx, url, name):
-    oauth2 = createService(ctx, g_oauth2)
+    oauth2 = createService(ctx, g_service)
     if oauth2 is not None:
         oauth2.initializeSession(url, name)
     return oauth2
@@ -45,7 +45,7 @@ def getOAuth2Version(ctx):
     return version
 
 def getRequest(ctx, scheme, name):
-    request = createService(ctx, g_oauth2)
+    request = createService(ctx, g_service)
     if request is not None:
         request.initializeSession(scheme, name)
     return request

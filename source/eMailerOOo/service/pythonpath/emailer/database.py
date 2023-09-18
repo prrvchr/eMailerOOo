@@ -76,40 +76,35 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, dbname, user='', pwd=''):
+    def __init__(self, ctx, lock, dbname, user='', pwd=''):
         self._ctx = ctx
+        self._lock = lock
         self._dbname = dbname
-        self._statement = self._error = None
+        self._init = self._statement = self._error = None
         self._version = '0.0.0'
         path = g_folder + '/' + dbname
         location = getResourceLocation(ctx, g_identifier, path)
         self._url = getUrlPresentation(ctx, location)
         odb = self._url + '.odb'
-        new = not getSimpleFile(ctx).exists(odb)
+        self._new = not getSimpleFile(ctx).exists(odb)
         try:
-            connection = getDataSourceConnection(ctx, self._url, user, pwd, new, False)
+            connection = getDataSourceConnection(ctx, self._url, user, pwd, self._new)
         except SQLException as e:
             self._error = e.Message
         else:
             self._version = connection.getMetaData().getDriverVersion()
-            if new and self._init is None and self.isUptoDate():
-                DataBase.__init = Thread(target=self._initialize, args=(connection, odb))
+            if self._new and self.isUptoDate():
+                self._init = Thread(target=self._initialize, args=(connection, odb))
                 self._init.start()
             else:
                 connection.close()
-
-    __init = None
-
-    @property
-    def _init(self):
-        return DataBase.__init
 
     @property
     def Version(self):
         return self._version
     @property
     def Error(self):
-        return '' if self.isValid() else self._error
+        return self._error if self._error else ''
     @property
     def Url(self):
         return self._url
@@ -117,20 +112,22 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            connection = self.getConnection()
-            self._statement = connection.createStatement()
+            with self._lock:
+                if self._statement is None:
+                    self._statement = self.getConnection().createStatement()
         return self._statement.getConnection()
 
     def dispose(self):
         if self._statement is not None:
-            connection = self._statement.getConnection()
-            self._statement.dispose()
-            self._statement = None
-            #connection.getParent().dispose()
-            connection.close()
-            print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
+            with self._lock:
+                if self._statement is not None:
+                    connection = self._statement.getConnection()
+                    self._statement.close()
+                    connection.close()
+                    self._statement = None
+                    print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
 
-    def isConnected(self):
+    def canConnect(self):
         return self._error is None
 
     def isUptoDate(self):
@@ -141,8 +138,7 @@ class DataBase(unohelper.Base):
             self._init.join()
 
     def getConnection(self, user='', password=''):
-        connection = getDataSourceConnection(self._ctx, self._url, user, password, False)
-        return connection
+        return getDataSourceConnection(self._ctx, self._url, user, password, False)
 
 # Procedures called by the Merger
     def getInnerJoinTable(self, subquery, identifiers, table):
@@ -166,10 +162,10 @@ class DataBase(unohelper.Base):
         return self.Connection.getParent()
 
     def shutdownDataBase(self):
-        if self._exist:
-            query = getSqlQuery(self._ctx, 'shutdown')
-        else:
+        if self._new:
             query = getSqlQuery(self._ctx, 'shutdownCompact')
+        else:
+            query = getSqlQuery(self._ctx, 'shutdown')
         self._statement.execute(query)
 
 # Procedures called by the IspDB Wizard

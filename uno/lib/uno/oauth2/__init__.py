@@ -27,6 +27,11 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .configuration import g_extension
+from .configuration import g_identifier
+from .configuration import g_service
+from .configuration import g_version
+
 from .configuration import g_oauth2
 
 from .oauth2lib import InteractionRequest

@@ -29,8 +29,6 @@
 
 from .datasource import DataSource
 
-from .oauth2 import getOAuth2Version
-
 from .unotool import checkVersion
 from .unotool import createService
 from .unotool import getExtensionVersion
@@ -40,30 +38,36 @@ from .unotool import getPropertyValueSet
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
-from .configuration import g_extension
+from .oauth2 import getOAuth2Version
+from .oauth2 import g_extension as oauth2ext
+from .oauth2 import g_version as oauth2ver
+
+from .jdbcdriver import g_extension as jdbcext
+from .jdbcdriver import g_identifier as jdbcid
+from .jdbcdriver import g_version as jdbcver
 
 from .dbconfig import g_version
+
+from .configuration import g_extension
 
 import base64
 import traceback
 
 
 def checkSetup(ctx, method, sep, callback):
-    moauth2 = '1.1.1'
-    mdriver = '1.0.5'
     oauth2 = getOAuth2Version(ctx)
-    driver = getExtensionVersion(ctx, 'io.github.prrvchr.jdbcDriverOOo')
+    driver = getExtensionVersion(ctx, jdbcid)
     if oauth2 is None:
-        callback(method, 501, 'OAuth2OOo', sep, g_extension)
-    elif not checkVersion(oauth2, moauth2):
-        callback(method, 503, oauth2, 'OAuth2OOo', sep, moauth2)
+        callback(method, 501, oauth2ext, sep, g_extension)
+    elif not checkVersion(oauth2, oauth2ver):
+        callback(method, 503, oauth2, oauth2ext, sep, oauth2ver)
     elif driver is None:
-        callback(method, 501, 'jdbcDriverOOo', sep, g_extension)
-    elif not checkVersion(driver, mdriver):
-        callback(method, 503, driver, 'jdbcDriverOOo', sep, mdriver)
+        callback(method, 501, jdbcext, sep, g_extension)
+    elif not checkVersion(driver, jdbcver):
+        callback(method, 503, driver, jdbcext, sep, jdbcver)
     else:
         datasource = DataSource(ctx)
-        if not datasource.DataBase.isConnected():
+        if not datasource.DataBase.canConnect():
             callback(method, 505, datasource.DataBase.Url, sep, datasource.DataBase.Error)
         elif not datasource.DataBase.isUptoDate():
             callback(method, 507, datasource.DataBase.Version, sep, g_version)

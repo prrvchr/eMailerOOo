@@ -45,6 +45,7 @@ from .dbtool import Array
 
 from .configuration import g_basename
 
+from threading import Lock
 from threading import Thread
 import traceback
 import time
@@ -55,7 +56,22 @@ class DataSource(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        self.DataBase = DataBase(ctx, g_basename)
+        if self.DataBase is None:
+            with self._lock:
+                if self.DataBase is None:
+                    database = DataBase(ctx, self._lock, g_basename)
+                    if database.isUptoDate():
+                        DataSource.__database = database
+
+    __lock = Lock()
+    __database = None
+
+    @property
+    def _lock(self):
+        return DataSource.__lock
+    @property
+    def DataBase(self):
+        return DataSource.__database
 
     def dispose(self):
         self.waitForDataBase()
@@ -133,9 +149,4 @@ class DataSource(unohelper.Base,
         self.waitForDataBase()
         senders = self.DataBase.getSenders()
         callback(senders)
-
-# Procedures called internally by the Spooler
-    def _initSpooler(self, callback):
-        self.waitForDataBase()
-        callback()
 

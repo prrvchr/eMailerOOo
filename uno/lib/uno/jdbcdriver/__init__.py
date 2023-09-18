@@ -27,13 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = 'hsqldb.default_table_type=cached;get_column_name=false;ifexists=false;shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.1'
-g_role = 'FrontOffice'
-g_dba = 'AD'
+from .configuration import g_extension
+from .configuration import g_identifier
+from .configuration import g_service
+from .configuration import g_version

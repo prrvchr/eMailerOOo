@@ -350,6 +350,10 @@ ___
 
 - La base de données HsqlDB sous-jacente peut être ouverte dans Base avec: **Outils -> Options -> Internet -> eMailerOOo -> Base de données**.
 
+- Le menu **Outils -> Add-ons** s'affiche désormais correctement en fonction du contexte.
+
+- Encore plein d'autres choses...
+
 ### Que reste-t-il à faire pour la version 1.0.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...

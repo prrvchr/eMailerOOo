@@ -37,7 +37,7 @@
           <value xml:lang="fr">Envoi de courriels</value>
         </prop>
         <prop oor:name="Context" oor:type="xs:string">
-          <value/>
+          <value></value>
         </prop>
         <node oor:name="Submenu">
           <node oor:name="Menu1" oor:op="replace">
@@ -63,6 +63,9 @@
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
             </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value></value>
+            </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:mailer</value>
             </prop>
@@ -75,6 +78,9 @@
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
             </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value></value>
+            </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:spooler</value>
             </prop>
@@ -86,6 +92,9 @@
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value></value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>smtp:ispdb</value>

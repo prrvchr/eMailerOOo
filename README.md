@@ -350,6 +350,10 @@ ___
 
 - The underlying HsqlDB database can be opened in Base with: **Tools -> Options -> Internet -> eMailerOOo -> Database**.
 
+- The **Tools -> Add-Ons** menu now displays correctly based on context.
+
+- Many other things...
+
 ### What remains to be done for version 1.0.1:
 
 - Add new languages for internationalization...

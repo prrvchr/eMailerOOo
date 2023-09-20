@@ -37,6 +37,7 @@ from .oauth2 import getOAuth2Version
 
 from .logger import getLogger
 
+from .dbtool import getConnectionUrl
 from .dbtool import getDriverPropertyInfos
 from .dbtool import getSqlException
 
@@ -67,5 +68,6 @@ from .configuration import g_defaultlog
 from .configuration import g_scheme
 from .configuration import g_host
 
+from .dbconfig import g_folder
 from .dbconfig import g_version
 

@@ -59,9 +59,7 @@ from ..dbtool import getValueFromResult
 from ..unotool import checkVersion
 from ..unotool import createService
 from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
-from ..unotool import getUrlPresentation
 from ..unotool import parseDateTime
 
 from ..configuration import g_identifier
@@ -70,7 +68,6 @@ from ..configuration import g_host
 
 from ..dbqueries import getSqlQuery
 
-from ..dbconfig import g_folder
 from ..dbconfig import g_jar
 from ..dbconfig import g_cardview
 from ..dbconfig import g_bookmark
@@ -90,18 +87,16 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, user='', pwd=''):
+    def __init__(self, ctx, url, user='', pwd=''):
         self._ctx = ctx
         self._statement = None
         self._fieldsMap = {}
         self._batchedCalls = OrderedDict()
         self._addressbook = None
-        location = getResourceLocation(ctx, g_identifier, g_folder)
-        url = getUrlPresentation(ctx, location)
-        self._url = url + '/' + g_host
-        odb = self._url + '.odb'
+        self._url = url
+        odb = url + '.odb'
         new = not getSimpleFile(ctx).exists(odb)
-        connection = getDataSourceConnection(ctx, self._url, user, pwd, new)
+        connection = getDataSourceConnection(ctx, url, user, pwd, new)
         self._version = connection.getMetaData().getDriverVersion()
         if new and self.isUptoDate():
             self._createDataBase(connection, odb)

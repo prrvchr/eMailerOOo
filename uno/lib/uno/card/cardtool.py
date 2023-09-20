@@ -27,9 +27,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .database import DataBase
+from com.sun.star.logging.LogLevel import SEVERE
 
-from .provider import Provider
+from .dbtool import getSqlException as getException
 
-from .user import User
+from .logger import getLogger
+
+from .configuration import g_errorlog
+from .configuration import g_basename
+
+import traceback
+
+
+def getSqlException(ctx, source, state, code, method, *args):
+    logger = getLogger(ctx, g_errorlog, g_basename)
+    state = logger.resolveString(state)
+    msg = logger.resolveString(code, *args)
+    logger.logp(SEVERE, g_basename, method, msg)
+    error = getException(state, code, msg, source)
+    return error
 

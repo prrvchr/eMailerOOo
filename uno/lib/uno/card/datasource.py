@@ -30,29 +30,35 @@
 import uno
 import unohelper
 
+from .provider import Provider
+
 from .replicator import Replicator
 
-from .user import User
+from .card import User
 
 from .listener import EventListener
 from .listener import TerminateListener
 
-from ..unotool import getDesktop
+from .unotool import getDesktop
 
 import traceback
 
 
 class DataSource(unohelper.Base):
-    def __init__(self, ctx, database, provider):
+    def __init__(self, ctx, database):
         self._ctx = ctx
         self._maps = {}
         self._users = {}
-        self._listener = EventListener(self)
         self._database = database
-        self._provider = provider
-        self._replicator = Replicator(ctx, self._database, self._provider, self._users)
+        self._listener = EventListener(self)
+        self._provider = Provider(ctx, database)
+        self._replicator = Replicator(ctx, database, self._provider, self._users)
         listener = TerminateListener(self._replicator)
         getDesktop(ctx).addTerminateListener(listener)
+
+    @property
+    def DataBase(self):
+        return self._database
 
 # Procedures called by EventListener
     def closeConnection(self, connection):

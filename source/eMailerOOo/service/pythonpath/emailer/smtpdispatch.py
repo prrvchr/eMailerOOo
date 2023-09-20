@@ -48,7 +48,7 @@ from .spooler import SpoolerManager
 
 from .wizard import Wizard
 
-from .mailertool import checkSetup
+from .mailertool import getDataSource
 
 from .unotool import createMessageBox
 from .unotool import getPathSettings
@@ -87,7 +87,7 @@ class SmtpDispatch(unohelper.Base,
         result = None
         if not self._isInitialized():
             # FIXME: We need to check the configuration
-            SmtpDispatch._datasource = checkSetup(self._ctx, g_extension, '\n', self._showMsgBox)
+            SmtpDispatch._datasource = getDataSource(self._ctx, g_extension, '\n', self._showMsgBox)
         if self._isInitialized():
             # FIXME: Configuration has been checked we can continue
             if url.Path == 'ispdb':

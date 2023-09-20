@@ -45,7 +45,6 @@ from .dbtool import Array
 
 from .configuration import g_basename
 
-from threading import Lock
 from threading import Thread
 import traceback
 import time
@@ -53,17 +52,11 @@ import time
 
 class DataSource(unohelper.Base,
                  XCloseListener):
-    def __init__(self, ctx):
+    def __init__(self, ctx, database):
         self._ctx = ctx
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        if self.DataBase is None:
-            with self._lock:
-                if self.DataBase is None:
-                    database = DataBase(ctx, self._lock, g_basename)
-                    if database.isUptoDate():
-                        DataSource.__database = database
+        DataSource.__database = database
 
-    __lock = Lock()
     __database = None
 
     @property

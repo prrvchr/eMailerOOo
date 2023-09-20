@@ -38,8 +38,6 @@ from com.sun.star.mail.MailServiceType import IMAP
 
 from com.sun.star.sdb.CommandType import QUERY
 
-from com.sun.star.sdbc import SQLException
-
 from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbc.DataType import SMALLINT
 
@@ -52,7 +50,6 @@ from .unotool import getUrlPresentation
 from .dbqueries import getSqlQuery
 
 from .dbconfig import g_csv
-from .dbconfig import g_folder
 from .dbconfig import g_version
 
 from .dbtool import createStaticTable
@@ -70,34 +67,29 @@ from .dbinit import getQueries
 from .dbinit import getTablesAndStatements
 
 from .configuration import g_identifier
+from .configuration import g_basename
 
+from threading import Lock
 from threading import Thread
 import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, lock, dbname, user='', pwd=''):
+    def __init__(self, ctx, url, user='', pwd=''):
         self._ctx = ctx
-        self._lock = lock
-        self._dbname = dbname
-        self._init = self._statement = self._error = None
+        self._lock = Lock()
+        self._init = self._statement = None
         self._version = '0.0.0'
-        path = g_folder + '/' + dbname
-        location = getResourceLocation(ctx, g_identifier, path)
-        self._url = getUrlPresentation(ctx, location)
-        odb = self._url + '.odb'
+        self._url = url
+        odb = url + '.odb'
         self._new = not getSimpleFile(ctx).exists(odb)
-        try:
-            connection = getDataSourceConnection(ctx, self._url, user, pwd, self._new)
-        except SQLException as e:
-            self._error = e.Message
+        connection = getDataSourceConnection(ctx, url, user, pwd, self._new)
+        self._version = connection.getMetaData().getDriverVersion()
+        if self._new and self.isUptoDate():
+            self._init = Thread(target=self._initialize, args=(connection, odb))
+            self._init.start()
         else:
-            self._version = connection.getMetaData().getDriverVersion()
-            if self._new and self.isUptoDate():
-                self._init = Thread(target=self._initialize, args=(connection, odb))
-                self._init.start()
-            else:
-                connection.close()
+            connection.close()
 
     @property
     def Version(self):
@@ -125,7 +117,7 @@ class DataBase(unohelper.Base):
                     self._statement.close()
                     connection.close()
                     self._statement = None
-                    print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % self._dbname)
+                    print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % g_basename)
 
     def canConnect(self):
         return self._error is None

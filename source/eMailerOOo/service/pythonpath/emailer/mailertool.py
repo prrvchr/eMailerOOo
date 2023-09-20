@@ -27,6 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.sdbc import SQLException
+
+from .database import DataBase
+
 from .datasource import DataSource
 
 from .unotool import checkVersion
@@ -38,6 +42,8 @@ from .unotool import getPropertyValueSet
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
+from .dbtool import getConnectionUrl
+
 from .oauth2 import getOAuth2Version
 from .oauth2 import g_extension as oauth2ext
 from .oauth2 import g_version as oauth2ver
@@ -46,15 +52,17 @@ from .jdbcdriver import g_extension as jdbcext
 from .jdbcdriver import g_identifier as jdbcid
 from .jdbcdriver import g_version as jdbcver
 
+from .dbconfig import g_folder
 from .dbconfig import g_version
 
 from .configuration import g_extension
+from .configuration import g_basename
 
 import base64
 import traceback
 
 
-def checkSetup(ctx, method, sep, callback):
+def getDataSource(ctx, method, sep, callback):
     oauth2 = getOAuth2Version(ctx)
     driver = getExtensionVersion(ctx, jdbcid)
     if oauth2 is None:
@@ -66,13 +74,17 @@ def checkSetup(ctx, method, sep, callback):
     elif not checkVersion(driver, jdbcver):
         callback(method, 503, driver, jdbcext, sep, jdbcver)
     else:
-        datasource = DataSource(ctx)
-        if not datasource.DataBase.canConnect():
-            callback(method, 505, datasource.DataBase.Url, sep, datasource.DataBase.Error)
-        elif not datasource.DataBase.isUptoDate():
-            callback(method, 507, datasource.DataBase.Version, sep, g_version)
+        path = g_folder + '/' + g_basename
+        url = getConnectionUrl(ctx, path)
+        try:
+            database = DataBase(ctx, url)
+        except SQLException as e:
+            callback(method, 505, url, sep, e.Message)
         else:
-            return datasource
+            if not database.isUptoDate():
+                callback(method, 507, database.Version, sep, g_version)
+            else:
+                return DataSource(ctx, database)
     return None
 
 def getMessageImage(ctx, url):

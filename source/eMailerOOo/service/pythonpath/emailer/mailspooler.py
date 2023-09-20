@@ -68,7 +68,7 @@ from .mailerlib import MailTransferable
 
 from .listener import TerminateListener
 
-from .mailertool import checkSetup
+from .mailertool import getDataSource
 from .mailertool import getMail
 from .mailertool import getMessageImage
 from .mailertool import getUrlMimeType
@@ -179,7 +179,7 @@ class MailSpooler():
         return self.DataSource is not None
 
     def _initialize(self, method):
-        self.DataSource = checkSetup(self._ctx, method, ' ', self._logError)
+        self.DataSource = getDataSource(self._ctx, method, ' ', self._logError)
 
     def _logError(self, method, code, *args):
         self._logger.logprb(SEVERE, 'MailSpooler', method, code, *args)

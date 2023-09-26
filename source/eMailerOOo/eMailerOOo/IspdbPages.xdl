@@ -31,7 +31,7 @@
   </dlg:styles>
   <dlg:bulletinboard>
     <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="5" dlg:width="305" dlg:height="1" dlg:help-text="&amp;IspdbPages.FixedLine1.HelpText" dlg:value="&amp;IspdbPages.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label1.HelpText" dlg:value="&amp;IspdbPages.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="245" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label1.HelpText" dlg:value="&amp;IspdbPages.Label1.Label" dlg:valign="center"/>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:disabled="true" dlg:left="255" dlg:top="7" dlg:width="15" dlg:height="12" dlg:help-text="&amp;IspdbPages.CommandButton1.HelpText" dlg:value="&amp;IspdbPages.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Previous" script:language="UNO"/>
     </dlg:button>

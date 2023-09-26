@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4].**
 
-# version [1.0.1][5]
+# version [1.0.2][5]
 
 ## Introduction:
 
@@ -75,16 +75,16 @@ This extension is necessary to use HsqlDB version 2.7.2 with all its features.
 
 - If you don't have a datasource, you can install one of the following extensions:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.0.  
+  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.1.  
   This extension is only necessary if you want to use your contacts present on a [**Nextcloud**][23] platform as a data source for mailing lists and document merging.
 
-  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.0.  
+  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.1.  
   This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 
-  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.0.  
+  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.0.1.  
+- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.0.2.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -354,7 +354,11 @@ ___
 
 - Many other things...
 
-### What remains to be done for version 1.0.1:
+### What has been done for version 1.0.2:
+
+- If no configuration is found in the connection configuration wizard (IspDB Wizard) then it is possible to configure the connection manually. See [issue #5][72].
+
+### What remains to be done for version 1.0.2:
 
 - Add new languages for internationalization...
 
@@ -431,3 +435,4 @@ ___
 [69]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
+[72]: <https://github.com/prrvchr/eMailerOOo/issues/5>

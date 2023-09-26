@@ -192,23 +192,32 @@ class IspdbModel(unohelper.Base):
                     progress(100, 4, BOLD)
                 else:
                     progress(80)
-                    self.DataSource.setServerConfig(self._services, servers, config)
-                    progress(100, 5)
+                    if config is None:
+                        progress(100, 5)
+                    else:
+                        self.DataSource.setServerConfig(self._services, servers, config)
+                        progress(100, 6)
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
-        parameter = request.getRequestParameter('getIspdbConfig')
-        parameter.Method = 'GET'
-        parameter.Url = '%s%s' % (url, domain)
-        parameter.NoAuth = True
-        response = request.execute(parameter)
-        if not response.Ok:
-            if response.StatusCode == NOT_FOUND:
-                return {}
-            response.raiseForStatus(False)
-        config = self._parseIspdbConfig(response)
-        response.close()
-        return config
+        try:
+            config = None
+            parameter = request.getRequestParameter('getIspdbConfig')
+            parameter.Url = '%s%s' % (url, domain)
+            parameter.NoAuth = True
+            print("IspdbModel._getIspdbConfig() 1 Url: %s" % parameter.Url)
+            response = request.execute(parameter)
+            print("IspdbModel._getIspdbConfig() 2 Ok: %s" % response.Ok)
+            print("IspdbModel._getIspdbConfig() 3 StatusCode: %s" % response.StatusCode)
+            if response.Ok:
+                config = self._parseIspdbConfig(response)
+            elif response.StatusCode != NOT_FOUND:
+                response.raiseForStatus(False)
+            response.close()
+            return config
+        except Exception as e:
+            msg = "IspdbModel._getIspdbConfig() Error: %s" % traceback.format_exc()
+            print(msg)
 
     def _parseIspdbConfig(self, response):
         smtps = []

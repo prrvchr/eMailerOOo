@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3] et à notre [Politique de protection des données][4].**
 
-# version [1.0.1][5]
+# version [1.0.2][5]
 
 ## Introduction:
 
@@ -75,16 +75,16 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
 
 - Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.0.  
+  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][23] comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.0.  
+  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.0.  
+  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.0.1.  
+- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.0.2.  
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -354,7 +354,11 @@ ___
 
 - Encore plein d'autres choses...
 
-### Que reste-t-il à faire pour la version 1.0.1:
+### Ce qui a été fait pour la version 1.0.2:
+
+- Si aucune configuration n'est trouvée dans l'assistant de configuration de la connexion (IspDB Wizard) alors il est possible de configurer la connexion manuellement. Voir [dysfonctionnement #5][72].
+
+### Que reste-t-il à faire pour la version 1.0.2:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -431,3 +435,4 @@ ___
 [69]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
+[72]: <https://github.com/prrvchr/eMailerOOo/issues/5>

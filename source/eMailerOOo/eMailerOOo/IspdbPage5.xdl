@@ -31,7 +31,7 @@
   </dlg:styles>
   <dlg:bulletinboard>
     <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="10" dlg:left="0" dlg:top="5" dlg:width="305" dlg:height="1" dlg:help-text="&amp;IspdbPage5.FixedLine1.HelpText" dlg:value="&amp;IspdbPage5.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="15" dlg:help-text="&amp;IspdbPage5.Label1.HelpText" dlg:value="&amp;IspdbPage5.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="11" dlg:left="5" dlg:top="6" dlg:width="245" dlg:height="15" dlg:help-text="&amp;IspdbPage5.Label1.HelpText" dlg:value="&amp;IspdbPage5.Label1.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="12" dlg:left="10" dlg:top="25" dlg:width="290" dlg:height="80" dlg:help-text="&amp;IspdbPage5.TextField1.HelpText" dlg:value="&amp;IspdbPage5.TextField1.Text" dlg:valign="top" dlg:hscroll="true" dlg:vscroll="true" dlg:multiline="true" dlg:readonly="true"/>
     <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="13" dlg:page="1" dlg:left="8" dlg:top="110" dlg:width="292" dlg:height="15" dlg:help-text="&amp;IspdbPage5.ProgressBar1.HelpText" dlg:value="0"/>
     <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="14" dlg:page="2" dlg:left="10" dlg:top="110" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPage5.Label2.HelpText" dlg:value="&amp;IspdbPage5.Label2.Label" dlg:align="center" dlg:valign="center"/>

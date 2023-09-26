@@ -156,10 +156,13 @@ class IspdbServer(unohelper.Base):
     def saveServer(self, datasource, service, provider):
         new = self._isNew(service)
         server = self.getCurrentServer(service)
-        metadata = self._getServerMetaData(service)
-        if new or json.dumps(server, sort_keys=True) != metadata:
-            host, port = self._getServerKeys(metadata)
-            datasource.saveServer(new, provider, server, host, port)
+        if new:
+            datasource.mergeServer(provider, server)
+        else:
+            metadata = self._getServerMetaData(service)
+            if json.dumps(server, sort_keys=True) != metadata:
+                host, port = self._getServerKeys(metadata)
+                datasource.updateServer(host, port, server)
 
     def _getServerMetaData(self, service):
         return self._metadata[service][self._getIndex(service)]

@@ -311,12 +311,9 @@ class IspdbModel(unohelper.Base):
         self._user.updateUser(user)
 
     def saveConfiguration(self):
-        for service in self._services:
-            self._saveConfiguration(service)
-
-    def _saveConfiguration(self, service):
         provider = self._user.getDomain()
-        self._servers.saveServer(self._datasource, service, provider)
+        for service in self._services:
+            self._servers.saveServer(self._datasource, service, provider)
         if self._user.isUpdated():
             self._datasource.saveUser(self.Email, self._user)
 

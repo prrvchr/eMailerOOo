@@ -89,12 +89,12 @@ class DataSource(unohelper.Base,
     def saveUser(self, *args):
         self.DataBase.mergeUser(*args)
 
-    def saveServer(self, new, provider, server, host, port):
-        if new:
-            self.DataBase.mergeProvider(provider)
-            self.DataBase.mergeServer(provider, server)
-        else:
-            self.DataBase.updateServer(host, port, server)
+    def mergeServer(self, provider, server):
+        self.DataBase.mergeProvider(provider)
+        self.DataBase.mergeServer(provider, server)
+
+    def updateServer(self, host, port, server):
+        self.DataBase.updateServer(host, port, server)
 
     def waitForDataBase(self):
         self.DataBase.wait()

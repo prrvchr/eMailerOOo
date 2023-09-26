@@ -79,8 +79,6 @@ class IspdbManager(unohelper.Base):
     def commitPage(self, reason):
         server, user = self._view.getConfiguration(self._service)
         self._model.updateConfiguration(self._service, server, user)
-        if reason == FINISH:
-            self._model.saveConfiguration()
         return True
 
     def canAdvance(self):

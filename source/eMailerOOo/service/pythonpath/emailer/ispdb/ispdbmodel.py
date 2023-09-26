@@ -200,24 +200,17 @@ class IspdbModel(unohelper.Base):
         updateModel(user, servers, mode)
 
     def _getIspdbConfig(self, request, url, domain):
-        try:
-            config = None
-            parameter = request.getRequestParameter('getIspdbConfig')
-            parameter.Url = '%s%s' % (url, domain)
-            parameter.NoAuth = True
-            print("IspdbModel._getIspdbConfig() 1 Url: %s" % parameter.Url)
-            response = request.execute(parameter)
-            print("IspdbModel._getIspdbConfig() 2 Ok: %s" % response.Ok)
-            print("IspdbModel._getIspdbConfig() 3 StatusCode: %s" % response.StatusCode)
-            if response.Ok:
-                config = self._parseIspdbConfig(response)
-            elif response.StatusCode != NOT_FOUND:
-                response.raiseForStatus(False)
-            response.close()
-            return config
-        except Exception as e:
-            msg = "IspdbModel._getIspdbConfig() Error: %s" % traceback.format_exc()
-            print(msg)
+        config = None
+        parameter = request.getRequestParameter('getIspdbConfig')
+        parameter.Url = '%s%s' % (url, domain)
+        parameter.NoAuth = True
+        response = request.execute(parameter)
+        if response.Ok:
+            config = self._parseIspdbConfig(response)
+        elif response.StatusCode != NOT_FOUND:
+            response.raiseForStatus(False)
+        response.close()
+        return config
 
     def _parseIspdbConfig(self, response):
         smtps = []

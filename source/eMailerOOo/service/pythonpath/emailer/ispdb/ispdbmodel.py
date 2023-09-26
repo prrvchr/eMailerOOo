@@ -208,7 +208,7 @@ class IspdbModel(unohelper.Base):
         if response.Ok:
             config = self._parseIspdbConfig(response)
         elif response.StatusCode != NOT_FOUND:
-            response.raiseForStatus(False)
+            response.raiseForStatus()
         response.close()
         return config
 

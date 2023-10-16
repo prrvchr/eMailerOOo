@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,64 +22,33 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-import uno
-import unohelper
+#ifndef __com_sun_star_mail_MailServiceConfiguration_idl__
+#define __com_sun_star_mail_MailServiceConfiguration_idl__
 
-from com.sun.star.frame import XDispatchProvider
+module com { module sun { module star { module mail {
 
-from com.sun.star.lang import XInitialization
-from com.sun.star.lang import XServiceInfo
+interface XMailServiceConfiguration;
 
-from emailer import SmtpDispatch
+service MailServiceConfiguration : XMailServiceConfiguration
+{
+    /**
+        Constructs an instance of a MailServiceConfiguration.
+        This service use the Mozilla IspDB configuration as a backend.
 
-from emailer import g_identifier
+        @param sSender
+        [in] the e-mail address of the account used to send email with the XMailService2.
+        This e-mail address must has the same domain used in the XMailServiceProvider.createWithDomain() method.
+        The e-mail address has to conform to <a href="http://www.ietf.org/rfc/rfc822.txt">RFC&nbsp;822</a>.
 
-import traceback
+        @see com::sun::star::mail::XMailServiceProvider
+        @see com::sun::star::mail::XMailServiceConfiguration
+    */
+    create([in] string sSender);
 
-# pythonloader looks for a static g_ImplementationHelper variable
-g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.SmtpDispatcher' % g_identifier
+};
 
+}; }; }; };
 
-class SmtpDispatcher(unohelper.Base,
-                     XDispatchProvider,
-                     XInitialization,
-                     XServiceInfo):
-    def __init__(self, ctx):
-        self._ctx = ctx
-        self._frame = None
-
-# XInitialization
-    def initialize(self, args):
-        if len(args) > 0:
-            self._frame = args[0]
-
-# XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
-        dispatch = None
-        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
-            parent = self._frame.getContainerWindow()
-            dispatch = SmtpDispatch(self._ctx, parent)
-        return dispatch
-
-    def queryDispatches(self, requests):
-        dispatches = []
-        for request in requests:
-            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
-            dispatches.append(dispatch)
-        return tuple(dispatches)
-
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
-
-
-g_ImplementationHelper.addImplementation(SmtpDispatcher,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+#endif

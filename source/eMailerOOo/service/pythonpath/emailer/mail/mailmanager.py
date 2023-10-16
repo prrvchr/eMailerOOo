@@ -36,12 +36,17 @@ from com.sun.star.logging.LogLevel import SEVERE
 from ..unotool import executeShell
 from ..unotool import getFileUrl
 
+from threading import Condition
 import traceback
 
 
 class MailManager(unohelper.Base):
-    def __init__(self):
-        raise NotImplementedError('Need to be implemented!')
+    def __init__(self, ctx, model):
+        self._ctx = ctx
+        self._model = model
+        self._lock = Condition()
+        self._disabled = False
+        self._background = {True: 16777215, False: 15790320}
 
     @property
     def Model(self):
@@ -57,42 +62,27 @@ class MailManager(unohelper.Base):
         self._disabled = True
 
 # MailManager setter methods
-    def sendDocument(self):
+    def addRecipient(self):
+        # FIXME: noops method called from the WindowHandler
+        pass
+
+    def changeRecipient(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def initSenders(self, senders):
-        with self._lock:
-            if not self._model.isDisposed():
-                # Set the Senders ListBox
-                self._view.setSenders(senders)
-                self._updateUI()
+    def editRecipient(self, email, exist):
+        # FIXME: noops method called from the WindowHandler
+        pass
 
-    def initView(self, document):
-        with self._lock:
-            if not self._model.isDisposed():
-                self._model.setUrl(document.URL)
-                # Set the Save Subject CheckBox and if needed the Subject TextField
-                state = self._model.getDocumentUserProperty(document, 'SaveSubject')
-                self._view.setSaveSubject(int(state))
-                if state:
-                    subject = self._model.getDocumentSubject(document)
-                    self._view.setSubject(subject)
-                # Set the Save Attachments CheckBox and if needed the Attachments ListBox
-                state = self._model.getDocumentUserProperty(document, 'SaveAttachments')
-                self._view.setSaveAttachments(int(state))
-                if state:
-                    attachments = self._model.getDocumentAttachemnts(document, 'Attachments')
-                    self._view.setAttachments(attachments)
-                # Set the Attachment As PDF CheckBox
-                state = self._model.getDocumentUserProperty(document, 'AttachmentAsPdf')
-                self._view.setAttachmentAsPdf(int(state))
-                # Set the View Document in HTML CommandButton
-                self._view.enableViewHtml()
-                # Set the View Message Label
-                message = self._model.getDocumentMessage(document)
-                self._view.setMessage(message)
-                self._updateUI()
-            self._closeDocument(document)
+    def enterRecipient(self, email):
+        # FIXME: noops method called from the WindowHandler
+        pass
+
+    def removeRecipient(self):
+        # FIXME: noops method called from the WindowHandler
+        pass
+
+    def sendDocument(self):
+        raise NotImplementedError('Need to be implemented!')
 
     def addSender(self, sender):
         self._view.addSender(sender)
@@ -102,27 +92,8 @@ class MailManager(unohelper.Base):
         # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
         self._view.enableRemoveSender(False)
         sender, position = self._view.getSelectedSender()
-        status = self.Model.removeSender(sender)
-        if status == 1:
+        if self.Model.removeSender(sender):
             self._view.removeSender(position)
-            self._updateUI()
-
-    def editRecipient(self, email, exist):
-        enabled = self._model.validateRecipient(email, exist)
-        self._view.enableAddRecipient(enabled)
-        self._view.enableRemoveRecipient(exist)
-
-    def addRecipient(self):
-        self._view.addRecipient()
-        self._updateUI()
-
-    def removeRecipient(self):
-        self._view.removeRecipient()
-        self._updateUI()
-
-    def enterRecipient(self, email, exist):
-        if self._model.validateRecipient(email, exist):
-            self._view.addToRecipient(email)
             self._updateUI()
 
     def viewHtml(self):
@@ -181,18 +152,40 @@ class MailManager(unohelper.Base):
     def changeSender(self, enabled):
         self._view.enableRemoveSender(enabled)
 
-    def changeRecipient(self):
-        self._view.enableRemoveRecipient(True)
-
     def changeSubject(self):
         self._updateUI()
 
 # MailManager private getter methods
+    def _initView(self, document):
+        self._model.setUrl(document.URL)
+        # Set the Save Subject CheckBox and if needed the Subject TextField
+        state = self._model.getDocumentUserProperty(document, 'SaveSubject')
+        self._view.setSaveSubject(int(state))
+        if state:
+            subject = self._model.getDocumentSubject(document)
+            self._view.setSubject(subject)
+        # Set the Save Attachments CheckBox and if needed the Attachments ListBox
+        state = self._model.getDocumentUserProperty(document, 'SaveAttachments')
+        self._view.setSaveAttachments(int(state))
+        if state:
+            attachments = self._model.getDocumentAttachemnts(document, 'Attachments')
+            self._view.setAttachments(attachments)
+        # Set the Attachment As PDF CheckBox
+        state = self._model.getDocumentUserProperty(document, 'AttachmentAsPdf')
+        self._view.setAttachmentAsPdf(int(state))
+        # Set the View Document in HTML CommandButton
+        self._view.enableViewHtml()
+        # Set the View Message Label
+        message = self._model.getDocumentMessage(document)
+        self._view.setMessage(message)
+        self._updateUI()
+
     def _canAdvance(self):
-        valid = all((self._view.isSenderValid(),
-                     self._view.isRecipientsValid(),
-                     self._view.isSubjectValid()))
-        return valid
+        valid = self._model.isSubjectValid(self._view.getSubject())
+        self._view.setSubjectBackground(self._background.get(valid))
+        sender = self._view.getSender()
+        recipients = self._view.getRecipients()
+        return valid and self._model.isSenderValid(sender) and self._model.isRecipientsValid(recipients)
 
     def _getSavedDocumentProperty(self):
         subject = self._view.getSubject()

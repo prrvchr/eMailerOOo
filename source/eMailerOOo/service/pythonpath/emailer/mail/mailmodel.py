@@ -34,6 +34,8 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from ..unotool import createService
+from ..unotool import getConfiguration
+from ..unotool import getStringResource
 from ..unotool import getUrlTransformer
 from ..unotool import parseUrl
 
@@ -41,15 +43,23 @@ from ..mailertool import getDocumentFilter
 from ..mailertool import getNamedExtension
 from ..mailertool import saveDocumentAs
 
+from ..configuration import g_extension
+from ..configuration import g_identifier
+
 from collections import OrderedDict
+from email.utils import parseaddr
 import validators
 import json
 import traceback
 
 
 class MailModel(unohelper.Base):
-    def __init__(self):
-        raise NotImplementedError('Need to be implemented!')
+    def __init__(self, ctx, datasource):
+        self._ctx = ctx
+        self._datasource = datasource
+        self._config = getConfiguration(ctx, g_identifier, True)
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._disposed = False
 
     @property
     def DataSource(self):
@@ -62,14 +72,20 @@ class MailModel(unohelper.Base):
         self._path = path
 
 # MailModel getter methods
+    def isDisposed(self):
+        return self._disposed
+
     def getUrl(self):
         raise NotImplementedError('Need to be implemented!')
 
     def getDocument(self, url=None):
         raise NotImplementedError('Need to be implemented!')
 
-    def isDisposed(self):
-        return self._disposed
+    def mergeDocument(self, document, row):
+        raise NotImplementedError('Need to be implemented!')
+
+    def isSubjectValid(self, subject):
+        raise NotImplementedError('Need to be implemented!')
 
     def getDocumentSubject(self, document):
         return document.DocumentProperties.Subject
@@ -85,17 +101,29 @@ class MailModel(unohelper.Base):
             urls.append(url)
         return tuple(urls)
 
-    def validateRecipient(self, email, exist):
-        return all((self._isEmailValid(email), not exist))
+    def isSenderValid(self, sender):
+        name, address = parseaddr(sender)
+        return self.isEmailValid(address)
+
+    def isRecipientsValid(self, recipients):
+        return len(recipients) > 0
+
+    def isEmailValid(self, email):
+        if validators.email(email):
+            return True
+        return False
 
     def removeSender(self, sender):
-        return self.DataSource.removeSender(sender)
+        senders = self._config.getByName('Senders')
+        if senders.hasByName(sender):
+            senders.removeByName(sender)
+            if self._config.hasPendingChanges():
+                self._config.commitChanges()
+                return True
+        return False
 
-    def getSenders(self, *args):
-        self.DataSource.getSenders(*args)
-
-    def mergeDocument(self, document, row):
-        raise NotImplementedError('Need to be implemented!')
+    def getSenders(self):
+        return self._config.getByName('Senders').ElementNames
 
 # MailModel setter methods
     def dispose(self):
@@ -155,11 +183,6 @@ class MailModel(unohelper.Base):
             except:
                 pass
         return tuple(attachments)
-
-    def _isEmailValid(self, email):
-        if validators.email(email):
-            return True
-        return False
 
     def _parseAttachment(self, transformer, attachment, merge, pdf):
         url = parseUrl(transformer, attachment)

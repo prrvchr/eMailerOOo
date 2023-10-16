@@ -36,7 +36,6 @@ from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.awt.Key import RETURN
 
 from ..unotool import executeDispatch
-from ..unotool import getPropertyValueSet
 
 import traceback
 
@@ -59,7 +58,7 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'AddSender':
                 listener = DispatchListener(self._manager)
-                arguments = getPropertyValueSet({'Close': False})
+                arguments = ()
                 executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
                 handled = True
             elif method == 'RemoveSender':
@@ -78,8 +77,8 @@ class WindowHandler(unohelper.Base,
                 if event.KeyCode == RETURN:
                     control = event.Source
                     email = control.getText()
-                    exist = email in control.getItems()
-                    self._manager.enterRecipient(email, exist)
+                    if email not in control.getItems():
+                        self._manager.enterRecipient(email)
                 handled = True
             elif method == 'AddRecipient':
                 self._manager.addRecipient()
@@ -119,7 +118,7 @@ class WindowHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -152,7 +151,7 @@ class DispatchListener(unohelper.Base,
             if notification.State == SUCCESS:
                 self._manager.addSender(notification.Result)
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def disposing(self, source):

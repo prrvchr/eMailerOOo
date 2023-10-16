@@ -45,8 +45,6 @@ from com.sun.star.rest import RequestException
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..mailerlib import CurrentContext
-from ..mailerlib import Authenticator
 from ..mailerlib import MailTransferable
 
 from ..unotool import createService
@@ -55,14 +53,16 @@ from ..unotool import getConnectionMode
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 from ..unotool import getUrl
+from ..unotool import hasInterface
 
-from ..mailertool import getMail
+from ..mailertool import getMailService
+from ..mailertool import getMailMessage
 from ..mailertool import getMessageImage
 
 from ..logger import LogController
 from ..logger import RollerHandler
 
-from ..oauth2 import g_oauth2
+from ..oauth2 import g_service
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
@@ -71,38 +71,33 @@ from ..configuration import g_logo
 from ..configuration import g_logourl
 from ..configuration import g_chunk
 
-from .pages import IspdbServer
-from .pages import IspdbUser
+from ..mailuser import MailUser
 
+from .ispdbserver import IspdbServer
+
+from email.utils import parseaddr
 import xml.etree.ElementTree as ET
+from time import sleep
 from threading import Thread
 import validators
 import traceback
 
 
 class IspdbModel(unohelper.Base):
-    def __init__(self, ctx, datasource, close, email=''):
+    def __init__(self, ctx, sender):
         self._ctx = ctx
-        self._datasource = datasource
-        self._close = close
-        self._email = email
-        self._user = None
+        self._sender = sender
         self._servers = None
         self._services = [SMTP.value, IMAP.value]
-        self._count = 0
         self._offline = 0
-        self._isoauth2 = True
-        self._isnew = False
         self._diposed = False
-        self._updated = False
         self._version = 0
-        self._messageid = None
         self._listener = None
-        secure = {0: 3, 1: 4, 2: 4, 3: 5}
-        unsecure = {0: 0, 1: 1, 2: 2, 3: 2}
+        secure = {0: 3, 1: 4, 2: 5}
+        unsecure = {0: 0, 1: 1, 2: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
-        self._connections = {0: 'Insecure', 1: 'Ssl', 2: 'Tls'}
-        self._authentications = {0: 'None', 1: 'Login', 2: 'Login', 3: 'OAuth2'}
+        self._connections = {0: 'Insecure', 1: 'SSL', 2: 'TLS'}
+        self._authentications = {0: 'None', 1: 'Login', 2: 'OAuth2'}
         configuration = getConfiguration(ctx, g_identifier)
         self._url = configuration.getByName('IspDBUrl')
         self._timeout = configuration.getByName('ConnectTimeout')
@@ -121,10 +116,15 @@ class IspdbModel(unohelper.Base):
 
     @property
     def Email(self):
-        return self._email
-    @Email.setter
-    def Email(self, email):
-        self._email = email
+        name, address = parseaddr(self._sender)
+        return address
+
+    @property
+    def Sender(self):
+        return self._sender
+    @Sender.setter
+    def Sender(self, sender):
+        self._sender = sender
 
     @property
     def Offline(self):
@@ -132,10 +132,6 @@ class IspdbModel(unohelper.Base):
     @Offline.setter
     def Offline(self, offline):
         self._offline = offline
-
-    @property
-    def DataSource(self):
-        return self._datasource
 
     def resolveString(self, resource):
         return self._stringResource.resolveString(resource)
@@ -146,16 +142,15 @@ class IspdbModel(unohelper.Base):
         if self._listener is not None:
             self._logger.removeModifyListener(self._listener)
             self._listener = None
-        if self._close:
-            self.DataSource.dispose()
 
 # IspdbModel getter methods called by WizardPages 2 and 4
     def isDisposed(self):
         return self._diposed
 
 # IspdbModel getter methods called by WizardPage1
-    def isEmailValid(self, email):
-        if validators.email(email):
+    def isEmailValid(self, sender):
+        name, address = parseaddr(sender)
+        if validators.email(address):
             return True
         return False
 
@@ -164,62 +159,68 @@ class IspdbModel(unohelper.Base):
         self._version += 1
         Thread(target=self._getServerConfig, args=args).start()
 
-    def _getServerConfig(self, progress, updateModel):
-        servers = IspdbServer()
-        progress(5)
-        url = getUrl(self._ctx, self._url)
+    def _getServerConfig(self, progress, update):
+        # FIXME: Because we call this thread in the WizardPage.activatePage(),
+        # FIXME: if we want to be able to navigate through the Wizard roadmap
+        # FIXME: without GUI refreshing problem then we need to pause this thread.
+        sleep(0.2)
+        auto = False
+        config = None
         progress(10)
-        mode = getConnectionMode(self._ctx, url.Server)
+        url = getUrl(self._ctx, self._url)
         progress(20)
-        self.DataSource.waitForDataBase()
+        mode = getConnectionMode(self._ctx, url.Server)
+        progress(30)
+        user = MailUser(self._ctx, self.Sender)
         progress(40)
-        user = IspdbUser(self.DataSource.getServerConfig(servers, self.Email))
-        if servers.hasServers(self._services):
-            progress(100, 1)
+        imap = user.getImapState()
+        request = createService(self._ctx, g_service)
+        progress(50)
+        if request is None:
+            offset = 1 if user.isNew() else 2
+            status = (100, offset, BOLD)
         elif mode == OFFLINE:
-            progress(100, 2, BOLD)
+            offset = 3 if user.isNew() else 4
+            status = (100, offset, BOLD)
         else:
             progress(60)
-            request = createService(self._ctx, g_oauth2)
-            if request is None:
-                self._isoauth2 = False
-                progress(100, 3, BOLD)
+            try:
+                config, imap = self._getIspdbConfig(user, request, url.Complete, imap)
+            except RequestException as e:
+                offset = 5 if user.isNew() else 6
+                status = (100, offset, BOLD)
             else:
-                progress(70)
-                try:
-                    config = self._getIspdbConfig(request, url.Complete, user.getDomain())
-                except RequestException as e:
-                    progress(100, 4, BOLD)
+                progress(80)
+                if not user.isNew():
+                    status = (100, 7)
+                elif config is None:
+                    status = (100, 8)
                 else:
-                    progress(80)
-                    if config is None:
-                        progress(100, 5)
-                    else:
-                        self.DataSource.setServerConfig(self._services, servers, config)
-                        progress(100, 6)
-        updateModel(user, servers, mode)
+                    auto = True
+                    status = (100, 9)
+        progress(*status)
+        update(user, config, imap, mode, auto)
 
-    def _getIspdbConfig(self, request, url, domain):
+    def _getIspdbConfig(self, user, request, url, imap):
         config = None
         parameter = request.getRequestParameter('getIspdbConfig')
-        parameter.Url = '%s%s' % (url, domain)
+        parameter.Url = '%s%s' % (url, user.getUserDomain())
         parameter.NoAuth = True
         response = request.execute(parameter)
         if response.Ok:
-            config = self._parseIspdbConfig(response)
+            config, imap = self._parseIspdbConfig(response, user, imap)
         elif response.StatusCode != NOT_FOUND:
             response.raiseForStatus()
         response.close()
-        return config
+        return config, imap
 
-    def _parseIspdbConfig(self, response):
+    def _parseIspdbConfig(self, response, user, imap):
         smtps = []
         imaps = []
-        domains = []
         config = {}
         map1 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
         map2 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
-                'password-encrypted': 2, 'secure': 2, 'OAuth2': 3}
+                'password-encrypted': 1, 'secure': 1, 'OAuth2': 2}
         map3 = {'%EMAILLOCALPART%': 0, '%EMAILADDRESS%': 1, '%EMAILDOMAIN%': 2}
         parser = ET.XMLPullParser(('end', ))
         iterator = response.iterContent(g_chunk, False)
@@ -229,43 +230,37 @@ class IspdbModel(unohelper.Base):
             for event, element in parser.read_events():
                 if element.tag != 'emailProvider':
                     continue
-                provider = element.get('id')
-                config['Provider'] = provider
-                config['DisplayName'] = element.find('displayName').text
-                config['DisplayShortName'] = element.find('displayShortName').text
-                for child in element.findall('domain'):
-                    if child.text != provider:
-                        domains.append(child.text)
                 for child in element.findall('outgoingServer'):
                     if child.get('type') == 'smtp':
-                        smtps.append(self._parseServer(child, SMTP.value, map1, map2, map3))
+                        smtps.append(self._parseServer(child, map1, map2, map3))
                 for child in element.findall('incomingServer'):
                     if child.get('type') == 'imap':
-                        imaps.append(self._parseServer(child, IMAP.value, map1, map2, map3))
-        config['Domains'] = tuple(domains)
+                        imaps.append(self._parseServer(child, map1, map2, map3))
         config[SMTP.value] = tuple(smtps)
         config[IMAP.value] = tuple(imaps)
-        return config
+        if user.isNew():
+            imap = max(len(imaps), 1)
+        return config, imap
 
-    def _parseServer(self, element, service, map1, map2, map3):
+    def _parseServer(self, element, map1, map2, map3):
         server = {}
-        server['Service'] = service
-        server['Server'] = element.find('hostname').text
+        server['ServerName'] = element.find('hostname').text
         server['Port'] = int(element.find('port').text)
-        server['Connection'] = map1.get(element.find('socketType').text, 0)
-        server['Authentication'] = map2.get(element.find('authentication').text, 0)
+        server['ConnectionType'] = map1.get(element.find('socketType').text, 1)
+        server['AuthenticationType'] = map2.get(element.find('authentication').text, 1)
         server['LoginMode'] = map3.get(element.find('username').text, 1)
         return server
 
-    def setServerConfig(self, user, servers, offline):
-        self._user = user
-        self._servers = servers.setDefault(self._services, user)
+# IspdbModel setter methods called by WizardPage2
+    def setServerConfig(self, user, config, imap, offline):
+        self._servers = IspdbServer(user, config, imap)
         self._offline = offline
 
-# IspdbModel getter methods called by WizardPage3 / WizardPage4
-    def isOAuth2(self):
-        return self._isoauth2
+    def setUserConfig(self, imap):
+        self._servers.User.enableImap(imap)
+        return self._offline
 
+# IspdbModel getter methods called by WizardPage3 / WizardPage4
     def refreshView(self, version):
         return version < self._version
 
@@ -277,9 +272,9 @@ class IspdbModel(unohelper.Base):
         config['First'] = self._servers.isFirst(service)
         config['Last'] = self._servers.isLast(service)
         config['Page'] = self._servers.getServerPage(service)
-        config['Default'] = self._servers.isDefaultPage(service, self._user)
+        config['Default'] = self._servers.isDefaultPage(service)
         config.update(self._servers.getCurrentServer(service))
-        config['Login'] = self._getLogin(service)
+        config['UserName'] = self._getUserName(service)
         config['Password'] = self._getPassword(service)
         return config
 
@@ -291,24 +286,20 @@ class IspdbModel(unohelper.Base):
             return True
         return False
 
-    def previousServerPage(self, service, server, user):
-        self.updateConfiguration(service, server, user)
+    def previousServerPage(self, service, server):
+        self._servers.updateCurrentServer(service, server)
         self._servers.decrementIndex(service)
 
-    def nextServerPage(self, service, server, user):
-        self.updateConfiguration(service, server, user)
+    def nextServerPage(self, service, server):
+        self._servers.updateCurrentServer(service, server)
         self._servers.incrementIndex(service)
 
     def updateConfiguration(self, service, server, user):
         self._servers.updateCurrentServer(service, server)
-        self._user.updateUser(user)
+        self._servers.User.updateConfig(service, user)
 
     def saveConfiguration(self):
-        provider = self._user.getDomain()
-        for service in self._services:
-            self._servers.saveServer(self._datasource, service, provider)
-        if self._user.isUpdated():
-            self._datasource.saveUser(self.Email, self._user)
+        self._servers.User.saveConfig()
 
     def getSecurity(self, i, j):
         level = self._levels.get(i).get(j)
@@ -332,24 +323,23 @@ class IspdbModel(unohelper.Base):
         i = 0
         step = 2
         range = 100
-        reset(self._getServicesCount() * range)
+        count = 2 if self._servers.User.hasImapConfig() else 1
+        reset(count * range)
         for service in self._services:
-            setlabel(service, self._getHost(service), self._getPort(service))
-            context = self._getConnectionContext(service)
-            authenticator = self._getAuthenticator(service)
-            stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
-            step = self._connectServer(context, authenticator, stype, i * range, progress)
-            i += 1
+            if service == SMTP.value or self._servers.User.hasImapConfig():
+                setlabel(service, self._getHost(service), self._getPort(service))
+                domain = self._servers.User.getServerDomain(service)
+                context = self._servers.User.getConnectionContext(service)
+                authenticator = self._servers.User.getAuthenticator(service)
+                step = self._connectServer(domain, context, authenticator, service, i * range, progress)
+                i += 1
         self._logger.removeRollerHandler(handler)
         setstep(step)
 
-    def _connectServer(self, context, authenticator, stype, i, progress):
+    def _connectServer(self, domain, context, authenticator, service, i, progress):
         step = 2
-        progress(i + 5)
-        service = 'com.sun.star.mail.MailServiceProvider2'
         progress(i + 25)
-        host = context.getValueByName('ServerName')
-        server = createService(self._ctx, service).create(stype, host)
+        server = getMailService(self._ctx, service, domain)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -377,22 +367,22 @@ class IspdbModel(unohelper.Base):
     def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
         handler = RollerHandler(self._ctx, self._logger.Name)
         self._logger.addRollerHandler(handler)
-        if self._user.hasThread():
-            i = 0
-            reset(100)
-        elif self._hasImapService():
+        if self._servers.User.hasImapConfig():
             i = 100
             reset(200)
-            self._user.ThreadId = self._uploadMessage(subject, progress)
-        smtp = SMTP.value
-        context = self._getConnectionContext(smtp)
-        authenticator = self._getAuthenticator(smtp)
-        step = 3
+            threadid = self._uploadMessage(subject, progress)
+        else:
+            i = 0
+            reset(100)
+            threadid = None
         progress(i + 5)
-        service = 'com.sun.star.mail.MailServiceProvider2'
+        smtp = SMTP.value
+        domain = self._servers.User.getServerDomain(smtp)
+        context = self._servers.User.getConnectionContext(smtp)
+        authenticator = self._servers.User.getAuthenticator(smtp)
+        step = 3
         progress(i + 25)
-        host = context.getValueByName('ServerName')
-        server = createService(self._ctx, service).create(SMTP, host)
+        server = getMailService(self._ctx, smtp, domain)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -402,15 +392,17 @@ class IspdbModel(unohelper.Base):
             progress(i + 75)
             if server.isConnected():
                 body = MailTransferable(self._ctx, message, False)
-                mail = getMail(self._ctx, self.Email, recipient, subject, body)
-                if self._user.hasThread():
-                    mail.ThreadId = self._user.ThreadId
-                print("IspdbModel._sendMessage() 2: %s - %s" % (type(mail), mail))
+                mail = getMailMessage(self._ctx, self.Sender, recipient, subject, body)
+                interface = 'com.sun.star.mail.XMailMessage2'
+                if hasInterface(mail, interface) and threadid is not None:
+                    mail.ThreadId = threadid
+                    print("IspdbModel._sendMessage() 2 ******************")
+                print("IspdbModel._sendMessage() 3: %s - %s" % (type(mail), mail))
                 try:
                     server.sendMailMessage(mail)
-                    print("IspdbModel._sendMessage() 3: %s" % mail.MessageId)
+                    print("IspdbModel._sendMessage() 4: %s" % mail.MessageId)
                 except UnoException as e:
-                    print("IspdbModel._sendMessage() 4 Error: %s - %s" % (e.Message, traceback.print_exc()))
+                    print("IspdbModel._sendMessage() 5 Error: %s - %s" % (e.Message, traceback.format_exc()))
                 else:
                     step = 5
                 server.disconnect()
@@ -421,12 +413,11 @@ class IspdbModel(unohelper.Base):
     def _uploadMessage(self, subject, progress):
         mail = msgid = None
         imap = IMAP.value
-        context = self._getConnectionContext(imap)
-        authenticator = self._getAuthenticator(imap)
+        domain = self._servers.User.getServerDomain(imap)
+        context = self._servers.User.getConnectionContext(imap)
+        authenticator = self._servers.User.getAuthenticator(imap)
         progress(10)
-        service = 'com.sun.star.mail.MailServiceProvider2'
-        host = context.getValueByName('ServerName')
-        server = createService(self._ctx, service).create(IMAP, host)
+        server = getMailService(self._ctx, imap, domain)
         progress(20)
         try:
             server.connect(context, authenticator)
@@ -440,17 +431,20 @@ class IspdbModel(unohelper.Base):
                     if server.hasFolder(folder):
                         message = self._getThreadMessage()
                         body = MailTransferable(self._ctx, message, True)
-                        mail = getMail(self._ctx, self.Email, self.Email, subject, body)
+                        mail = getMailMessage(self._ctx, self.Sender, self.Email, subject, body)
                         progress(60)
                         server.uploadMessage(folder, mail)
                 except UnoException as e:
-                    print("IspdbModel._uploadMessage() 2 Error: %s - %s" % (e.Message, traceback.print_exc()))
+                    print("IspdbModel._uploadMessage() 2 Error: %s - %s" % (e.Message, traceback.format_exc()))
                 else:
-                    if mail is not None:
+                    interface = 'com.sun.star.mail.XMailMessage2'
+                    if mail is not None and hasInterface(mail, interface):
                         msgid = mail.MessageId
+                        print("IspdbModel._uploadMessage() 3 *****************")
                 progress(80)
                 server.disconnect()
         progress(100)
+        print("IspdbModel._uploadMessage() 4 MessageId: %s" % msgid)
         return msgid
 
 # IspdbModel getter methods called by SendDialog
@@ -461,16 +455,19 @@ class IspdbModel(unohelper.Base):
         return enabled
 
 # IspdbModel private getter methods called by WizardPage3 / WizardPage4
-    def _getLogin(self, service):
-        login = self._user.getLogin(service)
-        return login if login else self._getLoginFromEmail(service)
+    def _getUserName(self, service):
+        if self._servers.User.isNew():
+            username = self._getUserNameFromEmail(service)
+        else:
+            username = self._servers.User.getUserName(service)
+        return username
 
-    def _getLoginFromEmail(self, service):
+    def _getUserNameFromEmail(self, service):
         mode = self._servers.getLoginMode(service)
         return self.Email.partition('@')[mode] if mode != 1 else self.Email
 
     def _getPassword(self, service):
-        return self._user.getPassword(service)
+        return self._servers.User.getPassword(service)
 
     def _isHostValid(self, host):
         if validators.domain(host):
@@ -483,16 +480,6 @@ class IspdbModel(unohelper.Base):
         return False
 
 # IspdbModel private getter methods called by WizardPage5
-    def _hasImapService(self):
-        return IMAP.value in self._services
-
-    def _getConnectionContext(self, service):
-        config = self._servers.getConfig(service, self._timeout, self._connections, self._authentications)
-        return CurrentContext(service, config)
-
-    def _getAuthenticator(self, service):
-        return Authenticator(service, self._user.getConfig())
-
     def _getThreadMessage(self):
         title = self._getThreadTitle()
         path = '%s/%s' % (g_extension, g_logo)

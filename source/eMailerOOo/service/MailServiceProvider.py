@@ -31,7 +31,9 @@ import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
+
 from com.sun.star.mail import XMailServiceProvider2
+from com.sun.star.mail import NoMailServiceProviderException
 
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import POP3
@@ -39,8 +41,6 @@ from com.sun.star.mail.MailServiceType import IMAP
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
-
-from com.sun.star.mail import NoMailServiceProviderException
 
 from emailer import SmtpApiService
 from emailer import SmtpBaseService
@@ -54,11 +54,12 @@ from emailer import g_mailservicelog
 
 g_message = 'MailServiceProvider'
 
+from email.utils import parseaddr
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplName = 'com.sun.star.mail.MailServiceProvider2'
+g_ImplementationName = 'org.openoffice.pyuno.MailServiceProvider2'
 
 
 class MailServiceProvider(unohelper.Base,
@@ -68,36 +69,48 @@ class MailServiceProvider(unohelper.Base,
         self._logger = getLogger(ctx, g_mailservicelog)
         self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
         self._ctx = ctx
+        self._domain = None
+        self._hosts = {'gmail.com': 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'}
         self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
 
-    def create(self, mailtype, host):
-        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, mailtype.value)
-        if mailtype == SMTP:
-            if host.endswith('gmail.com'):
-                service = SmtpApiService(self._ctx)
-            else:
-                service = SmtpBaseService(self._ctx)
-        elif mailtype == POP3:
+    def create(self, stype):
+        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, stype.value)
+        if stype == SMTP:
+            service = SmtpBaseService(self._ctx)
+        elif stype == POP3:
             service = Pop3Service(self._ctx)
-        elif mailtype == IMAP:
-            if host.endswith('gmail.com'):
-                service = ImapApiService(self._ctx)
-            else:
-                service = ImapBaseService(self._ctx)
+        elif stype == IMAP:
+            service = ImapBaseService(self._ctx)
         else:
-            e = self._getNoMailServiceProviderException(123, mailtype)
+            e = self._getNoMailServiceProviderException(123, stype.value)
             self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
             raise e
-        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, mailtype.value)
+        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, stype.value)
+        return service
+
+    def createWithDomain(self, stype, domain):
+        self._logger.logprb(INFO, 'MailServiceProvider', 'createWithDomain()', 131, stype.value, domain)
+        url = self._hosts.get(domain)
+        if stype == SMTP:
+            service = SmtpApiService(self._ctx, url) if url else SmtpBaseService(self._ctx)
+        elif stype == POP3:
+            service = Pop3Service(self._ctx)
+        elif stype == IMAP:
+            service = ImapApiService(self._ctx, url) if url else ImapBaseService(self._ctx)
+        else:
+            e = self._getNoMailServiceProviderException(133, stype.value, domain)
+            self._logger.logp(SEVERE, 'MailServiceProvider', 'createWithDomain()', e.Message)
+            raise e
+        self._logger.logprb(INFO, 'MailServiceProvider', 'createWithDomain()', 132, stype.value, domain)
         return service
 
     # XServiceInfo
     def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplName, service)
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
     def getImplementationName(self):
-        return g_ImplName
+        return g_ImplementationName
     def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplName)
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
     def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()
@@ -107,5 +120,5 @@ class MailServiceProvider(unohelper.Base,
 
 
 g_ImplementationHelper.addImplementation(MailServiceProvider,
-                                         g_ImplName,
-                                         ('com.sun.star.mail.MailServiceProvider2', ))
+                                         g_ImplementationName,
+                                         ('com.sun.star.mail.MailServiceProvider', ))

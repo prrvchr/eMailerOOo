@@ -74,7 +74,7 @@ class MergerController(unohelper.Base,
             logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
             return page
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     def getPageTitle(self, pageid):

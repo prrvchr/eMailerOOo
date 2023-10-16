@@ -38,22 +38,24 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, handler, parent, email):
+    def __init__(self, ctx, handler, parent):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage1')
-        self._getEmail().Text = email
 
 # IspdbView getter methods
     def getWindow(self):
         return self._window
 
-    def getEmail(self):
-        return self._getEmail().Text.strip()
+    def getSender(self):
+        return self._getSender().Text.strip()
 
 # IspdbView setter methods
-    def setEmailFocus(self):
-        self._getEmail().setFocus()
+    def setSender(self, sender):
+        self._getSender().Text = sender
+
+    def setSenderFocus(self):
+        self._getSender().setFocus()
 
 # IspdbView private getter control methods
-    def _getEmail(self):
+    def _getSender(self):
         return self._window.getControl('TextField1')
 

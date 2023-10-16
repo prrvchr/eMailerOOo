@@ -27,16 +27,71 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from ..mail import MailView
+
+from ..unotool import getDialog
+
+from ..configuration import g_extension
 
 
 class MailerView(MailView):
+    def __init__(self, ctx, handler1, handler2, parent, step):
+        self._dialog = getDialog(ctx, g_extension, 'MailerDialog', handler1, parent)
+        MailView.__init__(self, ctx, handler2, self._dialog.getPeer(), step)
 
 # MailerView getter methods
     def getRecipientIndex(self):
         return -1
 
+    def getRecipient(self):
+        return self._getRecipients().getText().strip()
+
+# MailerView setter methods
+    def execute(self):
+        return self._dialog.execute()
+
+    def setTitle(self, title):
+        self._dialog.setTitle(title)
+
+    def enableButtonSend(self, enabled):
+        self._getButtonSend().Model.Enabled = enabled
+
+    def endDialog(self):
+        self._dialog.endDialog(OK)
+
+    def dispose(self):
+        self._dialog.dispose()
+
+    def addRecipient(self, recipient):
+        control = self._getRecipients()
+        count = control.getItemCount()
+        control.addItem(recipient, count)
+        control.setText(recipient)
+        self._getRemoveRecipient().Model.Enabled = False
+
+    def removeRecipient(self):
+        self._getRemoveRecipient().Model.Enabled = False
+        control = self._getRecipients()
+        email = control.getText()
+        recipients = control.getItems()
+        if email in recipients:
+            control.setText('')
+            position = recipients.index(email)
+            control.removeItems(position, 1)
+
+
 # MailerView private control methods
     def _getRecipients(self):
         return self._window.getControl('ComboBox1')
+
+    def _getAddRecipient(self):
+        return self._window.getControl('CommandButton3')
+
+    def _getRemoveRecipient(self):
+        return self._window.getControl('CommandButton4')
+
+    def _getButtonSend(self):
+        return self._dialog.getControl('CommandButton2')
 

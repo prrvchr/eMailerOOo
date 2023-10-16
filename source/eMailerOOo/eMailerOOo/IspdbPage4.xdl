@@ -25,5 +25,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage4" dlg:left="0" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage4.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage4.Title" dlg:withtitlebar="false"/>
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage4" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage4.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage4.Title" dlg:withtitlebar="false"/>
 

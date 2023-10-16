@@ -27,13 +27,16 @@
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="SpoolerTab1" dlg:left="0" dlg:top="0" dlg:width="400" dlg:height="180" dlg:help-text="&amp;SpoolerTab1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;SpoolerTab1.Title" dlg:withtitlebar="false">
   <dlg:bulletinboard>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="299" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton1.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton1.Label">
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="true" dlg:left="249" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton1.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:View" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="false" dlg:left="299" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton2.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Add" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="349" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton2.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="2" dlg:disabled="true" dlg:left="349" dlg:top="5" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SpoolerTab1.CommandButton3.HelpText" dlg:value="&amp;SpoolerTab1.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
     </dlg:button>
-    <dlg:titledbox dlg:id="FrameControl1" dlg:tab-index="2" dlg:disabled="true" dlg:left="5" dlg:top="25" dlg:width="389" dlg:height="130" dlg:help-text="&amp;SpoolerTab1.FrameControl1.HelpText">
+    <dlg:titledbox dlg:id="FrameControl1" dlg:tab-index="3" dlg:disabled="true" dlg:left="5" dlg:top="25" dlg:width="389" dlg:height="130" dlg:help-text="&amp;SpoolerTab1.FrameControl1.HelpText">
       <dlg:title dlg:value="&amp;SpoolerTab1.FrameControl1.Label"/>
     </dlg:titledbox>
   </dlg:bulletinboard>

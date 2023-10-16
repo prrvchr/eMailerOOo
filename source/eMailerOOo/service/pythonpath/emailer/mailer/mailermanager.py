@@ -35,24 +35,60 @@ from ..mail import WindowHandler
 
 from .mailermodel import MailerModel
 from .mailerview import MailerView
+from .mailerhandler import DialogHandler
 
 from ..unotool import createService
 
-from threading import Condition
 import traceback
 
 
 class MailerManager(MailManager):
-    def __init__(self, ctx, sender, datasource, parent, path):
-        self._ctx = ctx
-        self._sender = sender
-        self._disabled = False
-        self._lock = Condition()
-        self._model = MailerModel(ctx, datasource, path)
-        self._view = MailerView(ctx, WindowHandler(ctx, self), parent, 1)
-        self._model.getSenders(self.initSenders)
+    def __init__(self, ctx, model, parent, url):
+        MailManager.__init__(self, ctx, model)
+        self._view = MailerView(ctx, DialogHandler(self), WindowHandler(ctx, self), parent, 1)
+        self._view.setSenders(self._model.getSenders())
+        self._model.loadDocument(url, self.initView)
 
 # MailerManager setter methods
+    def addRecipient(self):
+        email = self._view.getRecipient()
+        if self._model.isEmailValid(email):
+            self._view.addRecipient(email)
+            self._updateUI()
+
+    def changeRecipient(self):
+        self._view.enableRemoveRecipient(True)
+
+    def editRecipient(self, email, exist):
+        self._view.enableAddRecipient(not exist and self._model.isEmailValid(email))
+        self._view.enableRemoveRecipient(exist)
+
+    def enterRecipient(self, email):
+        if self._model.isEmailValid(email):
+            self._view.addRecipient(email)
+            self._updateUI()
+
+    def removeRecipient(self):
+        self._view.removeRecipient()
+        self._updateUI()
+
+    def dispose(self):
+        with self._lock:
+            self._model.dispose()
+            self._view.dispose()
+
+    def initView(self, document, title):
+        with self._lock:
+            if not self._model.isDisposed():
+                # TODO: Document can be <None> if a lock or password exists !!!
+                # TODO: It would be necessary to test a Handler on the descriptor...
+                self._initView(document)
+                self._view.setTitle(title)
+            self._closeDocument(document)
+
+    def execute(self):
+        return self._view.execute()
+
     def sendDocument(self):
         try:
             subject, attachments = self._getSavedDocumentProperty()
@@ -62,8 +98,9 @@ class MailerManager(MailManager):
             service = 'com.sun.star.mail.SpoolerService'
             spooler = createService(self._ctx, service)
             id = spooler.addJob(sender, subject, url, recipients, attachments)
+            self._view.endDialog()
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
 # MailerManager private setter methods
@@ -71,5 +108,6 @@ class MailerManager(MailManager):
         document.close(True)
 
     def _updateUI(self):
-        cansend = self._canAdvance()
-        self._sender.updateUI(cansend)
+        enabled = self._canAdvance()
+        self._view.enableButtonSend(enabled)
+

@@ -29,6 +29,19 @@
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <templates>
+    <group oor:name="ServerSet">
+      <prop oor:name="ServerName" oor:type="xs:string" />
+      <prop oor:name="Port" oor:type="xs:int" />
+      <prop oor:name="ConnectionType" oor:type="xs:string" />
+      <prop oor:name="AuthenticationType" oor:type="xs:string" />
+      <prop oor:name="UserName" oor:type="xs:string" />
+      <prop oor:name="Password" oor:type="xs:string" />
+    </group>
+    <group oor:name="SenderSet">
+      <set oor:name="Servers" oor:node-type="ServerSet" />
+    </group>
+  </templates>
   <component>
     <prop oor:name="ConnectTimeout" oor:type="xs:short"/>
     <prop oor:name="IspDBUrl" oor:type="xs:string"/>
@@ -40,5 +53,6 @@
     <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
     <prop oor:name="MergerGrid1Orders" oor:type="xs:string"/>
     <prop oor:name="MergerGrid2Orders" oor:type="xs:string"/>
+    <set oor:name="Senders" oor:node-type="SenderSet" />
   </component>
 </oor:component-schema>

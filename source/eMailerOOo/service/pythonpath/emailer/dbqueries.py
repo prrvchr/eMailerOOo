@@ -202,26 +202,6 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getTablesName':
         query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
 
-    # IspDb Select Queries
-    elif name == 'getSmtpServers':
-        s1 = '"Servers"."Server"'
-        s2 = '"Servers"."Port"'
-        s3 = '"Servers"."Connection"'
-        s4 = '"Servers"."Authentication"'
-        s5 = '"Servers"."LoginMode"'
-        s = (s1,s2,s3,s4,s5)
-        f1 = '"Servers"'
-        f2 = 'JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"'
-        f3 = 'LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"'
-        f = (f1, f2, f3)
-        w = '"Providers"."Provider"=? OR "Domains"."Domain"=?'
-        p = (','.join(s), ' '.join(f), w)
-        query = 'SELECT %s FROM %s WHERE %s;' % p
-
-    # Mail Select Queries
-    elif name == 'getSenders':
-        query = 'SELECT "User" FROM "Users" ORDER BY "Created";'
-
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
         query = 'SELECT %s.* FROM %s;' % format
@@ -245,11 +225,6 @@ def getSqlQuery(ctx, name, format=None):
 
     elif name == 'getJobIds':
         query = 'SELECT ARRAY_AGG("JobId") FROM "Recipients" WHERE "BatchId" = ?;'
-
-# Delete Queries
-    # Mail Delete Queries
-    elif name == 'deleteUser':
-        query = 'DELETE FROM "Users" WHERE "User" = ?;'
 
 # Update Queries
     # MailSpooler Update Queries
@@ -283,42 +258,6 @@ CREATE PROCEDURE "DeleteJobs"(IN JOBIDS INTEGER ARRAY)
   END;"""
 
 # Select Procedure Queries
-    # IspDb Select Procedure Queries
-    elif name == 'createGetServers':
-        query = """\
-CREATE PROCEDURE "GetServers"(IN EMAIL VARCHAR(320),
-                              IN DOMAIN VARCHAR(255),
-                              IN SMTP VARCHAR(4),
-                              IN IMAP VARCHAR(4),
-                              OUT THREAD VARCHAR(100),
-                              OUT SMTPSERVER VARCHAR(255),
-                              OUT IMAPSERVER VARCHAR(255),
-                              OUT SMTPPORT SMALLINT,
-                              OUT IMAPPORT SMALLINT,
-                              OUT SMTPLOGIN VARCHAR(100),
-                              OUT IMAPLOGIN VARCHAR(100),
-                              OUT SMTPPWD VARCHAR(100),
-                              OUT IMAPPDW VARCHAR(100))
-  SPECIFIC "GetServers_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Servers"."Service","Servers"."Server", "Servers"."Port", "Servers"."Connection",
-      "Servers"."Authentication", "Servers"."LoginMode" FROM "Servers"
-      JOIN "Providers" ON "Servers"."Provider"="Providers"."Provider"
-      LEFT JOIN "Domains" ON "Providers"."Provider"="Domains"."Provider"
-      WHERE "Providers"."Provider"=DOMAIN OR "Domains"."Domain"=DOMAIN
-      FOR READ ONLY;
-    SET (THREAD,SMTPSERVER,IMAPSERVER,SMTPPORT,IMAPPORT,SMTPLOGIN,IMAPLOGIN,SMTPPWD,IMAPPDW) =
-      (SELECT U."ThreadId",S1."Server",S2."Server",S1."Port",S2."Port",S1."LoginName",S2."LoginName",S1."Password",S2."Password"
-        FROM "Users" AS U
-        JOIN "Services" AS S1 ON U."User"=S1."User" AND S1."Service"=SMTP
-        LEFT JOIN "Services" AS S2 ON U."User"=S2."User" AND S2."Service"=IMAP
-        WHERE U."User"=EMAIL);
-    OPEN RSLT;
-  END;"""
-
     # MailSpooler Select Procedure Queries
     elif name == 'createGetRecipient':
         query = """\
@@ -336,10 +275,7 @@ CREATE PROCEDURE "GetRecipient"(IN JOBID INTEGER)
 
     elif name == 'createGetMailer':
         query = """\
-CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
-                             IN TIMEOUT INTEGER,
-                             IN SMTP VARCHAR(4),
-                             IN IMAP VARCHAR(4))
+CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER)
   SPECIFIC "GetMailer_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
@@ -347,24 +283,8 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER,
     DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT S."Sender",S."Subject",S."Document",
       S."DataSource",S."Query",S."Table",S."ThreadId",
-      CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
-      S1."Server" AS "SMTPServerName",S1."Port" AS "SMTPPort",
-      S1."LoginName" AS "SMTPLogin",S1."Password" AS "SMTPPassword",
-      C1."Connection" AS "SMTPConnectionType",A1."Authentication" AS "SMTPAuthenticationType",
-      TIMEOUT AS "SMTPTimeout",
-      S3."Server" AS "IMAPServerName",S3."Port" AS "IMAPPort",
-      S3."LoginName" AS "IMAPLogin",S3."Password" AS "IMAPPassword",
-      C2."Connection" AS "IMAPConnectionType",A2."Authentication" AS "IMAPAuthenticationType",
-      TIMEOUT AS "IMAPTimeout"
+      CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
       FROM "Senders" AS S
-      JOIN "Services" AS S1 ON S."Sender"=S1."User" AND S1."Service"=SMTP
-      JOIN "Servers" AS S2 ON S1."Server"=S2."Server" AND S1."Port"=S2."Port" AND S2."Service"=SMTP
-      JOIN "ConnectionType" AS C1 ON S2."Connection"=C1."Type"
-      JOIN "AuthenticationType" AS A1 ON S2."Authentication"=A1."Type"
-      LEFT JOIN "Services" AS S3 ON S."Sender"=S3."User" AND S3."Service"=IMAP
-      LEFT JOIN "Servers" AS S4 ON S3."Server"=S4."Server" AND S3."Port"=S4."Port" AND S4."Service"=IMAP
-      LEFT JOIN "ConnectionType" AS C2 ON S4."Connection"=C2."Type"
-      LEFT JOIN "AuthenticationType" AS A2 ON S4."Authentication"=A2."Type"
       WHERE S."BatchId"=BATCHID
       FOR READ ONLY;
     OPEN RSLT;
@@ -461,134 +381,11 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
     SET BATCHID = ID;
   END;"""
 
-# Update Procedure Queries
-    # IspDb Update Procedure Queries
-    elif name == 'createUpdateServer':
-        query = """\
-CREATE PROCEDURE "UpdateServer"(IN SERVICE VARCHAR(4),
-                                IN SERVER1 VARCHAR(255),
-                                IN PORT1 SMALLINT,
-                                IN SERVER2 VARCHAR(255),
-                                IN PORT2 SMALLINT,
-                                IN CONNECTION TINYINT,
-                                IN AUTHENTICATION TINYINT)
-  SPECIFIC "UpdateServer_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    UPDATE "Servers" SET "Server"=SERVER2,"Port"=PORT2,
-      "Connection"=CONNECTION,"Authentication"=AUTHENTICATION,
-      "Modified"=DEFAULT
-      WHERE "Service"=SERVICE AND "Server"=SERVER1 AND "Port"=PORT1;
-  END"""
-
-# Merge Procedure Queries
-    # IspDb Merge Procedure Queries
-    elif name == 'createMergeProvider':
-        query = """\
-CREATE PROCEDURE "MergeProvider"(IN PROVIDER VARCHAR(100),
-                                 IN DISPLAYNAME  VARCHAR(100),
-                                 IN DISPLAYSHORTNAME VARCHAR(100))
-  SPECIFIC "MergeProvider_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    MERGE INTO "Providers" USING (VALUES(PROVIDER,DISPLAYNAME,DISPLAYSHORTNAME))
-      AS vals(x,y,z) ON "Provider"=vals.x
-        WHEN MATCHED THEN UPDATE
-          SET "DisplayName"=vals.y,"DisplayShortName"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("Provider","DisplayName","DisplayShortName")
-          VALUES vals.x,vals.y,vals.z;
-  END"""
-
-    # IspDb Merge Procedure Queries
-    elif name == 'createMergeDomain':
-        query = """\
-CREATE PROCEDURE "MergeDomain"(IN PROVIDER VARCHAR(100),
-                               IN DOMAIN VARCHAR(255))
-  SPECIFIC "MergeDomain_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    MERGE INTO "Domains" USING (VALUES(DOMAIN,PROVIDER))
-      AS vals(y,z) ON "Domain"=vals.y
-        WHEN MATCHED THEN UPDATE
-          SET "Provider"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("Domain","Provider")
-          VALUES vals.y,vals.z;
-  END"""
-
-    # IspDb Merge Procedure Queries
-    elif name == 'createMergeServer':
-        query = """\
-CREATE PROCEDURE "MergeServer"(IN PROVIDER VARCHAR(100),
-                               IN SERVICE VARCHAR(4),
-                               IN SERVER VARCHAR(255),
-                               IN PORT SMALLINT,
-                               IN CONNECTION TINYINT,
-                               IN AUTHENTICATION TINYINT,
-                               IN LOGIN TINYINT)
-  SPECIFIC "MergeServer_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    MERGE INTO "Servers" USING (VALUES(SERVICE,SERVER,PORT,PROVIDER,CONNECTION,AUTHENTICATION,LOGIN))
-      AS vals(t,u,v,w,x,y,z) ON "Service"=vals.t AND "Server"=vals.u AND "Port"=vals.v
-        WHEN MATCHED THEN UPDATE
-          SET "Provider"=vals.w,"Connection"=vals.x,"Authentication"=vals.y,"LoginMode"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("Service","Server","Port","Provider","Connection","Authentication","LoginMode")
-          VALUES vals.t,vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
-  END"""
-
-    # IspDb Merge Procedure Queries
-    elif name == 'createMergeUser':
-        query = """\
-CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
-                             IN THREAD VARCHAR(100),
-                             IN SMTP VARCHAR(4),
-                             IN SMTPSERVER VARCHAR(255),
-                             IN SMTPPORT SMALLINT,
-                             IN SMTPLOGIN VARCHAR(100),
-                             IN SMTPPWD VARCHAR(100),
-                             IN IMAP VARCHAR(4),
-                             IN IMAPSERVER VARCHAR(255),
-                             IN IMAPPORT SMALLINT,
-                             IN IMAPLOGIN VARCHAR(100),
-                             IN IMAPPWD VARCHAR(100))
-  SPECIFIC "MergeUser_1"
-  MODIFIES SQL DATA
-  BEGIN ATOMIC
-    MERGE INTO "Users" USING (VALUES(EMAIL,THREAD))
-      AS vals(y,z) ON "User"=vals.y
-        WHEN MATCHED THEN UPDATE
-          SET "ThreadId"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("User","ThreadId")
-          VALUES vals.y,vals.z;
-    MERGE INTO "Services" USING (VALUES(EMAIL,SMTP,SMTPSERVER,SMTPPORT,SMTPLOGIN,SMTPPWD))
-      AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
-        WHEN MATCHED THEN UPDATE
-          SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
-        WHEN NOT MATCHED THEN INSERT
-          ("User","Service","Server","Port","LoginName","Password")
-          VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
-    IF IMAP IS NOT NULL THEN
-      MERGE INTO "Services" USING (VALUES(EMAIL,IMAP,IMAPSERVER,IMAPPORT,IMAPLOGIN,IMAPPWD))
-        AS vals(u,v,w,x,y,z) ON "User"=vals.u AND "Service"=vals.v
-          WHEN MATCHED THEN UPDATE
-            SET "Server"=vals.w,"Port"=vals.x,"LoginName"=vals.y,"Password"=vals.z,"Modified"=DEFAULT
-          WHEN NOT MATCHED THEN INSERT
-            ("User","Service","Server","Port","LoginName","Password")
-            VALUES vals.u,vals.v,vals.w,vals.x,vals.y,vals.z;
-    END IF;
-  END"""
-
 # Call Procedure Query
-    elif name == 'getServers':
-        query = 'CALL "GetServers"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'getRecipient':
         query = 'CALL "GetRecipient"(?)'
     elif name == 'getMailer':
-        query = 'CALL "GetMailer"(?,?,?,?)'
+        query = 'CALL "GetMailer"(?)'
     elif name == 'getAttachments':
         query = 'CALL "GetAttachments"(?)'
     elif name == 'deleteJobs':
@@ -597,16 +394,6 @@ CREATE PROCEDURE "MergeUser"(IN EMAIL VARCHAR(320),
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':
         query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?)'
-    elif name == 'updateServer':
-        query = 'CALL "UpdateServer"(?,?,?,?,?,?,?)'
-    elif name == 'mergeProvider':
-        query = 'CALL "MergeProvider"(?,?,?)'
-    elif name == 'mergeDomain':
-        query = 'CALL "MergeDomain"(?,?)'
-    elif name == 'mergeServer':
-        query = 'CALL "MergeServer"(?,?,?,?,?,?,?)'
-    elif name == 'mergeUser':
-        query = 'CALL "MergeUser"(?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateMailer':
         query = 'CALL "UpdateMailer"(?,?)'
 

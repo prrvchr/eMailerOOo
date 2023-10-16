@@ -99,8 +99,8 @@ class SmtpBaseService(SmtpService):
         if error is not None:
             self._logger.logprb(SEVERE, 'SmtpService', 'connect()', 222, error.Message)
             raise error
-        authentication = context.getValueByName('AuthenticationType').title()
-        if authentication != 'None':
+        authentication = context.getValueByName('AuthenticationType').upper()
+        if authentication != 'NONE':
             error = self._doLogin(authentication, authenticator, server)
             if error is not None:
                 self._logger.logprb(SEVERE, 'SmtpService', 'connect()', 223, error.Message)
@@ -114,10 +114,10 @@ class SmtpBaseService(SmtpService):
         error = None
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType').title()
+        connection = context.getValueByName('ConnectionType').upper()
         self._logger.logprb(INFO, 'SmtpService', '_setServer()', 231, connection)
         try:
-            if connection == 'Ssl':
+            if connection == 'SSL':
                 self._logger.logprb(INFO, 'SmtpService', '_setServer()', 232, timeout)
                 server = smtplib.SMTP_SSL(timeout=timeout)
             else:
@@ -130,7 +130,7 @@ class SmtpBaseService(SmtpService):
             if code != 220:
                 msg = self.logger.resolveString(236, reply)
                 error = ConnectException(msg, self)
-            elif connection == 'Tls':
+            elif connection == 'TLS':
                 code, reply = _getReply(*server.starttls())
                 self._logger.logprb(INFO, 'SmtpService', '_setServer()', 235, code, reply)
                 if code != 220:
@@ -156,7 +156,7 @@ class SmtpBaseService(SmtpService):
         user = authenticator.getUserName()
         self._logger.logprb(INFO, 'SmtpService', '_doLogin()', 241, authentication)
         try:
-            if authentication == 'Login':
+            if authentication == 'LOGIN':
                 password = authenticator.getPassword()
                 if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
                     user = user.encode('ascii')
@@ -164,7 +164,7 @@ class SmtpBaseService(SmtpService):
                 code, reply = _getReply(*self._server.login(user, password))
                 pwd = '*' * len(password)
                 self._logger.logprb(INFO, 'SmtpService', '_doLogin()', 242, user, pwd, code, reply)
-            elif authentication == 'Oauth2':
+            elif authentication == 'OAUTH2':
                 token = _getToken(self._ctx, self, server, user, True)
                 self._server.ehlo_or_helo_if_needed()
                 code, reply = _getReply(*self._server.docmd('AUTH', 'XOAUTH2 %s' % token))
@@ -196,7 +196,7 @@ class SmtpBaseService(SmtpService):
         recipients = _getRecipients(message)
         error = None
         try:
-            refused = self._server.sendmail(message.SenderAddress, recipients, message.asString(False))
+            refused = self._server.sendmail(message.SenderAddress, recipients, message.asString())
         except smtplib.SMTPSenderRefused as e:
             msg = self._logger.resolveString(252, message.Subject, getExceptionMessage(e))
             error = MailException(msg, self)

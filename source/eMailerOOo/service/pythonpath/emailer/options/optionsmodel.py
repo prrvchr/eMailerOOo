@@ -48,7 +48,7 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
-        self._configuration = getConfiguration(ctx, g_identifier, True)
+        self._config = getConfiguration(ctx, g_identifier, True)
         self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
         self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
         self._resources = {'SpoolerStatus': 'OptionsDialog.Label4.Label.%s'}
@@ -64,14 +64,14 @@ class OptionsModel():
 
     def getViewData(self):
         exist = getSimpleFile(self._ctx).exists(self._url)
-        timeout = self._configuration.getByName('ConnectTimeout')
+        timeout = self._config.getByName('ConnectTimeout')
         msg, state = self._getSpoolerStatus()
         return exist, timeout, msg, state
 
     def saveTimeout(self, timeout):
-        self._configuration.replaceByName('ConnectTimeout', timeout)
-        if self._configuration.hasPendingChanges():
-            self._configuration.commitChanges()
+        self._config.replaceByName('ConnectTimeout', timeout)
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
 
     def toogleSpooler(self, state):
         if state:

@@ -31,14 +31,10 @@ import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
-from com.sun.star.mail import XSpoolerListener
-
-from collections import OrderedDict
 import traceback
 
 
@@ -61,7 +57,7 @@ class DialogHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -78,7 +74,10 @@ class Tab1Handler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'Add':
+            if method == 'View':
+                self._manager.viewDocument()
+                handled = True
+            elif method == 'Add':
                 self._manager.addDocument()
                 handled = True
             elif method == 'Remove':
@@ -86,12 +85,14 @@ class Tab1Handler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('Add',
+        return ('View',
+                'Add',
                 'Remove')
+
 
 class Tab2Handler(unohelper.Base,
                   XContainerWindowEventHandler):
@@ -107,7 +108,7 @@ class Tab2Handler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -123,22 +124,6 @@ class DispatchListener(unohelper.Base,
     def dispatchFinished(self, notification):
         if notification.State == SUCCESS:
             self._manager.documentAdded(notification.Result)
-
-    def disposing(self, source):
-        pass
-
-
-class SpoolerListener(unohelper.Base,
-                      XSpoolerListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XSpoolerListener
-    def started(self, source):
-        self._manager.started()
-
-    def stopped(self, source):
-        self._manager.stopped()
 
     def disposing(self, source):
         pass

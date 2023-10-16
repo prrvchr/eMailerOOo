@@ -68,7 +68,11 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.lang import EventObject
+
+from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail import XSmtpService2
+
+from .apihelper import getMailServiceConfiguration
 
 from ..logger import getLogger
 
@@ -80,11 +84,11 @@ import traceback
 class SmtpService(unohelper.Base,
                   XSmtpService2):
     def __init__(self, ctx):
+        self._ctx = ctx
         self._logger = getLogger(ctx, g_mailservicelog)
         self._logger.logprb(INFO, 'SmtpService', '__init__()', 211)
-        self._ctx = ctx
         self._listeners = []
-        self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
+        self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None

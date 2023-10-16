@@ -48,7 +48,7 @@ class Pop3Service(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._listeners = []
-        self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
+        self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login')
         self._server = None
         self._context = None
@@ -75,15 +75,15 @@ class Pop3Service(unohelper.Base,
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType').title()
-        authentication = context.getValueByName('AuthenticationType').title()
-        if connection == 'Ssl':
+        connection = context.getValueByName('ConnectionType').upper()
+        authentication = context.getValueByName('AuthenticationType').upper()
+        if connection == 'SSL':
             self._server = poplib.POP3_SSL(host=server, port=port, timeout=timeout)
         else:
             self._server = poplib.POP3(host=server, port=port, timeout=timeout)
-        if connection == 'Tls':
+        if connection == 'TLS':
             self._server.stls()
-        if authentication == 'Login':
+        if authentication == 'LOGIN':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             if user != '':

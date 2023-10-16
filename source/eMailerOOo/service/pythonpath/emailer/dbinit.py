@@ -245,20 +245,11 @@ def getViewsAndTriggers(ctx, statement):
 def getStaticTables():
     tables = ('Tables',
               'Columns',
-              'TableColumn',
-              'Settings',
-              'ConnectionType',
-              'AuthenticationType')
+              'TableColumn')
     return tables
 
 def getQueries():
     return (('createSpoolerView', None),
-            ('createGetServers', None),
-            ('createMergeProvider', None),
-            ('createMergeDomain', None),
-            ('createMergeServer', None),
-            ('createUpdateServer', None),
-            ('createMergeUser', None),
             ('createInsertJob', None),
             ('createInsertMergeJob', None),
             ('createDeleteJobs', None),

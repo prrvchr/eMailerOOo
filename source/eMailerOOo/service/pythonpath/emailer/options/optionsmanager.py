@@ -86,7 +86,7 @@ class OptionsManager(unohelper.Base):
         try:
             executeDispatch(self._ctx, 'smtp:ispdb')
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     def toogleSpooler(self, state):
@@ -96,7 +96,7 @@ class OptionsManager(unohelper.Base):
         try:
             executeDispatch(self._ctx, 'smtp:spooler')
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     def showDataBase(self):

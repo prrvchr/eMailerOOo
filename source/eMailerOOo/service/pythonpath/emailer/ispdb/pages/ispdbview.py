@@ -40,12 +40,10 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, handler, parent, pageid, isoauth2):
+    def __init__(self, ctx, handler, parent, pageid):
         idl = 'IspdbPage%s' % pageid
         self._dialog = getContainerWindow(ctx, parent, None, g_extension, idl)
         self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_extension, 'IspdbPages')
-        if not isoauth2:
-            self._removeAuthentication()
         self._window.setVisible(True)
 
 # IspdbView getter methods
@@ -73,9 +71,19 @@ class IspdbView(unohelper.Base):
     def getConfiguration(self, service):
         host = self.getHost()
         port = self.getPort()
-        server = self._getServer(service, host, port)
-        user = self._getUser(service, host, port)
+        connection = self.getConnection()
+        authentication = self.getAuthentication()
+        server = self._getServer(service, host, port, connection, authentication)
+        user = self._getUser(service, host, port, connection, authentication)
         return server, user
+
+    def getServerConfig(self, service):
+        host = self.getHost()
+        port = self.getPort()
+        connection = self.getConnection()
+        authentication = self.getAuthentication()
+        server = self._getServer(service, host, port, connection, authentication)
+        return server
 
 # IspdbView setter methods
     def setPageLabel(self, text):
@@ -102,34 +110,26 @@ class IspdbView(unohelper.Base):
         self._getConfirmPwd().Model.Enabled = enabled
 
 # IspdbView private getter methods
-    def _getServer(self, service, host, port):
+    def _getServer(self, service, host, port, connection, authentication):
         server = {}
         server['Service'] = service
-        server['Server'] = host
+        server['ServerName'] = host
         server['Port'] = port
-        connection, authentication = self._getSecurityIndex()
-        server['Connection'] = connection
-        server['Authentication'] = authentication
+        server['ConnectionType'] = connection
+        server['AuthenticationType'] = authentication
         return server
 
-    def _getUser(self, service, host, port):
+    def _getUser(self, service, host, port, connection, authentication):
         user = {}
-        user[service + 'Server'] = host
-        user[service + 'Port'] = port
-        user[service + 'Login'] = self._getLogin().Text
-        user[service + 'Password'] = self._getPassword().Text
+        user[service + '/ServerName'] = host
+        user[service + '/Port'] = port
+        user[service + '/ConnectionType'] = connection
+        user[service + '/AuthenticationType'] = authentication
+        user[service + '/UserName'] = self._getLogin().Text
+        user[service + '/Password'] = self._getPassword().Text
         return user
 
-    def _getSecurityIndex(self):
-        connection = self._getConnection().getSelectedItemPos()
-        authentication = self._getAuthentication().getSelectedItemPos()
-        return connection, authentication
-
 # IspdbView private setter methods
-    def _removeAuthentication(self):
-        control = self._getAuthentication()
-        control.Model.removeItem(control.getItemCount() -1)
-
     def _updateServerPage(self, config):
         default = config.get('Default')
         control = self._getServerPage()
@@ -137,13 +137,11 @@ class IspdbView(unohelper.Base):
         control.Text = config.get('Page')
 
     def _setConfiguration(self, config):
-        self._getHost().Text = config.get('Server')
+        self._getHost().Text = config.get('ServerName')
         self._getPort().Value = config.get('Port')
-        index = config.get('Connection')
-        self._getConnection().selectItemPos(index, True)
-        index = config.get('Authentication')
-        self._getAuthentication().selectItemPos(index, True)
-        self._getLogin().Text = config.get('Login')
+        self._getConnection().selectItemPos(config.get('ConnectionType'), True)
+        self._getAuthentication().selectItemPos(config.get('AuthenticationType'), True)
+        self._getLogin().Text = config.get('UserName')
         self._getPassword().Text = config.get('Password')
         self._getConfirmPwd().Text = config.get('Password')
 

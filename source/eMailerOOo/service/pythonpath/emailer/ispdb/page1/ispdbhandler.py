@@ -43,13 +43,13 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            if method == 'ChangeEmail':
-                self._manager.updateTravelUI()
+            if method == 'ChangeSender':
+                self._manager.changeSender()
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeEmail', )
+        return ('ChangeSender', )

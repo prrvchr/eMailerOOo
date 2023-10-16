@@ -31,15 +31,17 @@ from ...mail import MailView
 
 
 class MergerView(MailView):
+    def __init__(self, ctx, handler, parent, step):
+        MailView.__init__(self, ctx, handler, parent, step)
 
 # MergerView getter methods
     def getRecipientIndex(self):
-        return self._getMergerRecipients().getSelectedItemPos()
+        return self._getRecipients().getSelectedItemPos()
 
 # MergerView setter methods
     def setRecipients(self, recipients, message):
         self._getMergerMessage().Text = message
-        control = self._getMergerRecipients()
+        control = self._getRecipients()
         control.Model.StringItemList = recipients
         if len(recipients) > 0:
             control.selectItemPos(0, True)
@@ -47,3 +49,6 @@ class MergerView(MailView):
 # MergerView private control methods
     def _getRecipients(self):
         return self._window.getControl('ListBox2')
+
+    def _getMergeAttachments(self):
+        return self._window.getControl('CheckBox3')

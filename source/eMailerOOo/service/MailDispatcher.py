@@ -30,59 +30,59 @@
 import uno
 import unohelper
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
+from com.sun.star.frame import XDispatchProvider
 
-from .sendermodel import SenderModel
-from .senderview import SenderView
-from .senderhandler import DialogHandler
+from com.sun.star.lang import XInitialization
+from com.sun.star.lang import XServiceInfo
 
-from ..mailer import MailerManager
+from emailer import MailDispatch
 
-from threading import Condition
+from emailer import g_identifier
+
 import traceback
 
+# pythonloader looks for a static g_ImplementationHelper variable
+g_ImplementationHelper = unohelper.ImplementationHelper()
+g_ImplementationName = '%s.MailDispatcher' % g_identifier
 
-class SenderManager(unohelper.Base):
-    def __init__(self, ctx, model, parent, url):
+
+class MailDispatcher(unohelper.Base,
+                     XDispatchProvider,
+                     XInitialization,
+                     XServiceInfo):
+    def __init__(self, ctx):
         self._ctx = ctx
-        self._lock = Condition()
-        self._model = model
-        self._view = SenderView(ctx, DialogHandler(self), parent)
-        datasource = self._model.DataSource
-        parent = self._view.getParent()
-        path = self._model.Path
-        self._mailer = MailerManager(ctx, self, datasource, parent, path)
-        self._model.getDocument(url, self.initMailer)
-        print("SenderManager.__init__()")
+        self._frame = None
 
-    @property
-    def Model(self):
-        return self._model
-    @property
-    def Mailer(self):
-        return self._mailer
+# XInitialization
+    def initialize(self, args):
+        if len(args) > 0:
+            self._frame = args[0]
 
-    def initMailer(self, document, title):
-        with self._lock:
-            if not self._model.isDisposed():
-                # TODO: Document can be <None> if a lock or password exists !!!
-                # TODO: It would be necessary to test a Handler on the descriptor...
-                self._mailer.initView(document)
-                self._view.setTitle(title)
+# XDispatchProvider
+    def queryDispatch(self, url, frame, flags):
+        dispatch = None
+        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
+            parent = self._frame.getContainerWindow()
+            dispatch = MailDispatch(self._ctx, parent)
+        return dispatch
 
-    def execute(self):
-        return self._view.execute()
+    def queryDispatches(self, requests):
+        dispatches = []
+        for request in requests:
+            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
+            dispatches.append(dispatch)
+        return tuple(dispatches)
 
-    def updateUI(self, enabled):
-        self._view.enableButtonSend(enabled)
+    # XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
-    def sendDocument(self):
-        self._mailer.sendDocument()
-        self._view.endDialog()
 
-    def dispose(self):
-        with self._lock:
-            self._mailer.Model.dispose()
-            self._model.dispose()
-            self._view.dispose()
+g_ImplementationHelper.addImplementation(MailDispatcher,                            # UNO object class
+                                         g_ImplementationName,                      # Implementation name
+                                        (g_ImplementationName,))                    # List of implemented services

@@ -44,27 +44,25 @@ import traceback
 
 class Authenticator(unohelper.Base,
                     XAuthenticator):
-    def __init__(self, service, user):
-        self._service = service
+    def __init__(self, user):
         self._user = user
 
 # XAuthenticator
     def getUserName(self):
-        return self._user.get(self._service + 'Login')
+        return self._user.get('Login')
 
     def getPassword(self):
-        return self._user.get(self._service + 'Password')
+        return self._user.get('Password')
 
 
 class CurrentContext(unohelper.Base,
                      XCurrentContext):
-    def __init__(self, service, context):
-        self._service = service
+    def __init__(self, context):
         self._context = context
 
 # XCurrentContext
     def getValueByName(self, name):
-        return self._context.get(self._service + name)
+        return self._context.get(name)
 
 
 class MailTransferable(unohelper.Base,
@@ -102,7 +100,7 @@ class MailTransferable(unohelper.Base,
         flavor.MimeType = self._mimetype
         if self._html:
             flavor.HumanPresentableName = 'HTML-Documents'
-        elif self._html:
+        elif self._url:
             flavor.HumanPresentableName = 'E-Documents'
         else:
             flavor.HumanPresentableName = 'Unicode text'

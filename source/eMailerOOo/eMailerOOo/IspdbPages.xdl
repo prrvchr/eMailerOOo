@@ -50,8 +50,8 @@
     <dlg:text dlg:id="Label5" dlg:tab-index="9" dlg:left="10" dlg:top="45" dlg:width="70" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label5.HelpText" dlg:value="&amp;IspdbPages.Label5.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="10" dlg:left="80" dlg:top="45" dlg:width="70" dlg:height="15" dlg:help-text="&amp;IspdbPages.ListBox1.HelpText" dlg:spin="true">
       <dlg:menupopup>
-        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox1.StringItemList.0" dlg:selected="true"/>
-        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox1.StringItemList.1"/>
+        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox1.StringItemList.0"/>
+        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox1.StringItemList.1" dlg:selected="true"/>
         <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox1.StringItemList.2"/>
       </dlg:menupopup>
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeConnection" script:language="UNO"/>
@@ -59,10 +59,9 @@
     <dlg:text dlg:id="Label6" dlg:tab-index="11" dlg:left="10" dlg:top="65" dlg:width="70" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label6.HelpText" dlg:value="&amp;IspdbPages.Label6.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox2" dlg:tab-index="12" dlg:left="80" dlg:top="65" dlg:width="70" dlg:height="15" dlg:help-text="&amp;IspdbPages.ListBox2.HelpText" dlg:spin="true">
       <dlg:menupopup>
-        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.0" dlg:selected="true"/>
-        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.1"/>
+        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.0"/>
+        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.1" dlg:selected="true"/>
         <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.2"/>
-        <dlg:menuitem dlg:value="&amp;IspdbPages.ListBox2.StringItemList.3"/>
       </dlg:menupopup>
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeAuthentication" script:language="UNO"/>
     </dlg:menulist>

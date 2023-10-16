@@ -37,42 +37,25 @@ import traceback
 
 
 class IspdbServer(unohelper.Base):
-    def __init__(self):
-        services = {SMTP.value: 25, IMAP.value: 143}
-        self._servers = {service: [] for service in services}
-        self._metadata = {service: () for service in services}
-        self._index = {service: -1 for service in services}
-        self._default = {service: port for service, port in services.items()}
-
-    def appendServer(self, service, server):
-        self._servers[service].append(server)
-
-    def appendServers(self, service, servers):
-        self._servers[service] = servers
-
-    def hasServers(self, services):
-        for service in services:
-            if self._getServerCount(service) == 0:
-                return False
-        return True
-
-    def setDefault(self, services, user):
-        for service in services:
-            servers = self._servers[service]
-            self._setDefault(service, servers, user)
-        return self
-
-    def _setDefault(self, service, servers, user):
-        if len(servers) > 0:
-            self._metadata[service] = tuple(json.dumps(server, sort_keys=True) for server in servers)
+    def __init__(self, user, config, imap):
+        services = user.getServices(imap)
+        if user.isNew():
+            if config is None:
+                self._servers = self._getDefaultServers(services, user)
+            else:
+                self._servers = config
+        elif config is None:
+            self._servers = user.getServers()
         else:
-            self._metadata[service] = ()
-            servers = self._getDefaultServers(service, user)
-        self._servers[service] = servers
-        self._index[service] = self._getServerIndex(service, user, 0)
-
-    def _isNew(self, service):
-        return len(self._metadata[service]) == 0
+            self._servers = {}
+            for service in config:
+                servers = user.getServer(service)
+                for server in config[service]:
+                    if self._isNewConfig(service, server, user):
+                        servers.append(server)
+                self._servers[service] = servers
+        self._index = {service: 0 for service in self._servers}
+        self.User = user
 
     def getCurrentServer(self, service):
         return self._servers[service][self._getIndex(service)]
@@ -80,36 +63,11 @@ class IspdbServer(unohelper.Base):
     def updateCurrentServer(self, service, server):
         self.getCurrentServer(service).update(server)
 
-    def _getDefaultServers(self, service, user):
-        host = '%s.%s' % (service.lower(), user.getDomain())
-        server = {}
-        server['Service'] = service
-        server['Server'] = host
-        server['Port'] = self._default[service]
-        server['Connection'] = 0
-        server['Authentication'] = 0
-        server['LoginMode'] = 1
-        return (server, )
-
-    def _getIndex(self, service):
-        return self._index[service]
-
     def incrementIndex(self, service):
         self._index[service] += 1
 
     def decrementIndex(self, service):
         self._index[service] -= 1
-
-    def _getServerIndex(self, service, user, default=-1):
-        server = user.getServer(service)
-        port = user.getPort(service)
-        servers = self._servers[service]
-        if port != 0:
-            for s in servers:
-                if s.get('Server') == server and s.get('Port') == port:
-                    default = servers.index(s)
-                    break;
-        return default
 
     def isFirst(self, service):
         return self._getIndex(service) == 0
@@ -119,30 +77,27 @@ class IspdbServer(unohelper.Base):
         return self._getIndex(service) +1 >= count
 
     def getServerPage(self, service):
-        if self._isNew(service):
-            page = '1/0'
-        else:
-            count = self._getServerCount(service)
-            page = '%s/%s' % (self._getIndex(service) +1, count)
+        count = self._getServerCount(service)
+        page = '%s/%s' % (self._getIndex(service) +1, count)
         return page
 
-    def isDefaultPage(self, service, user):
-        return self._getIndex(service) == self._getServerIndex(service, user)
+    def isDefaultPage(self, service):
+        return self._getIndex(service) == self._getServerIndex(service)
 
     def getLoginMode(self, service):
         return self.getCurrentServer(service).get('LoginMode')
 
     def getServerHost(self, service):
-        return self.getCurrentServer(service).get('Server')
+        return self.getCurrentServer(service).get('ServerName')
         
     def getServerPort(self, service):
         return self.getCurrentServer(service).get('Port')
 
     def getServerConnection(self, service):
-        return self.getCurrentServer(service).get('Connection')
+        return self.getCurrentServer(service).get('ConnectionType')
         
     def getServerAuthentication(self, service):
-        return self.getCurrentServer(service).get('Authentication')
+        return self.getCurrentServer(service).get('AuthenticationType')
 
     def getConfig(self, service, timeout, connections, authentications):
         config = {}
@@ -153,23 +108,38 @@ class IspdbServer(unohelper.Base):
         config[service + 'Timeout'] = timeout
         return config
 
-    def saveServer(self, datasource, service, provider):
-        new = self._isNew(service)
-        server = self.getCurrentServer(service)
-        if new:
-            datasource.mergeServer(provider, server)
-        else:
-            metadata = self._getServerMetaData(service)
-            if json.dumps(server, sort_keys=True) != metadata:
-                host, port = self._getServerKeys(metadata)
-                datasource.updateServer(host, port, server)
+    def _getDefaultServers(self, services, user):
+        servers = {}
+        for service, port in services.items():
+            servers[service] = (self._getDefaultServer(service, user, port), )
+        return servers
 
-    def _getServerMetaData(self, service):
-        return self._metadata[service][self._getIndex(service)]
+    def _getDefaultServer(self, service, user, port):
+        server = {}
+        server['Service'] = service
+        server['ServerName'] = user.getHost(service)
+        server['Port'] = user.getPort(service)
+        server['ConnectionType'] = 1
+        server['AuthenticationType'] = 1
+        server['LoginMode'] = 1
+        return server
 
-    def _getServerKeys(self, metadata):
-        server = json.loads(metadata)
-        return server['Server'], server['Port']
+    def _isNewConfig(self, service, server, user):
+        return any((server.get('ServerName') != user.getServerName(service),
+                    server.get('Port') != user.getPort(service)))
+
+    def _getIndex(self, service):
+        return self._index[service]
+
+    def _getServerIndex(self, service, default=-1):
+        host = self.User.getServerName(service)
+        port = self.User.getPort(service)
+        servers = self._servers[service]
+        for server in servers:
+            if server.get('ServerName') == host and server.get('Port') == port:
+                default = servers.index(server)
+                break;
+        return default
 
     def _getServerCount(self, service):
         return len(self._servers[service])

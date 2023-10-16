@@ -44,7 +44,7 @@ class TerminateListener(unohelper.Base,
         try:
             self._spooler.stop()
         except Exception as e:
-            msg = "TerminateListener Error: %s" % traceback.print_exc()
+            msg = "TerminateListener Error: %s" % traceback.format_exc()
             print(msg)
 
     def notifyTermination(self, event):

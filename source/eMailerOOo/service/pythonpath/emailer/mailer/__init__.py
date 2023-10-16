@@ -27,4 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .mailermodel import MailerModel
 from .mailermanager import MailerManager

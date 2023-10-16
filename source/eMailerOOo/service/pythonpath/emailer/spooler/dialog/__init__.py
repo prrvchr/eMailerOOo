@@ -27,58 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
+from .spoolermanager import SpoolerManager
 
-from com.sun.star.mail.MailServiceType import SMTP
-from com.sun.star.mail.MailServiceType import IMAP
-
-import json
-import traceback
-
-
-class IspdbUser(unohelper.Base):
-    def __init__(self, user):
-        self._user = user
-        self._metadata = json.dumps(user, sort_keys=True)
-        self._smtp = SMTP.value
-        self._imap = IMAP.value
-
-    @property
-    def ThreadId(self):
-        return self._user.get('ThreadId')
-    @ThreadId.setter
-    def ThreadId(self, thread):
-        self._user.setValue('ThreadId', thread)
-
-    def updateUser(self, user):
-        self._user.update(user)
-
-    def isUpdated(self):
-        metadata = json.dumps(self._user, sort_keys=True)
-        return metadata != self._metadata
-
-    def getServer(self, service):
-        return self._user.get(service + 'Server')
-
-    def getPort(self, service):
-        return self._user.get(service + 'Port')
-
-    def getLogin(self, service):
-        return self._user.get(service + 'Login')
-
-    def getPassword(self, service):
-        return self._user.get(service + 'Password')
-
-    def hasThread(self):
-        return self.ThreadId is not None
-
-    def hasImapConfig(self):
-        return all((self.getServer(self._imap),
-                    self.getPort(self._imap),
-                    self.getLogin(self._imap)))
-
-    def getDomain(self):
-        return self._user.get('Domain')
-
-    def getConfig(self):
-        return self._user

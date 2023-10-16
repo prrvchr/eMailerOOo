@@ -31,6 +31,7 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
+from ..unotool import createService
 from ..unotool import getContainerWindow
 
 from ..configuration import g_extension
@@ -48,9 +49,6 @@ class MailView(unohelper.Base):
 
     def getWindow(self):
         return self._window
-
-    def isRecipientsValid(self):
-        return self._getRecipients().getItemCount() > 0
 
     def getEmail(self):
         return self.getSender(), self.getRecipients()
@@ -78,12 +76,6 @@ class MailView(unohelper.Base):
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
 
-    def isSenderValid(self):
-        return self._getSenders().getSelectedItemPos() != -1
-
-    def isSubjectValid(self):
-        return self._getSubject().getText().strip() != ''
-
     def getSubject(self):
         return self._getSubject().Text.strip()
 
@@ -100,6 +92,9 @@ class MailView(unohelper.Base):
         return bool(state)
 
 # MailView setter methods
+    def setSubjectBackground(self, color):
+        self._getSubject().Model.BackgroundColor = color
+
     def enableRemoveSender(self, enabled):
         self._getRemoveSender().Model.Enabled = enabled
 
@@ -142,25 +137,6 @@ class MailView(unohelper.Base):
 
     def setRecipients(self, recipients):
         raise NotImplementedError('Need to be implemented if needed!')
-
-    def addRecipient(self):
-        control = self._getRecipients()
-        email = control.getText()
-        self._addRecipient(control, email)
-
-    def addToRecipient(self, email):
-        control = self._getRecipients()
-        self._addRecipient(control, email)
-
-    def removeRecipient(self):
-        self._getRemoveRecipient().Model.Enabled = False
-        control = self._getRecipients()
-        email = control.getText()
-        recipients = control.getItems()
-        if email in recipients:
-            control.setText('')
-            position = recipients.index(email)
-            control.removeItems(position, 1)
 
     def enableViewPdf(self, enabled):
         self._getViewPdf().Model.Enabled = enabled
@@ -216,14 +192,11 @@ class MailView(unohelper.Base):
         self._getRemoveRecipient().Model.Enabled = False
 
 # MailView private control methods
-    def _getRecipients(self):
-        raise NotImplementedError('Need to be implemented if needed!')
-
     def _getSenders(self):
         return self._window.getControl('ListBox1')
 
-    def _getMergerRecipients(self):
-        return self._window.getControl('ListBox2')
+    def _getRecipients(self):
+        raise NotImplementedError('Need to be implemented if needed!')
 
     def _getAttachments(self):
         return self._window.getControl('ListBox3')
@@ -237,20 +210,11 @@ class MailView(unohelper.Base):
     def _getAttachmentAsPdf(self):
         return self._window.getControl('CheckBox2')
 
-    def _getMergeAttachments(self):
-        return self._window.getControl('CheckBox3')
-
     def _getSaveAttachments(self):
         return self._window.getControl('CheckBox4')
 
     def _getRemoveSender(self):
         return self._window.getControl('CommandButton2')
-
-    def _getAddRecipient(self):
-        return self._window.getControl('CommandButton3')
-
-    def _getRemoveRecipient(self):
-        return self._window.getControl('CommandButton4')
 
     def _getViewHtml(self):
         return self._window.getControl('CommandButton5')

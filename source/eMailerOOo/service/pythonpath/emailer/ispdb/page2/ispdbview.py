@@ -37,8 +37,8 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, parent):
-        self._window = getContainerWindow(ctx, parent, None, g_extension, 'IspdbPage2')
+    def __init__(self, ctx, handler, parent):
+        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'IspdbPage2')
 
 # IspdbView getter methods
     def getWindow(self):
@@ -46,7 +46,12 @@ class IspdbView(unohelper.Base):
 
 # IspdbView setter methods
     def setPageLabel(self, text):
+        self._window.Model.Step = 1
         self._getPageLabel().Text = text
+
+    def enableIMAP(self, imap):
+        self._window.Model.Step = 2
+        self._getEnableIMAP().State = imap
 
     def updateProgress(self, value, message, style):
         self._getProgressBar().Value = value
@@ -63,3 +68,6 @@ class IspdbView(unohelper.Base):
 
     def _getProgressMessage(self):
         return self._window.getControl('Label2')
+
+    def _getEnableIMAP(self):
+        return self._window.getControl('CheckBox1')

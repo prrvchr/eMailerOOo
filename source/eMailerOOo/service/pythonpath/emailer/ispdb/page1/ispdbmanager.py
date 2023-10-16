@@ -41,8 +41,8 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, WindowHandler(self), parent, model.Email)
-        self._wizard.activatePath(1, False)
+        self._view = IspdbView(ctx, WindowHandler(self), parent)
+        self._view.setSender(self._model.Sender)
 
 # XWizardPage
     @property
@@ -53,16 +53,17 @@ class IspdbManager(unohelper.Base):
         return self._view.getWindow()
 
     def activatePage(self):
-        self._view.setEmailFocus()
+        self._wizard.activatePath(1, False)
+        self._wizard.updateTravelUI()
+        self._view.setSenderFocus()
 
     def commitPage(self, reason):
-        email = self._view.getEmail()
-        self._model.Email = email
+        self._model.Sender = self._view.getSender()
         return True
 
     def canAdvance(self):
-        return self._model.isEmailValid(self._view.getEmail())
+        return self._model.isEmailValid(self._view.getSender())
 
 # IspdbManager setter methods
-    def updateTravelUI(self):
+    def changeSender(self):
         self._wizard.updateTravelUI()

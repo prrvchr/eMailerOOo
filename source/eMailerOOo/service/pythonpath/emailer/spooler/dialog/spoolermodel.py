@@ -37,21 +37,21 @@ from com.sun.star.view.SelectionType import MULTI
 
 from com.sun.star.sdb.CommandType import TABLE
 
-from ..grid import GridManager
+from ...grid import GridManager
 
-from ..grid import GridModel
+from ...grid import GridModel
 
-from ..unotool import createService
-from ..unotool import getConfiguration
-from ..unotool import getPathSettings
-from ..unotool import getResourceLocation
-from ..unotool import getStringResource
+from ...unotool import createService
+from ...unotool import getConfiguration
+from ...unotool import getPathSettings
+from ...unotool import getResourceLocation
+from ...unotool import getStringResource
 
-from ..dbtool import getValueFromResult
+from ...dbtool import getValueFromResult
 
-from ..configuration import g_identifier
-from ..configuration import g_extension
-from ..configuration import g_fetchsize
+from ...configuration import g_identifier
+from ...configuration import g_extension
+from ...configuration import g_fetchsize
 
 from collections import OrderedDict
 from threading import Thread
@@ -69,7 +69,7 @@ class SpoolerModel(unohelper.Base):
         self._rowset = self._getRowSet()
         self._grid = None
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
-        self._configuration = getConfiguration(ctx, g_identifier, True)
+        self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Title': 'SpoolerDialog.Title',
                            'State': 'SpoolerDialog.Label2.Label.%s',
@@ -148,7 +148,7 @@ class SpoolerModel(unohelper.Base):
         return tuple(jobs)
 
     def _getQueryTable(self):
-        table = self._configuration.getByName('SpoolerTable')
+        table = self._config.getByName('SpoolerTable')
         return table
 
 # SpoolerModel private setter methods

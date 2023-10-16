@@ -27,5 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .spoolermanager import SpoolerManager
-from .spoolerhandler import SpoolerListener
+from .spooler import Spooler
+
+from .listener import SpoolerListener
+
+from .dialog import SpoolerManager

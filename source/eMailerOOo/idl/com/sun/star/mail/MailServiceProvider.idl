@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,7 +22,26 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-from .sendermodel import SenderModel
-from .sendermanager import SenderManager
+#ifndef __com_sun_star_mail_MailServiceProvider_idl__
+#define __com_sun_star_mail_MailServiceProvider_idl__
+
+module com { module sun { module star { module mail {
+
+interface XMailServiceProvider2;
+
+service MailServiceProvider : XMailServiceProvider2
+{
+    /**
+        Creation method.
+
+        @see com::sun::star::mail::XMailServiceProvider2
+    */
+    create();
+
+};
+
+}; }; }; };
+
+#endif

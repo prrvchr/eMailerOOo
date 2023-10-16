@@ -93,18 +93,11 @@ class DataSource(unohelper.Base,
         self.DataBase.mergeProvider(provider)
         self.DataBase.mergeServer(provider, server)
 
-    def updateServer(self, host, port, server):
-        self.DataBase.updateServer(host, port, server)
+    def updateServer(self, server, host, port):
+        self.DataBase.updateServer(server, host, port)
 
     def waitForDataBase(self):
         self.DataBase.wait()
-
-# Procedures called by the Mailer
-    def getSenders(self, *args):
-        Thread(target=self._getSenders, args=args).start()
-
-    def removeSender(self, sender):
-        return self.DataBase.deleteUser(sender)
 
 # Procedures called by the Merger
     def getFilterValue(self, value, dbtype):
@@ -136,10 +129,4 @@ class DataSource(unohelper.Base,
 
     def getJobIds(self, batch):
         return self.DataBase.getJobIds(batch)
-
-# Procedures called internally by the Mailer
-    def _getSenders(self, callback):
-        self.waitForDataBase()
-        senders = self.DataBase.getSenders()
-        callback(senders)
 

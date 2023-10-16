@@ -87,6 +87,7 @@ from ..configuration import g_identifier
 from ..configuration import g_extension
 from ..configuration import g_fetchsize
 
+import string
 from collections import OrderedDict
 from six import string_types
 from threading import Thread
@@ -98,9 +99,7 @@ import traceback
 
 class MergerModel(MailModel):
     def __init__(self, ctx, datasource):
-        self._ctx = ctx
-        self._datasource = datasource
-        self._configuration = getConfiguration(ctx, g_identifier, True)
+        MailModel.__init__(self, ctx, datasource)
         self._document = getDesktop(ctx).CurrentComponent
         #mri = createService(self._ctx, 'mytools.Mri')
         #mri.inspect(self._document)
@@ -123,19 +122,18 @@ class MergerModel(MailModel):
         self._quote = ''
         self._rows = ()
         self._tables = {}
+        self._columns = ()
         self._query = None
         self._subquery = None
         self._identifiers = ()
         self._emails = ()
         self._changes = 0
-        self._disposed = False
         self._similar = False
         self._temp = False
         self._saved = False
         self._lock = Condition()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'Step': 'MergerPage%s.Step',
                            'Title': 'MergerPage%s.Title',
                            'TabTitle': 'MergerTab%s.Title',
@@ -210,7 +208,7 @@ class MergerModel(MailModel):
         return addressbook
 
     def _loadAddressBook(self):
-        return self._configuration.getByName('MergerLoadDataSource')
+        return self._config.getByName('MergerLoadDataSource')
 
     def _getDocumentAddressBook(self, addressbook):
         service = 'com.sun.star.text.TextDocument'
@@ -292,7 +290,7 @@ class MergerModel(MailModel):
             progress(100)
             setAddressBook(step, queries, self._getTables(), label, message)
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     def _saveQueries(self):
@@ -441,11 +439,12 @@ class MergerModel(MailModel):
         # FIXME: we have to keep code execution order...
         with self._lock:
             if exist:
-                identifiers, emails, table = self._getQuery(query, subquery)
+                identifiers, emails, table, columns = self._getQuery(query, subquery)
                 enabled = False
             else:
-                identifiers = emails = ()
+                identifiers = emails = columns = ()
                 enabled = table and self.isQueryValid(query)
+            self._columns = columns
             setQuery(identifiers, emails, exist, table, enabled)
 
     def _getQuery(self, query, subquery):
@@ -457,7 +456,8 @@ class MergerModel(MailModel):
         self._query = query
         self._subquery = subquery
         self._identifiers, self._emails = self._getSubQueryInfos()
-        return self._identifiers, self._emails, subquery.Second
+        columns = self._subcomposer.getTables().getByName(subquery.Second).getColumns().getElementNames()
+        return self._identifiers, self._emails, subquery.Second, columns
 
     def _getSubQueryInfos(self):
         emails = []
@@ -883,6 +883,19 @@ class MergerModel(MailModel):
         self._recipient.UpdateTableName = self._subquery.Second
 
 # Procedures called by WizardPage3
+    def isSubjectValid(self, subject):
+        if subject != '':
+            try:
+                for literal, field, format, conversion in string.Formatter().parse(subject):
+                    print("MergerModel.isSubjectValid() Parameter: %s - %s - %s - %s" % (literal, field, format, conversion))
+                    if field is not None and field not in self._columns:
+                        return False
+            except ValueError as e:
+                print("MergerModel.isSubjectValid() ValueError **************************************")
+                return False
+            return True
+        return False
+
     def initPage3(self, *args):
         Thread(target=self._initPage3, args=args).start()
 

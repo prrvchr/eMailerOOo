@@ -32,10 +32,10 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from ..unotool import getContainerWindow
-from ..unotool import getDialog
+from ...unotool import getContainerWindow
+from ...unotool import getDialog
 
-from ..configuration import g_extension
+from ...configuration import g_extension
 
 
 class SpoolerView(unohelper.Base):
@@ -67,7 +67,8 @@ class SpoolerView(unohelper.Base):
         self._enableButtonClose(True)
         self._enableButtonAdd(True)
 
-    def enableButtonRemove(self, enabled):
+    def enableButtons(self, enabled):
+        self._getButtonView().Model.Enabled = enabled
         self._getButtonRemove().Model.Enabled = enabled
 
     def setSpoolerState(self, text, state):
@@ -109,11 +110,14 @@ class SpoolerView(unohelper.Base):
     def _getButtonClose(self):
         return self._dialog.getControl('CommandButton2')
 
-    def _getButtonAdd(self):
+    def _getButtonView(self):
         return self._tab1.getControl('CommandButton1')
 
-    def _getButtonRemove(self):
+    def _getButtonAdd(self):
         return self._tab1.getControl('CommandButton2')
+
+    def _getButtonRemove(self):
+        return self._tab1.getControl('CommandButton3')
 
     def _getGridWindow(self):
         return self._tab1.getControl('FrameControl1')

@@ -84,42 +84,47 @@ from email.utils import parseaddr
 from emailer import getConfiguration
 from emailer import getLogger
 from emailer import g_mailservicelog
+from emailer import g_version
 
 import re
 import sys
-import base64
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplName = 'com.sun.star.mail.MailMessage2'
+g_ImplementationName = 'org.openoffice.pyuno.MailMessage2'
 
 
 class MailMessage(unohelper.Base,
                   XMailMessage2,
                   XServiceInfo):
-    def __init__(self, ctx):
+    def __init__(self, ctx, to='', frm='', subject='', body=None, attachment=None):
+        print("MailMessage.__init__() 1")
         self._ctx = ctx
         self._logger = getLogger(ctx, g_mailservicelog)
-        self._recipients = []
+        self._recipients = [to]
         self._ccrecipients = []
         self._bccrecipients = []
+        self._sname, self._saddress = parseaddr(frm)
+        name, part, domain = frm.partition('@')
+        host = '%s.%s' % (name, domain)
+        self._messageid = make_msgid(None, host)
+        self.ReplyToAddress = frm
+        self.Subject = subject
+        self.Body = body
         self._attachments = []
-        self._name = ''
-        self._address = ''
-        self._messageid = ''
+        if attachment is not None:
+            self._attachments.append(attachment)
         self.ThreadId = ''
-        self.ReplyToAddress = ''
-        self.Subject = ''
-        self.Body = None
+        print("MailMessage.__init__() 2 %s - %s - %s" % (frm, self._sname, self._saddress))
 
     @property
     def SenderName(self):
-        return self._name
+        return self._sname
 
     @property
     def SenderAddress(self):
-        return self._address
+        return self._saddress
 
     @property
     def MessageId(self):
@@ -127,24 +132,6 @@ class MailMessage(unohelper.Base,
     @MessageId.setter
     def MessageId(self, messageid):
         self._messageid = messageid
-
-    def create(self, to, fr, subject, body):
-        self._create(to, fr, subject, body)
-
-    def createWithAttachment(self, to, fr, subject, body, attachment):
-        self._create(to, fr, subject, body)
-        self._attachments.append(attachment)
-
-    def _create(self, to, fr, subject, body):
-        self._recipients.append(to)
-        self._name, self._address = parseaddr(fr)
-        print("MailMessage.__init__() %s - %s - %s" % (fr, self._name, self._address))
-        name, part, domain = fr.partition('@')
-        host = '%s.%s' % (name, domain)
-        self._messageid = make_msgid(None, host)
-        self.ReplyToAddress = fr
-        self.Subject = subject
-        self.Body = body
 
     def addRecipient(self, recipient):
         self._recipients.append(recipient)
@@ -182,13 +169,13 @@ class MailMessage(unohelper.Base,
     def hasAttachments(self):
         return len(self._attachments) > 0
 
-    def asString(self, encode):
+    def asBytes(self):
         msg = self._getMessage()
-        if encode:
-            message = base64.urlsafe_b64encode(msg.as_bytes())
-        else:
-            message = msg.as_string()
-        return message
+        return uno.ByteSequence(msg.as_bytes())
+
+    def asString(self):
+        msg = self._getMessage()
+        return msg.as_string()
 
     def _getMessage(self):
         COMMASPACE = ', '
@@ -230,9 +217,9 @@ class MailMessage(unohelper.Base,
             msg.attach(textmsg)
         else:
             msg = textmsg
+        msg['Subject'] = self.Subject
         header = Header(self.SenderName, 'utf-8')
         header.append('<' + self.SenderAddress + '>','us-ascii')
-        msg['Subject'] = self.Subject
         msg['From'] = header
         msg['To'] = COMMASPACE.join(self.getRecipients())
         msg['Message-ID'] = self.MessageId
@@ -240,14 +227,14 @@ class MailMessage(unohelper.Base,
             msg['References'] = self.ThreadId
         if self.hasCcRecipients():
             msg['Cc'] = COMMASPACE.join(self.getCcRecipients())
-        if self.ReplyToAddress != '':
+        if self.ReplyToAddress:
             msg['Reply-To'] = self.ReplyToAddress
-        xmailer = "LibreOffice / OpenOffice via eMailerOOo extension"
+        xmailer = "LibreOffice / OpenOffice via eMailerOOo v%s extension" % g_version
         try:
             configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')
             version = configuration.getByName('ooSetupVersion')
-            xmailer = "%s %s via eMailerOOo extension" % (name, version)
+            xmailer = "%s %s via eMailerOOo v%s extension" % (name, version, g_version)
         except:
             pass
         msg['X-Mailer'] = xmailer
@@ -277,13 +264,13 @@ class MailMessage(unohelper.Base,
 
     # XServiceInfo
     def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplName, service)
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
     def getImplementationName(self):
-        return g_ImplName
+        return g_ImplementationName
     def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplName)
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
 g_ImplementationHelper.addImplementation(MailMessage,
-                                         g_ImplName,
-                                         ('com.sun.star.mail.MailMessage2', ))
+                                         g_ImplementationName,
+                                         ('com.sun.star.mail.MailMessage', ))

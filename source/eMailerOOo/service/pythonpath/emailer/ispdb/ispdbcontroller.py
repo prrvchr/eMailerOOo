@@ -52,10 +52,10 @@ import traceback
 
 class IspdbController(unohelper.Base,
                       XWizardController):
-    def __init__(self, ctx, wizard, datasource, close):
+    def __init__(self, ctx, wizard, sender):
         self._ctx = ctx
         self._wizard = wizard
-        self._model = IspdbModel(ctx, datasource, close)
+        self._model = IspdbModel(ctx, sender)
 
     @property
     def Model(self):
@@ -83,7 +83,7 @@ class IspdbController(unohelper.Base,
             logMessage(self._ctx, INFO, msg, 'IspdbWizard', 'createPage()')
             return page
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     def getPageTitle(self, pageid):
@@ -96,9 +96,6 @@ class IspdbController(unohelper.Base,
         msg = "PageId: %s..." % pageid
         title = self._model.getPageTitle(pageid)
         self._wizard.setTitle(title)
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
         msg += " Done"
         logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 

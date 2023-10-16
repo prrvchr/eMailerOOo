@@ -44,7 +44,7 @@ class DispatchListener(unohelper.Base,
         try:
             self._model.saveDocumentFinished(notification.Result)
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def disposing(self, source):

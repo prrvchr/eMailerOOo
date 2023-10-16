@@ -30,76 +30,67 @@
 import uno
 import unohelper
 
+from com.sun.star.mail import XMailServiceConfiguration
+
 from com.sun.star.lang import XServiceInfo
 
-from com.sun.star.mail import XSpoolerService
+from emailer import DispatchListener
+from emailer import MailUser
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
+from emailer import executeDispatch
+from emailer import getPropertyValueSet
 
-from emailer import Spooler
-
-from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'com.sun.star.mail.SpoolerService'
+g_ImplementationName = 'org.openoffice.pyuno.MailServiceConfiguration'
 
 
-class SpoolerService(unohelper.Base,
-                     XServiceInfo,
-                     XSpoolerService):
-    def __init__(self, ctx):
-        if self._spooler is None:
-            with self._lock:
-                if self._spooler is None:
-                    SpoolerService.__spooler = Spooler(ctx)
+class MailServiceConfiguration(unohelper.Base,
+                               XServiceInfo,
+                               XMailServiceConfiguration):
+    def __init__(self, ctx, sender=''):
+        self._ctx = ctx
+        self._sender = sender
+        user = MailUser(ctx, sender)
+        if user.isNew():
+            self._user = None
+        else:
+            self._user = user
+        print("MailServiceConfiguration.__init__() Sender: %s" % sender)
 
-    __lock = Lock()
-    __spooler = None
-    @property
-    def _lock(self):
-        return SpoolerService.__lock
-    @property
-    def _spooler(self):
-        return SpoolerService.__spooler
+# XMailServiceConfiguration
+    def supportIMAP(self):
+        if self._user is None:
+            self._initUser()
+        return self._user.hasImapConfig()
 
-    # XSpoolerService
-    def start(self):
-        if not self.isStarted():
-            self._spooler.start()
+    def getServerDomain(self, stype):
+        if self._user is None:
+            self._initUser()
+        return self._user.getServerDomain(stype.value)
 
-    def stop(self):
-        if self.isStarted():
-            self._spooler.stop()
+    def getAuthenticator(self, stype):
+        if self._user is None:
+            self._initUser()
+        print("MailServiceConfiguration.getAuthenticator() MailServerType: %s" % stype.value)
+        return self._user.getAuthenticator(stype.value)
 
-    def isStarted(self):
-        return self._spooler.isStarted()
+    def getConnectionContext(self, stype):
+        if self._user is None:
+            self._initUser()
+        print("MailServiceConfiguration.getConnectionContext() MailServerType: %s" % stype.value)
+        return self._user.getConnectionContext(stype.value)
 
-    def addListener(self, listener):
-        self._spooler.addListener(listener)
+# Internal method
+    def setUser(self, sender):
+        self._user = MailUser(self._ctx, sender)
 
-    def removeListener(self, listener):
-        self._spooler.removeListener(listener)
-
-    def addJob(self, sender, subject, document, recipients, attachments):
-        return self._spooler.addJob(sender, subject, document, recipients, attachments)
-
-    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
-        return self._spooler.addMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
-
-    def viewJob(self, jobid):
-        return self._spooler.viewJob(jobid)
-
-    def removeJobs(self, jobids):
-        return self._spooler.removeJobs(jobids)
-
-    def getJobState(self, jobid):
-        return self._spooler.getJobState(jobid)
-
-    def getJobIds(self, batchid):
-        return self._spooler.getJobIds(batchid)
+    def _initUser(self):
+        listener = DispatchListener(self.setUser)
+        arguments = getPropertyValueSet({'Sender': self._sender})
+        executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
 
     # XServiceInfo
     def supportsService(self, service):
@@ -110,6 +101,6 @@ class SpoolerService(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(SpoolerService,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+g_ImplementationHelper.addImplementation(MailServiceConfiguration,                                 # UNO object class
+                                         g_ImplementationName,                                     # Implementation name
+                                        ('com.sun.star.mail.MailServiceConfiguration',))           # List of implemented services

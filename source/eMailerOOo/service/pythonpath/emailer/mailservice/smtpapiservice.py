@@ -53,6 +53,9 @@ import traceback
 
 
 class SmtpApiService(SmtpService):
+    def __init__(self, ctx, url):
+        SmtpService.__init__(self, ctx)
+        self._url = url
 
     def connect(self, context, authenticator):
         self._logger.logprb(INFO, 'SmtpService', 'connect()', 221)
@@ -83,11 +86,12 @@ class SmtpApiService(SmtpService):
             self._logger.logprb(INFO, 'SmtpService', 'disconnect()', 262)
 
     def sendMailMessage(self, message):
-        url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'
         parameter = self._server.getRequestParameter('sendMailMessage')
         parameter.Method = 'POST'
-        parameter.Url = url + 'send'
-        parameter.Json = '{"threadId": "%s", "raw": "%s"}' % (message.ThreadId, message.asString(True))
+        parameter.Url = self._url + 'send'
+        parameter.setJson('threadId', message.ThreadId)
+        raw = base64.urlsafe_b64encode(message.asBytes().value)
+        parameter.setJson('raw', raw)
         try:
             response = self._server.execute(parameter)
         except Exception as e:
@@ -96,7 +100,9 @@ class SmtpApiService(SmtpService):
         else:
             if response.Ok:
                 messageid, labels = parseMessage(response)
-                setDefaultFolder(self._server, url, messageid, labels)
-                message.MessageId = messageid
+                setDefaultFolder(self._server, self._url, messageid, labels)
+                interface = 'com.sun.star.mail.XMailMessage2'
+                if hasInterface(message, interface):
+                    message.MessageId = messageid
             response.close()
 

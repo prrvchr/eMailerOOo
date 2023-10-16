@@ -56,7 +56,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
-        self._view = IspdbView(ctx, WindowHandler(self), parent, pageid, self._model.isOAuth2())
+        self._view = IspdbView(ctx, WindowHandler(self), parent, pageid)
         self._service = service.value
         self._version = 0
 
@@ -79,6 +79,8 @@ class IspdbManager(unohelper.Base):
     def commitPage(self, reason):
         server, user = self._view.getConfiguration(self._service)
         self._model.updateConfiguration(self._service, server, user)
+        if reason == FINISH:
+            self._model.saveConfiguration()
         return True
 
     def canAdvance(self):
@@ -89,7 +91,7 @@ class IspdbManager(unohelper.Base):
         if valid and index > 0:
             login = self._view.getLogin()
             valid = self._model.isStringValid(login)
-            if valid and index < 3:
+            if valid and index < 2:
                 pwd, conf = self._view.getPasswords()
                 valid = self._model.isStringValid(pwd) and pwd == conf
         return valid
@@ -104,23 +106,21 @@ class IspdbManager(unohelper.Base):
         self._view.setSecurityMessage(message, level)
 
     def changeAuthentication(self, j):
-        enabled = j > 0
-        self._view.enableLogin(enabled)
-        enabled = 0 < j < 3
-        self._view.enablePassword(enabled)
+        self._view.enableLogin(j > 0)
+        self._view.enablePassword(j == 1)
         i = self._view.getConnection()
         message, level = self._model.getSecurity(i, j)
         self._view.setSecurityMessage(message, level)
         self._wizard.updateTravelUI()
 
     def previousServerPage(self):
-        server, user = self._view.getConfiguration(self._service)
-        self._model.previousServerPage(self._service, server, user)
+        server = self._view.getServerConfig(self._service)
+        config = self._model.previousServerPage(self._service, server)
         config = self._model.getConfig(self._service)
         self._view.updatePage(config)
 
     def nextServerPage(self):
-        server, user = self._view.getConfiguration(self._service)
-        self._model.nextServerPage(self._service, server, user)
+        server = self._view.getServerConfig(self._service)
+        config = self._model.nextServerPage(self._service, server)
         config = self._model.getConfig(self._service)
         self._view.updatePage(config)

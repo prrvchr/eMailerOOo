@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3] et à notre [Politique de protection des données][4].**
 
-# version [1.0.2][5]
+# version [1.1.0][5]
 
 ## Introduction:
 
@@ -84,7 +84,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.0.2.  
+- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.1.0.  
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -358,7 +358,19 @@ ___
 
 - Si aucune configuration n'est trouvée dans l'assistant de configuration de la connexion (IspDB Wizard) alors il est possible de configurer la connexion manuellement. Voir [dysfonctionnement #5][72].
 
-### Que reste-t-il à faire pour la version 1.0.2:
+### Ce qui a été fait pour la version 1.1.0:
+
+- Dans l'assistant de configuration de la connexion (IspDB Wizard) il est maintenant possible de désactiver la configuration IMAP. En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.
+
+- Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][73].
+  Pour l'objet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne (sensible à la case) et d'une accolate fermante. (ie: `{NomDeLaColonne}`)
+  Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
+
+- Un nouveau service [com.sun.star.mail.MailServiceConfiguration][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.
+  Cela devrait pouvoir résoudre le [dysfonctionnement #4][75]: l'envoi d'e-mails depuis Basic.
+  Je reviendrai un peu plus tard avec des exemples en Basic.
+
+### Que reste-t-il à faire pour la version 1.1.0:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -436,3 +448,6 @@ ___
 [70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
 [72]: <https://github.com/prrvchr/eMailerOOo/issues/5>
+[73]: <https://github.com/prrvchr/eMailerOOo/issues/6>
+[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailServiceConfiguration.idl>
+[75]: <https://github.com/prrvchr/eMailerOOo/issues/4>

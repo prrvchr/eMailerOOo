@@ -42,8 +42,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .ispdb import IspdbController
 from .merger import MergerController
-from .sender import SenderModel
-from .sender import SenderManager
+from .mailer import MailerModel
+from .mailer import MailerManager
 from .spooler import SpoolerManager
 
 from .wizard import Wizard
@@ -66,7 +66,7 @@ from .configuration import g_merger_paths
 import traceback
 
 
-class SmtpDispatch(unohelper.Base,
+class MailDispatch(unohelper.Base,
                    XNotifyingDispatch):
     def __init__(self, ctx, parent):
         self._ctx = ctx
@@ -85,19 +85,20 @@ class SmtpDispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        if not self._isInitialized():
+        if url.Path == 'ispdb':
+            state, result = self._showIspdb(arguments)
+        else:
             # FIXME: We need to check the configuration
-            SmtpDispatch._datasource = getDataSource(self._ctx, g_extension, '\n', self._showMsgBox)
-        if self._isInitialized():
+            if not self._isInitialized():
+                MailDispatch._datasource = getDataSource(self._ctx, g_extension, '\n', self._showMsgBox)
             # FIXME: Configuration has been checked we can continue
-            if url.Path == 'ispdb':
-                state, result = self._showIspdb(arguments)
-            elif url.Path == 'spooler':
-                state, result = self._showSpooler()
-            elif url.Path == 'mailer':
-                state, result = self._showMailer(arguments)
-            elif url.Path == 'merger':
-                state, result = self._showMerger()
+            if self._isInitialized():
+                if url.Path == 'spooler':
+                    state, result = self._showSpooler()
+                elif url.Path == 'mailer':
+                    state, result = self._showMailer(arguments)
+                elif url.Path == 'merger':
+                    state, result = self._showMerger()
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -106,31 +107,31 @@ class SmtpDispatch(unohelper.Base,
     def removeStatusListener(self, listener, url):
         pass
 
-# SmtpDispatch private methods
+# MailDispatch private methods
     #Ispdb methods
     def _showIspdb(self, arguments):
         try:
             state = FAILURE
             email = None
             msg = "Wizard Loading ..."
-            close = True
+            sender = ''
             for argument in arguments:
-                if argument.Name == 'Close':
-                    close = argument.Value
+                if argument.Name == 'Sender':
+                    sender = argument.Value
             wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
-            controller = IspdbController(self._ctx, wizard, self._getDataSource(), close)
+            controller = IspdbController(self._ctx, wizard, sender)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."
             if wizard.execute() == OK:
                 state = SUCCESS
-                email = controller.Model.Email
+                sender = controller.Model.Sender
                 msg +=  " Retrieving SMTP configuration OK..."
             controller.dispose()
             print(msg)
-            return state, email
+            return state, sender
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     #Spooler methods
@@ -142,7 +143,7 @@ class SmtpDispatch(unohelper.Base,
             manager.dispose()
             return SUCCESS, None
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     #Mailer methods
@@ -158,17 +159,19 @@ class SmtpDispatch(unohelper.Base,
                     close = argument.Value
             if path is None:
                 path = getPathSettings(self._ctx).Work
-            model = SenderModel(self._ctx, self._getDataSource(), path, close)
+            model = MailerModel(self._ctx, self._getDataSource(), path, close)
             url = model.getDocumentUrl()
-            if url is not None:
-                sender = SenderManager(self._ctx, model, self._parent, url)
-                if sender.execute() == OK:
+            if url is None:
+                model.dispose()
+            else:
+                mailer = MailerManager(self._ctx, model, self._parent, url)
+                if mailer.execute() == OK:
                     state = SUCCESS
-                    path = sender.Mailer.Model.Path
-                sender.dispose()
+                    path = model.getPath()
+                mailer.dispose()
             return state, path
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     #Merger methods
@@ -187,15 +190,15 @@ class SmtpDispatch(unohelper.Base,
             print(msg)
             return SUCCESS, None
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
     # Private methods
     def _isInitialized(self):
-        return SmtpDispatch._datasource is not None
+        return MailDispatch._datasource is not None
 
     def _getDataSource(self):
-        return SmtpDispatch._datasource
+        return MailDispatch._datasource
 
     def _showMsgBox(self, method, code, *args):
         resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)

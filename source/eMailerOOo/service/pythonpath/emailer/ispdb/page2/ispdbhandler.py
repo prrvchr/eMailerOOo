@@ -29,27 +29,27 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt import XContainerWindowEventHandler
 
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
-    # XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            if method == 'Send':
-                self._manager.sendDocument()
+            if method == 'EnableIMAP':
+                self._manager.enableIMAP(event.Source.State)
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('Send', )
+        return ('EnableIMAP', )

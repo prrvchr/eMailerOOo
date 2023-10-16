@@ -44,13 +44,15 @@ from .apihelper import setDefaultFolder
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface
 
-from ..oauth2 import getOAuth2Token
 from ..oauth2 import getRequest
 
-
+import base64
 import traceback
 
 class ImapApiService(ImapService):
+    def __init__(self, ctx, url):
+        ImapService.__init__(self, ctx)
+        self._url = url
 
     def connect(self, context, authenticator):
         self._logger.logprb(INFO, 'ImapService', 'connect()', 321)
@@ -90,11 +92,15 @@ class ImapApiService(ImapService):
         return find
 
     def uploadMessage(self, folder, message):
-        url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'
+        print("ImapApiService.uploadMessage() 1")
+        if hasInterface(message, 'com.sun.star.mail.XMailMessage2'):
+            print("ImapApiService.uploadMessage() 2 ********************************")
+        print("ImapApiService.uploadMessage() 3")
         parameter = self._server.getRequestParameter('uploadMessage')
         parameter.Method = 'POST'
-        parameter.Url = url + 'send'
-        parameter.Json = '{"raw": "%s"}' % message.asString(True)
+        parameter.Url = self._url + 'send'
+        raw = base64.urlsafe_b64encode(message.asBytes().value)
+        parameter.setJson('raw', raw)
         try:
             response = self._server.execute(parameter)
         except Exception as e:
@@ -103,7 +109,7 @@ class ImapApiService(ImapService):
         else:
             if response.Ok:
                 messageid, labels = parseMessage(response)
-                setDefaultFolder(self._server, url, messageid, labels, folder)
+                setDefaultFolder(self._server, self._url, messageid, labels, folder)
                 message.MessageId = messageid
             response.close()
 

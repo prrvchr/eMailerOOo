@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4].**
 
-# version [1.0.2][5]
+# version [1.1.0][5]
 
 ## Introduction:
 
@@ -84,7 +84,7 @@ This extension is necessary to use HsqlDB version 2.7.2 with all its features.
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.0.2.  
+- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.1.0.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -358,7 +358,19 @@ ___
 
 - If no configuration is found in the connection configuration wizard (IspDB Wizard) then it is possible to configure the connection manually. See [issue #5][72].
 
-### What remains to be done for version 1.0.2:
+### What has been done for version 1.1.0:
+
+- In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration. As a result, this no longer sends a thread (IMAP message) when merging a mailing.
+
+- In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][73].
+  For the subject of an email, a merge field is composed of an opening brace, the column name (case sensitive) and a closing brace. (ie: `{ColumnName}`)
+  When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
+
+- A new service [com.sun.star.mail.MailServiceConfiguration][74] now allows access to a connection configuration (SMTP and/or IMAP) from an email address.
+  This should be able to resolve [issue #4][75]: sending emails from Basic.
+  I will come back a little later with examples in Basic.
+
+### What remains to be done for version 1.1.0:
 
 - Add new languages for internationalization...
 
@@ -436,3 +448,6 @@ ___
 [70]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
 [72]: <https://github.com/prrvchr/eMailerOOo/issues/5>
+[73]: <https://github.com/prrvchr/eMailerOOo/issues/6>
+[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailServiceConfiguration.idl>
+[75]: <https://github.com/prrvchr/eMailerOOo/issues/4>

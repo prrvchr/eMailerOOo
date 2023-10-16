@@ -31,9 +31,11 @@
 g_basename = 'eMailer'
 g_extension = '%sOOo' % g_basename
 g_identifier = 'io.github.prrvchr.%s' % g_extension
-# Ispdb roadmap wizard paths (Online and Offline)
-g_ispdb_paths = ((1, 2, 3, 4, 5), (1, 2, 3, 4))
-g_ispdb_page = -1
+g_version = '1.1.0'
+# Ispdb roadmap wizard paths
+# (Online without IMAP - Online with IMAP - Offline without IMAP - Offline with IMAP)
+g_ispdb_paths = ((1, 2, 3, 5), (1, 2, 3, 4, 5), (1, 2, 3), (1, 2, 3, 4))
+g_ispdb_page = 2
 # Merger roadmap wizard paths
 g_merger_paths = (1, 2, 3)
 g_merger_page = -1

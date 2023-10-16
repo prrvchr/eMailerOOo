@@ -61,7 +61,7 @@ class Tab1Handler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -88,7 +88,7 @@ class Tab2Handler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -112,7 +112,7 @@ class AddressHandler(unohelper.Base,
         try:
             self._manager.changeAddressRowSet(event.Source)
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
 
@@ -132,5 +132,5 @@ class RecipientHandler(unohelper.Base,
         try:
             self._manager.changeRecipientRowSet(event.Source)
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)

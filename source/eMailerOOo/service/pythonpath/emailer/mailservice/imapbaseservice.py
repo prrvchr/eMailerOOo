@@ -56,28 +56,28 @@ class ImapBaseService(ImapService):
             raise IllegalArgumentException()
         if not hasInterface(authenticator, 'com.sun.star.mail.XAuthenticator'):
             raise IllegalArgumentException()
-        self._context = context
         server = context.getValueByName('ServerName')
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
-        connection = context.getValueByName('ConnectionType').title()
-        authentication = context.getValueByName('AuthenticationType').title()
-        if connection == 'Ssl':
+        connection = context.getValueByName('ConnectionType').upper()
+        authentication = context.getValueByName('AuthenticationType').upper()
+        if connection == 'SSL':
             self._server = imapclient.IMAPClient(server, port=port, ssl=True, timeout=timeout)
         else:
             self._server = imapclient.IMAPClient(server, port=port, ssl=False, timeout=timeout)
-        if connection == 'Tls':
+        if connection == 'TLS':
             self._server.starttls()
-        if authentication == 'Login':
+        if authentication == 'LOGIN':
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             code = self._server.login(user, password)
             print("ImapService.connect() 1: %s" % code)
-        elif authentication == 'Oauth2':
+        elif authentication == 'OAUTH2':
             user = authenticator.getUserName()
             token = getOAuth2Token(self._ctx, self, server, user)
             code = self._server.oauth2_login(user, token)
             print("ImapService.connect() 2: %s" % code)
+        self._context = context
         for listener in self._listeners:
             listener.connected(self._notify)
         self._logger.logprb(INFO, 'ImapService', 'connect()', 324)
@@ -106,5 +106,9 @@ class ImapBaseService(ImapService):
         return find
 
     def uploadMessage(self, folder, message):
-        code = self._server.append(folder, message.asString(False))
+        print("ImapBaseService.uploadMessage() 1")
+        if hasInterface(message, 'com.sun.star.mail.XMailMessage2'):
+            print("ImapBaseService.uploadMessage() 2 ********************************")
+        print("ImapBaseService.uploadMessage() 3")
+        code = self._server.append(folder, message.asString())
         print("MailServiceProvider.uploadMessage() %s" % (code, ))

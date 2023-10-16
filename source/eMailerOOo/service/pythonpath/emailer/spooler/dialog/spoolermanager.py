@@ -38,25 +38,27 @@ from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 
 from .spoolerhandler import DispatchListener
-from .spoolerhandler import SpoolerListener
 from .spoolerhandler import DialogHandler
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
 
-from ..grid import GridListener
-from ..grid import RowSetListener
+from ..listener import SpoolerListener
 
-from ..unotool import createService
-from ..unotool import executeDispatch
-from ..unotool import getFileSequence
-from ..unotool import getPropertyValueSet
-from ..unotool import getSimpleFile
+from ...grid import GridListener
+from ...grid import RowSetListener
 
-from ..logger import LogController
-from ..logger import LoggerListener
+from ...unotool import createService
+from ...unotool import executeDispatch
+from ...unotool import executeShell
+from ...unotool import getFileSequence
+from ...unotool import getPropertyValueSet
+from ...unotool import getSimpleFile
 
-from ..configuration import g_spoolerlog
-from ..configuration import g_basename
+from ...logger import LogController
+from ...logger import LoggerListener
+
+from ...configuration import g_spoolerlog
+from ...configuration import g_basename
 
 from threading import Condition
 import traceback
@@ -107,7 +109,7 @@ class SpoolerManager(unohelper.Base):
                 self._model.setGridData(rowset)
 
     def changeGridSelection(self, index, grid):
-        self._view.enableButtonRemove(index != -1)
+        self._view.enableButtons(index != -1)
 
     def started(self):
         self._refreshSpoolerView(1)
@@ -121,14 +123,10 @@ class SpoolerManager(unohelper.Base):
 
     def dispose(self):
         with self._lock:
-            print("SpoolerManager.dispose() 1 ***************************")
             self._spooler.removeListener(self._spoolerlistener)
             self._logger.removeModifyListener(self._loggerlistener)
-            #self._logger.removeLogHandler(self._loghandler)
-            #self._loghandler.dispose()
             self._model.dispose()
             self._view.dispose()
-            print("SpoolerManager.dispose() 2 ***************************")
 
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path,
@@ -139,6 +137,12 @@ class SpoolerManager(unohelper.Base):
     def documentAdded(self, path):
         self._model.Path = path
         self._model.executeRowSet()
+
+    def viewDocument(self):
+        for row in self._model.getGridSelectedRows():
+            url = self._spooler.viewJob(row)
+            if url:
+                executeShell(self._ctx, url)
 
     def removeDocument(self):
         rows = self._model.getGridSelectedRows()
@@ -157,7 +161,6 @@ class SpoolerManager(unohelper.Base):
         self._logger.clearLogger()
 
     def updateLogger(self):
-        print("SpoolerManager.updateLogger()")
         self._view.updateLog(*self._logger.getLogContent(True))
 
 # SpoolerManager private methods

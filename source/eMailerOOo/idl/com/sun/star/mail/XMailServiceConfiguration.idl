@@ -24,17 +24,26 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_MailMessage2_idl__
-#define __com_sun_star_mail_MailMessage2_idl__
+#ifndef __com_sun_star_mail_XMailServiceConfiguration_idl__
+#define __com_sun_star_mail_XMailServiceConfiguration_idl__
 
-#include <com/sun/star/mail/XMailMessage2.idl>
+#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/mail/XAuthenticator.idl>
+#include <com/sun/star/uno/XCurrentContext.idl>
+#include <com/sun/star/mail/MailServiceType.idl>
 
 module com { module sun { module star { module mail {
 
-service MailMessage2: XMailMessage2
+interface XMailServiceConfiguration : com::sun::star::uno::XInterface
 {
 
-    create();
+    boolean supportIMAP();
+
+    string getServerDomain([in] MailServiceType aType);
+
+    com::sun::star::mail::XAuthenticator getAuthenticator([in] MailServiceType aType);
+
+    com::sun::star::uno::XCurrentContext getConnectionContext([in] MailServiceType aType);
 
 };
 

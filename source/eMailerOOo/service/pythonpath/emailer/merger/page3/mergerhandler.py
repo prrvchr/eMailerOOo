@@ -48,7 +48,7 @@ class RecipientHandler(unohelper.Base,
         pass
     def rowSetChanged(self, event):
         try:
-            self._manager.changeRecipient()
+            self._manager.refreshRecipients()
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)

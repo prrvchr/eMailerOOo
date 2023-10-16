@@ -34,7 +34,11 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.lang import EventObject
+
+from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail import XImapService
+
+from .apihelper import getMailServiceConfiguration
 
 from ..logger import getLogger
 
@@ -52,7 +56,7 @@ class ImapService(unohelper.Base,
         self._logger = getLogger(ctx, g_mailservicelog)
         self._logger.logprb(INFO, 'ImapService', '__init__()', 311)
         self._listeners = []
-        self._supportedconnection = ('Insecure', 'Ssl', 'Tls')
+        self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None

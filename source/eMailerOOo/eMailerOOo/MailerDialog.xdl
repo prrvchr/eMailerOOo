@@ -1,7 +1,5 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,44 +23,13 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
-
-import uno
-import unohelper
-
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
-from ..unotool import getDialog
-
-from ..configuration import g_extension
-
-import traceback
-
-
-class SenderView(unohelper.Base):
-    def __init__(self, ctx, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, 'SenderDialog', handler, parent)
-
-# SenderView setter methods
-    def setTitle(self, title):
-        self._dialog.setTitle(title)
-
-    def enableButtonSend(self, enabled):
-        self._getButtonSend().Model.Enabled = enabled
-
-    def endDialog(self):
-        self._dialog.endDialog(OK)
-
-    def dispose(self):
-        self._dialog.dispose()
-
-# SenderView getter methods
-    def getParent(self):
-        return self._dialog.getPeer()
-
-    def execute(self):
-        return self._dialog.execute()
-
-# SenderView private control methods
-    def _getButtonSend(self):
-        return self._dialog.getControl('CommandButton2')
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerDialog" dlg:left="0" dlg:top="10" dlg:width="285" dlg:height="220" dlg:help-text="&amp;MailerDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerDialog.Title">
+  <dlg:bulletinboard>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="185" dlg:top="201" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerDialog.CommandButton1.HelpText" dlg:value="&amp;MailerDialog.CommandButton1.Label" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="235" dlg:top="201" dlg:width="45" dlg:height="14" dlg:help-text="&amp;MailerDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;MailerDialog.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Send" script:language="UNO"/>
+    </dlg:button>
+  </dlg:bulletinboard>
+</dlg:window>

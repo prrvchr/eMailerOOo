@@ -26,6 +26,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
+import uno
 
 from com.sun.star.sdbc import SQLException
 
@@ -107,10 +108,23 @@ def getDocumentFilter(extension, format):
     filter = filters.get(format, None)
     return filter
 
-def getMail(ctx, sender, recipient, subject, body):
-    service = 'com.sun.star.mail.MailMessage2'
-    mail = createService(ctx, service)
-    mail.create(recipient, sender, subject, body)
+def getMailService(ctx, service, domain=None):
+    name = 'com.sun.star.mail.MailServiceProvider'
+    stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
+    if domain is None:
+        server = createService(ctx, name).create(stype)
+    else:
+        server = createService(ctx, name).createWithDomain(stype, domain)
+    return server
+
+def getMailConfiguration(ctx, sender):
+    service = 'com.sun.star.mail.MailServiceConfiguration'
+    config = createService(ctx, service, sender)
+    return config
+
+def getMailMessage(ctx, sender, recipient, subject, body):
+    service = 'com.sun.star.mail.MailMessage'
+    mail = createService(ctx, service, recipient, sender, subject, body)
     return mail
 
 def getNamedExtension(name):

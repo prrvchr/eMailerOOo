@@ -69,6 +69,7 @@ from .dbinit import getTablesAndStatements
 from .configuration import g_identifier
 from .configuration import g_basename
 
+from time import sleep
 from threading import Lock
 from threading import Thread
 import traceback
@@ -160,104 +161,6 @@ class DataBase(unohelper.Base):
             query = getSqlQuery(self._ctx, 'shutdown')
         self._statement.execute(query)
 
-# Procedures called by the IspDB Wizard
-    def getServerConfig(self, servers, email):
-        smtp, imap = SMTP.value, IMAP.value
-        domain = email.partition('@')[2]
-        user = {}
-        call = self._getCall('getServers')
-        call.setString(1, email)
-        call.setString(2, domain)
-        call.setString(3, smtp)
-        call.setString(4, imap)
-        result = call.executeQuery()
-        user['ThreadId'] = call.getString(5)
-        user[smtp + 'Server'] = call.getString(6)
-        user[imap + 'Server'] = call.getString(7)
-        user[smtp + 'Port'] = call.getInt(8)
-        user[imap + 'Port'] = call.getInt(9)
-        user[smtp + 'Login'] = call.getString(10)
-        user[imap + 'Login'] = call.getString(11)
-        #TODO: Password need default value to empty string not None
-        pwd = call.getString(12)
-        user[smtp + 'Password'] = '' if call.wasNull() else pwd
-        pwd = call.getString(13)
-        user[imap + 'Password'] = '' if call.wasNull() else pwd
-        user['Domain'] = domain
-        while result.next():
-            service = getResultValue(result)
-            servers.appendServer(service, getDataFromResult(result))
-        call.close()
-        return user
-
-    def setServerConfig(self, services, servers, config):
-        provider = config.get('Provider')
-        name = config.get('DisplayName')
-        shortname = config.get('DisplayShortName')
-        self._mergeProvider(provider, name, shortname)
-        domains = config.get('Domains')
-        self._mergeDomain(provider, domains)
-        self._mergeServices(services, servers, config, provider)
-
-    def _mergeServices(self, services, servers, config, provider):
-        call = self._getMergeServerCall(provider)
-        for service in services:
-            servers.appendServers(service, self._mergeServers(call, config.get(service)))
-        call.close()
-
-    def _mergeServers(self, call, servers):
-        for server in servers:
-            self._callMergeServer(call, server)
-        return servers
-
-    def mergeProvider(self, provider):
-        self._mergeProvider(provider, provider, provider)
-
-    def mergeServer(self, provider, server):
-        call = self._getMergeServerCall(provider)
-        self._callMergeServer(call, server)
-        call.close()
-
-    def updateServer(self, server, host, port):
-        call = self._getCall('updateServer')
-        call.setString(1, server.get('Service'))
-        call.setString(2, host)
-        call.setShort(3, port)
-        call.setString(4, server.get('Server'))
-        call.setShort(5, server.get('Port'))
-        call.setByte(6, server.get('Connection'))
-        call.setByte(7, server.get('Authentication'))
-        result = call.executeUpdate()
-        call.close()
-
-    def mergeUser(self, email, user):
-        smtp, imap = SMTP.value, IMAP.value
-        call = self._getCall('mergeUser')
-        call.setString(1, email)
-        if user.hasThread():
-            call.setString(2, user.ThreadId)
-        else:
-            call.setNull(2, VARCHAR)
-        call.setString(3, smtp)
-        call.setString(4, user.getServer(smtp))
-        call.setShort(5, user.getPort(smtp))
-        call.setString(6, user.getLogin(smtp))
-        call.setString(7, user.getPassword(smtp))
-        if user.hasImapConfig():
-            call.setString(8, imap)
-            call.setString(9, user.getServer(imap))
-            call.setShort(10, user.getPort(imap))
-            call.setString(11, user.getLogin(imap))
-            call.setString(12, user.getPassword(imap))
-        else:
-            call.setNull(8, VARCHAR)
-            call.setNull(9, VARCHAR)
-            call.setNull(10, SMALLINT)
-            call.setNull(11, VARCHAR)
-            call.setNull(12, VARCHAR)
-        result = call.executeUpdate()
-        call.close()
-
 # Procedures called by the Spooler
     def getSpoolerViewQuery(self):
         return getSqlQuery(self._ctx, 'getSpoolerViewQuery')
@@ -320,22 +223,6 @@ class DataBase(unohelper.Base):
         call.close()
         return jobs
 
-# Procedures called by the Mailer
-    def getSenders(self):
-        senders = []
-        call = self._getCall('getSenders')
-        result = call.executeQuery()
-        senders = getSequenceFromResult(result)
-        call.close()
-        return tuple(senders)
-
-    def deleteUser(self, user):
-        call = self._getCall('deleteUser')
-        call.setString(1, user)
-        status = call.executeUpdate()
-        call.close()
-        return status
-
 # Procedures called by the MailSpooler
     def getSpoolerJobs(self, connection, state=0):
         jobid = []
@@ -356,13 +243,10 @@ class DataBase(unohelper.Base):
         call.close()
         return recipient
 
-    def getMailer(self, connection, batch, timeout):
+    def getMailer(self, connection, batch):
         mailer = None
         call = self._getDataBaseCall(connection, 'getMailer')
         call.setInt(1, batch)
-        call.setInt(2, timeout)
-        call.setString(3, SMTP.value)
-        call.setString(4, IMAP.value)
         result = call.executeQuery()
         if result.next():
             mailer = getDataFromResult(result)
@@ -401,43 +285,9 @@ class DataBase(unohelper.Base):
         result = call.executeUpdate()
         call.close()
 
-# Procedures called internally by the IspDB Wizard
-    def _mergeProvider(self, provider, name, shortname):
-        call = self._getCall('mergeProvider')
-        call.setString(1, provider)
-        call.setString(2, name)
-        call.setString(3, shortname)
-        result = call.executeUpdate()
-        call.close()
-
-    def _mergeDomain(self, provider, domains):
-        call = self._getMergeDomainCall(provider)
-        for domain in domains:
-            call.setString(2, domain)
-            result = call.executeUpdate()
-        call.close()
-
-    def _getMergeServerCall(self, provider):
-        call = self._getCall('mergeServer')
-        call.setString(1, provider)
-        return call
-
-    def _getMergeDomainCall(self, provider):
-        call = self._getCall('mergeDomain')
-        call.setString(1, provider)
-        return call
-
-    def _callMergeServer(self, call, server):
-        call.setString(2, server.get('Service'))
-        call.setString(3, server.get('Server'))
-        call.setShort(4, server.get('Port'))
-        call.setByte(5, server.get('Connection'))
-        call.setByte(6, server.get('Authentication'))
-        call.setByte(7, server.get('LoginMode'))
-        result = call.executeUpdate()
-
 # Procedures called internally
     def _initialize(self, connection, odb):
+        sleep(0.2)
         print("smtpMailer.DataBase._initialize() 1")
         statement = connection.createStatement()
         createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)

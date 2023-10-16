@@ -33,6 +33,11 @@ import ijson
 import traceback
 
 
+def getMailServiceConfiguration(ctx, sender):
+    service = 'com.sun.star.mail.MailServiceConfiguration'
+    config = createService(ctx, service, self._sender)
+    return config
+
 def parseMessage(response):
     messageid = None
     labels = []
@@ -62,6 +67,7 @@ def setDefaultFolder(server, url, messageid, labels, folder='SENT'):
         parameter = server.getRequestParameter('getDefaultFolder')
         parameter.Method = 'POST'
         parameter.Url = url + '%s/modify' % messageid
-        parameter.Json = '{"addLabelIds": [], "removeLabelIds": ["%s"]}' % '","'.join(labelids)
+        parameter.setJson("addLabelIds", [folder])
+        parameter.setJson("removeLabelIds", labelids)
         response = server.execute(parameter)
 

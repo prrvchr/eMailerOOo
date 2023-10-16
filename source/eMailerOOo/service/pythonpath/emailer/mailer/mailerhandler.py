@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,13 +25,31 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="SenderDialog" dlg:left="0" dlg:top="10" dlg:width="285" dlg:height="220" dlg:help-text="&amp;SenderDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;SenderDialog.Title">
-  <dlg:bulletinboard>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="185" dlg:top="201" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SenderDialog.CommandButton1.HelpText" dlg:value="&amp;SenderDialog.CommandButton1.Label" dlg:button-type="cancel"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:disabled="true" dlg:left="235" dlg:top="201" dlg:width="45" dlg:height="14" dlg:help-text="&amp;SenderDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;SenderDialog.CommandButton2.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Send" script:language="UNO"/>
-    </dlg:button>
-  </dlg:bulletinboard>
-</dlg:window>
+"""
+
+import unohelper
+
+from com.sun.star.awt import XDialogEventHandler
+
+import traceback
+
+
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'Send':
+                self._manager.sendDocument()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.format_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('Send', )

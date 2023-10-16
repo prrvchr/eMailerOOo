@@ -28,11 +28,11 @@
 #define __com_sun_star_mail_XImapService_idl__
 
 #include <com/sun/star/mail/XMailService2.idl>
-#include <com/sun/star/mail/XMailMessage2.idl>
+#include <com/sun/star/mail/XMailMessage.idl>
 
 module com { module sun { module star { module mail {
 
-interface XImapService: com::sun::star::mail::XMailService2
+interface XImapService : XMailService2
 {
 
     string getSentFolder();
@@ -40,7 +40,7 @@ interface XImapService: com::sun::star::mail::XMailService2
     boolean hasFolder([in] string Folder);
 
     void uploadMessage([in] string Folder,
-                       [in] ::com::sun::star::mail::XMailMessage2 MailMessage);
+                       [in] com::sun::star::mail::XMailMessage MailMessage);
 
 };
 

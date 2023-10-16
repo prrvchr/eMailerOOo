@@ -55,16 +55,12 @@ import traceback
 class MergerManager(MailManager,
                     XWizardPage):
     def __init__(self, ctx, wizard, model, pageid, parent):
-        self._ctx = ctx
+        MailManager.__init__(self, ctx, model)
         self._wizard = wizard
-        self._model = model
         self._pageid = pageid
-        self._disabled = False
-        self._lock = Condition()
         self._view = MergerView(ctx, WindowHandler(ctx, self), parent, 2)
-        self._model.getSenders(self.initSenders)
-        handler = RecipientHandler(self)
-        self._model.initPage3(handler, self.initView, self.initRecipients)
+        self._view.setSenders(self._model.getSenders())
+        self._model.initPage3(RecipientHandler(self), self.initView, self.initRecipients)
 
 # XWizardPage
     @property
@@ -86,13 +82,21 @@ class MergerManager(MailManager,
         return self._canAdvance()
 
 # MergerManager setter methods
+    def initView(self, document):
+        with self._lock:
+            if not self._model.isDisposed():
+                # TODO: Document can be <None> if a lock or password exists !!!
+                # TODO: It would be necessary to test a Handler on the descriptor...
+                self._initView(document)
+            self._closeDocument(document)
+
     def initRecipients(self, recipients, message):
         self._view.setRecipients(recipients, message)
         self._updateUI()
 
-    def changeRecipient(self):
+    def refreshRecipients(self):
         recipients, message = self._model.getRecipients()
-        print("MergerManager.changeRecipient()")
+        print("MergerManager.refreshRecipients()")
         self._view.setRecipients(recipients, message)
         self._updateUI()
 

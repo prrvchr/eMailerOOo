@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -34,28 +36,80 @@ from ..mail import MailModel
 
 from ..unotool import getDesktop
 from ..unotool import getDocument
+from ..unotool import getFileUrl
 from ..unotool import getPropertyValueSet
-from ..unotool import getStringResource
+from ..unotool import getUrlPresentation
 
-from ..configuration import g_identifier
-from ..configuration import g_extension
-
+from collections import OrderedDict
+from threading import Thread
+import json
 import traceback
 
 
 class MailerModel(MailModel):
-    def __init__(self, ctx, datasource, path):
-        self._ctx = ctx
-        self._datasource = datasource
+    def __init__(self, ctx, datasource, path, close):
+        MailModel.__init__(self, ctx, datasource)
         self._path = path
+        self._close = close
         self._url = None
-        self._disposed = False
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'PickerTitle': 'Mail.FilePicker.Title',
+        self._resources = {'DialogTitle': 'MailerDialog.Title',
+                           'PickerTitle': 'Mail.FilePicker.Title',
+                           'PickerFilters': 'Mail.FilePicker.Filters',
                            'Property': 'Mail.Document.Property.%s',
                            'Document': 'MailWindow.Label8.Label.1'}
 
 # MailerModel getter methods
+    def isSubjectValid(self, subject):
+        return subject != ''
+
+    def getDocumentUrl(self):
+        title = self.getFilePickerTitle()
+        filters = self._getFilePickerFilters()
+        url, self._path = getFileUrl(self._ctx, title, self._path, filters)
+        return url
+
+    def getPath(self):
+        return self._path
+
+# MailerModel setter methods
+    def dispose(self):
+        self._disposed = True
+        if self._close:
+            self._datasource.dispose()
+
+    def loadDocument(self, *args):
+        Thread(target=self._loadDocument, args=args).start()
+
+# MailerModel private getter methods
+    def _getFilePickerFilters(self):
+        resource = self._resources.get('PickerFilters')
+        filter = self._resolver.resolveString(resource)
+        filters = json.loads(filter, object_pairs_hook=OrderedDict)
+        return filters.items()
+
+    def _getDocumentTitle(self, url):
+        resource = self._resources.get('DialogTitle')
+        title = self._resolver.resolveString(resource)
+        return title + url
+
+# SenderModel private setter methods
+    def _loadDocument(self, url, initView):
+        # TODO: Document can be <None> if a lock or password exists !!!
+        # TODO: It would be necessary to test a Handler on the descriptor...
+        location = getUrlPresentation(self._ctx, url)
+        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
+        descriptor = getPropertyValueSet(properties)
+        document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
+        title = self._getDocumentTitle(document.URL)
+        initView(document, title)
+
+
+
+
+
+
+
+
     def getUrl(self):
         return self._url
 
@@ -65,6 +119,5 @@ class MailerModel(MailModel):
         document = getDocument(self._ctx, url)
         return document
 
-# MailerModel setter methods
     def setUrl(self, url):
         self._url = url

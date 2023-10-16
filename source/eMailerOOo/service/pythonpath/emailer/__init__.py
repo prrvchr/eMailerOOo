@@ -29,20 +29,26 @@
 
 from .configuration import g_identifier
 from .configuration import g_mailservicelog
+from .configuration import g_version
 
 from .options import OptionsManager
 
 from .logger import getLogger
 
+from .unotool import executeDispatch
+from .unotool import getPropertyValueSet
 from .unotool import getConfiguration
 
-from .smtpdispatch import SmtpDispatch
+from .mailuser import MailUser
 
-from .mailspooler import MailSpooler
+from .maildispatch import MailDispatch
+
+from .spooler import Spooler
 
 from .mailservice import SmtpBaseService
 from .mailservice import SmtpApiService
 from .mailservice import ImapBaseService
 from .mailservice import ImapApiService
 from .mailservice import Pop3Service
+from .mailservice import DispatchListener
 

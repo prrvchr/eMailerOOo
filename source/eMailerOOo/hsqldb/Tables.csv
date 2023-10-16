@@ -1,9 +1,4 @@
 Table|Name|Identity|View|Versioned
-0|Providers|||false
-1|Domains|||false
-2|Servers|||false
-3|Users|||false
-4|Services|||false
-5|Senders|||false
-6|Recipients|||false
-7|Attachments|||false
+0|Senders|||false
+1|Recipients|||false
+2|Attachments|||false

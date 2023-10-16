@@ -96,7 +96,7 @@ class MergerManager(unohelper.Base,
             self._model.commitPage1()
             return True
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def canAdvance(self):

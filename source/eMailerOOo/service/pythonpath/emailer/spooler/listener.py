@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,22 +25,26 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_mail_MailServiceProvider2_idl__
-#define __com_sun_star_mail_MailServiceProvider2_idl__
+import unohelper
 
-#include <com/sun/star/mail/XMailServiceProvider2.idl>
+from com.sun.star.mail import XSpoolerListener
 
-module com { module sun { module star { module mail {
+import traceback
 
-service MailServiceProvider2: XMailServiceProvider2
-{
 
-    create();
+class SpoolerListener(unohelper.Base,
+                      XSpoolerListener):
+    def __init__(self, manager):
+        self._manager = manager
 
-};
+    # XSpoolerListener
+    def started(self, source):
+        self._manager.started()
 
-}; }; }; };
+    def stopped(self, source):
+        self._manager.stopped()
 
-#endif
+    def disposing(self, source):
+        pass

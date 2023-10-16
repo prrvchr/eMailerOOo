@@ -360,14 +360,17 @@ ___
 
 ### What has been done for version 1.1.0:
 
-- In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration. As a result, this no longer sends a thread (IMAP message) when merging a mailing.
+- In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration.  
+  As a result, this no longer sends a thread (IMAP message) when merging a mailing.
 
-- In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][73].
-  For the subject of an email, a merge field is composed of an opening brace, the column name (case sensitive) and a closing brace. (ie: `{ColumnName}`)
+- In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][73].  
+  For the subject of an email, a merge field is composed of an opening brace, the column name (case sensitive) and a closing brace (ie: `{ColumnName}`).  
   When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
 
-- A new service [com.sun.star.mail.MailServiceConfiguration][74] now allows access to a connection configuration (SMTP and/or IMAP) from an email address.
-  This should be able to resolve [issue #4][75]: sending emails from Basic.
+- It is now possible in the Spooler to view emails in eml format.
+
+- A new service [com.sun.star.mail.MailServiceConfiguration][74] now allows access to a connection configuration (SMTP and/or IMAP) from an email address.  
+  This should be able to resolve [issue #4][75]: sending emails from Basic.  
   I will come back a little later with examples in Basic.
 
 ### What remains to be done for version 1.1.0:
@@ -380,7 +383,7 @@ ___
 [2]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[5]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-003>
+[5]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-110>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>

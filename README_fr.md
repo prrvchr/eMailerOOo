@@ -360,14 +360,17 @@ ___
 
 ### Ce qui a été fait pour la version 1.1.0:
 
-- Dans l'assistant de configuration de la connexion (IspDB Wizard) il est maintenant possible de désactiver la configuration IMAP. En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.
+- Dans l'assistant de configuration de la connexion (IspDB Wizard) il est maintenant possible de désactiver la configuration IMAP.  
+  En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.
 
-- Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][73].
-  Pour l'objet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne (sensible à la case) et d'une accolate fermante. (ie: `{NomDeLaColonne}`)
+- Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][73].  
+  Pour l'objet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne (sensible à la case) et d'une accolate fermante (ie: `{NomDeLaColonne}`).  
   Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
 
-- Un nouveau service [com.sun.star.mail.MailServiceConfiguration][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.
-  Cela devrait pouvoir résoudre le [dysfonctionnement #4][75]: l'envoi d'e-mails depuis Basic.
+- Il est désormais possible dans le Spooler de visualiser les courriels au format eml.
+
+- Un nouveau service [com.sun.star.mail.MailServiceConfiguration][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.  
+  Cela devrait pouvoir résoudre le [dysfonctionnement #4][75]: l'envoi d'e-mails depuis Basic.  
   Je reviendrai un peu plus tard avec des exemples en Basic.
 
 ### Que reste-t-il à faire pour la version 1.1.0:
@@ -380,7 +383,7 @@ ___
 [2]: <https://prrvchr.github.io/eMailerOOo/>
 [3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[5]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-003>
+[5]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>

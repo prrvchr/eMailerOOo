@@ -72,8 +72,6 @@ from com.sun.star.lang import EventObject
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail import XSmtpService2
 
-from .apihelper import getMailServiceConfiguration
-
 from ..logger import getLogger
 
 from ..configuration import g_mailservicelog

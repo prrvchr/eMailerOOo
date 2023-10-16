@@ -58,8 +58,6 @@ interface XSpoolerService : com::sun::star::uno::XInterface
     long getJobState([in] long JobId);
     sequence<long> getJobIds([in] long BatchId);
 
-    string viewJob([in] long JobId);
-
     void addListener([in] XSpoolerListener Listener);
     void removeListener([in] XSpoolerListener Listener);
 

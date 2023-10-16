@@ -29,6 +29,8 @@
 
 from .spooler import Spooler
 
+from .mailer import Mailer
+
 from .listener import SpoolerListener
 
 from .dialog import SpoolerManager

@@ -52,7 +52,7 @@ from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 from com.sun.star.sdb.tools.CompositionType import ForDataManipulation
 from com.sun.star.sdb.tools.CompositionType import ForTableDefinitions
 
-from .mergerhandler import DispatchListener
+from ..dispatchlistener import DispatchListener
 
 from ..grid import GridManager
 from ..grid import GridModel
@@ -912,7 +912,7 @@ class MergerModel(MailModel):
         if not self._document.hasLocation():
             frame = self._document.CurrentController.Frame
             url = '.uno:Save'
-            listener = DispatchListener(self)
+            listener = DispatchListener(self.saveDocumentFinished)
             executeFrameDispatch(self._ctx, frame, url, (), listener)
         return self._saved
 

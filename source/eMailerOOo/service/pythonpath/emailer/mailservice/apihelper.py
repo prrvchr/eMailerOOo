@@ -33,11 +33,6 @@ import ijson
 import traceback
 
 
-def getMailServiceConfiguration(ctx, sender):
-    service = 'com.sun.star.mail.MailServiceConfiguration'
-    config = createService(ctx, service, self._sender)
-    return config
-
 def parseMessage(response):
     messageid = None
     labels = []

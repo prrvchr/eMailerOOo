@@ -41,10 +41,14 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .ispdb import IspdbController
+
 from .merger import MergerController
+
 from .mailer import MailerModel
 from .mailer import MailerManager
+
 from .spooler import SpoolerManager
+from .spooler import Mailer
 
 from .wizard import Wizard
 
@@ -52,7 +56,12 @@ from .mailertool import getDataSource
 
 from .unotool import createMessageBox
 from .unotool import getPathSettings
+from .unotool import getSimpleFile
 from .unotool import getStringResource
+from .unotool import getTempFile
+
+from .logger import getLogger
+from .logger import RollerHandler
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -62,6 +71,7 @@ from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
+from .configuration import g_spoolerlog
 
 import traceback
 
@@ -99,6 +109,8 @@ class MailDispatch(unohelper.Base,
                     state, result = self._showMailer(arguments)
                 elif url.Path == 'merger':
                     state, result = self._showMerger()
+                elif url.Path == 'viewer':
+                    state, result = self._viewMail(arguments)
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -189,6 +201,36 @@ class MailDispatch(unohelper.Base,
             controller.dispose()
             print(msg)
             return SUCCESS, None
+        except Exception as e:
+            msg = "Error: %s - %s" % (e, traceback.format_exc())
+            print(msg)
+
+    #Viewer methods
+    def _viewMail(self, arguments):
+        try:
+            state = FAILURE
+            job = None
+            url = ''
+            for argument in arguments:
+                if argument.Name == 'JobId':
+                    job = argument.Value
+            if job is not None:
+                logger = getLogger(self._ctx, g_spoolerlog)
+                handler = RollerHandler(self._ctx, logger.Name)
+                logger.addRollerHandler(handler)
+                logger.logprb(INFO, 'MailSpooler', '_viewMail()', 1051, job)
+                mailer = Mailer(self._ctx, self._getDataSource().DataBase, logger)
+                mail = mailer.getMail(job)
+                url = '%s/Email.eml' % getTempFile(self._ctx).Uri
+                output = getSimpleFile(self._ctx).openFileWrite(url)
+                output.writeBytes(uno.ByteSequence(mail.asBytes()))
+                output.flush()
+                output.closeOutput()
+                mailer.dispose()
+                logger.logprb(INFO, 'MailSpooler', '_viewMail()', 1052, job)
+                logger.removeRollerHandler(handler)
+                state = SUCCESS
+            return state, url
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)

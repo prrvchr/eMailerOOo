@@ -364,7 +364,7 @@ ___
   En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.
 
 - Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][73].  
-  Pour l'objet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne (sensible à la case) et d'une accolate fermante (ie: `{NomDeLaColonne}`).  
+  Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
   Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
 
 - Il est désormais possible dans le Spooler de visualiser les courriels au format eml.

@@ -114,16 +114,3 @@ class Tab2Handler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('ClearLogger', )
 
-
-class DispatchListener(unohelper.Base,
-                       XDispatchResultListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XDispatchResultListener
-    def dispatchFinished(self, notification):
-        if notification.State == SUCCESS:
-            self._manager.documentAdded(notification.Result)
-
-    def disposing(self, source):
-        pass

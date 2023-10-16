@@ -30,10 +30,10 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.frame import XDispatchResultListener
 
-from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.awt.Key import RETURN
+
+from ..dispatchlistener import DispatchListener
 
 from ..unotool import executeDispatch
 
@@ -57,7 +57,7 @@ class WindowHandler(unohelper.Base,
                 self._manager.changeSender(selected)
                 handled = True
             elif method == 'AddSender':
-                listener = DispatchListener(self._manager)
+                listener = DispatchListener(self._manager.addSender)
                 arguments = ()
                 executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
                 handled = True
@@ -139,20 +139,3 @@ class WindowHandler(unohelper.Base,
                 'MoveAfter',
                 'ViewPdf')
 
-
-class DispatchListener(unohelper.Base,
-                       XDispatchResultListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XDispatchResultListener
-    def dispatchFinished(self, notification):
-        try:
-            if notification.State == SUCCESS:
-                self._manager.addSender(notification.Result)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def disposing(self, source):
-        pass

@@ -223,19 +223,18 @@ class DataBase(unohelper.Base):
         call.close()
         return jobs
 
-# Procedures called by the MailSpooler
-    def getSpoolerJobs(self, connection, state=0):
-        jobid = []
-        call = self._getDataBaseCall(connection, 'getSpoolerJobs')
+# Procedures called by the Spooler
+    def getSpoolerJobs(self, state=0):
+        call = self._getCall('getSpoolerJobs')
         call.setInt(1, state)
         result = call.executeQuery()
         jobids = getSequenceFromResult(result)
         call.close()
         return jobids, len(jobids)
 
-    def getRecipient(self, connection, job):
+    def getRecipient(self, job):
         recipient = None
-        call = self._getDataBaseCall(connection, 'getRecipient')
+        call = self._getCall('getRecipient')
         call.setInt(1, job)
         result = call.executeQuery()
         if result.next():
@@ -243,9 +242,9 @@ class DataBase(unohelper.Base):
         call.close()
         return recipient
 
-    def getMailer(self, connection, batch):
+    def getMailer(self, batch):
         mailer = None
-        call = self._getDataBaseCall(connection, 'getMailer')
+        call = self._getCall('getMailer')
         call.setInt(1, batch)
         result = call.executeQuery()
         if result.next():
@@ -253,32 +252,32 @@ class DataBase(unohelper.Base):
         call.close()
         return mailer
 
-    def updateMailer(self, connection, batch, thread):
-        call = self._getDataBaseCall(connection, 'updateMailer')
+    def updateMailer(self, batch, thread):
+        call = self._getCall('updateMailer')
         call.setInt(1, batch)
         call.setString(2, thread)
         state = call.executeUpdate()
         call.close()
 
-    def getAttachments(self, connection, batch):
+    def getAttachments(self, batch):
         attachments = ()
-        call = self._getDataBaseCall(connection, 'getAttachments')
+        call = self._getCall('getAttachments')
         call.setInt(1, batch)
         result = call.executeQuery()
         attachments = getSequenceFromResult(result)
         call.close()
         return attachments
 
-    def updateRecipient(self, connection, state, messageid, jobid):
-        call = self._getDataBaseCall(connection, 'updateRecipient')
+    def updateRecipient(self, state, messageid, jobid):
+        call = self._getCall('updateRecipient')
         call.setInt(1, state)
         call.setString(2, messageid)
         call.setInt(3, jobid)
         state = call.executeUpdate()
         call.close()
 
-    def setBatchState(self, connection, state, batchid):
-        call = self._getDataBaseCall(connection, 'setBatchState')
+    def setBatchState(self, state, batchid):
+        call = self._getCall('setBatchState')
         call.setInt(1, state)
         call.setTimestamp(2, getDateTime())
         call.setInt(3, batchid)

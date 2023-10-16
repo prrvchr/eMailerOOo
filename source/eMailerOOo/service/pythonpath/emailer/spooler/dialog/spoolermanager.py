@@ -37,7 +37,6 @@ from .spoolermodel import SpoolerModel
 
 from .spoolerview import SpoolerView
 
-from .spoolerhandler import DispatchListener
 from .spoolerhandler import DialogHandler
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
@@ -46,6 +45,8 @@ from ..listener import SpoolerListener
 
 from ...grid import GridListener
 from ...grid import RowSetListener
+
+from ...dispatchlistener import DispatchListener
 
 from ...unotool import createService
 from ...unotool import executeDispatch
@@ -60,7 +61,9 @@ from ...logger import LoggerListener
 from ...configuration import g_spoolerlog
 from ...configuration import g_basename
 
+from time import sleep
 from threading import Condition
+from threading import Thread
 import traceback
 
 
@@ -131,7 +134,7 @@ class SpoolerManager(unohelper.Base):
     def addDocument(self):
         arguments = getPropertyValueSet({'Path': self._model.Path,
                                          'Close': False})
-        listener = DispatchListener(self)
+        listener = DispatchListener(self.documentAdded)
         executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
 
     def documentAdded(self, path):
@@ -139,10 +142,19 @@ class SpoolerManager(unohelper.Base):
         self._model.executeRowSet()
 
     def viewDocument(self):
-        for row in self._model.getGridSelectedRows():
-            url = self._spooler.viewJob(row)
-            if url:
-                executeShell(self._ctx, url)
+        self._view.enableButtonView(False)
+        job = self._model.getSelectedIdentifier('JobId')
+        listener = DispatchListener(self.documentViewed)
+        arguments = getPropertyValueSet({'JobId': job})
+        args = (listener, arguments)
+        Thread(target=self._executeDispatch, args=args).start()
+
+    def _executeDispatch(self, listener, arguments):
+        executeDispatch(self._ctx, 'smtp:viewer', arguments, listener)
+
+    def documentViewed(self, url):
+        self._view.enableButtonView(self._model.hasGridSelectedRows())
+        executeShell(self._ctx, url)
 
     def removeDocument(self):
         rows = self._model.getGridSelectedRows()

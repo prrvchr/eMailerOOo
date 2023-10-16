@@ -62,7 +62,7 @@ class MailDispatcher(unohelper.Base,
 # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
         dispatch = None
-        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger'):
+        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger', 'viewer'):
             parent = self._frame.getContainerWindow()
             dispatch = MailDispatch(self._ctx, parent)
         return dispatch

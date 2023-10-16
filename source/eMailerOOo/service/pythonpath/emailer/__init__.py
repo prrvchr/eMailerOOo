@@ -43,6 +43,8 @@ from .mailuser import MailUser
 
 from .maildispatch import MailDispatch
 
+from .dispatchlistener import DispatchListener
+
 from .spooler import Spooler
 
 from .mailservice import SmtpBaseService
@@ -50,5 +52,4 @@ from .mailservice import SmtpApiService
 from .mailservice import ImapBaseService
 from .mailservice import ImapApiService
 from .mailservice import Pop3Service
-from .mailservice import DispatchListener
 

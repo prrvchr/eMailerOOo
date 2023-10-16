@@ -364,7 +364,7 @@ ___
   As a result, this no longer sends a thread (IMAP message) when merging a mailing.
 
 - In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][73].  
-  For the subject of an email, a merge field is composed of an opening brace, the column name (case sensitive) and a closing brace (ie: `{ColumnName}`).  
+  In the subject of an email, a merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).  
   When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
 
 - It is now possible in the Spooler to view emails in eml format.

@@ -38,8 +38,6 @@ from com.sun.star.lang import EventObject
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail import XImapService
 
-from .apihelper import getMailServiceConfiguration
-
 from ..logger import getLogger
 
 from ..configuration import g_mailservicelog

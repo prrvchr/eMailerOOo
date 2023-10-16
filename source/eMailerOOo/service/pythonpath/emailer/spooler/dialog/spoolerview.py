@@ -71,6 +71,9 @@ class SpoolerView(unohelper.Base):
         self._getButtonView().Model.Enabled = enabled
         self._getButtonRemove().Model.Enabled = enabled
 
+    def enableButtonView(self, enabled):
+        self._getButtonView().Model.Enabled = enabled
+
     def setSpoolerState(self, text, state):
         control = self._getButtonStartSpooler().Model
         control.State = state

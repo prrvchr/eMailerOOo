@@ -88,8 +88,14 @@ class SpoolerModel(unohelper.Base):
         self._path = path
 
 # SpoolerModel getter methods
+    def hasGridSelectedRows(self):
+        return self._grid.hasSelectedRows()
+
     def getGridSelectedRows(self):
         return self._grid.getSelectedRows()
+
+    def getSelectedIdentifier(self, identifier):
+        return self._grid.getSelectedIdentifier(identifier)
 
     def isDisposed(self):
         return self._diposed
@@ -99,7 +105,6 @@ class SpoolerModel(unohelper.Base):
 
     def getSpoolerState(self, state):
         resource = self._resources.get('State') % state
-        print("SpoolerModel.getSpoolerState() %s" % resource)
         return self._resolver.resolveString(resource)
 
 # SpoolerModel setter methods
@@ -120,9 +125,7 @@ class SpoolerModel(unohelper.Base):
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
-        print("SpoolerModel.removeRows() 1 %s" % (jobs,))
         if self.DataSource.deleteJob(jobs):
-            print("SpoolerModel.removeRows() 2")
             self._rowset.execute()
 
     def executeRowSet(self):

@@ -57,7 +57,7 @@ Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subje
 ___
 ## Nature and scope rights over the data collected:
 
-`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **consult, modify and delete email in your mailbox**.
+`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **consult, write and send emails from your email account**.
 
 ___
 ## Expiration of collected data:

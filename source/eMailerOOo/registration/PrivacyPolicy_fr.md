@@ -57,7 +57,7 @@ Le `Fournisseur` est seul responsable de la sécurité des données qu'il collec
 ___
 ## Nature et étendue des droits sur les données collectées:
 
-`eMailerOOo` vous permet d'envoyer des courriels avec le compte de messagerie du `Fournisseur`. En conséquence, `eMailerOOo` revendique au travers de `OAuth2OOo` le droit de **consulter, modifier et supprimer les email de votre boîte aux lettres**.
+`eMailerOOo` vous permet d'envoyer des courriels avec le compte de messagerie du `Fournisseur`. En conséquence, `eMailerOOo` revendique au travers de `OAuth2OOo` le droit de **consulter, rédiger et envoyer des courriels à partir de votre compte de messagerie**.
 
 ___
 ## Expiration des données collectées:

@@ -199,7 +199,8 @@ If this is not already done, you must create a new sender using the `Add` button
 
 The creation of the new sender is described in the [Configure connection][42] section.
 
-The email must have a subject. It can be saved in the Writer document.
+The email must have a subject. It can be saved in the Writer document.  
+You can insert merge fields in the email subject. A merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).
 
 ![eMailerOOo Merger screenshot 10][43]
 

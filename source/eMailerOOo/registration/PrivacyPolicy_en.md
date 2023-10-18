@@ -21,7 +21,7 @@ For simplicity, in the rest of this document, will be named:
 
 `eMailerOOo` using software services provided by `OAuth2OOo`, **its use also subjects you to the [Data Protection Policy][6]** of `OAuth2OOo`.
 
-Although `OAuth2OOo` and/or `eMailerOOo` **does not share or transfer any data to any other application**, if you are using `OAuth2OOo` and/or `eMailerOOo` with a Google account, then `OAuth2OOo` and/or `eMailerOOo` adhere to [Google API Services User Data Policy][7], including the Limited Use requirements.
+Although `OAuth2OOo` and/or `eMailerOOo` **does not share or transfer any data with any other application**, if you are using `OAuth2OOo` and/or `eMailerOOo` with a Google account, then `OAuth2OOo` and/or `eMailerOOo` adhere to [Google API Services User Data Policy][7], including the Limited Use requirements.
 
 ___
 ## Contact:
@@ -50,7 +50,7 @@ ___
 
 Since the data collected by `OAuth2OOo` and/or `eMailerOOo` is located on the `Computer`, **only the** `User` **is responsible for the security of the data collected**.
 
-Use of the `Supplier` services via `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to review this Policy from the `Supplier` website.
+Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 
 `Supplier` is solely responsible for the security of the data it collects as described in its Policy.
 
@@ -68,7 +68,7 @@ Updating the data collected locally is done each time `OAuth2OOo` and/or `eMaile
 
 It is the responsibility of the `User` to uninstall `OAuth2OOo` and/or `eMailerOOo` in order to delete the collected data.
 
-Use of the `Supplier` services via `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to review this Policy from the `Supplier` website.
+Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 
 `Supplier` is solely responsible for the expiration of the data it collects as described in its Policy.
 

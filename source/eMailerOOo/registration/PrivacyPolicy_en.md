@@ -46,18 +46,18 @@ Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo`, may subm
 `Supplier` is solely responsible for the use of the data it collects as described in its Policy.
 
 ___
-## Security of your personal information:
+## Nature and scope rights over your data:
+
+`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **consult, write and send emails from your email account**.
+
+___
+## Security of collected data:
 
 Since the data collected by `OAuth2OOo` and/or `eMailerOOo` is located on the `Computer`, **only the** `User` **is responsible for the security of the data collected**.
 
 Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 
 `Supplier` is solely responsible for the security of the data it collects as described in its Policy.
-
-___
-## Nature and scope rights over the data collected:
-
-`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **consult, write and send emails from your email account**.
 
 ___
 ## Expiration of collected data:

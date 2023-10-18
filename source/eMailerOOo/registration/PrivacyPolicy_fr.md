@@ -46,18 +46,18 @@ L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMa
 Le `Fournisseur` est seul responsable de l'utilisation des données qu'il collecte, comme décrit dans sa politique de protection des données.
 
 ___
-## Sécurité de vos informations personnelles:
+## Nature et étendue des droits sur vos données:
+
+`eMailerOOo` vous permet d'envoyer des courriels avec le compte de messagerie du `Fournisseur`. En conséquence, `eMailerOOo` revendique au travers de `OAuth2OOo` le droit de **consulter, rédiger et envoyer des courriels à partir de votre compte de messagerie**.
+
+___
+## Sécurité des données collectées:
 
 Étant donné que les données collectées par `OAuth2OOo` et/ou `eMailerOOo` sont situées sur l'`Ordinateur`, **seul l'**`Utilisateur` **est responsable de la sécurité des données collectées**.
 
 L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 
 Le `Fournisseur` est seul responsable de la sécurité des données qu'il collecte, comme décrit dans sa Politique de Protection des Données.
-
-___
-## Nature et étendue des droits sur les données collectées:
-
-`eMailerOOo` vous permet d'envoyer des courriels avec le compte de messagerie du `Fournisseur`. En conséquence, `eMailerOOo` revendique au travers de `OAuth2OOo` le droit de **consulter, rédiger et envoyer des courriels à partir de votre compte de messagerie**.
 
 ___
 ## Expiration des données collectées:

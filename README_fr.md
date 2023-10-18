@@ -200,7 +200,7 @@ Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide
 La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion][42].
 
 Le courriel doit avoir un sujet. Il peut être enregistré dans le document Writer.  
-Vous pouvez insérer des champs de fusion dans l'objet du courriel. Un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{ColumnName}`).
+Vous pouvez insérer des champs de fusion dans l'objet du courriel. Un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomColonne}`).
 
 ![eMailerOOo Merger screenshot 10][43]
 

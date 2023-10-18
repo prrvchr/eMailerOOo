@@ -13,11 +13,15 @@ La confidentialité des utilisateurs du logiciel eMailerOOo est très importante
 Cette politique explique ce que nous faisons avec vos informations personnelles.
 
 Pour plus de simplicité, dans la suite de ce document, on nommera:
-- `eMailerOOo`:  le logiciel eMailerOOo dans son intégralité.
-- `Utilisateur`: l'utilisateur du logiciel eMailerOOo.
-- `Fournisseur`: fournisseur de services Internet fournissant des services Internet à `eMailerOOo`.
+- `OAuth2OOo`: le logiciel [OAuth2OOo][4] dans son intégralité.
+- `eMailerOOo`: le logiciel [eMailerOOo][5] dans son intégralité.
+- `Utilisateur`: l'utilisateur des logiciels `OAuth2OOo` et/ou `eMailerOOo`.
+- `Ordinateur` : l'ordinateur personnel de l'`Utilisateur` sur lequel est installé `OAuth2OOo` et/ou `eMailerOOo`.
+- `Fournisseur`: fournisseur de services Internet fournissant des jetons OAuth2 à `OAuth2OOo` et des services Internet à `eMailerOOo`.
 
-Bien que **eMailerOOo ne partage ni ne transfert aucun données avec toutes autre application**, si vous utilisez `eMailerOOo` avec un compte Google, alors `eMailerOOo` respecte [la politique de données utilisateur des services API Google](https://developers.google.com/terms/api-services-user-data-policy), y compris les exigences d'utilisation limitée.
+`eMailerOOo` utilisant des services logiciels fourni par `OAuth2OOo`, **son utilisation vous soumet également à la [Politique de protection des données][6]** de `OAuth2OOo`.
+
+Bien que `OAuth2OOo` et/ou `eMailerOOo` **ne partage ni ne transfert aucun données avec toutes autre application**, si vous utilisez `OAuth2OOo` et/ou `eMailerOOo` avec un compte Google, alors `OAuth2OOo` et/ou `eMailerOOo` respecte [la politique de données utilisateur des services API Google][7], y compris les exigences d'utilisation limitée.
 
 ___
 ## Contact:
@@ -29,39 +33,49 @@ prrvchr@gmail.com
 ___
 ## Utilisation de vos données personnelles:
 
-Pour fonctionner, `eMailerOOo` doit conserver des données localement.
+Pour fonctionner, `OAuth2OOo` et/ou `eMailerOOo` doivent conserver des données localement sur l'`Ordinateur`.
 
-L'emplacement de ces données est le répertoire d'installation de l'application `eMailerOOo`.
+L'emplacement de ces données est le répertoire d'installation de l'application `OAuth2OOo` et/ou `eMailerOOo`, respectivement.
 
-`eMailerOOo` **ne collecte aucune donnée sur des serveurs externes, d'aucune manières.**
+`OAuth2OOo` et/ou `eMailerOOo` **ne collectent aucune donnée sur des serveurs externes, d'aucune manières.**
 
-La suppression des données collectées par `eMailerOOo` est garantie par la désinstallation de l'application `eMailerOOo`.
+La suppression des données collectées par `OAuth2OOo` et/ou `eMailerOOo` est garantie par la désinstallation de l'application `OAuth2OOo` et/ou `eMailerOOo`, respectivement.
 
-L'utilisation des services du `Fournisseur` au travers de `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
+L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 
 Le `Fournisseur` est seul responsable de l'utilisation des données qu'il collecte, comme décrit dans sa politique de protection des données.
 
 ___
 ## Sécurité de vos informations personnelles:
 
-Étant donné que les données collectées par `eMailerOOo ` sont situées sur l'ordinateur de l'utilisateur, seul l'`Utilisateur` est responsable de la sécurité des données collectées.
+Étant donné que les données collectées par `OAuth2OOo` et/ou `eMailerOOo` sont situées sur l'`Ordinateur`, **seul l'**`Utilisateur` **est responsable de la sécurité des données collectées**.
 
-L'utilisation des services du `Fournisseur` via `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
+L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 
-Le `Fournisseur` est seul responsable de la sécurité des données qu'il collecte, comme décrit dans sa politique de protection des données.
+Le `Fournisseur` est seul responsable de la sécurité des données qu'il collecte, comme décrit dans sa Politique de Protection des Données.
 
+___
+## Nature et étendue des droits sur les données collectées:
+
+`eMailerOOo` vous permet d'envoyer des courriels avec le compte de messagerie du `Fournisseur`. En conséquence, `eMailerOOo` revendique au travers de `OAuth2OOo` le droit de **consulter, modifier et supprimer les email de votre boîte aux lettres**.
+
+___
 ## Expiration des données collectées:
 
-La mise à jour des données collectées localement est effectuée chaque fois que `eMailerOOo` est utilisé.
+La mise à jour des données collectées localement est effectuée chaque fois que `OAuth2OOo` et/ou `eMailerOOo` sont utilisés.
 
-**La suppression des données collectées localement est possible en désinstallant** `eMailerOOo`.
+**La suppression des données collectées localement est possible en désinstallant** `OAuth2OOo` et/ou `eMailerOOo`, **respectivement**.
 
-Il est de la responsabilité de l'`Utilisateur` de désinstaller `eMailerOOo` afin de supprimer les données collectées.
+Il est de la responsabilité de l'`Utilisateur` de désinstaller `OAuth2OOo` et/ou `eMailerOOo` afin de supprimer les données collectées.
 
-L'utilisation des services du `Fournisseur` via `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
+L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMailerOOo` peut vous soumettre à la politique de protection des données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 
 Le `Fournisseur` est seul responsable de l'expiration des données qu'il collecte comme décrit dans sa politique de protection des données.
 
 [1]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
 [2]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
+[4]: <https://github.com/prrvchr/OAuth2OOo/raw/master/OAuth2OOo.oxt>
+[5]: <https://github.com/prrvchr/eMailerOOo/raw/master/eMailerOOo.oxt>
+[6]: <https://prrvchr.github.io/OAuth2OOo/source/OAuth2OOo/registration/PrivacyPolicy_fr>
+[7]: <https://developers.google.com/terms/api-services-user-data-policy?hl=fr>

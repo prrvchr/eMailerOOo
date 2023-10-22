@@ -59,39 +59,45 @@ class IspdbManager(unohelper.Base):
         self._model.Offline = 0
         self._wizard.activatePath(1, False)
         self._wizard.enablePage(1, False)
-        label = self._model.getPageLabel(self._pageid)
-        self._view.setPageLabel(label % self._model.Email)
+        self._view.initSearch(self._model.getPageLabel(self._pageid, self._model.Email))
         self._wizard.updateTravelUI()
         self._model.getServerConfig(self.updateProgress, self.updateView)
 
     def commitPage(self, reason):
+        if self._view.useReplyTo():
+            self._model.setReplyToAddress(self._view.getReplyTo())
         self._finish = False
         return True
 
     def canAdvance(self):
-        return self._finish
+        return self._finish and self._model.isEmailValid(self._view.getReplyTo())
 
 # IspdbManager setter methods
+    def enableReplyTo(self, enabled):
+        self._view.setReplyToAddress(enabled, self._model.enableReplyTo(enabled))
+
+    def changeReplyTo(self):
+        self._wizard.updateTravelUI()
+
     def enableIMAP(self, imap):
-        self._activatePath(self._model.setUserConfig(imap), imap)
+        self._activatePath(imap, self._model.enableIMAP(imap))
 
     def updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
             message = self._model.getProgressMessage(value + offset)
             self._view.updateProgress(value, message, style)
 
-    def updateView(self, user, config, imap, offline, auto):
+    def updateView(self, title, auto, state, replyto, imap, offline):
         if not self._model.isDisposed():
-            self._model.setServerConfig(user, config, imap, offline)
-            title = self._model.getPageTitle(self._pageid)
             self._wizard.setTitle(title)
             self._wizard.enablePage(1, True)
-            if not auto:
-                self._view.enableIMAP(imap)
-            self._activatePath(offline, imap)
+            self._view.commitSearch(auto, state, replyto, imap)
+            #if not auto:
+            #    self._view.enableIMAP(imap)
+            self._activatePath(imap, offline)
             self._finish = True
             self._wizard.updateTravelUI()
 
-    def _activatePath(self, offline, imap):
+    def _activatePath(self, imap, offline):
         path = offline * 2 + imap
         self._wizard.activatePath(path, True)

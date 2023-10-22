@@ -126,6 +126,8 @@ class Mailer():
         mail = getMailMessage(self._ctx, self.Sender, recipient.Recipient, self._getSubject(), body)
         if self._hasThread():
             mail.ThreadId = self._threadid
+        if self._user.useReplyTo():
+            mail.ReplyToAddress = self._user.getReplyToAddress()
         self._addAttachments(mail, recipient.Filter)
         return mail
 
@@ -191,8 +193,7 @@ class Mailer():
         files, attachments)
 
     def _getMailServer(self, mailtype):
-        domain = self._user.getServerDomain(mailtype)
-        server = getMailService(self._ctx, mailtype.value, domain)
+        server = getMailService(self._ctx, mailtype.value)
         context = self._user.getConnectionContext(mailtype)
         authenticator = self._user.getAuthenticator(mailtype)
         server.connect(context, authenticator)

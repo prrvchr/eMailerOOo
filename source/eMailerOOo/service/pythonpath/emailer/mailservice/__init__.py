@@ -27,9 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .smtpbaseservice import SmtpBaseService
-from .smtpapiservice import SmtpApiService
-from .imapbaseservice import ImapBaseService
-from .imapapiservice import ImapApiService
+from .imapservice import ImapService
 from .pop3service import Pop3Service
+from .smtpservice import SmtpService
 

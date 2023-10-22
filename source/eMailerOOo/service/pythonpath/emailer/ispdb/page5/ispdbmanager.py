@@ -89,8 +89,8 @@ class IspdbManager(unohelper.Base):
 
     def setLabel(self, *format):
         if not self._model.isDisposed():
-            label = self._model.getPageLabel(self._pageid)
-            self._view.setPageLabel(label % format)
+            label = self._model.getPageLabel(self._pageid, *format)
+            self._view.setPageLabel(label)
 
     def updateProgress(self, value):
         if not self._model.isDisposed():

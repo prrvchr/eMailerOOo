@@ -33,7 +33,7 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.mail import XMailService2
+from com.sun.star.mail import XMailService
 from com.sun.star.lang import EventObject
 
 g_message = 'MailServiceProvider'
@@ -44,7 +44,7 @@ import traceback
 
 
 class Pop3Service(unohelper.Base,
-                  XMailService2):
+                  XMailService):
     def __init__(self, ctx):
         self._ctx = ctx
         self._listeners = []

@@ -39,6 +39,9 @@
       <prop oor:name="Password" oor:type="xs:string" />
     </group>
     <group oor:name="SenderSet">
+      <prop oor:name="UseReplyTo" oor:type="xs:boolean" />
+      <prop oor:name="ReplyToAddress" oor:type="xs:string" />
+      <prop oor:name="UseIMAP" oor:type="xs:boolean" />
       <set oor:name="Servers" oor:node-type="ServerSet" />
     </group>
   </templates>

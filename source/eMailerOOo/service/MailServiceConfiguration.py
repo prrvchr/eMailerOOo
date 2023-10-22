@@ -64,12 +64,17 @@ class MailServiceConfiguration(unohelper.Base,
     def supportIMAP(self):
         if self._user is None:
             self._initUser()
-        return self._user.hasImapConfig()
+        return self._user.useIMAP()
 
-    def getServerDomain(self, stype):
+    def useReplyTo(self):
         if self._user is None:
             self._initUser()
-        return self._user.getServerDomain(stype.value)
+        return self._user.useReplyTo()
+
+    def getReplyToAddress(self):
+        if self._user is None:
+            self._initUser()
+        return self._user.ReplyToAddress
 
     def getAuthenticator(self, stype):
         if self._user is None:

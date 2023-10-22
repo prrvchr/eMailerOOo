@@ -39,7 +39,9 @@ interface XMailServiceConfiguration : com::sun::star::uno::XInterface
 
     boolean supportIMAP();
 
-    string getServerDomain([in] MailServiceType aType);
+    boolean useReplyTo();
+
+    string getReplyToAddress();
 
     com::sun::star::mail::XAuthenticator getAuthenticator([in] MailServiceType aType);
 

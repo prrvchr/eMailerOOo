@@ -43,7 +43,14 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            if method == 'EnableIMAP':
+            if method == 'EnableReplyTo':
+                enabled = bool(event.Source.State)
+                self._manager.enableReplyTo(enabled)
+                handled = True
+            elif method == 'ChangeReplyTo':
+                self._manager.changeReplyTo()
+                handled = True
+            elif method == 'EnableIMAP':
                 self._manager.enableIMAP(event.Source.State)
                 handled = True
             return handled
@@ -52,4 +59,7 @@ class WindowHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('EnableIMAP', )
+        return ('EnableReplyTo',
+                'ChangeReplyTo',
+                'EnableIMAP')
+

@@ -32,27 +32,24 @@ import unohelper
 
 from com.sun.star.lang import XServiceInfo
 
-from com.sun.star.mail import XMailServiceProvider2
+from com.sun.star.mail import XMailServiceProvider
 from com.sun.star.mail import NoMailServiceProviderException
 
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import POP3
 from com.sun.star.mail.MailServiceType import IMAP
 
+from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from emailer import SmtpApiService
-from emailer import SmtpBaseService
+from emailer import ImapService
 from emailer import Pop3Service
-from emailer import ImapApiService
-from emailer import ImapBaseService
+from emailer import SmtpService
 
 from emailer import getLogger
 
 from emailer import g_mailservicelog
-
-g_message = 'MailServiceProvider'
 
 from email.utils import parseaddr
 import traceback
@@ -63,45 +60,36 @@ g_ImplementationName = 'org.openoffice.pyuno.MailServiceProvider2'
 
 
 class MailServiceProvider(unohelper.Base,
-                          XMailServiceProvider2,
+                          XMailServiceProvider,
                           XServiceInfo):
     def __init__(self, ctx):
-        self._logger = getLogger(ctx, g_mailservicelog)
-        self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
+        logger = getLogger(ctx, g_mailservicelog)
+        debug = logger.Level == ALL
+        if debug:
+            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
         self._ctx = ctx
-        self._domain = None
-        self._hosts = {'gmail.com': 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'}
-        self._logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
+        self._logger = logger
+        self._debug = debug
+        self._domains = {'gmail.com': 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'}
+        if debug:
+            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
 
     def create(self, stype):
-        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, stype.value)
+        if self._debug:
+            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, stype.value)
         if stype == SMTP:
-            service = SmtpBaseService(self._ctx)
+            service = SmtpService(self._ctx, self._logger, self._domains, self._debug)
         elif stype == POP3:
             service = Pop3Service(self._ctx)
         elif stype == IMAP:
-            service = ImapBaseService(self._ctx)
+            service = ImapService(self._ctx, self._logger, self._domains, self._debug)
         else:
             e = self._getNoMailServiceProviderException(123, stype.value)
-            self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
+            if self._debug:
+                self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
             raise e
-        self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, stype.value)
-        return service
-
-    def createWithDomain(self, stype, domain):
-        self._logger.logprb(INFO, 'MailServiceProvider', 'createWithDomain()', 131, stype.value, domain)
-        url = self._hosts.get(domain)
-        if stype == SMTP:
-            service = SmtpApiService(self._ctx, url) if url else SmtpBaseService(self._ctx)
-        elif stype == POP3:
-            service = Pop3Service(self._ctx)
-        elif stype == IMAP:
-            service = ImapApiService(self._ctx, url) if url else ImapBaseService(self._ctx)
-        else:
-            e = self._getNoMailServiceProviderException(133, stype.value, domain)
-            self._logger.logp(SEVERE, 'MailServiceProvider', 'createWithDomain()', e.Message)
-            raise e
-        self._logger.logprb(INFO, 'MailServiceProvider', 'createWithDomain()', 132, stype.value, domain)
+        if self._debug:
+            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, stype.value)
         return service
 
     # XServiceInfo

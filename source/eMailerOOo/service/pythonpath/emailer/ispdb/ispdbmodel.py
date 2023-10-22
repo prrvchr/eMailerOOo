@@ -173,7 +173,6 @@ class IspdbModel(unohelper.Base):
         progress(30)
         user = MailUser(self._ctx, self.Sender)
         progress(40)
-        imap = user.getImapState()
         request = createService(self._ctx, g_service)
         progress(50)
         if request is None:
@@ -185,7 +184,7 @@ class IspdbModel(unohelper.Base):
         else:
             progress(60)
             try:
-                config, imap = self._getIspdbConfig(user, request, url.Complete, imap)
+                config = self._getIspdbConfig(user, request, url.Complete)
             except RequestException as e:
                 offset = 5 if user.isNew() else 6
                 status = (100, offset, BOLD)
@@ -198,23 +197,25 @@ class IspdbModel(unohelper.Base):
                 else:
                     auto = True
                     status = (100, 9)
+        self._servers = IspdbServer(user, config)
+        self._offline = mode
         progress(*status)
-        update(user, config, imap, mode, auto)
+        update(self.getPageTitle(2), auto, user.getReplyToState(), user.ReplyToAddress, user.getImapState(), mode)
 
-    def _getIspdbConfig(self, user, request, url, imap):
+    def _getIspdbConfig(self, user, request, url):
         config = None
         parameter = request.getRequestParameter('getIspdbConfig')
         parameter.Url = '%s%s' % (url, user.getUserDomain())
         parameter.NoAuth = True
         response = request.execute(parameter)
         if response.Ok:
-            config, imap = self._parseIspdbConfig(response, user, imap)
+            config = self._parseIspdbConfig(user, response)
         elif response.StatusCode != NOT_FOUND:
             response.raiseForStatus()
         response.close()
-        return config, imap
+        return config
 
-    def _parseIspdbConfig(self, response, user, imap):
+    def _parseIspdbConfig(self, user, response):
         smtps = []
         imaps = []
         config = {}
@@ -239,8 +240,8 @@ class IspdbModel(unohelper.Base):
         config[SMTP.value] = tuple(smtps)
         config[IMAP.value] = tuple(imaps)
         if user.isNew():
-            imap = max(len(imaps), 1)
-        return config, imap
+            user.enableImap(len(imaps) > 0)
+        return config
 
     def _parseServer(self, element, map1, map2, map3):
         server = {}
@@ -252,12 +253,15 @@ class IspdbModel(unohelper.Base):
         return server
 
 # IspdbModel setter methods called by WizardPage2
-    def setServerConfig(self, user, config, imap, offline):
-        self._servers = IspdbServer(user, config, imap)
-        self._offline = offline
+    def enableReplyTo(self, enabled):
+        self._servers.User.enableReplyTo(enabled)
+        return self._servers.User.ReplyToAddress
 
-    def setUserConfig(self, imap):
-        self._servers.User.enableImap(imap)
+    def setReplyToAddress(self, replyto):
+        self._servers.User.setReplyToAddress(replyto)
+
+    def enableIMAP(self, imap):
+        self._servers.User.enableImap(bool(imap))
         return self._offline
 
 # IspdbModel getter methods called by WizardPage3 / WizardPage4
@@ -319,27 +323,28 @@ class IspdbModel(unohelper.Base):
 
     def _connectServers(self, reset, progress, setlabel, setstep):
         handler = RollerHandler(self._ctx, self._logger.Name)
-        self._logger.addRollerHandler(handler)
+        level = self._getLogLevel(handler)
         i = 0
-        step = 2
+        connect = True
         range = 100
-        count = 2 if self._servers.User.hasImapConfig() else 1
+        count = 2 if self._servers.User.useIMAP() else 1
         reset(count * range)
         for service in self._services:
-            if service == SMTP.value or self._servers.User.hasImapConfig():
+            if service == SMTP.value or self._servers.User.useIMAP():
                 setlabel(service, self._getHost(service), self._getPort(service))
-                domain = self._servers.User.getServerDomain(service)
                 context = self._servers.User.getConnectionContext(service)
                 authenticator = self._servers.User.getAuthenticator(service)
-                step = self._connectServer(domain, context, authenticator, service, i * range, progress)
+                if not self._connectServer(context, authenticator, service, i * range, progress):
+                    connect = False
+                    break
                 i += 1
-        self._logger.removeRollerHandler(handler)
-        setstep(step)
+        self._setLogLevel(handler, level)
+        setstep(4 if connect else 2)
 
-    def _connectServer(self, domain, context, authenticator, service, i, progress):
-        step = 2
+    def _connectServer(self, context, authenticator, service, i, progress):
+        connect = False
         progress(i + 25)
-        server = getMailService(self._ctx, service, domain)
+        server = getMailService(self._ctx, service)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -349,11 +354,11 @@ class IspdbModel(unohelper.Base):
             progress(i + 75)
             if server.isConnected():
                 server.disconnect()
-                step = 4
+                connect = True
                 progress(i + 100)
             else:
                 progress(i + 100)
-        return step
+        return connect
 
     def _getHost(self, service):
         return self._servers.getServerHost(service)
@@ -366,8 +371,8 @@ class IspdbModel(unohelper.Base):
 
     def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
         handler = RollerHandler(self._ctx, self._logger.Name)
-        self._logger.addRollerHandler(handler)
-        if self._servers.User.hasImapConfig():
+        level = self._getLogLevel(handler)
+        if self._servers.User.useIMAP():
             i = 100
             reset(200)
             threadid = self._uploadMessage(subject, progress)
@@ -377,12 +382,11 @@ class IspdbModel(unohelper.Base):
             threadid = None
         progress(i + 5)
         smtp = SMTP.value
-        domain = self._servers.User.getServerDomain(smtp)
         context = self._servers.User.getConnectionContext(smtp)
         authenticator = self._servers.User.getAuthenticator(smtp)
         step = 3
         progress(i + 25)
-        server = getMailService(self._ctx, smtp, domain)
+        server = getMailService(self._ctx, smtp)
         progress(i + 50)
         try:
             server.connect(context, authenticator)
@@ -407,17 +411,16 @@ class IspdbModel(unohelper.Base):
                     step = 5
                 server.disconnect()
         progress(i + 100)
-        self._logger.removeRollerHandler(handler)
+        self._setLogLevel(handler, level)
         setstep(step)
 
     def _uploadMessage(self, subject, progress):
         mail = msgid = None
         imap = IMAP.value
-        domain = self._servers.User.getServerDomain(imap)
         context = self._servers.User.getConnectionContext(imap)
         authenticator = self._servers.User.getAuthenticator(imap)
         progress(10)
-        server = getMailService(self._ctx, imap, domain)
+        server = getMailService(self._ctx, imap)
         progress(20)
         try:
             server.connect(context, authenticator)
@@ -446,6 +449,16 @@ class IspdbModel(unohelper.Base):
         progress(100)
         print("IspdbModel._uploadMessage() 4 MessageId: %s" % msgid)
         return msgid
+
+    def _getLogLevel(self, handler):
+        self._logger.addRollerHandler(handler)
+        level = self._logger.Level
+        self._logger.Level = ALL
+        return level
+
+    def _setLogLevel(self, handler, level):
+        self._logger.removeRollerHandler(handler)
+        self._logger.Level = level
 
 # IspdbModel getter methods called by SendDialog
     def validSend(self, recipient, subject, message):
@@ -512,9 +525,9 @@ class IspdbModel(unohelper.Base):
         resource = self._resources.get('Title') % (pageid, self._offline)
         return self._resolver.resolveString(resource)
 
-    def getPageLabel(self, pageid):
+    def getPageLabel(self, pageid, *format):
         resource = self._resources.get('PageLabel') % pageid
-        return self._resolver.resolveString(resource)
+        return self._resolver.resolveString(resource) % format
 
     def getPagesLabel(self, service):
         resource = self._resources.get('PagesLabel')

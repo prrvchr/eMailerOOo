@@ -77,5 +77,5 @@ Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subje
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://github.com/prrvchr/OAuth2OOo/raw/master/OAuth2OOo.oxt>
 [5]: <https://github.com/prrvchr/eMailerOOo/raw/master/eMailerOOo.oxt>
-[6]: <https://prrvchr.github.io/OAuth2OOo/source/OAuth2OOo/registration/PrivacyPolicy_fr>
+[6]: <https://prrvchr.github.io/OAuth2OOo/source/OAuth2OOo/registration/PrivacyPolicy_en>
 [7]: <https://developers.google.com/terms/api-services-user-data-policy?hl=en>

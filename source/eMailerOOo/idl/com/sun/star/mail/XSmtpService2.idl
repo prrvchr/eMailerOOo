@@ -27,20 +27,44 @@
 #ifndef __com_sun_star_mail_XSmtpService2_idl__
 #define __com_sun_star_mail_XSmtpService2_idl__
 
-#include <com/sun/star/mail/XMailService2.idl>
-#include <com/sun/star/mail/XMailMessage.idl>
-#include <com/sun/star/io/NotConnectedException.idl>
-#include <com/sun/star/mail/MailException.idl>
-#include <com/sun/star/mail/SendMailMessageFailedException.idl>
-#include <com/sun/star/datatransfer/UnsupportedFlavorException.idl>
+#include <com/sun/star/mail/XSmtpService.idl>
 
 module com { module sun { module star { module mail {
 
-interface XSmtpService2 : XMailService2
+/** This is an extension to the interface XSmtpService.
+
+    Be careful: use of XMailService.getSupportedConnectionTypes()
+    interface is modified as follows:
+    
+        Returns all connection types which are supported to
+        connect to the mail service. At least support insecure
+        connections must be supported. Currently defined
+        connection types are (the values should be handled
+        case insensitive):
+        "Insecure" - insecure connections
+        "SSL"      - Secure Socket Layer 2.0/3.0 based connection
+        "TLS"      - Transport Layer Security 1.0 based connection
+
+    @since LibreOffice 24.02
+*/
+
+interface XSmtpService2 : XSmtpService
 {
 
-    void sendMailMessage([in] com::sun::star::mail::XMailMessage MailMessage)
-        raises(com::sun::star::io::NotConnectedException, com::sun::star::mail::SendMailMessageFailedException, com::sun::star::mail::MailException, com::sun::star::datatransfer::UnsupportedFlavorException);
+    /**
+        Returns all authentication types which are supported to
+        connect to the mail service. At least support None / Login
+        authentications must be supported. Currently defined
+        authentication types are (the values should be handled
+        case insensitive):
+        "None"   - no authentication required
+        "Login"  - login/password based authentication
+        "OAuth2" - OAuth 2.0 based authentication
+
+        @returns
+        a sequence of supported authentication types.
+    */
+    sequence<string> getSupportedAuthenticationTypes();
 
 };
 

@@ -38,8 +38,7 @@ service MailServiceConfiguration : XMailServiceConfiguration
         This service use the Mozilla IspDB configuration as a backend.
 
         @param sSender
-        [in] the e-mail address of the account used to send email with the XMailService2.
-        This e-mail address must has the same domain used in the XMailServiceProvider.createWithDomain() method.
+        [in] the e-mail address of the account used to send email with the XMailService.
         The e-mail address has to conform to <a href="http://www.ietf.org/rfc/rfc822.txt">RFC&nbsp;822</a>.
 
         @see com::sun::star::mail::XMailServiceProvider

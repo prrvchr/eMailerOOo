@@ -108,14 +108,10 @@ def getDocumentFilter(extension, format):
     filter = filters.get(format, None)
     return filter
 
-def getMailService(ctx, service, domain=None):
+def getMailService(ctx, service):
     name = 'com.sun.star.mail.MailServiceProvider'
     stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
-    if domain is None:
-        server = createService(ctx, name).create(stype)
-    else:
-        server = createService(ctx, name).createWithDomain(stype, domain)
-    return server
+    return createService(ctx, name).create(stype)
 
 def getMailConfiguration(ctx, sender):
     service = 'com.sun.star.mail.MailServiceConfiguration'

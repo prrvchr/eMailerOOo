@@ -65,16 +65,16 @@
       </dlg:menupopup>
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeAuthentication" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label7" dlg:tab-index="13" dlg:disabled="true" dlg:left="10" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label7.HelpText" dlg:value="&amp;IspdbPages.Label7.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField2" dlg:tab-index="14" dlg:disabled="true" dlg:left="70" dlg:top="85" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField2.HelpText" dlg:value="&amp;IspdbPages.TextField2.Text">
+    <dlg:text dlg:id="Label7" dlg:tab-index="13" dlg:left="10" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label7.HelpText" dlg:value="&amp;IspdbPages.Label7.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="14" dlg:left="70" dlg:top="85" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField2.HelpText" dlg:value="&amp;IspdbPages.TextField2.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label8" dlg:tab-index="15" dlg:disabled="true" dlg:left="160" dlg:top="65" dlg:width="55" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label8.HelpText" dlg:value="&amp;IspdbPages.Label8.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField3" dlg:tab-index="16" dlg:disabled="true" dlg:left="220" dlg:top="65" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField3.HelpText" dlg:value="&amp;IspdbPages.TextField3.Text" dlg:echochar="*">
+    <dlg:text dlg:id="Label8" dlg:tab-index="15" dlg:left="160" dlg:top="65" dlg:width="55" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label8.HelpText" dlg:value="&amp;IspdbPages.Label8.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField3" dlg:tab-index="16" dlg:left="220" dlg:top="65" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField3.HelpText" dlg:value="&amp;IspdbPages.TextField3.Text" dlg:echochar="*">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label9" dlg:tab-index="17" dlg:disabled="true" dlg:left="160" dlg:top="85" dlg:width="55" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label9.HelpText" dlg:value="&amp;IspdbPages.Label9.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField4" dlg:tab-index="18" dlg:disabled="true" dlg:left="220" dlg:top="85" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField4.HelpText" dlg:value="&amp;IspdbPages.TextField4.Text" dlg:echochar="*">
+    <dlg:text dlg:id="Label9" dlg:tab-index="17" dlg:left="160" dlg:top="85" dlg:width="55" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label9.HelpText" dlg:value="&amp;IspdbPages.Label9.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField4" dlg:tab-index="18" dlg:left="220" dlg:top="85" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField4.HelpText" dlg:value="&amp;IspdbPages.TextField4.Text" dlg:echochar="*">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:textfield>
     <dlg:text dlg:id="Label10" dlg:tab-index="19" dlg:left="10" dlg:top="105" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label10.HelpText" dlg:value="&amp;IspdbPages.Label10.Label" dlg:align="center" dlg:valign="center"/>

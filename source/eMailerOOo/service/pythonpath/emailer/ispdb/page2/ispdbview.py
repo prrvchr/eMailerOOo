@@ -44,14 +44,27 @@ class IspdbView(unohelper.Base):
     def getWindow(self):
         return self._window
 
+    def getReplyTo(self):
+        return self._getReplyToAddress().Text.strip()
+
+    def useReplyTo(self):
+        return bool(self._getEnableReplyTo().State)
+
 # IspdbView setter methods
-    def setPageLabel(self, text):
+    def initSearch(self, text):
         self._window.Model.Step = 1
         self._getPageLabel().Text = text
 
-    def enableIMAP(self, imap):
-        self._window.Model.Step = 2
+    def commitSearch(self, auto, state, replyto, imap):
+        self._window.Model.Step = 2 if auto else 0
+        self._getEnableReplyTo().State = state
         self._getEnableIMAP().State = imap
+        self.setReplyToAddress(bool(state), replyto)
+
+    def setReplyToAddress(self, enabled, replyto):
+        control = self._getReplyToAddress()
+        control.Model.Enabled = enabled
+        control.Text = replyto
 
     def updateProgress(self, value, message, style):
         self._getProgressBar().Value = value
@@ -69,5 +82,11 @@ class IspdbView(unohelper.Base):
     def _getProgressMessage(self):
         return self._window.getControl('Label2')
 
-    def _getEnableIMAP(self):
+    def _getEnableReplyTo(self):
         return self._window.getControl('CheckBox1')
+
+    def _getReplyToAddress(self):
+        return self._window.getControl('TextField1')
+
+    def _getEnableIMAP(self):
+        return self._window.getControl('CheckBox2')

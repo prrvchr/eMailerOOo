@@ -55,41 +55,63 @@ class MailUser(unohelper.Base):
         self._timeout = self._config.getByName('ConnectTimeout')
         senders = self._config.getByName('Senders')
         if senders.hasByName(sender):
-            servers = senders.getByName(sender).getByName('Servers')
+            user = senders.getByName(sender)
         else:
             senders.insertByName(sender, senders.createInstance())
-            servers = senders.getByName(sender).getByName('Servers')
+            user = senders.getByName(sender)
+            user.replaceByName('UseReplyTo', False)
+            user.replaceByName('UseIMAP', True)
+            user.replaceByName('ReplyToAddress', '')
+            servers = user.getByName('Servers')
             self._setDefaultServer(servers, SMTP.value)
             self._setDefaultServer(servers, IMAP.value)
             new = True
         self._new = new
-        self._servers = servers
+        self._user = user
         self._properties = ('ServerName', 'Port', 'ConnectionType',
                             'AuthenticationType', 'UserName', 'Password')
         self._indexes = {'ConnectionType': ('Insecure', 'SSL', 'TLS'),
                          'AuthenticationType': ('None', 'Login', 'OAuth2')}
         self._sep = '/'
 
+    @property
+    def _servers(self):
+        return self._user.getByName('Servers')
+
+    @property
+    def ReplyToAddress(self):
+        if self.useReplyTo():
+            return self._user.getByName('ReplyToAddress')
+        return self._sender
+
+    def useReplyTo(self):
+        return self._user.getByName('UseReplyTo')
+
+    def getReplyToState(self):
+        return 1 if self.useReplyTo() else 0
+
+    def enableReplyTo(self, enabled):
+        if self.useReplyTo() != enabled:
+            self._user.replaceByName('UseReplyTo', enabled)
+
+    def setReplyToAddress(self, replyto):
+        self._user.replaceByName('ReplyToAddress', replyto)
+
     def isNew(self):
         return self._new
 
-    def getServices(self, imap):
-        self.enableImap(imap)
+    def getServices(self):
         return self._services
 
     def getImapState(self):
-        return 1 if self.hasImapConfig() else 0
+        return 1 if self.useIMAP() else 0
 
-    def enableImap(self, imap):
-        if self.getImapState() == imap:
-            return
-        if imap:
-            self._setDefaultServer(self._servers, IMAP.value)
-        else:
-            self._servers.removeByName(IMAP.value)
+    def enableImap(self, enabled):
+        if self.useIMAP() != enabled:
+            self._user.replaceByName('UseIMAP', enabled)
 
-    def hasImapConfig(self):
-        return self._servers.hasByName(IMAP.value)
+    def useIMAP(self):
+        return self._user.getByName('UseIMAP')
 
     def updateConfig(self, service, user):
         for key, value in user.items():
@@ -128,11 +150,6 @@ class MailUser(unohelper.Base):
 
     def getUserDomain(self):
         return self._domain
-
-    def getServerDomain(self, service):
-        server = self.getServerName(service)
-        host, sep, domain = server.partition('.')
-        return domain
 
     def getServers(self):
         servers = {}

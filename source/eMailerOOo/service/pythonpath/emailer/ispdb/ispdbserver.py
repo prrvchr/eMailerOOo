@@ -37,11 +37,10 @@ import traceback
 
 
 class IspdbServer(unohelper.Base):
-    def __init__(self, user, config, imap):
-        services = user.getServices(imap)
+    def __init__(self, user, config):
         if user.isNew():
             if config is None:
-                self._servers = self._getDefaultServers(services, user)
+                self._servers = self._getDefaultServers(user)
             else:
                 self._servers = config
         elif config is None:
@@ -108,9 +107,9 @@ class IspdbServer(unohelper.Base):
         config[service + 'Timeout'] = timeout
         return config
 
-    def _getDefaultServers(self, services, user):
+    def _getDefaultServers(self, user):
         servers = {}
-        for service, port in services.items():
+        for service, port in user.getServices().items():
             servers[service] = (self._getDefaultServer(service, user, port), )
         return servers
 

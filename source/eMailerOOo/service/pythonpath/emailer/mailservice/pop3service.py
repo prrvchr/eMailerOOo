@@ -52,7 +52,6 @@ class Pop3Service(unohelper.Base,
         self._supportedauthentication = ('None', 'Login')
         self._server = None
         self._context = None
-        self._notify = EventObject(self)
 
     def addConnectionListener(self, listener):
         self.listeners.append(listener)
@@ -93,16 +92,18 @@ class Pop3Service(unohelper.Base,
                         password = password.encode('ascii')
                 self._server.user(user)
                 self._server.pass_(password)
+        notify = EventObject(self)
         for listener in self._listeners:
-            listener.connected(self._notify)
+            listener.connected(notify)
 
     def disconnect(self):
         if self.isConnected():
             self._server.quit()
             self._server = None
             self._context = None
-        for listener in self._listeners:
-            listener.disconnected(self._notify)
+            notify = EventObject(self)
+            for listener in self._listeners:
+                listener.disconnected(notify)
 
     def isConnected(self):
         return self._server is not None

@@ -66,17 +66,17 @@ class MailServiceProvider(unohelper.Base,
         logger = getLogger(ctx, g_mailservicelog)
         debug = logger.Level == ALL
         if debug:
-            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 111)
+            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 101)
         self._ctx = ctx
         self._logger = logger
         self._debug = debug
         self._domains = {'gmail.com': 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'}
         if debug:
-            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 112)
+            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 102)
 
     def create(self, stype):
         if self._debug:
-            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 121, stype.value)
+            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 111, stype.value)
         if stype == SMTP:
             service = SmtpService(self._ctx, self._logger, self._domains, self._debug)
         elif stype == POP3:
@@ -84,12 +84,12 @@ class MailServiceProvider(unohelper.Base,
         elif stype == IMAP:
             service = ImapService(self._ctx, self._logger, self._domains, self._debug)
         else:
-            e = self._getNoMailServiceProviderException(123, stype.value)
+            e = self._getNoMailServiceProviderException(112, stype.value)
             if self._debug:
                 self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
             raise e
         if self._debug:
-            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 122, stype.value)
+            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 113, stype.value)
         return service
 
     # XServiceInfo

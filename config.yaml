@@ -1,0 +1,13 @@
+namespace: OWASP
+output:
+  file_path: ./Fluid-Attacks-Results.csv
+  format: CSV
+working_dir: .
+sast:
+  include:
+    - source/eMailerOOo/service/pythonpath/emailer/
+    - glob(source/eMailerOOo/service/*.py)
+sca:
+  include:
+    - .
+language: EN

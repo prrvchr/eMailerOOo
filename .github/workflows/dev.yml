@@ -1,5 +1,5 @@
 # .github/workflows/dev.yml
-name: Makes CI
+name: Fluid Attacks Scan
 on: [push, pull_request]
 jobs:
   machineStandalone:
@@ -9,4 +9,4 @@ jobs:
       - uses: actions/checkout@master
       - uses: docker://ghcr.io/fluidattacks/makes/amd64
         with:
-          args: m gitlab:fluidattacks/universe@trunk /skims scan ./config.yaml
+          args: m gitlab:fluidattacks/universe@trunk /skims scan ./_fascan.yml

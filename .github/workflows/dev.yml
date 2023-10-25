@@ -7,6 +7,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@master
-      - uses: sudo docker://ghcr.io/fluidattacks/makes/amd64
+      - uses: docker://ghcr.io/fluidattacks/makes/amd64
         with:
           args: m gitlab:fluidattacks/universe@trunk /skims scan ./_fascan.yml

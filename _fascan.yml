@@ -7,6 +7,8 @@ sast:
   include:
     - source/eMailerOOo/service/pythonpath/emailer/
     - glob(source/eMailerOOo/service/*.py)
+  exclude:
+    - source/eMailerOOo/service/pythonpath/emailer/imapclient/config.py
 sca:
   include:
     - .

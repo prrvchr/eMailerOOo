@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@master
-      - uses: docker://ghcr.io/fluidattacks/makes/amd64
+      - uses: sudo docker://ghcr.io/fluidattacks/makes/amd64
         with:
-          set-safe-directory: /github/workspace
           args: m gitlab:fluidattacks/universe@trunk /skims scan ./_fascan.yml

@@ -56,10 +56,10 @@ class IspdbView(unohelper.Base):
         self._getPageLabel().Text = text
 
     def commitSearch(self, auto, state, replyto, imap):
-        self._window.Model.Step = 2 if auto else 0
         self._getEnableReplyTo().State = state
         self._getEnableIMAP().State = imap
         self.setReplyToAddress(bool(state), replyto)
+        self._window.Model.Step = 2 if auto else 0
 
     def setReplyToAddress(self, enabled, replyto):
         control = self._getReplyToAddress()

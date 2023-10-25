@@ -23,4 +23,4 @@ title,cwe,description,cvss,finding,stream,kind,where,snippet,method
   173 |         timeout=conf.timeout,
       ^ Col 0
 ",python.python_unsafe_certificate_validation
-Summary: 1 vulnerabilities were found in your targets.
+Summary: 1 vulnerabilities were found in your targets. 

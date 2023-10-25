@@ -54,6 +54,7 @@ from ..unotool import hasInterface
 
 from .. import imapclient
 
+import six
 import base64
 import traceback
 
@@ -222,7 +223,7 @@ class ImapService(unohelper.Base,
             raise ConnectException(msg, self)
         if self._debug:
             pwd = '*' * len(password)
-            self._logger.logprb(INFO, 'ImapService', '_doLogin()', 353, username, pwd, code)
+            self._logger.logprb(INFO, 'ImapService', '_doLogin()', 353, username, pwd, self._getReply(code))
 
     def _doOAuth2(self, server, servername, username, authentication):
         if self._debug:
@@ -236,7 +237,7 @@ class ImapService(unohelper.Base,
                 self._logger.logp(SEVERE, 'ImapService', '_doOAuth2()', msg)
             raise ConnectException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 363, username, code)
+            self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 363, username, self._getReply(code))
 
     def _getImapSentFolder(self):
         data = self._server.find_special_folder(imapclient.SENT)
@@ -293,5 +294,10 @@ class ImapService(unohelper.Base,
             if self._debug:
                 self._logger.logp(SEVERE, 'ImapService', '_uploadImapMessage()', msg)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_uploadImapMessage()', 383, message.Subject, code)
+            self._logger.logprb(INFO, 'ImapService', '_uploadImapMessage()', 383, message.Subject, self._getReply(code))
+
+    def _getReply(self, reply):
+        if isinstance(reply, six.binary_type):
+            reply = reply.decode('ascii')
+        return reply
 

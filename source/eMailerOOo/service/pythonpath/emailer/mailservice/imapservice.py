@@ -240,7 +240,7 @@ class ImapService(unohelper.Base,
             self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 363, username, self._getReply(code))
 
     def _getImapSentFolder(self):
-        data = self._server.find_special_folder(imapclient.SENT)
+        data = self._server.find_special_folder(imapclient.imapclient.SENT)
         return data if data is not None else ''
 
     def _getApiSentFolder(self):

@@ -31,8 +31,6 @@ import unohelper
 
 from ...unotool import getContainerWindow
 
-from ...logger import logMessage
-
 from ...configuration import g_extension
 
 import traceback

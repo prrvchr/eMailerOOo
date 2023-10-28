@@ -27,72 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
+from .logmanager import LogManager
 
-from com.sun.star.mail.MailServiceType import SMTP
-from com.sun.star.mail.MailServiceType import IMAP
+from .loglistener import LoggerListener
 
-from com.sun.star.ui.dialogs import XWizardController
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from .ispdbmodel import IspdbModel
-
-from .page1 import IspdbManager as WizardPage1
-from .page2 import IspdbManager as WizardPage2
-from .pages import IspdbManager as WizardPages
-from .page5 import IspdbManager as WizardPage5
-
-import traceback
-
-
-class IspdbController(unohelper.Base,
-                      XWizardController):
-    def __init__(self, ctx, wizard, sender):
-        self._ctx = ctx
-        self._wizard = wizard
-        self._model = IspdbModel(ctx, sender)
-
-    @property
-    def Model(self):
-        return self._model
-
-    def dispose(self):
-        self._model.dispose()
-        self._wizard.DialogWindow.dispose()
-
-# XWizardController
-    def createPage(self, parent, pageid):
-        try:
-            if pageid == 1:
-                page = WizardPage1(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 2:
-                page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
-            elif pageid == 3:
-                page = WizardPages(self._ctx, self._wizard, self._model, pageid, parent, SMTP)
-            elif pageid == 4:
-                page = WizardPages(self._ctx, self._wizard, self._model, pageid, parent, IMAP)
-            elif pageid == 5:
-                page = WizardPage5(self._ctx, self._wizard, self._model, pageid, parent)
-            return page
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
-
-    def getPageTitle(self, pageid):
-        return self._model.getPageStep(pageid)
-
-    def canAdvance(self):
-        return True
-
-    def onActivatePage(self, pageid):
-        title = self._model.getPageTitle(pageid)
-        self._wizard.setTitle(title)
-
-    def onDeactivatePage(self, pageid):
-        pass
-
-    def confirmFinish(self):
-        return True

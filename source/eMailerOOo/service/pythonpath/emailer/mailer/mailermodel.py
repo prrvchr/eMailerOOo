@@ -48,9 +48,8 @@ import traceback
 
 class MailerModel(MailModel):
     def __init__(self, ctx, datasource, path, close):
-        MailModel.__init__(self, ctx, datasource)
+        MailModel.__init__(self, ctx, datasource, close)
         self._path = path
-        self._close = close
         self._url = None
         self._resources = {'DialogTitle': 'MailerDialog.Title',
                            'PickerTitle': 'Mail.FilePicker.Title',
@@ -72,11 +71,6 @@ class MailerModel(MailModel):
         return self._path
 
 # MailerModel setter methods
-    def dispose(self):
-        self._disposed = True
-        if self._close:
-            self._datasource.dispose()
-
     def loadDocument(self, *args):
         Thread(target=self._loadDocument, args=args).start()
 

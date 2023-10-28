@@ -31,17 +31,22 @@ import uno
 import unohelper
 
 from .optionsmodel import OptionsModel
+
 from .optionsview import OptionsView
+
 from .optionshandler import OptionsListener
 
 from ..logger import LogManager
 
 from ..spooler import SpoolerListener
 
-from ..unotool import executeDispatch
-from ..unotool import getDesktop
+from ..unotool import (executeDispatch,
+                       getDesktop)
 
-from ..configuration import g_identifier
+from ..configuration import (g_identifier,
+                             g_defaultlog,
+                             g_spoolerlog,
+                             g_mailservicelog)
 
 import os
 import sys
@@ -56,7 +61,7 @@ class OptionsManager(unohelper.Base):
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         infos = {111: version, 112: path}
-        self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, 'Logger')
+        self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, g_defaultlog, g_spoolerlog, g_mailservicelog)
         window.addEventListener(OptionsListener(self))
         self._listener = SpoolerListener(self)
         self._model.addSpoolerListener(self._listener)

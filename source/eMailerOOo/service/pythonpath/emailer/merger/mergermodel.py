@@ -101,12 +101,11 @@ class MergerModel(MailModel):
     def __init__(self, ctx, datasource):
         MailModel.__init__(self, ctx, datasource)
         self._document = getDesktop(ctx).CurrentComponent
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(self._document)
         self._path = self._getPath()
         service = 'com.sun.star.sdb.DatabaseContext'
         self._dbcontext = createService(ctx, service)
         self._addressbook = None
+        self._book = None
         self._statement = None
         self._queries = None
         self._address = self._getRowSet(TABLE)
@@ -177,24 +176,19 @@ class MergerModel(MailModel):
 
 # Procedures called by WizardController
     def dispose(self):
-        print("MergerModel.dispose() 1")
         if self._isConnectionNotClosed():
             self._closeConnection()
-        self._datasource.dispose()
         if self._grid1 is not None:
             self._grid1.dispose()
         if self._grid2 is not None:
             self._grid2.dispose()
-        self._disposed = True
-        print("MergerModel.dispose() 2")
+        MailModel.dispose(self)
 
     def saveGrids(self):
-        print("MergerModel.save() 1")
         if self._grid1 is not None:
             self._grid1.saveColumnSettings()
         if self._grid2 is not None:
             self._grid2.saveColumnSettings()
-        print("MergerModel.save() 2")
 
 # Procedures called by WizardPage1
     # AddressBook methods
@@ -202,96 +196,95 @@ class MergerModel(MailModel):
         return self._dbcontext.getElementNames()
 
     def getDefaultAddressBook(self):
-        addressbook = ''
+        book = ''
         if self._loadAddressBook():
-            addressbook = self._getDocumentAddressBook(addressbook)
-        return addressbook
+            book = self._getDocumentAddressBook(book)
+        return book
 
     def _loadAddressBook(self):
         return self._config.getByName('MergerLoadDataSource')
 
-    def _getDocumentAddressBook(self, addressbook):
+    def _getDocumentAddressBook(self, book):
         service = 'com.sun.star.text.TextDocument'
         if self._document.supportsService(service):
             service = 'com.sun.star.document.Settings'
             settings = self._document.createInstance(service)
-            addressbook = settings.CurrentDatabaseDataSource
-        return addressbook
+            book = settings.CurrentDatabaseDataSource
+        return book
 
-    def isAddressBookNotLoaded(self, addressbook):
-        return self._addressbook is None or self._addressbook.Name != addressbook
+    def isAddressBookNotLoaded(self, book):
+        return self._book != book
 
     def setAddressBook(self, *args):
         Thread(target=self._setAddressBook, args=args).start()
 
     # AddressBook private methods
-    def _setAddressBook(self, addressbook, progress, setAddressBook):
+    def _setAddressBook(self, book, progress, setAddressBook):
+        step = 2
+        sleep(0.2)
+        progress(5)
+        queries = label = message = None
+        self._tables = {}
+        progress(10)
+        # FIXME: If changes have been made then save them...
+        if self._queries is not None:
+            self._saveQueries()
+        self._query = self._subquery = None
+        # FIXME: If an addressbook has been loaded we need:
+        # FIXME: to dispose all components who use the connection and close the connection
+        if self._isConnectionNotClosed():
+            self._closeConnection()
+        progress(20)
         try:
-            step = 2
-            sleep(0.2)
-            progress(5)
-            queries = label = message = None
-            self._tables = {}
-            progress(10)
-            # FIXME: If changes have been made then save them...
-            if self._queries is not None:
-                self._saveQueries()
-            self._query = self._subquery = None
-            # FIXME: If an addressbook has been loaded we need:
-            # FIXME: to dispose all components who use the connection and close the connection
-            if self._isConnectionNotClosed():
-                self._closeConnection()
-            progress(20)
-            try:
-                datasource = self._getDataSource(addressbook)
-                progress(30)
-                if datasource.IsPasswordRequired:
-                    handler = getInteractionHandler(self._ctx)
-                    connection = datasource.getIsolatedConnectionWithCompletion(handler)
-                else:
-                    connection = datasource.getIsolatedConnection('', '')
-                progress(40)
-                if self._service not in connection.getAvailableServiceNames():
-                    msg = self._getErrorMessage(2, self._service)
-                    e = self._getUnoException(msg)
-                    raise e
-                interface = 'com.sun.star.sdb.tools.XConnectionTools'
-                if not hasInterface(connection, interface):
-                    msg = self._getErrorMessage(3, interface)
-                    e = self._getUnoException(msg)
-                    raise e
-            except UnoException as e:
-                format = (addressbook, e.Message)
-                message = self._getErrorMessage(0, format)
+            datasource = self._getDataSource(book)
+            progress(30)
+            if datasource.IsPasswordRequired:
+                handler = getInteractionHandler(self._ctx)
+                connection = datasource.getIsolatedConnectionWithCompletion(handler)
             else:
-                progress(50)
-                self._addressbook = datasource
-                self._statement = connection.createStatement()
-                self._composer = connection.createInstance(self._service)
-                self._subcomposer = connection.createInstance(self._service)
-                progress(60)
-                self._tables, self._similar = self._getTablesInfos(connection)
-                progress(70)
-                self._address.ActiveConnection = connection
-                self._recipient.ActiveConnection = connection
-                progress(80)
-                self._queries = datasource.getQueryDefinitions()
-                self._quoted = connection.getMetaData().supportsMixedCaseQuotedIdentifiers()
-                self._quote = connection.getMetaData().getIdentifierQuoteString()
-                self._labeler = connection.getObjectNames()
-                self._nominator = connection.createTableName()
-                composer = connection.createInstance(self._service)
-                queries = self._getQueries(composer)
-                progress(90)
-                self._setSubQueryTable(composer, queries)
-                composer.dispose()
-                label = self._getIndexLabel()
-                step = 3
-            progress(100)
-            setAddressBook(step, queries, self._getTables(), label, message)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+                connection = datasource.getIsolatedConnection('', '')
+            progress(40)
+            if self._service not in connection.getAvailableServiceNames():
+                msg = self._getErrorMessage(2, self._service)
+                e = self._getUnoException(msg)
+                raise e
+            interface = 'com.sun.star.sdb.tools.XConnectionTools'
+            if not hasInterface(connection, interface):
+                msg = self._getErrorMessage(3, interface)
+                e = self._getUnoException(msg)
+                raise e
+        except UnoException as e:
+            format = (book, e.Message)
+            message = self._getErrorMessage(0, format)
+        else:
+            progress(50)
+            # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
+            # FIXME: the URL of the odb file rather than the registered name of the datasource
+            self._book = book
+            self._addressbook = datasource
+            self._statement = connection.createStatement()
+            self._composer = connection.createInstance(self._service)
+            self._subcomposer = connection.createInstance(self._service)
+            progress(60)
+            self._tables, self._similar = self._getTablesInfos(connection)
+            progress(70)
+            self._address.ActiveConnection = connection
+            self._recipient.ActiveConnection = connection
+            progress(80)
+            self._queries = datasource.getQueryDefinitions()
+            self._quoted = connection.getMetaData().supportsMixedCaseQuotedIdentifiers()
+            self._quote = connection.getMetaData().getIdentifierQuoteString()
+            self._labeler = connection.getObjectNames()
+            self._nominator = connection.createTableName()
+            composer = connection.createInstance(self._service)
+            queries = self._getQueries(composer)
+            progress(90)
+            self._setSubQueryTable(composer, queries)
+            composer.dispose()
+            label = self._getIndexLabel()
+            step = 3
+        progress(100)
+        setAddressBook(step, queries, self._getTables(), label, message)
 
     def _saveQueries(self):
         saved = False
@@ -327,25 +320,25 @@ class MergerModel(MailModel):
     def _getTables(self):
         return tuple(self._tables.keys())
 
-    def _getDataSource(self, addressbook):
+    def _getDataSource(self, book):
         # We need to check if the registered datasource has an existing odb file
         sf = getSimpleFile(self._ctx)
-        location = self._dbcontext.getDatabaseLocation(addressbook)
+        location = self._dbcontext.getDatabaseLocation(book)
         if not sf.exists(location):
             msg = self._getErrorMessage(1, location)
             e = self._getUnoException(msg)
             raise e
         if self._temp:
-            datasource = self._getTempDataSource(sf, addressbook, location)
+            datasource = self._getTempDataSource(sf, book, location)
         else:
-            datasource = self._dbcontext.getByName(addressbook)
+            datasource = self._dbcontext.getByName(book)
         return datasource
 
-    def _getTempDataSource(self, sf, addressbook, location):
+    def _getTempDataSource(self, sf, book, location):
         # FIXME: We can undo all changes if the wizard is canceled
         # FIXME: or abort the Wizard while keeping the work already done
         # FIXME: The wizard must be modified to take into account the Cancel button
-        url = self._getTempUrl(addressbook)
+        url = self._getTempUrl(book)
         if not sf.exists(url):
             sf.copy(location, url)
         datasource = self._dbcontext.getByName(url)
@@ -357,9 +350,9 @@ class MergerModel(MailModel):
         e.Context = self
         return e
 
-    def _getTempUrl(self, addressbook):
+    def _getTempUrl(self, book):
         temp = getPathSettings(self._ctx).Temp
-        url = '%s/%s.odb' % (temp, addressbook)
+        url = '%s/%s.odb' % (temp, book)
         return url
 
     def _getQueries(self, composer):
@@ -626,13 +619,12 @@ class MergerModel(MailModel):
         args = []
         with self._lock:
             self._saveQueries()
-            name = self._addressbook.Name
+            name = self._book
             # FIXME: It is necessary to discern the reloading of the list
             # FIXME: of tables of the address book and the grid (or rowset)
             if self._isPage2Loaded():
                 # This will only be executed if WizardPage2 has already been loaded
                 if self._name != name:
-                    print("MergerModel.commitPage1() DataSource changed")
                     # FIXME: The RowSet self._address will be executed in Page2 by
                     # FIXME: setAddressTable() after selecting the main table
                     self._changes |= 2
@@ -651,15 +643,12 @@ class MergerModel(MailModel):
                             self._changes |= 2
                             self._initGrid1RowSet()
                         elif changed:
-                            print("MergerModel.commitPage1() Grid1 changed")
                             self._initGrid1RowSet()
                             args.append(self._address)
                     elif changed:
-                        print("MergerModel.commitPage1() Grid1 changed")
                         self._initGrid1RowSet()
                         args.append(self._address)
                     if self._isGrid2RowSetChanged():
-                        print("MergerModel.commitPage1() Grid2 changed")
                         self._initGrid2RowSet()
                         args.append(self._recipient)
             self._name = name
@@ -839,7 +828,7 @@ class MergerModel(MailModel):
         # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
         # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
         properties = {'ActiveConnection': self.Connection,
-                      'DataSourceName': self._addressbook.Name,
+                      'DataSourceName': self._book,
                       'Command': self._subquery.Second,
                       'CommandType': TABLE,
                       'Cursor': result,
@@ -887,11 +876,9 @@ class MergerModel(MailModel):
         if subject != '':
             try:
                 for literal, field, format, conversion in string.Formatter().parse(subject):
-                    print("MergerModel.isSubjectValid() Parameter: %s - %s - %s - %s" % (literal, field, format, conversion))
                     if field is not None and field not in self._columns:
                         return False
             except ValueError as e:
-                print("MergerModel.isSubjectValid() ValueError **************************************")
                 return False
             return True
         return False
@@ -941,7 +928,6 @@ class MergerModel(MailModel):
         order = self._subcomposer.getOrder()
         format = (columns, query, order)
         command = getSqlQuery(self._ctx, 'getRecipientQuery', format)
-        print("MergerModel._getRecipients() Query: %s" % command)
         result = self._statement.executeQuery(command)
         recipients = getSequenceFromResult(result)
         result.close()

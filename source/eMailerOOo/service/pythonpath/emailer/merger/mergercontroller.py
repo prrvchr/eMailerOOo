@@ -41,8 +41,6 @@ from .page1 import MergerManager as WizardPage1
 from .page2 import MergerManager as WizardPage2
 from .page3 import MergerManager as WizardPage3
 
-from ..logger import logMessage
-
 import traceback
 
 
@@ -63,15 +61,12 @@ class MergerController(unohelper.Base,
 # XWizardController
     def createPage(self, parent, pageid):
         try:
-            msg = "PageId: %s ..." % pageid
             if pageid == 1:
                 page = WizardPage1(self._ctx, self._wizard, self._model, pageid, parent)
             elif pageid == 2:
                 page = WizardPage2(self._ctx, self._wizard, self._model, pageid, parent)
             elif pageid == 3:
                 page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
-            msg += " Done"
-            logMessage(self._ctx, INFO, msg, 'WizardController', 'createPage()')
             return page
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.format_exc())
@@ -84,14 +79,8 @@ class MergerController(unohelper.Base,
         return True
 
     def onActivatePage(self, pageid):
-        msg = "PageId: %s..." % pageid
         title = self._model.getPageTitle(pageid)
         self._wizard.setTitle(title)
-        backward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.PREVIOUS')
-        forward = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.NEXT')
-        finish = uno.getConstantByName('com.sun.star.ui.dialogs.WizardButton.FINISH')
-        msg += " Done"
-        logMessage(self._ctx, INFO, msg, 'WizardController', 'onActivatePage()')
 
     def onDeactivatePage(self, pageid):
         pass

@@ -35,8 +35,6 @@ from com.sun.star.view.SelectionType import MULTI
 from ...unotool import createService
 from ...unotool import getContainerWindow
 
-from ...logger import logMessage
-
 from ...configuration import g_extension
 
 import traceback

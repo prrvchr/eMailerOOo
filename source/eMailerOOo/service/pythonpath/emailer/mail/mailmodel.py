@@ -54,9 +54,10 @@ import traceback
 
 
 class MailModel(unohelper.Base):
-    def __init__(self, ctx, datasource):
+    def __init__(self, ctx, datasource, close=True):
         self._ctx = ctx
         self._datasource = datasource
+        self._close = close
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._disposed = False
@@ -128,6 +129,8 @@ class MailModel(unohelper.Base):
 # MailModel setter methods
     def dispose(self):
         self._disposed = True
+        if self._close:
+            self._datasource.dispose()
 
     def setUrl(self, url):
         raise NotImplementedError('Need to be implemented!')

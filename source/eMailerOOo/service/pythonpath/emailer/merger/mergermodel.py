@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from com.sun.star.beans import PropertyValue
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -39,18 +37,13 @@ from com.sun.star.view.SelectionType import MULTI
 
 from com.sun.star.uno import Exception as UnoException
 
-from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-
-from com.sun.star.sdb.CommandType import COMMAND
 from com.sun.star.sdb.CommandType import QUERY
 from com.sun.star.sdb.CommandType import TABLE
 
-from com.sun.star.sdb.SQLFilterOperator import EQUAL
 from com.sun.star.sdb.SQLFilterOperator import SQLNULL
 from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 
 from com.sun.star.sdb.tools.CompositionType import ForDataManipulation
-from com.sun.star.sdb.tools.CompositionType import ForTableDefinitions
 
 from ..dispatchlistener import DispatchListener
 
@@ -59,41 +52,34 @@ from ..grid import GridModel
 
 from ..mail import MailModel
 
+from ..mailertool import getDataBaseContext
+
 from ..unotool import createService
-from ..unotool import executeDispatch
 from ..unotool import executeFrameDispatch
-from ..unotool import getConfiguration
 from ..unotool import getDesktop
+from ..unotool import getDocument
 from ..unotool import getInteractionHandler
 from ..unotool import getPathSettings
 from ..unotool import getPropertyValue
 from ..unotool import getPropertyValueSet
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
-from ..unotool import getStringResource
 from ..unotool import getUrl
 from ..unotool import getUrlPresentation
 from ..unotool import hasInterface
 
-from ..dbtool import getResultValue
 from ..dbtool import getSequenceFromResult
-from ..dbtool import getValueFromResult
 
 from ..dbqueries import getSqlQuery
-
-from ..unotool import getDocument
 
 from ..configuration import g_identifier
 from ..configuration import g_extension
 from ..configuration import g_fetchsize
 
 import string
-from collections import OrderedDict
-from six import string_types
 from threading import Thread
 from threading import Condition
 from time import sleep
-import json
 import traceback
 
 
@@ -102,8 +88,6 @@ class MergerModel(MailModel):
         MailModel.__init__(self, ctx, datasource)
         self._document = getDesktop(ctx).CurrentComponent
         self._path = self._getPath()
-        service = 'com.sun.star.sdb.DatabaseContext'
-        self._dbcontext = createService(ctx, service)
         self._addressbook = None
         self._book = None
         self._statement = None
@@ -192,8 +176,14 @@ class MergerModel(MailModel):
 
 # Procedures called by WizardPage1
     # AddressBook methods
+    def _getDatabaseContext(self):
+        service = 'com.sun.star.sdb.DatabaseContext'
+        return createService(self._ctx, service)
+
     def getAvailableAddressBooks(self):
-        return self._dbcontext.getElementNames()
+        names = self._getDatabaseContext().getElementNames()
+        print("MergerModel.getAvailableAddressBooks(): %s" % (names, ))
+        return names
 
     def getDefaultAddressBook(self):
         book = ''
@@ -245,17 +235,14 @@ class MergerModel(MailModel):
                 connection = datasource.getIsolatedConnection('', '')
             progress(40)
             if self._service not in connection.getAvailableServiceNames():
-                msg = self._getErrorMessage(2, self._service)
-                e = self._getUnoException(msg)
-                raise e
+                msg = self._getErrorMessage(4, self._service)
+                raise UnoException(msg, self)
             interface = 'com.sun.star.sdb.tools.XConnectionTools'
             if not hasInterface(connection, interface):
-                msg = self._getErrorMessage(3, interface)
-                e = self._getUnoException(msg)
-                raise e
+                msg = self._getErrorMessage(5, interface)
+                raise UnoException(msg, self)
         except UnoException as e:
-            format = (book, e.Message)
-            message = self._getErrorMessage(0, format)
+            message = self._getErrorMessage(0, book, e.Message)
         else:
             progress(50)
             # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
@@ -293,7 +280,7 @@ class MergerModel(MailModel):
         if self._subquery is not None:
             saved |= self._saveQuery(self._subquery.First, self._subcomposer)
         if saved:
-            self._addressbook.DatabaseDocument.store()
+            self._saveAddressBook()
 
     def _saveQuery(self, name, composer):
         if self._queries.hasByName(name):
@@ -321,34 +308,22 @@ class MergerModel(MailModel):
         return tuple(self._tables.keys())
 
     def _getDataSource(self, book):
-        # We need to check if the registered datasource has an existing odb file
-        sf = getSimpleFile(self._ctx)
-        location = self._dbcontext.getDatabaseLocation(book)
-        if not sf.exists(location):
-            msg = self._getErrorMessage(1, location)
-            e = self._getUnoException(msg)
-            raise e
+        dbcontext, location = getDataBaseContext(self._ctx, self, book, self._getErrorMessage, 1)
         if self._temp:
-            datasource = self._getTempDataSource(sf, book, location)
+            datasource = self._getTempDataSource(dbcontext, book, sf, location)
         else:
-            datasource = self._dbcontext.getByName(book)
+            datasource = dbcontext.getByName(book)
         return datasource
 
-    def _getTempDataSource(self, sf, book, location):
+    def _getTempDataSource(self, dbcontext, book, sf, location):
         # FIXME: We can undo all changes if the wizard is canceled
         # FIXME: or abort the Wizard while keeping the work already done
         # FIXME: The wizard must be modified to take into account the Cancel button
         url = self._getTempUrl(book)
         if not sf.exists(url):
             sf.copy(location, url)
-        datasource = self._dbcontext.getByName(url)
+        datasource = dbcontext.getByName(url)
         return datasource
-
-    def _getUnoException(self, msg):
-        e = UnoException()
-        e.Message = msg
-        e.Context = self
-        return e
 
     def _getTempUrl(self, book):
         temp = getPathSettings(self._ctx).Temp
@@ -476,7 +451,7 @@ class MergerModel(MailModel):
         self._addQuery(composer, query, subquery)
         if self._similar:
             composer.dispose()
-        self._addressbook.DatabaseDocument.store()
+        self._saveAddressBook()
         return subquery
 
     def _createQuery(self, name):
@@ -523,7 +498,7 @@ class MergerModel(MailModel):
     def removeQuery(self, query, subquery):
         self._queries.removeByName(query)
         self._queries.removeByName(subquery.First)
-        self._addressbook.DatabaseDocument.store()
+        self._saveAddressBook()
         self._query = self._subquery = None
 
     # Query private shared method
@@ -765,7 +740,7 @@ class MergerModel(MailModel):
             command = getSqlQuery(self._ctx, 'getQueryCommand', format)
             self._composer.setQuery(command)
             self._queries.getByName(self._query).Command = self._composer.getQuery()
-            self._addressbook.DatabaseDocument.store()
+            self._saveAddressBook()
         self._executeRecipient()
 
     def _removeItem(self, filters):
@@ -781,7 +756,7 @@ class MergerModel(MailModel):
             self._composer.setQuery(command)
             self._composer.setStructuredFilter(self._getQueryNullFilters())
             self._queries.getByName(self._query).Command = self._composer.getQuery()
-            self._addressbook.DatabaseDocument.store()
+            self._saveAddressBook()
         self._executeRecipient()
 
     def _updateItem(self, items, add):
@@ -790,7 +765,7 @@ class MergerModel(MailModel):
             self._updateFilters(filters, item, add)
         self._composer.setStructuredFilter(filters)
         self._queries.getByName(self._query).Command = self._composer.getQuery()
-        self._addressbook.DatabaseDocument.store()
+        self._saveAddressBook()
 
     def _getSubQueryTables(self, query, table):
         if self._subquery.Second != table:
@@ -954,6 +929,9 @@ class MergerModel(MailModel):
         return None if url is None else url.Name
 
 # Procedures called internally
+    def _saveAddressBook(self):
+        self._addressbook.DatabaseDocument.store()
+
     def _getPath(self):
         location = self.getUrl()
         if location != '':
@@ -1005,7 +983,7 @@ class MergerModel(MailModel):
         resource = self._resources.get('Progress') % value
         return self._resolver.resolveString(resource)
 
-    def _getErrorMessage(self, code, format=()):
+    def _getErrorMessage(self, code, *format):
         resource = self._resources.get('Error') % code
         return self._resolver.resolveString(resource) % format
 

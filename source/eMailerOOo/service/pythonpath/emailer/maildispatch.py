@@ -35,6 +35,8 @@ from com.sun.star.frame import XNotifyingDispatch
 from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.frame.DispatchResultState import FAILURE
 
+from com.sun.star.uno import Exception as UnoException
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
@@ -56,9 +58,7 @@ from .mailertool import getDataSource
 
 from .unotool import createMessageBox
 from .unotool import getPathSettings
-from .unotool import getSimpleFile
 from .unotool import getStringResource
-from .unotool import getTempFile
 
 from .logger import getLogger
 from .logger import RollerHandler
@@ -109,8 +109,8 @@ class MailDispatch(unohelper.Base,
                     state, result = self._showMailer(arguments)
                 elif url.Path == 'merger':
                     state, result = self._showMerger()
-                elif url.Path == 'viewer':
-                    state, result = self._viewMail(arguments)
+                elif url.Path == 'mail':
+                    state, result = self._getMail(arguments)
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -206,34 +206,33 @@ class MailDispatch(unohelper.Base,
             print(msg)
 
     #Viewer methods
-    def _viewMail(self, arguments):
-        try:
-            state = FAILURE
-            job = None
-            url = ''
-            for argument in arguments:
-                if argument.Name == 'JobId':
-                    job = argument.Value
-            if job is not None:
-                logger = getLogger(self._ctx, g_spoolerlog)
-                handler = RollerHandler(self._ctx, logger.Name)
-                logger.addRollerHandler(handler)
-                logger.logprb(INFO, 'MailSpooler', '_viewMail()', 1051, job)
-                mailer = Mailer(self._ctx, self._getDataSource().DataBase, logger)
+    def _getMail(self, arguments):
+        state = FAILURE
+        mail = None
+        job = None
+        for argument in arguments:
+            if argument.Name == 'JobId':
+                job = argument.Value
+        logger = getLogger(self._ctx, g_spoolerlog)
+        handler = RollerHandler(self._ctx, logger.Name)
+        logger.addRollerHandler(handler)
+        if job is None:
+            logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1051)
+        else:
+            logger.logprb(INFO, 'MailSpooler', '_getMail()', 1052, job)
+            mailer = Mailer(self._ctx, self, self._getDataSource().DataBase, logger)
+            try:
                 mail = mailer.getMail(job)
-                url = '%s/Email.eml' % getTempFile(self._ctx).Uri
-                output = getSimpleFile(self._ctx).openFileWrite(url)
-                output.writeBytes(uno.ByteSequence(mail.asBytes()))
-                output.flush()
-                output.closeOutput()
-                mailer.dispose()
-                logger.logprb(INFO, 'MailSpooler', '_viewMail()', 1052, job)
-                logger.removeRollerHandler(handler)
+            except UnoException as e:
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1053, job, e.Message)
+            except Exception as e:
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1054, job, str(e), traceback.format_exc())
+            else:
+                logger.logprb(INFO, 'MailSpooler', '_getMail()', 1055, job)
                 state = SUCCESS
-            return state, url
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            mailer.dispose()
+        logger.removeRollerHandler(handler)
+        return state, mail
 
     # Private methods
     def _isInitialized(self):

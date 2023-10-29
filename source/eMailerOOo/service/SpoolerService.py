@@ -54,7 +54,7 @@ class SpoolerService(unohelper.Base,
         if self._spooler is None:
             with self._lock:
                 if self._spooler is None:
-                    SpoolerService.__spooler = Spooler(ctx)
+                    SpoolerService.__spooler = Spooler(ctx, self)
 
     __lock = Lock()
     __spooler = None

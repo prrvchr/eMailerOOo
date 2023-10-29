@@ -272,16 +272,9 @@ class DataBase(unohelper.Base):
         call = self._getCall('updateRecipient')
         call.setInt(1, state)
         call.setString(2, messageid)
-        call.setInt(3, jobid)
+        call.setTimestamp(3, getDateTime(False))
+        call.setInt(4, jobid)
         state = call.executeUpdate()
-        call.close()
-
-    def setBatchState(self, state, batchid):
-        call = self._getCall('setBatchState')
-        call.setInt(1, state)
-        call.setTimestamp(2, getDateTime())
-        call.setInt(3, batchid)
-        result = call.executeUpdate()
         call.close()
 
 # Procedures called internally

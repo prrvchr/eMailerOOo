@@ -105,7 +105,7 @@ class MergerManager(MailManager,
             subject, attachments = self._getSavedDocumentProperty()
             sender, recipients = self._view.getEmail()
             url, datasource, query, table, filters = self._model.getDocumentInfo()
-            print("MergerManager.sendDocument() %s: %s - %s - %s - %s - %s" % (sender, subject, url, datasource, query, table))
+            print("MergerManager.sendDocument() %s: %s - %s - %s - %s - %s\n%s" % (sender, subject, url, datasource, query, table, recipients))
             service = 'com.sun.star.mail.SpoolerService'
             spooler = createService(self._ctx, service)
             id = spooler.addMergeJob(sender, subject, url, datasource, query, table, recipients, filters, attachments)

@@ -161,7 +161,7 @@ def getSqlQuery(ctx, name, format=None):
         s10 = '"Senders"."Table"'
         s11 = '"Recipients"."Filter"'
         s12 = '"Senders"."Created"'
-        s13 = '"Recipients"."Created"'
+        s13 = '"Recipients"."Modified"'
         s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13)
         f1 = '"Senders"'
         f2 = 'JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"'
@@ -229,10 +229,7 @@ def getSqlQuery(ctx, name, format=None):
 # Update Queries
     # MailSpooler Update Queries
     elif name == 'updateRecipient':
-        query = 'UPDATE "Recipients" SET "State"=?, "MessageId"=?, "Modified"=DEFAULT WHERE "JobId"=?;'
-
-    elif name == 'setBatchState':
-        query = 'UPDATE "Recipients" SET "State"=?, "Modified"=? WHERE "BatchId"=?;'
+        query = 'UPDATE "Recipients" SET "State"=?, "MessageId"=?, "Modified"=? WHERE "JobId"=?;'
 
 # Function creation Queries
     # IspDb Function Queries
@@ -281,11 +278,11 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER)
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT S."Sender",S."Subject",S."Document",
-      S."DataSource",S."Query",S."Table",S."ThreadId",
-      CASE WHEN S."DataSource" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
-      FROM "Senders" AS S
-      WHERE S."BatchId"=BATCHID
+      SELECT "Sender", "Subject", "Document",
+      "DataSource", "Query", "Table", "ThreadId",
+      CASE WHEN "DataSource" IS NULL OR "Query" IS NULL OR "Table" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
+      FROM "Senders"
+      WHERE "BatchId"=BATCHID
       FOR READ ONLY;
     OPEN RSLT;
   END;"""

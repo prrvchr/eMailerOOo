@@ -30,6 +30,8 @@ import uno
 
 from com.sun.star.sdbc import SQLException
 
+from com.sun.star.uno import Exception as UnoException
+
 from .database import DataBase
 
 from .datasource import DataSource
@@ -40,6 +42,7 @@ from .unotool import getExtensionVersion
 from .unotool import getFileSequence
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
+from .unotool import getSimpleFile
 from .unotool import getTypeDetection
 from .unotool import getUrl
 
@@ -87,6 +90,24 @@ def getDataSource(ctx, method, sep, callback):
             else:
                 return DataSource(ctx, database)
     return None
+
+def getDataBaseContext(ctx, source, name, resolver, code, *format):
+    dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
+    if not dbcontext.hasByName(name):
+        msg = resolver(code, name, *format)
+        raise UnoException(msg, source)
+    location = dbcontext.getDatabaseLocation(name)
+    # FIXME: The location can be an embedded database in odt file
+    # FIXME: ie: vnd.sun.star.pkg://file://path/document.odt/EmbeddedDatabase
+    # FIXME: eMailerOOo cannot work with such a datasource
+    if not location.startswith('file://'):
+        msg = resolver(code +1, location, *format)
+        raise UnoException(msg, source)
+    # We need to check if the registered datasource has an existing odb file
+    if not getSimpleFile(ctx).exists(location):
+        msg = resolver(code +2, location, *format)
+        raise UnoException(msg, source)
+    return dbcontext, location
 
 def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)

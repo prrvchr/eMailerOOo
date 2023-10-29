@@ -51,9 +51,9 @@ from ...dispatchlistener import DispatchListener
 from ...unotool import createService
 from ...unotool import executeDispatch
 from ...unotool import executeShell
-from ...unotool import getFileSequence
 from ...unotool import getPropertyValueSet
 from ...unotool import getSimpleFile
+from ...unotool import getTempFile
 
 from ...logger import LogController
 from ...logger import LoggerListener
@@ -150,9 +150,14 @@ class SpoolerManager(unohelper.Base):
         Thread(target=self._executeDispatch, args=args).start()
 
     def _executeDispatch(self, listener, arguments):
-        executeDispatch(self._ctx, 'smtp:viewer', arguments, listener)
+        executeDispatch(self._ctx, 'smtp:mail', arguments, listener)
 
-    def documentViewed(self, url):
+    def documentViewed(self, mail):
+        url = '%s/Email.eml' % getTempFile(self._ctx).Uri
+        output = getSimpleFile(self._ctx).openFileWrite(url)
+        output.writeBytes(uno.ByteSequence(mail.asBytes()))
+        output.flush()
+        output.closeOutput()
         self._view.enableButtonView(self._model.hasGridSelectedRows())
         executeShell(self._ctx, url)
 

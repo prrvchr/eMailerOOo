@@ -362,7 +362,8 @@ ___
 ### What has been done for version 1.1.0:
 
 - In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration.  
-  As a result, this no longer sends a thread (IMAP message) when merging a mailing.
+  As a result, this no longer sends a thread (IMAP message) when merging a mailing.  
+  In this same wizard, it is now possible to enter an email reply-to address.
 
 - In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][73].  
   In the subject of an email, a merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).  
@@ -370,7 +371,7 @@ ___
 
 - It is now possible in the Spooler to view emails in eml format.
 
-- A new service [com.sun.star.mail.MailServiceConfiguration][74] now allows access to a connection configuration (SMTP and/or IMAP) from an email address.  
+- A new service [com.sun.star.mail.MailUser][74] now allows access to a connection configuration (SMTP and/or IMAP) from an email address.  
   This should be able to resolve [issue #4][75]: sending emails from Basic.  
   I will come back a little later with examples in Basic.
 
@@ -435,17 +436,17 @@ ___
 [53]: <https://prrvchr.github.io/eMailerOOo/#spooler-activity-log>
 [54]: <img/eMailerOOo-Spooler2.png>
 [55]: <img/eMailerOOo-Spooler3.png>
-[56]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/ispdb>
+[56]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
 [57]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
-[58]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/spooler>
-[59]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/merger>
-[60]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailer>
+[58]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
+[59]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
+[60]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
 [61]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
 [62]: <https://github.com/mjs/imapclient#readme>
 [63]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
 [64]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
 [65]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[66]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
+[66]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/spooler.py>
 [67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
 [68]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
 [69]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -453,5 +454,5 @@ ___
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
 [72]: <https://github.com/prrvchr/eMailerOOo/issues/5>
 [73]: <https://github.com/prrvchr/eMailerOOo/issues/6>
-[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailServiceConfiguration.idl>
+[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
 [75]: <https://github.com/prrvchr/eMailerOOo/issues/4>

@@ -362,7 +362,8 @@ ___
 ### Ce qui a été fait pour la version 1.1.0:
 
 - Dans l'assistant de configuration de la connexion (IspDB Wizard) il est maintenant possible de désactiver la configuration IMAP.  
-  En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.
+  En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.  
+  Dans ce même assistant, il est désormais possible de saisir une adresse courriel de réponse.
 
 - Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][73].  
   Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
@@ -370,7 +371,7 @@ ___
 
 - Il est désormais possible dans le Spooler de visualiser les courriels au format eml.
 
-- Un nouveau service [com.sun.star.mail.MailServiceConfiguration][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.  
+- Un nouveau service [com.sun.star.mail.MailUser][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.  
   Cela devrait pouvoir résoudre le [dysfonctionnement #4][75]: l'envoi d'e-mails depuis Basic.  
   Je reviendrai un peu plus tard avec des exemples en Basic.
 
@@ -435,17 +436,17 @@ ___
 [53]: <https://prrvchr.github.io/eMailerOOo/README_fr#journal-dactivité-du-spouleur>
 [54]: <img/eMailerOOo-Spooler2_fr.png>
 [55]: <img/eMailerOOo-Spooler3_fr.png>
-[56]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/ispdb>
+[56]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
 [57]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
-[58]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/spooler>
-[59]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/merger>
-[60]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailer>
+[58]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
+[59]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
+[60]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
 [61]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
 [62]: <https://github.com/mjs/imapclient#readme>
 [63]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
 [64]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
 [65]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[66]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/smtpmailer/mailspooler.py>
+[66]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/spooler.py>
 [67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
 [68]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
 [69]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
@@ -453,5 +454,5 @@ ___
 [71]: <https://github.com/prrvchr/eMailerOOo/issues/3>
 [72]: <https://github.com/prrvchr/eMailerOOo/issues/5>
 [73]: <https://github.com/prrvchr/eMailerOOo/issues/6>
-[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailServiceConfiguration.idl>
+[74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
 [75]: <https://github.com/prrvchr/eMailerOOo/issues/4>

@@ -109,4 +109,5 @@ class MailServiceProvider(unohelper.Base,
 
 g_ImplementationHelper.addImplementation(MailServiceProvider,
                                          g_ImplementationName,
-                                         ('com.sun.star.mail.MailServiceProvider', ))
+                                        ('com.sun.star.mail.MailServiceProvider', ))
+

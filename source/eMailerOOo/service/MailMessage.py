@@ -272,4 +272,5 @@ class MailMessage(unohelper.Base,
 
 g_ImplementationHelper.addImplementation(MailMessage,
                                          g_ImplementationName,
-                                         ('com.sun.star.mail.MailMessage', ))
+                                        ('com.sun.star.mail.MailMessage', ))
+

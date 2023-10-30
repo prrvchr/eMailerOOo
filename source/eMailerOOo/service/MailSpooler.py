@@ -39,12 +39,14 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from emailer import Spooler
 
+from emailer import g_identifier
+
 from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'com.sun.star.mail.MailSpooler'
+g_ImplementationName = '%s.MailSpooler' % g_identifier
 
 
 class MailSpooler(unohelper.Base,
@@ -107,6 +109,7 @@ class MailSpooler(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(MailSpooler,                               # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+g_ImplementationHelper.addImplementation(MailSpooler,
+                                         g_ImplementationName,
+                                        ('com.sun.star.mail.MailSpooler',))
+

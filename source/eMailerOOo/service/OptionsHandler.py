@@ -100,7 +100,7 @@ class OptionsHandler(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(OptionsHandler,                            # UNO object class
-                                         g_ImplementationName,                      # Implementation name
-                                        (g_ImplementationName,))                    # List of implemented services
+g_ImplementationHelper.addImplementation(OptionsHandler,
+                                         g_ImplementationName,
+                                        (g_ImplementationName,))
 

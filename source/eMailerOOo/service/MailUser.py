@@ -40,11 +40,13 @@ from emailer import User
 from emailer import executeDispatch
 from emailer import getPropertyValueSet
 
+from emailer import g_identifier
+
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'org.openoffice.pyuno.MailUser'
+g_ImplementationName = '%s.MailUser' % g_identifier
 
 
 class MailUser(unohelper.Base,
@@ -106,6 +108,7 @@ class MailUser(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(MailUser,                                                 # UNO object class
-                                         g_ImplementationName,                                     # Implementation name
-                                        ('com.sun.star.mail.MailUser',))                           # List of implemented services
+g_ImplementationHelper.addImplementation(MailUser,
+                                         g_ImplementationName,
+                                        ('com.sun.star.mail.MailUser',))
+

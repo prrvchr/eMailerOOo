@@ -31,6 +31,6 @@ from .spooler import Spooler
 
 from .mailer import Mailer
 
-from .listener import SpoolerListener
+from .listener import StreamListener
 
 from .dialog import SpoolerManager

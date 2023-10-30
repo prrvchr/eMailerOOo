@@ -38,7 +38,7 @@ from .optionshandler import OptionsListener
 
 from ..logger import LogManager
 
-from ..spooler import SpoolerListener
+from ..spooler import StreamListener
 
 from ..unotool import (executeDispatch,
                        getDesktop)
@@ -63,18 +63,24 @@ class OptionsManager(unohelper.Base):
         infos = {111: version, 112: path}
         self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, g_defaultlog, g_spoolerlog, g_mailservicelog)
         window.addEventListener(OptionsListener(self))
-        self._listener = SpoolerListener(self)
-        self._model.addSpoolerListener(self._listener)
+        self._listener = StreamListener(self)
+        self._model.addStreamListener(self._listener)
 
     def started(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
 
-    def stopped(self):
+    def closed(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
+
+    def terminated(self):
+        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
+
+    def error(self):
+        pass
 
     def dispose(self):
         self._logger.dispose()
-        self._model.removeSpoolerListener(self._listener)
+        self._model.removeStreamListener(self._listener)
 
     def loadSetting(self):
         self._logger.loadSetting()

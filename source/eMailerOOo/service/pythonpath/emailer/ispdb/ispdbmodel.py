@@ -71,7 +71,7 @@ from ..configuration import g_logo
 from ..configuration import g_logourl
 from ..configuration import g_chunk
 
-from ..mailuser import MailUser
+from ..user import User
 
 from .ispdbserver import IspdbServer
 
@@ -171,7 +171,7 @@ class IspdbModel(unohelper.Base):
         progress(20)
         mode = getConnectionMode(self._ctx, url.Server)
         progress(30)
-        user = MailUser(self._ctx, self.Sender)
+        user = User(self._ctx, self.Sender)
         progress(40)
         request = createService(self._ctx, g_service)
         progress(50)

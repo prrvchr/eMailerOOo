@@ -134,10 +134,15 @@ def getMailService(ctx, service):
     stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
     return createService(ctx, name).create(stype)
 
-def getMailConfiguration(ctx, sender):
-    service = 'com.sun.star.mail.MailServiceConfiguration'
-    config = createService(ctx, service, sender)
-    return config
+def getMailUser(ctx, sender):
+    service = 'com.sun.star.mail.MailUser'
+    user = createService(ctx, service, sender)
+    return user
+
+def getMailSpooler(ctx):
+    service = 'com.sun.star.mail.MailSpooler'
+    spooler = createService(ctx, service)
+    return spooler
 
 def getMailMessage(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage'

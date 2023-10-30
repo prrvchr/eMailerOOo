@@ -63,21 +63,29 @@ class Spooler():
     def __init__(self, ctx, source):
         self._ctx = ctx
         self._source = source
-        self._lock = Lock()
         self._stop = Event()
         self._listeners = []
         self._logger = getLogger(ctx, g_spoolerlog)
-        self._thread = Thread(target=self._run)
         self.DataSource = None
 
-# Procedures called by TerminateListener and SpoolerService
-    def stop(self):
+    __lock = Lock()
+    __thread = Thread()
+
+    @property
+    def _lock(self):
+        return Spooler.__lock
+    @property
+    def _thread(self):
+        return Spooler.__thread
+
+# Procedures called by TerminateListener and MailSpooler
+    def terminate(self):
         with self._lock:
             if self._thread.is_alive():
                 self._stop.set()
-                self._thread.join()
+                #self._thread.join()
 
-# Procedures called by SpoolerService
+# Procedures called by MailSpooler
     def isStarted(self):
         with self._lock:
             return self._thread.is_alive()
@@ -85,7 +93,7 @@ class Spooler():
     def start(self):
         with self._lock:
             if not self._thread.is_alive():
-                self._thread = Thread(target=self._run)
+                Spooler.__thread = Thread(target=self._run)
                 self._stop.clear()
                 self._thread.start()
                 self._started()
@@ -148,14 +156,20 @@ class Spooler():
         self._logger.logprb(SEVERE, 'MailSpooler', method, code, *args)
 
     def _started(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
         for listener in self._listeners:
-            listener.started(event)
+            listener.started()
 
-    def _stopped(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+    def _closed(self):
         for listener in self._listeners:
-            listener.stopped(event)
+            listener.closed()
+
+    def _terminated(self):
+        for listener in self._listeners:
+            listener.terminated()
+
+    def _error(self, e):
+        for listener in self._listeners:
+            listener.error(e)
 
     def _run(self):
         handler = RollerHandler(self._ctx, self._logger.Name)
@@ -175,12 +189,15 @@ class Spooler():
                 if total > 0:
                     self._logger.logprb(INFO, 'MailSpooler', 'start()', 1011, total)
                     count = self._sendMails(jobs)
-                    self._logger.logprb(INFO, 'MailSpooler', 'stop()', 1012, count, total)
+                    self._logger.logprb(INFO, 'MailSpooler', self._getMethod(), 1012, count, total)
                 else:
                     self._logger.logprb(INFO, 'MailSpooler', 'start()', 1013)
-        self._logger.logprb(INFO, 'MailSpooler', 'stop()', 1014)
+        self._logger.logprb(INFO, 'MailSpooler', self._getMethod(), self._getResource(1014))
         self._logger.removeRollerHandler(handler)
-        self._stopped()
+        if self._stop.is_set():
+            self._terminated()
+        else:
+            self._closed()
 
     def _sendMails(self, jobs):
         mailer = Mailer(self._ctx, self._source, self.DataSource.DataBase, self._logger, True)
@@ -192,11 +209,16 @@ class Spooler():
                 break
             try:
                 mail = mailer.getMail(job)
+                if self._stop.is_set():
+                    self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
+                    break
                 mailer.sendMail(mail)
             except UnoException as e:
+                self._error(e)
                 self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, e.Message)
                 continue
             except Exception as e:
+                self._error(UnoException(str(e), self._source))
                 self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, str(e), traceback.format_exc())
                 continue
             self.DataSource.DataBase.updateRecipient(1, mail.MessageId, job)
@@ -208,4 +230,10 @@ class Spooler():
     def _isOffLine(self):
         mode = getConnectionMode(self._ctx, *g_dns)
         return mode == OFFLINE
+
+    def _getMethod(self):
+        return 'terminate()' if self._stop.is_set() else 'close()'
+
+    def _getResource(self, code):
+        return code + int(self._stop.is_set())
 

@@ -24,42 +24,28 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_XSpoolerService_idl__
-#define __com_sun_star_mail_XSpoolerService_idl__
+#ifndef __com_sun_star_mail_XMailUser_idl__
+#define __com_sun_star_mail_XMailUser_idl__
 
 #include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/mail/XSpoolerListener.idl>
+#include <com/sun/star/mail/XAuthenticator.idl>
+#include <com/sun/star/uno/XCurrentContext.idl>
+#include <com/sun/star/mail/MailServiceType.idl>
 
 module com { module sun { module star { module mail {
 
-interface XSpoolerService : com::sun::star::uno::XInterface
+interface XMailUser : com::sun::star::uno::XInterface
 {
 
-    void start();
-    void stop();
-    boolean isStarted();
+    boolean supportIMAP();
 
-    long addJob([in] string Sender,
-                [in] string Subject,
-                [in] string Document,
-                [in] sequence<string> Recipients,
-                [in] sequence<string> Attachments);
-    long addMergeJob([in] string Sender,
-                     [in] string Subject,
-                     [in] string Document,
-                     [in] string DataSource,
-                     [in] string Query,
-                     [in] string Table,
-                     [in] sequence<string> Recipients,
-                     [in] sequence<string> Filters,
-                     [in] sequence<string> Attachments);
+    boolean useReplyTo();
 
-    boolean removeJobs([in] sequence<long> JobIds);
-    long getJobState([in] long JobId);
-    sequence<long> getJobIds([in] long BatchId);
+    string getReplyToAddress();
 
-    void addListener([in] XSpoolerListener Listener);
-    void removeListener([in] XSpoolerListener Listener);
+    com::sun::star::mail::XAuthenticator getAuthenticator([in] MailServiceType aType);
+
+    com::sun::star::uno::XCurrentContext getConnectionContext([in] MailServiceType aType);
 
 };
 

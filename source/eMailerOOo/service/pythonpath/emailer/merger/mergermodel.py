@@ -176,14 +176,9 @@ class MergerModel(MailModel):
 
 # Procedures called by WizardPage1
     # AddressBook methods
-    def _getDatabaseContext(self):
-        service = 'com.sun.star.sdb.DatabaseContext'
-        return createService(self._ctx, service)
-
     def getAvailableAddressBooks(self):
-        names = self._getDatabaseContext().getElementNames()
-        print("MergerModel.getAvailableAddressBooks(): %s" % (names, ))
-        return names
+        service = 'com.sun.star.sdb.DatabaseContext'
+        return createService(self._ctx, service).getElementNames()
 
     def getDefaultAddressBook(self):
         book = ''

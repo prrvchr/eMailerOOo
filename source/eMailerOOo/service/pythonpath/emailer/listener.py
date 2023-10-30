@@ -42,7 +42,7 @@ class TerminateListener(unohelper.Base,
 # XTerminateListener
     def queryTermination(self, event):
         try:
-            self._spooler.stop()
+            self._spooler.terminate()
         except Exception as e:
             msg = "TerminateListener Error: %s" % traceback.format_exc()
             print(msg)

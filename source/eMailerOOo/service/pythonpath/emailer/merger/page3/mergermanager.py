@@ -46,7 +46,7 @@ from .mergerhandler import RecipientHandler
 from ...mail import MailManager
 from ...mail import WindowHandler
 
-from ...unotool import createService
+from ...mailertool import getMailSpooler
 
 from threading import Condition
 import traceback
@@ -106,9 +106,7 @@ class MergerManager(MailManager,
             sender, recipients = self._view.getEmail()
             url, datasource, query, table, filters = self._model.getDocumentInfo()
             print("MergerManager.sendDocument() %s: %s - %s - %s - %s - %s\n%s" % (sender, subject, url, datasource, query, table, recipients))
-            service = 'com.sun.star.mail.SpoolerService'
-            spooler = createService(self._ctx, service)
-            id = spooler.addMergeJob(sender, subject, url, datasource, query, table, recipients, filters, attachments)
+            id = getMailSpooler(self._ctx).addMergeJob(sender, subject, url, datasource, query, table, recipients, filters, attachments)
 
 # MergerManager private setter methods
     def _closeDocument(self, document):

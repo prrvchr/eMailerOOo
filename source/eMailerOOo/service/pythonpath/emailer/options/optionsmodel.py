@@ -29,7 +29,8 @@
 
 import unohelper
 
-from ..unotool import createService
+from ..mailertool import getMailSpooler
+
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
@@ -49,17 +50,17 @@ class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
+        self._spooler = getMailSpooler(ctx)
         self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
         self._resources = {'SpoolerStatus': 'OptionsDialog.Label4.Label.%s'}
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
 
-    def addSpoolerListener(self, listener):
+    def addStreamListener(self, listener):
         self._spooler.addListener(listener)
 
-    def removeSpoolerListener(self, listener):
+    def removeStreamListener(self, listener):
         self._spooler.removeListener(listener)
 
     def getViewData(self):
@@ -77,7 +78,7 @@ class OptionsModel():
         if state:
             self._spooler.start()
         else:
-            self._spooler.stop()
+            self._spooler.terminate()
 
     def getSpoolerStatus(self, started):
         resource = self._resources.get('SpoolerStatus') % started

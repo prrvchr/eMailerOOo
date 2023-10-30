@@ -242,7 +242,7 @@ CREATE FUNCTION "GetDomain"(EMAIL VARCHAR(320))
 """
 
 # Delete Procedure Queries
-    # SpoolerService Delete Procedure Queries
+    # MailSpooler Delete Procedure Queries
     elif name == 'createDeleteJobs':
         query = """\
 CREATE PROCEDURE "DeleteJobs"(IN JOBIDS INTEGER ARRAY)
@@ -312,7 +312,7 @@ CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
   END;"""
 
 # Insert Procedure Queries
-    # SpoolerService Insert Procedure Queries
+    # MailSpooler Insert Procedure Queries
     elif name == 'createInsertJob':
         query = """\
 CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
@@ -343,7 +343,7 @@ CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
     SET BATCHID = ID;
   END;"""
 
-    # SpoolerService Insert Procedure Queries
+    # MailSpooler Insert Procedure Queries
     elif name == 'createInsertMergeJob':
         query = """\
 CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),

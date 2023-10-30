@@ -43,7 +43,7 @@ from email.utils import parseaddr
 import traceback
 
 
-class MailUser(unohelper.Base):
+class User(unohelper.Base):
     def __init__(self, ctx, sender, new=False):
         self._sender = sender
         name, address = parseaddr(sender)

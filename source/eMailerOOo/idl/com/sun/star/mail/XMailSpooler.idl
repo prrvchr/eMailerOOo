@@ -24,28 +24,36 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_XMailServiceConfiguration_idl__
-#define __com_sun_star_mail_XMailServiceConfiguration_idl__
+#ifndef __com_sun_star_mail_XMailSpooler_idl__
+#define __com_sun_star_mail_XMailSpooler_idl__
 
-#include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/mail/XAuthenticator.idl>
-#include <com/sun/star/uno/XCurrentContext.idl>
-#include <com/sun/star/mail/MailServiceType.idl>
+#include <com/sun/star/io/XActiveDataControl.idl>
 
 module com { module sun { module star { module mail {
 
-interface XMailServiceConfiguration : com::sun::star::uno::XInterface
+interface XMailSpooler : com::sun::star::io::XActiveDataControl
 {
 
-    boolean supportIMAP();
+    boolean isStarted();
 
-    boolean useReplyTo();
+    long addJob([in] string Sender,
+                [in] string Subject,
+                [in] string Document,
+                [in] sequence<string> Recipients,
+                [in] sequence<string> Attachments);
+    long addMergeJob([in] string Sender,
+                     [in] string Subject,
+                     [in] string Document,
+                     [in] string DataSource,
+                     [in] string Query,
+                     [in] string Table,
+                     [in] sequence<string> Recipients,
+                     [in] sequence<string> Filters,
+                     [in] sequence<string> Attachments);
 
-    string getReplyToAddress();
-
-    com::sun::star::mail::XAuthenticator getAuthenticator([in] MailServiceType aType);
-
-    com::sun::star::uno::XCurrentContext getConnectionContext([in] MailServiceType aType);
+    boolean removeJobs([in] sequence<long> JobIds);
+    long getJobState([in] long JobId);
+    sequence<long> getJobIds([in] long BatchId);
 
 };
 

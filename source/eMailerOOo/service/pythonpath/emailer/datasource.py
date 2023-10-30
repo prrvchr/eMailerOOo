@@ -106,7 +106,7 @@ class DataSource(unohelper.Base,
     def getFilter(self, identifier, value, dbtype):
         return '"%s" = %s' % (identifier, self.getFilterValue(value, dbtype))
 
-# Procedures called by the SpoolerService
+# Procedures called by the MailSpooler
     def insertJob(self, sender, subject, document, recipient, attachment):
         recipients = Array('VARCHAR', recipient)
         attachments = Array('VARCHAR', attachment)

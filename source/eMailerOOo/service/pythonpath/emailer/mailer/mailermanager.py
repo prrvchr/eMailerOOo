@@ -37,7 +37,7 @@ from .mailermodel import MailerModel
 from .mailerview import MailerView
 from .mailerhandler import DialogHandler
 
-from ..unotool import createService
+from ..mailertool import getMailSpooler
 
 import traceback
 
@@ -95,9 +95,7 @@ class MailerManager(MailManager):
             print("MailerManager.sendDocument() *************************** %s - %s" % (subject, attachments))
             sender, recipients = self._view.getEmail()
             url = self._model.getUrl()
-            service = 'com.sun.star.mail.SpoolerService'
-            spooler = createService(self._ctx, service)
-            id = spooler.addJob(sender, subject, url, recipients, attachments)
+            id = getMailSpooler(self._ctx).addJob(sender, subject, url, recipients, attachments)
             self._view.endDialog()
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()

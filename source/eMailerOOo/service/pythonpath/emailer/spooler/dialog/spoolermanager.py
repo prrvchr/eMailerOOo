@@ -41,14 +41,15 @@ from .spoolerhandler import DialogHandler
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
 
-from ..listener import SpoolerListener
+from ..listener import StreamListener
 
 from ...grid import GridListener
 from ...grid import RowSetListener
 
 from ...dispatchlistener import DispatchListener
 
-from ...unotool import createService
+from ...mailertool import getMailSpooler
+
 from ...unotool import executeDispatch
 from ...unotool import executeShell
 from ...unotool import getPropertyValueSet
@@ -75,8 +76,8 @@ class SpoolerManager(unohelper.Base):
         self._model = SpoolerModel(ctx, datasource)
         titles = self._model.getDialogTitles()
         self._view = SpoolerView(ctx, DialogHandler(self), Tab1Handler(self), Tab2Handler(self), parent, *titles)
-        self._spooler = createService(ctx, 'com.sun.star.mail.SpoolerService')
-        self._spoolerlistener = SpoolerListener(self)
+        self._spooler = getMailSpooler(ctx)
+        self._spoolerlistener = StreamListener(self)
         self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
         window = self._view.getGridWindow()
@@ -117,9 +118,16 @@ class SpoolerManager(unohelper.Base):
     def started(self):
         self._refreshSpoolerView(1)
 
-    def stopped(self):
+    def closed(self):
         self._model.executeRowSet()
         self._refreshSpoolerView(0)
+
+    def terminated(self):
+        self._model.executeRowSet()
+        self._refreshSpoolerView(0)
+
+    def error(self):
+        pass
 
     def saveGrid(self):
         self._model.saveGrid()
@@ -169,7 +177,7 @@ class SpoolerManager(unohelper.Base):
         if state:
             self._spooler.start()
         else:
-            self._spooler.stop()
+            self._spooler.terminate()
 
     def closeSpooler(self):
         self._view.endDialog()

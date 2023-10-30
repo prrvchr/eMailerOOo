@@ -24,19 +24,27 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_XSpoolerListener_idl__
-#define __com_sun_star_mail_XSpoolerListener_idl__
-
-#include <com/sun/star/lang/XEventListener.idl>
-#include <com/sun/star/lang/EventObject.idl>
+#ifndef __com_sun_star_mail_MailUser_idl__
+#define __com_sun_star_mail_MailUser_idl__
 
 module com { module sun { module star { module mail {
 
-interface XSpoolerListener: com::sun::star::lang::XEventListener
-{
+interface XMailUser;
 
-    void started([in] com::sun::star::lang::EventObject Event);
-    void stopped([in] com::sun::star::lang::EventObject Event);
+service MailUser : XMailUser
+{
+    /**
+        Constructs an instance of a MailUser.
+        This service use the Mozilla IspDB configuration as a backend.
+
+        @param sSender
+        [in] the e-mail address of the account used to send email with the XMailService.
+        The e-mail address has to conform to <a href="http://www.ietf.org/rfc/rfc822.txt">RFC&nbsp;822</a>.
+
+        @see com::sun::star::mail::XMailServiceProvider
+        @see com::sun::star::mail::XMailUser
+    */
+    create([in] string sSender);
 
 };
 

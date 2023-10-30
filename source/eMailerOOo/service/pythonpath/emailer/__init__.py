@@ -39,7 +39,7 @@ from .unotool import executeDispatch
 from .unotool import getPropertyValueSet
 from .unotool import getConfiguration
 
-from .mailuser import MailUser
+from .user import User
 
 from .maildispatch import MailDispatch
 

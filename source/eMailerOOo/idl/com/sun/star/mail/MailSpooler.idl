@@ -24,27 +24,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_MailServiceConfiguration_idl__
-#define __com_sun_star_mail_MailServiceConfiguration_idl__
+#ifndef __com_sun_star_mail_MailSpooler_idl__
+#define __com_sun_star_mail_MailSpooler_idl__
+
+#include <com/sun/star/mail/XMailSpooler.idl>
 
 module com { module sun { module star { module mail {
 
-interface XMailServiceConfiguration;
-
-service MailServiceConfiguration : XMailServiceConfiguration
+service MailSpooler: XMailSpooler
 {
-    /**
-        Constructs an instance of a MailServiceConfiguration.
-        This service use the Mozilla IspDB configuration as a backend.
 
-        @param sSender
-        [in] the e-mail address of the account used to send email with the XMailService.
-        The e-mail address has to conform to <a href="http://www.ietf.org/rfc/rfc822.txt">RFC&nbsp;822</a>.
-
-        @see com::sun::star::mail::XMailServiceProvider
-        @see com::sun::star::mail::XMailServiceConfiguration
-    */
-    create([in] string sSender);
+    create();
 
 };
 

@@ -29,22 +29,28 @@
 
 import unohelper
 
-from com.sun.star.mail import XSpoolerListener
+from com.sun.star.io import XStreamListener
 
 import traceback
 
 
-class SpoolerListener(unohelper.Base,
-                      XSpoolerListener):
+class StreamListener(unohelper.Base,
+                     XStreamListener):
     def __init__(self, manager):
         self._manager = manager
 
-    # XSpoolerListener
-    def started(self, source):
+    # XStreamListener
+    def started(self):
         self._manager.started()
 
-    def stopped(self, source):
-        self._manager.stopped()
+    def closed(self):
+        self._manager.closed()
+
+    def terminated(self):
+        self._manager.terminated()
+
+    def error(self, e):
+        self._manager.error(e)
 
     def disposing(self, source):
         pass

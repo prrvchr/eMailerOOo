@@ -52,7 +52,7 @@ from ..unotool import getUriFactory
 
 from ..dbtool import getRowDict
 
-from ..mailertool import getMailConfiguration
+from ..mailertool import getMailUser
 from ..mailertool import getMailMessage
 from ..mailertool import getMailService
 from ..mailertool import getMessageImage
@@ -133,7 +133,7 @@ class Mailer():
         self._url, self._urls = self._getUrls(recipient, job, document, merge)
         if self._send:
             sender = metadata.get('Sender')
-            user = getMailConfiguration(self._ctx, sender)
+            user = getMailUser(self._ctx, sender)
             self._server = self._getMailServer(user, SMTP)
             if self._needThread(user, merge):
                 threadid = self._createThread(recipient.BatchId, user, document, sender, metadata)

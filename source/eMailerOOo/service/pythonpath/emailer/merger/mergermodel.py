@@ -911,6 +911,7 @@ class MergerModel(MailModel):
 
 # Private procedures called by WizardPage3
     def _initPage3(self, handler, initView, initRecipient):
+        sleep(0.2)
         self._recipient.addRowSetListener(handler)
         initView(self._document)
         recipients, message = self.getRecipients()

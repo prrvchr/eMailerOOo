@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,71 +22,23 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-import unohelper
+#ifndef __com_sun_star_mail_SpoolerException_idl__
+#define __com_sun_star_mail_SpoolerException_idl__
 
-from ..mailertool import getMailSpooler
+#include <com/sun/star/mail/MailException.idl>
 
-from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
-from ..unotool import getSimpleFile
-from ..unotool import getStringResource
-
-from ..dbconfig  import g_folder
-
-from ..configuration import g_basename
-from ..configuration import g_identifier
-from ..configuration import g_extension
-from ..configuration import g_separator
-
-import traceback
+module com { module sun { module star { module mail {
 
 
-class OptionsModel():
-    def __init__(self, ctx):
-        self._ctx = ctx
-        self._config = getConfiguration(ctx, g_identifier, True)
-        self._spooler = getMailSpooler(ctx)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
-        self._resources = {'SpoolerStatus': 'OptionsDialog.Label5.Label.%s'}
-        folder = g_folder + g_separator + g_basename
-        location = getResourceLocation(ctx, g_identifier, folder)
-        self._url = location + '.odb'
+exception SpoolerException: com::sun::star::mail::MailException
+{
 
-    def addStreamListener(self, listener):
-        self._spooler.addListener(listener)
+    any args;
 
-    def removeStreamListener(self, listener):
-        self._spooler.removeListener(listener)
+};
 
-    def getViewData(self):
-        exist = getSimpleFile(self._ctx).exists(self._url)
-        timeout = self._config.getByName('ConnectTimeout')
-        msg, state = self._getSpoolerStatus()
-        return exist, timeout, msg, state
+}; }; }; };
 
-    def saveTimeout(self, timeout):
-        self._config.replaceByName('ConnectTimeout', timeout)
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
-
-    def toogleSpooler(self, state):
-        if state:
-            self._spooler.start()
-        else:
-            self._spooler.terminate()
-
-    def getSpoolerStatus(self, started):
-        resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource), started
-
-    def getDataBaseUrl(self):
-        return self._url
-
-    # OptionsModel private methods
-    def _getSpoolerStatus(self):
-        started = int(self._spooler.isStarted())
-        resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource), started
-
+#endif

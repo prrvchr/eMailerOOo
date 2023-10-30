@@ -40,13 +40,13 @@ from ..logger import LogManager
 
 from ..spooler import StreamListener
 
-from ..unotool import (executeDispatch,
-                       getDesktop)
+from ..unotool import executeFrameDispatch
+from ..unotool import getDesktop
 
-from ..configuration import (g_identifier,
-                             g_defaultlog,
-                             g_spoolerlog,
-                             g_mailservicelog)
+from ..configuration import g_identifier
+from ..configuration import g_defaultlog
+from ..configuration import g_spoolerlog
+from ..configuration import g_mailservicelog
 
 import os
 import sys
@@ -75,8 +75,8 @@ class OptionsManager(unohelper.Base):
     def terminated(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
 
-    def error(self):
-        pass
+    def error(self, e):
+        self._view.setSpoolerError(e.Message)
 
     def dispose(self):
         self._logger.dispose()
@@ -94,23 +94,21 @@ class OptionsManager(unohelper.Base):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        try:
-            executeDispatch(self._ctx, 'smtp:ispdb')
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+        frame = getDesktop(self._ctx).getCurrentFrame()
+        if frame is not None:
+            executeFrameDispatch(self._ctx, frame, 'smtp:ispdb')
 
     def toogleSpooler(self, state):
         self._model.toogleSpooler(state)
+        if state:
+            self._view.clearSpoolerError()
 
     def showSpooler(self):
-        try:
-            executeDispatch(self._ctx, 'smtp:spooler')
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+        frame = getDesktop(self._ctx).getCurrentFrame()
+        if frame is not None:
+            executeFrameDispatch(self._ctx, frame, 'smtp:spooler')
 
     def showDataBase(self):
         url = self._model.getDataBaseUrl()
-        getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, ())
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
 

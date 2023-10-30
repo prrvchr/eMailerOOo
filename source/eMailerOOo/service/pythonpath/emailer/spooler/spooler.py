@@ -35,7 +35,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
-from com.sun.star.uno import Exception as UnoException
+from com.sun.star.mail import SpoolerException
 
 from ..listener import TerminateListener
 
@@ -213,12 +213,12 @@ class Spooler():
                     self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
                     break
                 mailer.sendMail(mail)
-            except UnoException as e:
+            except SpoolerException as e:
                 self._error(e)
                 self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, e.Message)
                 continue
             except Exception as e:
-                self._error(UnoException(str(e), self._source))
+                self._error(SpoolerException(str(e), self._source, ()))
                 self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, str(e), traceback.format_exc())
                 continue
             self.DataSource.DataBase.updateRecipient(1, mail.MessageId, job)

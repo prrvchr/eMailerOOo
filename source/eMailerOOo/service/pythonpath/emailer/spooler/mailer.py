@@ -32,6 +32,8 @@ import uno
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
+from com.sun.star.mail import SpoolerException
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -272,7 +274,7 @@ class Mailer():
             table = metadata.get('Table')
             if not connection.getTables().hasByName(table):
                 msg = self._getErrorMessage(1504, name, table)
-                raise UnoException(msg, self._source)
+                raise SpoolerException(msg, self._source, ())
             rowset = self._getRowSet(connection, name, table)
             descriptor = {'DataSourceName': name,
                           'ActiveConnection': connection,
@@ -343,7 +345,7 @@ class Mailer():
     def _checkUrl(self, url, job, resource):
         if not self._sf.exists(url):
             msg = self._getErrorMessage(resource, job, url)
-            raise UnoException(msg, self._source)
+            raise SpoolerException(msg, self._source, ())
 
     def _getErrorMessage(self, code, *format):
         return self._logger.resolveString(code, *format)

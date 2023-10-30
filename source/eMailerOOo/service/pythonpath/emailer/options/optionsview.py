@@ -54,16 +54,25 @@ class OptionsView(unohelper.Base):
         control.Enabled = True
         self._getSpoolerStatus().Text = msg
 
+    def setSpoolerError(self, error):
+        self._getSpoolerError().Text = error
+
+    def clearSpoolerError(self):
+        self._getSpoolerError().Text = ''
+
 # OptionsView private control methods
     def _getTimeout(self):
         return self._dialog.getControl('NumericField1')
 
     def _getSpoolerStatus(self):
-        return self._dialog.getControl('Label4')
+        return self._dialog.getControl('Label5')
 
-    def _getSpoolerButton(self):
-        return self._dialog.getControl('CommandButton2')
+    def _getSpoolerError(self):
+        return self._dialog.getControl('Label7')
 
     def _getDataBaseButton(self):
-        return self._dialog.getControl('CommandButton4')
+        return self._dialog.getControl('CommandButton2')
+
+    def _getSpoolerButton(self):
+        return self._dialog.getControl('CommandButton3')
 

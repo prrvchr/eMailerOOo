@@ -38,6 +38,7 @@ from .logger import getLogger
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
+from .unotool import getCurrentLocale
 from .unotool import getMimeTypeFactory
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile

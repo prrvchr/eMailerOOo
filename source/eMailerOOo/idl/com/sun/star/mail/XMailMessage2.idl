@@ -28,6 +28,7 @@
 #define __com_sun_star_mail_XMailMessage2_idl__
 
 #include <com/sun/star/mail/XMailMessage.idl>
+#include <com/sun/star/mail/MailMessageException.idl>
 
 module com { module sun { module star { module mail {
 
@@ -39,8 +40,11 @@ interface XMailMessage2 : XMailMessage
     boolean hasBccRecipients();
     boolean hasAttachments();
 
-    sequence<byte> asBytes();
-    string asString();
+    sequence<byte> asBytes()
+        raises (com::sun::star::mail::MailMessageException);
+
+    string asString()
+        raises (com::sun::star::mail::MailMessageException);
 
     [attribute] string MessageId;
     [attribute] string ThreadId;

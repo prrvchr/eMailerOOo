@@ -125,7 +125,7 @@ Ces champs de fusion doivent uniquement faire référence à la **table principa
 
 Si vous souhaitez utiliser un **document Writer déja existant**, vous devez vous assurer en plus que la **source de données** et la **table principale** sont bien rattachées au document dans : **Outils -> Source du carnet d'adresses...**.
 
-Si ces recommandations ne sont pas suivies alors **la fusion de documents de fonctionnera pas** et ceci silencieusement.
+Si ces recommandations ne sont pas suivies alors **la fusion de documents ne fonctionnera pas** et ceci silencieusement.
 
 #### Démarrage de l'assistant de publipostage de courriels:
 
@@ -148,7 +148,7 @@ Dans la copie d'écran suivante, on peut voir que la **source de données** gCon
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
 Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée dans la liste des tables.  
-Si cette recommandation n'est pas suivie alors **la fusion de documents de fonctionnera pas** et ceci silencieusement.
+Si cette recommandation n'est pas suivie alors **la fusion de documents ne fonctionnera pas** et ceci silencieusement.
 
 ![eMailerOOo Merger screenshot 4][35]
 

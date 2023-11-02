@@ -24,18 +24,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_mail_SpoolerException_idl__
-#define __com_sun_star_mail_SpoolerException_idl__
+#ifndef __com_sun_star_datatransfer_TransferableFactory_idl__
+#define __com_sun_star_datatransfer_TransferableFactory_idl__
 
-#include <com/sun/star/mail/MailException.idl>
+module com { module sun { module star { module datatransfer {
 
-module com { module sun { module star { module mail {
+interface XTransferableFactory;
 
-
-exception SpoolerException: com::sun::star::mail::MailException
+service TransferableFactory : XTransferableFactory
 {
 
-    any args;
+    create();
 
 };
 

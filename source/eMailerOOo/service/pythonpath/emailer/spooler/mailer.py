@@ -32,7 +32,7 @@ import uno
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
-from com.sun.star.mail import SpoolerException
+from com.sun.star.mail import MailSpoolerException
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -41,7 +41,7 @@ from com.sun.star.sdb.CommandType import TABLE
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..mailerlib import MailTransferable
+from ..transferable import Transferable
 
 from ..mailertool import getDataBaseContext
 
@@ -80,6 +80,7 @@ class Mailer():
         self._server = None
         self._sf = getSimpleFile(ctx)
         self._uf = getUriFactory(ctx)
+        self._transferable = Transferable(ctx, logger)
         self._batch = None
         self._user = None
         self._descriptor = None
@@ -112,7 +113,8 @@ class Mailer():
             self._initMailer(job, recipient)
         elif self._merge:
             self._mergeMail(recipient.Filter)
-        body = MailTransferable(self._ctx, self._getBodyUrl(), True, True)
+        #body = MailTransferable(self._ctx, self._getBodyUrl(), True, True)
+        body = self._transferable.getByUrl(self._url.Main)
         mail = getMailMessage(self._ctx, self._getSender(), recipient.Recipient, self._getSubject(), body)
         if self._hasThread():
             mail.ThreadId = self._threadid
@@ -152,7 +154,8 @@ class Mailer():
         if server.hasFolder(folder):
             subject = metadata.get('Subject')
             message = self._getThreadMessage(batch, document, subject, metadata.get('Query'))
-            body = MailTransferable(self._ctx, message, True)
+            body = self._transferable.getByData('utf-8', message)
+            #body = MailTransferable(self._ctx, message, True)
             mail = getMailMessage(self._ctx, sender, sender, subject, body)
             server.uploadMessage(folder, mail)
             threadid = mail.MessageId
@@ -224,9 +227,6 @@ class Mailer():
         descriptor = self._getFilteredDescriptor(filter)
         self._url.merge(descriptor)
 
-    def _getBodyUrl(self):
-        return self._url.Main
-
     def _getDocumentTitle(self):
         return self._url.Title
 
@@ -259,7 +259,8 @@ class Mailer():
 
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
-        attachment.Data = MailTransferable(self._ctx, url.Main, False, True)
+        attachment.Data = self._transferable.getByUrl(url.Main)
+        #attachment.Data = MailTransferable(self._ctx, url.Main, False, True)
         attachment.ReadableName = url.Name
         return attachment
 
@@ -274,7 +275,7 @@ class Mailer():
             table = metadata.get('Table')
             if not connection.getTables().hasByName(table):
                 msg = self._getErrorMessage(1504, name, table)
-                raise SpoolerException(msg, self._source, ())
+                raise MailSpoolerException(msg, self._source, ())
             rowset = self._getRowSet(connection, name, table)
             descriptor = {'DataSourceName': name,
                           'ActiveConnection': connection,
@@ -345,7 +346,7 @@ class Mailer():
     def _checkUrl(self, url, job, resource):
         if not self._sf.exists(url):
             msg = self._getErrorMessage(resource, job, url)
-            raise SpoolerException(msg, self._source, ())
+            raise MailSpoolerException(msg, self._source, ())
 
     def _getErrorMessage(self, code, *format):
         return self._logger.resolveString(code, *format)

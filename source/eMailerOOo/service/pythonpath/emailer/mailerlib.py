@@ -30,16 +30,39 @@
 import uno
 import unohelper
 
+from com.sun.star.datatransfer import UnsupportedFlavorException
 from com.sun.star.datatransfer import XTransferable
+
 from com.sun.star.mail import XAuthenticator
+
 from com.sun.star.uno import XCurrentContext
 
-from .unotool import createService
-from .unotool import getFileSequence
-
-from .mailertool import getAttachmentType
-
 import traceback
+
+
+def getTransferable(logger, flavor, data):
+    return Transferable(logger, flavor, data)
+
+
+class Transferable(unohelper.Base,
+                   XTransferable):
+    def __init__(self, logger, flavor, data):
+        self._logger = logger
+        self._flavor = flavor
+        self._data = data
+
+# XTransferable
+    def getTransferData(self, flavor):
+        if not self.isDataFlavorSupported(flavor):
+            msg = self._logger.resolveString(3001, flavor.MimeType, flavor.DataType.typeName)
+            raise UnsupportedFlavorException(msg, self)
+        return self._data
+
+    def getTransferDataFlavors(self):
+        return (self._flavor,)
+
+    def isDataFlavorSupported(self, flavor):
+        return flavor.MimeType == self._flavor.MimeType and flavor.DataType == self._flavor.DataType
 
 
 class Authenticator(unohelper.Base,
@@ -64,50 +87,3 @@ class CurrentContext(unohelper.Base,
     def getValueByName(self, name):
         return self._context.get(name)
 
-
-class MailTransferable(unohelper.Base,
-                       XTransferable):
-    def __init__(self, ctx, data, html=False, url=False):
-        print("MailTransferable.__init__() 1")
-        self._ctx = ctx
-        self._data = data
-        self._html = html
-        self._url = url
-        self._mimetext = 'text/plain; charset=utf-16'
-        if url and not html:
-            self._mimetype = getAttachmentType(ctx, data)
-        elif html:
-            self._mimetype = 'text/html; charset=utf-8'
-        else:
-            self._mimetype = self._mimetext
-        print("MailTransferable.__init__() 2 %s" % self._mimetype)
-
-# XTransferable
-    def getTransferData(self, flavor):
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(flavor)
-        if self._url:
-            print("MailTransferable.getTransferData() 1")
-            lenght, sequence = getFileSequence(self._ctx, self._data)
-            data = sequence
-        else:
-            print("MailTransferable.getTransferData() 2 %s" % flavor.MimeType)
-            data = self._data
-        return data
-
-    def getTransferDataFlavors(self):
-        flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
-        flavor.MimeType = self._mimetype
-        if self._html:
-            flavor.HumanPresentableName = 'HTML-Documents'
-        elif self._url:
-            flavor.HumanPresentableName = 'E-Documents'
-        else:
-            flavor.HumanPresentableName = 'Unicode text'
-        print("MailTransferable.getTransferDataFlavors() 1 %s" % flavor.MimeType)
-        return (flavor,)
-
-    def isDataFlavorSupported(self, flavor):
-        support = flavor.MimeType == self._mimetype
-        print("MailTransferable.isDataFlavorSupported() 1 %s - %s - %s" % (flavor.MimeType, flavor.DataType, support))
-        return support

@@ -30,7 +30,7 @@ import uno
 
 from com.sun.star.sdbc import SQLException
 
-from com.sun.star.mail import SpoolerException
+from com.sun.star.mail import MailSpoolerException
 
 from .database import DataBase
 
@@ -95,18 +95,18 @@ def getDataBaseContext(ctx, source, name, resolver, code, *format):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     if not dbcontext.hasByName(name):
         msg = resolver(code, name, *format)
-        raise SpoolerException(msg, source, ())
+        raise MailSpoolerException(msg, source, ())
     location = dbcontext.getDatabaseLocation(name)
     # FIXME: The location can be an embedded database in odt file
     # FIXME: ie: vnd.sun.star.pkg://file://path/document.odt/EmbeddedDatabase
     # FIXME: eMailerOOo cannot work with such a datasource
     if not location.startswith('file://'):
         msg = resolver(code +1, location, *format)
-        raise SpoolerException(msg, source, ())
+        raise MailSpoolerException(msg, source, ())
     # We need to check if the registered datasource has an existing odb file
     if not getSimpleFile(ctx).exists(location):
         msg = resolver(code +2, location, *format)
-        raise SpoolerException(msg, source, ())
+        raise MailSpoolerException(msg, source, ())
     return dbcontext, location
 
 def getMessageImage(ctx, url):
@@ -148,6 +148,11 @@ def getMailMessage(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage'
     mail = createService(ctx, service, recipient, sender, subject, body)
     return mail
+
+def getTransferable(ctx):
+    service = 'com.sun.star.datatransfer.TransferableFactory'
+    transferable = createService(ctx, service)
+    return transferable
 
 def getNamedExtension(name):
     part1, dot, part2 = name.rpartition('.')
@@ -204,27 +209,18 @@ def saveDocumentTmp(ctx, document, format=None):
     url = getUrl(ctx, url)
     return url
 
-def getAttachmentType(ctx, url):
+def getTransferableMimeValues(ctx, descriptor, uiname, deep=True):
+    mimetype = 'application/octet-stream'
     service = 'com.sun.star.document.TypeDetection'
     detection = createService(ctx, service)
-    type = detection.queryTypeByURL(url)
-    if detection.hasByName(type):
-        types = detection.getByName(type)
-        for type in types:
-            if type.Name == 'MediaType':
-                return type.Value
-    return 'application/octet-stream'
-
-def getUrlMimeType(detection, url):
-    mimetype = 'application/octet-stream'
-    name = detection.queryTypeByURL(url)
-    if detection.hasByName(name):
-        types = detection.getByName(name)
-        for t in types:
-            print("mailertool.getUrlMimeType() %s - %s" % (t.Name, t.Value))
-            if t.Name == 'MediaType':
+    itype, descriptor = detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
+    if detection.hasByName(itype):
+        for t in detection.getByName(itype):
+            if t.Name == 'UIName':
+                uiname = t.Value
+            elif t.Name == 'MediaType':
                 mimetype = t.Value
-    return mimetype
+    return uiname, mimetype
 
 def _getDocumentExtension(document):
     identifier = document.getIdentifier()

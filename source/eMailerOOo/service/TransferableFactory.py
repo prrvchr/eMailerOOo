@@ -27,53 +27,65 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .unotool import checkVersion
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import createWindow
-from .unotool import executeDispatch
-from .unotool import executeFrameDispatch
-from .unotool import executeShell
-from .unotool import generateUuid
-from .unotool import getConfiguration
-from .unotool import getConnectionMode
-from .unotool import getContainerWindow
-from .unotool import getCurrentLocale
-from .unotool import getDateTime
-from .unotool import getDesktop
-from .unotool import getDialog
-from .unotool import getDialogUrl
-from .unotool import getDocument
-from .unotool import getExceptionMessage
-from .unotool import getExtensionVersion
-from .unotool import getFilePicker
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getInteractionHandler
-from .unotool import getInterfaceTypes
-from .unotool import getMimeTypeFactory
-from .unotool import getNamedValue
-from .unotool import getNamedValueSet
-from .unotool import getParentWindow
-from .unotool import getPathSettings
-from .unotool import getProperty
-from .unotool import getPropertyValue
-from .unotool import getPropertyValueSet
-from .unotool import getResourceLocation
-from .unotool import getSequenceInputStream
-from .unotool import getSimpleFile
-from .unotool import getStreamSequence
-from .unotool import getStringResource
-from .unotool import getStringResourceWithLocation
-from .unotool import getTempFile
-from .unotool import getTypeDetection
-from .unotool import getUriFactory
-from .unotool import getUrl
-from .unotool import getUrlPresentation
-from .unotool import getUrlTransformer
-from .unotool import hasInterface
-from .unotool import hasService
-from .unotool import parseDateTime
-from .unotool import parseUrl
-from .unotool import unparseDateTime
-from .unotool import unparseTimeStamp
+import uno
+import unohelper
+
+from com.sun.star.datatransfer import XTransferableFactory
+
+from com.sun.star.lang import XServiceInfo
+
+from emailer import Transferable
+
+from emailer import getLogger
+
+from emailer import g_identifier
+from emailer import g_mailservicelog
+
+import traceback
+
+# pythonloader looks for a static g_ImplementationHelper variable
+g_ImplementationHelper = unohelper.ImplementationHelper()
+g_ImplementationName = '%s.TransferableFactory' % g_identifier
+
+
+class TransferableFactory(unohelper.Base,
+                          XServiceInfo,
+                          XTransferableFactory):
+    def __init__(self, ctx):
+        self._transferable = Transferable(ctx, getLogger(ctx, g_mailservicelog))
+
+    @property
+    def Encoding(self):
+        return self._transferable.Encoding
+    @Encoding.setter
+    def Encoding(self, encoding):
+        self._transferable.Encoding = encoding
+
+
+# XTransferableFactory
+    def getBySequence(self, sequence):
+        return self._transferable.getBySequence(sequence)
+
+    def getByUrl(self, url):
+        return self._transferable.getByUrl(url)
+
+    def getByStream(self, stream):
+        return self._transferable.getByStream(stream)
+
+    def getByString(self, data):
+        return self._transferable.getByString(data)
+
+
+    # XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+
+g_ImplementationHelper.addImplementation(TransferableFactory,
+                                         g_ImplementationName,
+                                        ('com.sun.star.datatransfer.TransferableFactory',))
+

@@ -35,9 +35,14 @@ from .options import OptionsManager
 
 from .logger import getLogger
 
+from .unotool import createService
 from .unotool import executeDispatch
-from .unotool import getPropertyValueSet
 from .unotool import getConfiguration
+from .unotool import getMimeTypeFactory
+from .unotool import getPropertyValueSet
+from .unotool import getSimpleFile
+from .unotool import getStreamSequence
+from .unotool import hasInterface
 
 from .user import User
 
@@ -50,4 +55,6 @@ from .spooler import Spooler
 from .mailservice import ImapService
 from .mailservice import Pop3Service
 from .mailservice import SmtpService
+
+from .transferable import Transferable
 

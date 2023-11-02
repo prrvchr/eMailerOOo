@@ -285,7 +285,7 @@ class SmtpService(unohelper.Base,
 
     def _sendHttpMailMessage(self, message):
         if self._debug:
-            self._logger.logprb(INFO, 'SmtpService', '_sendHttpMailMessage()', 271)
+            self._logger.logprb(INFO, 'SmtpService', '_sendHttpMailMessage()', 271, message.Subject)
         parameter = self._server.getRequestParameter('sendMailMessage')
         parameter.Method = 'POST'
         parameter.Url = self._url + 'send'

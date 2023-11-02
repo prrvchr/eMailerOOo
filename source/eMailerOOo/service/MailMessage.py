@@ -64,11 +64,24 @@
 import uno
 import unohelper
 
+from com.sun.star.datatransfer import UnsupportedFlavorException
+
+from com.sun.star.lang import XServiceInfo
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.lang import XServiceInfo
 from com.sun.star.mail import XMailMessage2
+
+from emailer import createService
+from emailer import getConfiguration
+from emailer import getLogger
+from emailer import getMimeTypeFactory
+from emailer import getStreamSequence
+from emailer import hasInterface
+
+from emailer import g_mailservicelog
+from emailer import g_version
 
 from email.mime.base import MIMEBase
 from email.message import Message
@@ -81,13 +94,7 @@ from email.utils import formatdate
 from email.utils import make_msgid
 from email.utils import parseaddr
 
-from emailer import getConfiguration
-from emailer import getLogger
-from emailer import g_mailservicelog
-from emailer import g_version
-
-import re
-import sys
+import six
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -98,25 +105,27 @@ g_ImplementationName = 'org.openoffice.pyuno.MailMessage2'
 class MailMessage(unohelper.Base,
                   XMailMessage2,
                   XServiceInfo):
-    def __init__(self, ctx, to='', frm='', subject='', body=None, attachment=None):
+    def __init__(self, ctx, to='', sender='', subject='', body=None, attachment=None):
         print("MailMessage.__init__() 1")
         self._ctx = ctx
         self._logger = getLogger(ctx, g_mailservicelog)
+        self._mtf = getMimeTypeFactory(ctx)
         self._recipients = [to]
         self._ccrecipients = []
         self._bccrecipients = []
-        self._sname, self._saddress = parseaddr(frm)
-        name, part, domain = frm.partition('@')
-        host = '%s.%s' % (name, domain)
+        self._sname, self._saddress = parseaddr(sender)
+        host = self._saddress.replace('@', '.')
         self._messageid = make_msgid(None, host)
-        self.ReplyToAddress = frm
+        self.ReplyToAddress = sender
         self.Subject = subject
         self.Body = body
         self._attachments = []
+        self._charset = 'charset'
+        self._encode = 'UTF-8'
         if attachment is not None:
             self._attachments.append(attachment)
         self.ThreadId = ''
-        print("MailMessage.__init__() 2 %s - %s - %s" % (frm, self._sname, self._saddress))
+        print("MailMessage.__init__() 2 %s - %s - %s" % (sender, self._sname, self._saddress))
 
     @property
     def SenderName(self):
@@ -170,96 +179,143 @@ class MailMessage(unohelper.Base,
         return len(self._attachments) > 0
 
     def asBytes(self):
-        msg = self._getMessage()
-        return uno.ByteSequence(msg.as_bytes())
+        message = self._getMessage()
+        return uno.ByteSequence(message.as_bytes())
 
     def asString(self):
-        msg = self._getMessage()
-        return msg.as_string()
+        message = self._getMessage()
+        return message.as_string()
 
     def _getMessage(self):
+        parsed = False
         COMMASPACE = ', '
-        textmsg = Message()
+        body = Message()
+        encode = self._encode
         #Use first flavor that's sane for an email body
         for flavor in self.Body.getTransferDataFlavors():
-            if flavor.MimeType.find('text/html') != -1 or flavor.MimeType.find('text/plain') != -1:
-                textbody = self.Body.getTransferData(flavor)
-                if len(textbody):
-                    mimeEncoding = re.sub('charset=.*', 'charset=UTF-8', flavor.MimeType)
-                    if mimeEncoding.find('charset=UTF-8') == -1:
-                        mimeEncoding = mimeEncoding + '; charset=UTF-8'
-                    textmsg['Content-Type'] = mimeEncoding
-                    textmsg['MIME-Version'] = '1.0'
-                    try:
-                        #it's a string, get it as utf-8 bytes
-                        textbody = textbody.encode('utf-8')
-                    except:
-                        #it's a bytesequence, get raw bytes
-                        textbody = textbody.value
-                    if sys.version >= '3':
-                        if sys.version_info.minor < 3 or (sys.version_info.minor == 3 and sys.version_info.micro <= 1):
-                            #http://stackoverflow.com/questions/9403265/how-do-i-use-python-3-2-email-module-to-send-unicode-messages-encoded-in-utf-8-w
-                            #see http://bugs.python.org/16564, etc. basically it now *seems* to be all ok
-                            #in python 3.3.2 onwards, but a little busted in 3.3.0
-                            textbody = textbody.decode('iso8859-1')
-                        else:
-                            textbody = textbody.decode('utf-8')
-                        c = Charset('utf-8')
-                        c.body_encoding = QP
-                        textmsg.set_payload(textbody, c)
-                    else:
-                        textmsg.set_payload(textbody)
-                break
+            mimetype = flavor.MimeType
+            if mimetype.startswith('text/html') or mimetype.startswith('text/plain'):
+                mct = self._mtf.createMimeContentType(mimetype)
+                if mct.hasParameter(self._charset):
+                    encode = mct.getParameterValue(self._charset)
+                else:
+                    mimetype += '; %s=%s' % (self._charset, encode)
+                data = self._getTransferData(self.Body, flavor)
+                if len(data):
+                    print("MailMessage._getMessage() 1 mimetype: %s - charset: %s" % (mimetype, encode))
+                    body['Content-Type'] = mimetype
+                    body['MIME-Version'] = '1.0'
+                    data = self._getBodyData(data, encode).decode(encode)
+                    c = Charset(encode)
+                    c.body_encoding = QP
+                    body.set_payload(data, c)
+                    parsed = True
+                    break
+        # FIXME: We need to check if the body has been parsed,
+        # FIXME: if not we raise a UnsupportedFlavorException
+        if not parsed:
+            msg = self._logger.resolveString(2001, self.Subject)
+            raise UnsupportedFlavorException(msg, self)
         if self.hasAttachments():
-            msg = MIMEMultipart()
-            msg.epilogue = ''
-            msg.attach(textmsg)
+            message = MIMEMultipart()
+            message.epilogue = ''
+            message.attach(body)
         else:
-            msg = textmsg
-        msg['Subject'] = self.Subject
+            message = body
+        message['Subject'] = self.Subject
         header = Header(self.SenderName, 'utf-8')
         header.append('<' + self.SenderAddress + '>','us-ascii')
-        msg['From'] = header
-        msg['To'] = COMMASPACE.join(self.getRecipients())
-        msg['Message-ID'] = self.MessageId
+        message['From'] = header
+        message['To'] = COMMASPACE.join(self.getRecipients())
+        message['Message-ID'] = self.MessageId
         if self.ThreadId:
-            msg['References'] = self.ThreadId
+            message['References'] = self.ThreadId
         if self.hasCcRecipients():
-            msg['Cc'] = COMMASPACE.join(self.getCcRecipients())
+            message['Cc'] = COMMASPACE.join(self.getCcRecipients())
         if self.ReplyToAddress:
-            msg['Reply-To'] = self.ReplyToAddress
-        xmailer = "LibreOffice / OpenOffice via eMailerOOo v%s extension" % g_version
+            message['Reply-To'] = self.ReplyToAddress
         try:
             configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')
             version = configuration.getByName('ooSetupVersion')
             xmailer = "%s %s via eMailerOOo v%s extension" % (name, version, g_version)
         except:
-            pass
-        msg['X-Mailer'] = xmailer
-        msg['Date'] = formatdate(localtime=True)
+            xmailer = "LibreOffice / OpenOffice via eMailerOOo v%s extension" % g_version
+        message['X-Mailer'] = xmailer
+        message['Date'] = formatdate(localtime=True)
         for attachment in self.getAttachments():
+            name = attachment.ReadableName
+            # FIXME: We need to check if the attachments have a ReadableName,
+            # FIXME: if not we raise a MailMessageException
+            if not name:
+                msg = self._logger.resolveString(2002, self.Subject)
+                raise MailMessageException(msg, self, ())
             content = attachment.Data
             flavors = content.getTransferDataFlavors()
+            # FIXME: We need to check if the attachments have at least
+            # FIXME: one DataFlavor, if not we raise a UnsupportedFlavorException
+            if not isinstance(flavors, tuple) or not len(flavors):
+                msg = self._logger.resolveString(2003, name, self.Subject)
+                raise UnsupportedFlavorException(msg, self)
             flavor = flavors[0]
-            ctype = flavor.MimeType
-            maintype, subtype = ctype.split('/', 1)
-            msgattachment = MIMEBase(maintype, subtype)
-            data = content.getTransferData(flavor)
-            msgattachment.set_payload(data.value)
+            msgattachment = self._getMessageAttachment(content, flavor, name)
             encode_base64(msgattachment)
-            fname = attachment.ReadableName
             try:
                 msgattachment.add_header('Content-Disposition',
                                          'attachment',
-                                         filename=fname)
+                                         filename=name)
             except:
+                print("MailMessage._getMessage() ERROR **********************************************")
                 msgattachment.add_header('Content-Disposition',
                                          'attachment',
-                                         filename=('utf-8', '', fname))
-            msg.attach(msgattachment)
-        return msg
+                                         filename=('utf-8', '', name))
+            message.attach(msgattachment)
+        return message
 
+    def _getTransferData(self, transferable, flavor):
+        interface = 'com.sun.star.io.XInputStream'
+        data = transferable.getTransferData(flavor)
+        if flavor.DataType == uno.getTypeByName(interface):
+            if not hasInterface(data, interface):
+                msg = self._logger.resolveString(2011, self.Subject, interface, flavor.DataType.typeName)
+                raise UnsupportedFlavorException(msg, self)
+            data = getStreamSequence(data)
+        return data
+
+    def _getBodyData(self, data, encode):
+        # Normally it's a bytesequence, get raw bytes
+        if isinstance(data, uno.ByteSequence):
+            data = data.value
+        # If it's a string, get it as 'encode' bytes
+        elif isinstance(data, str):
+            data = data.encode(encode)
+        # No data is available, we need to raise an Exception
+        else:
+            msg = self._logger.resolveString(2021, self.Subject, repr(type(data)))
+            raise UnsupportedFlavorException(msg, self)
+        return data
+
+    def _getMessageAttachment(self, content, flavor, name):
+        mct = self._mtf.createMimeContentType(flavor.MimeType)
+        data = self._getTransferData(content, flavor)
+        # Normally it's a bytesequence, get raw bytes
+        if isinstance(data, uno.ByteSequence):
+            data = data.value
+        # If it's a string, we need to get its encoding
+        elif isinstance(data, str):
+            if mct.hasParameter(self._charset):
+                encode = mct.getParameterValue(self._charset)
+            else:
+                # Default to utf-8
+                encode = self._encode
+            data = data.encode(encode)
+        # No data is available, we need to raise an Exception
+        else:
+            msg = self._logger.resolveString(2031, name, self.Subject, repr(type(data)))
+            raise UnsupportedFlavorException(msg, self)
+        msgattachment = MIMEBase(mct.getMediaType(), mct.getMediaSubtype())
+        msgattachment.set_payload(data)
+        return msgattachment
 
     # XServiceInfo
     def supportsService(self, service):

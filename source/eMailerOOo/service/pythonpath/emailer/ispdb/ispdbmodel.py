@@ -45,7 +45,7 @@ from com.sun.star.rest import RequestException
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..mailerlib import MailTransferable
+from ..transferable import Transferable
 
 from ..unotool import createService
 from ..unotool import getConfiguration
@@ -372,10 +372,11 @@ class IspdbModel(unohelper.Base):
     def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
         handler = RollerHandler(self._ctx, self._logger.Name)
         level = self._getLogLevel(handler)
+        transferable = Transferable(self._ctx, self._logger)
         if self._servers.User.useIMAP():
             i = 100
             reset(200)
-            threadid = self._uploadMessage(subject, progress)
+            threadid = self._uploadMessage(transferable, subject, progress)
         else:
             i = 0
             reset(100)
@@ -395,7 +396,8 @@ class IspdbModel(unohelper.Base):
         else:
             progress(i + 75)
             if server.isConnected():
-                body = MailTransferable(self._ctx, message, False)
+                #body = MailTransferable(self._ctx, message, False)
+                body = transferable.getByString(message)
                 mail = getMailMessage(self._ctx, self.Sender, recipient, subject, body)
                 interface = 'com.sun.star.mail.XMailMessage2'
                 if hasInterface(mail, interface) and threadid is not None:
@@ -414,7 +416,7 @@ class IspdbModel(unohelper.Base):
         self._setLogLevel(handler, level)
         setstep(step)
 
-    def _uploadMessage(self, subject, progress):
+    def _uploadMessage(self, transferable, subject, progress):
         mail = msgid = None
         imap = IMAP.value
         context = self._servers.User.getConnectionContext(imap)
@@ -433,7 +435,8 @@ class IspdbModel(unohelper.Base):
                     folder = server.getSentFolder()
                     if server.hasFolder(folder):
                         message = self._getThreadMessage()
-                        body = MailTransferable(self._ctx, message, True)
+                        #body = MailTransferable(self._ctx, message, True)
+                        body = transferable.getByString(message)
                         mail = getMailMessage(self._ctx, self.Sender, self.Email, subject, body)
                         progress(60)
                         server.uploadMessage(folder, mail)

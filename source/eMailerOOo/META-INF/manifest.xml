@@ -38,5 +38,6 @@
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/MailServiceProvider.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/MailDispatcher.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/MailSpooler.py"/>
+    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/TransferableFactory.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/OptionsHandler.py"/>
 </manifest:manifest>

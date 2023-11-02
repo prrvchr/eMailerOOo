@@ -113,7 +113,6 @@ class Mailer():
             self._initMailer(job, recipient)
         elif self._merge:
             self._mergeMail(recipient.Filter)
-        #body = MailTransferable(self._ctx, self._getBodyUrl(), True, True)
         body = self._transferable.getByUrl(self._url.Main)
         mail = getMailMessage(self._ctx, self._getSender(), recipient.Recipient, self._getSubject(), body)
         if self._hasThread():
@@ -154,8 +153,7 @@ class Mailer():
         if server.hasFolder(folder):
             subject = metadata.get('Subject')
             message = self._getThreadMessage(batch, document, subject, metadata.get('Query'))
-            body = self._transferable.getByData('utf-8', message)
-            #body = MailTransferable(self._ctx, message, True)
+            body = self._transferable.getByString(message)
             mail = getMailMessage(self._ctx, sender, sender, subject, body)
             server.uploadMessage(folder, mail)
             threadid = mail.MessageId
@@ -260,7 +258,6 @@ class Mailer():
     def _getAttachment(self, url):
         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
         attachment.Data = self._transferable.getByUrl(url.Main)
-        #attachment.Data = MailTransferable(self._ctx, url.Main, False, True)
         attachment.ReadableName = url.Name
         return attachment
 

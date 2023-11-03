@@ -371,9 +371,10 @@ ___
 
 - Il est désormais possible dans le Spooler de visualiser les courriels au format eml.
 
-- Un nouveau service [com.sun.star.mail.MailUser][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel.  
-  Cela devrait pouvoir résoudre le [dysfonctionnement #4][75]: l'envoi d'e-mails depuis Basic.  
-  Je reviendrai un peu plus tard avec des exemples en Basic.
+- Un service [com.sun.star.mail.MailUser][74] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel qui suite la rfc822.  
+  Un autre service [com.sun.star.datatransfer.TransferableFactory][75] permet, comme son nom l'indique, la création de [Transferable][76] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).
+  Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][77].
+  Vous trouverez une macro Basic vous permettant d'envoyer des emails dans : **Outils -> Macros -> Editer les Macros... -> eMailerOOo -> SendEmail**.
 
 ### Que reste-t-il à faire pour la version 1.1.0:
 
@@ -455,4 +456,6 @@ ___
 [72]: <https://github.com/prrvchr/eMailerOOo/issues/5>
 [73]: <https://github.com/prrvchr/eMailerOOo/issues/6>
 [74]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
-[75]: <https://github.com/prrvchr/eMailerOOo/issues/4>
+[75]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
+[76]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
+[77]: <https://github.com/prrvchr/eMailerOOo/issues/4>

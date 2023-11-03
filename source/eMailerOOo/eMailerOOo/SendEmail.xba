@@ -28,73 +28,73 @@ Rem ╚════════════════════════�
 
 Sub Main
 
-    Rem Ask the user for a sender email address
+    Rem Ask the user for a sender email address.
     sSender = InputBox(&quot;Please enter the sender email address&quot;)
-    Rem User clicked Cancel
+    Rem User clicked Cancel.
     if sSender = &quot;&quot; then
         exit sub
     endif
 
-    Rem Ask the user for recipient&apos;s email address
+    Rem Ask the user for recipient&apos;s email address.
     sRecipient = InputBox(&quot;Please enter the recipient&apos;s email address&quot;)
-    Rem User clicked Cancel
+    Rem User clicked Cancel.
     if sRecipient = &quot;&quot; then
         exit sub
     endif
 
-    Rem Ask the user for subject&apos;s email
+    Rem Ask the user for subject&apos;s email.
     sSubject = InputBox(&quot;Please enter the subject&apos;s email&quot;)
-    Rem User clicked Cancel
+    Rem User clicked Cancel.
     if sSubject = &quot;&quot; then
         exit sub
     endif
 
-    Rem Ask the user for content&apos;s email
+    Rem Ask the user for content&apos;s email.
     sBody = InputBox(&quot;Please enter the content&apos;s email&quot;)
-    Rem User clicked Cancel
+    Rem User clicked Cancel.
     if sBody = &quot;&quot; then
         exit sub
     endif
 
-    Rem Ok now we have everything we need to send an email
+    Rem Ok now we have everything, we start sending an email.
 
     Rem We will use 4 UNO services which are:
     Rem - com.sun.star.mail.MailUser: This is the service which will ensure the correct configuration
-    Rem      of SMTP and IMAP servers (we can thank Mozilla for the ISPBD database that I use).
+    Rem   of SMTP and IMAP servers (we can thank Mozilla for the ISPBD database that I use).
     Rem - com.sun.star.mail.MailServiceProvider: This is the service that allows you to use SMTP and
-    Rem      IMAP servers. We will use this service with the help of the previous service.
+    Rem   IMAP servers. We will use this service with the help of the previous service.
     Rem - com.sun.star.datatransfer.TransferableFactory: This service is a forge for the creation of
-    Rem      transferables which are the basis of the body of the email as well as these attached files.
+    Rem   Transferable which are the basis of the body of the email as well as these attached files.
     Rem - com.sun.star.mail.MailMessage: This is the service that implements the email message.
     Rem Now that everything is clear we can begin.
 
 
-    Rem First we create the email
+    Rem First we create the email.
 
-    Rem This is our transferable forge, it greatly simplifies the LibreOffice mail API...
+    Rem This is our Transferable forge, it greatly simplifies the LibreOffice mail API...
     oTransferable = createUnoService(&quot;com.sun.star.datatransfer.TransferableFactory&quot;)
 
     Rem oBody is the body of the email. It is created here from a String but could also
-    Rem have been created from: InputStream, a file Url (file://...) or a sequence of bytes
+    Rem have been created from an InputStream, a file Url (file://...) or a sequence of bytes.
     oBody = oTransferable.getByString(sBody)
 
     Rem oMail is the email message. It is created from the com.sun.star.mail.MailMessage service.
     Rem It can be created with an attachment with the createWithAttachment() method.
     oMail = com.sun.star.mail.MailMessage.create(sRecipient, sSender, sSubject, oBody)
 
-    Rem Ask the user for URLs of attached files
+    Rem Ask the user for the URLs of the attached files.
     oDialog = createUnoService(&quot;com.sun.star.ui.dialogs.FilePicker&quot;)
     oDialog.setMultiSelectionMode(true)
     if oDialog.execute() = com.sun.star.ui.dialogs.ExecutableDialogResults.OK then
         oFiles() = oDialog.getSelectedFiles()
-        Rem These two services are just used to obtain a proper file name
+        Rem These two services are simply used to get a suitable file name.
         oUrlTransformer = createUnoService(&quot;com.sun.star.util.URLTransformer&quot;)
         oUriFactory = createUnoService(&quot;com.sun.star.uri.UriReferenceFactory&quot;)
         for i = lbound(oFiles()) To ubound(oFiles())
             oUri = getUri(oUrlTransformer, oUriFactory, oFiles(i))
             oAttachment = createUnoStruct(&quot;com.sun.star.mail.MailAttachment&quot;)
             Rem ReadableName must be entered. This is the name of the attached file
-            Rem as it appears in the email. Here we get the name of the file.
+            Rem as it appears in the email. Here we get the file name.
             oAttachment.ReadableName = oUri.getPathSegment(oUri.getPathSegmentCount() - 1)
             Rem The attachment is retrieved from an Url but same as for oBody
             Rem it can be retrieved from a String, an InputStream or a sequence of bytes.
@@ -102,36 +102,37 @@ Sub Main
             oMail.addAttachment(oAttachment)
             next i
     endif
-    Rem End of creating the email
+    Rem End of creating the email.
 
 
-    Rem Now we need to send the email
+    Rem Now we need to send the email.
 
     Rem First we create a MailUser from the sender address. This is not necessary the
-    Rem sender address but it must follow the rfc822 (ie: my surname &lt;myname@myisp.com&gt;)
+    Rem sender address but it must follow the rfc822 (ie: my surname &lt;myname@myisp.com&gt;).
     oUser = com.sun.star.mail.MailUser.create(sSender)
 
-    Rem Now that we have the user we can check if they want to use a return address
+    Rem Now that we have the user we can check if they want to use a return address.
     Rem The ISPDB wizard will automatically be launched if this user has never been configured.
     if oUser.useReplyTo() then
         oMail.ReplyToAddress = oUser.getReplyToAddress()
     endif
     Rem In the same way I can test if the user has an IMAP configuration with oUser.supportIMAP()
-    Rem and create an email thread if necessary. In this case you must:
+    Rem and then create an email thread if necessary. In this case you must:
     Rem - Construct an email message thread (as done previously for oMail).
-    Rem - Send this email thread via the IMAP server (as we will do for oMail with SMTP)
-    Rem - Once it has been sent, retrieve the MessageId with the oMail.MessageId property
+    Rem - Create and connect to an IMAP server (as we will do for SMTP).
+    Rem - Upload this email to the IMAP server with: oServer.uploadMessage(oServer.getSentFolder(), oMail).
+    Rem - Once it has been uploaded, retrieve the MessageId with the oMail.MessageId property.
     Rem - Set the oMail.ThreadId property to MessageId for all subsequent emails.
-    Rem You have successfully grouped the sending of emails into a thread.
+    Rem Great you have successfully grouped the sending of emails into a thread.
 
     Rem To send the email we need to create an SMTP server. Here&apos;s how to do it:
     SMTP = com.sun.star.mail.MailServiceType.SMTP
     oServer = createUnoService(&quot;com.sun.star.mail.MailServiceProvider&quot;).create(SMTP)
-    Rem Now we connect using the SMTP user&apos;s configuration,
+    Rem Now we connect using the SMTP user&apos;s configuration.
     oServer.connect(oUser.getConnectionContext(SMTP), oUser.getAuthenticator(SMTP))
-    Rem Well, that&apos;s it, we are connected, all we have to do is send the email
+    Rem Well, that&apos;s it, we are connected, all we have to do is send the email.
     oServer.sendMailMessage(oMail)
-    Rem Don&apos;t forget to close the connection:
+    Rem Don&apos;t forget to close the connection.
     oServer.disconnect()
     MsgBox &quot;The email has been sent successfully.&quot; &amp; chr(13) &amp; &quot;Its MessageId is: &quot; &amp; oMail.MessageId
     Rem Et voilà le tour est joué...

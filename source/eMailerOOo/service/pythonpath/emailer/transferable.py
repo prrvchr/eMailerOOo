@@ -37,6 +37,7 @@ from .mailertool import getTransferableMimeValues
 from .unotool import getMimeTypeFactory
 from .unotool import getSequenceInputStream
 from .unotool import getSimpleFile
+from .unotool import getTypeDetection
 from .unotool import hasInterface
 
 import traceback
@@ -46,12 +47,15 @@ class Transferable():
     def __init__(self, ctx, logger):
         self._ctx = ctx
         self._logger = logger
+        self._sf = getSimpleFile(ctx)
         self._mtf = getMimeTypeFactory(ctx)
+        self._detection = getTypeDetection(ctx)
         self._charset = 'charset'
+        self._encode = False
         self._default = 'utf-8'
         self._encoding = self._default
-        self._encode = False
         self._uiname = 'E Documents'
+        self._mimetype = 'application/octet-stream'
 
     @property
     def Encoding(self):
@@ -68,7 +72,7 @@ class Transferable():
         return self._getTransferable(uiname, self._getMineType(mimetype), sequence)
 
     def getByUrl(self, url):
-        stream = getSimpleFile(self._ctx).openFileRead(url)
+        stream = self._sf.openFileRead(url)
         uiname, mimetype = self._getMimeValues({'URL': url, 'InputStream': stream})
         return self._getTransferable(uiname, self._getMineType(mimetype), stream)
 
@@ -84,7 +88,7 @@ class Transferable():
 
 # Private methods
     def _getMimeValues(self, descriptor):
-        return getTransferableMimeValues(self._ctx, descriptor, self._uiname)
+        return getTransferableMimeValues(self._detection, descriptor, self._uiname, self._mimetype)
 
     def _getMineType(self, mimetype, force=False):
         if force or self._encode:

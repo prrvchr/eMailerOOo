@@ -209,10 +209,7 @@ def saveDocumentTmp(ctx, document, format=None):
     url = getUrl(ctx, url)
     return url
 
-def getTransferableMimeValues(ctx, descriptor, uiname, deep=True):
-    mimetype = 'application/octet-stream'
-    service = 'com.sun.star.document.TypeDetection'
-    detection = createService(ctx, service)
+def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True):
     itype, descriptor = detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
     if detection.hasByName(itype):
         for t in detection.getByName(itype):

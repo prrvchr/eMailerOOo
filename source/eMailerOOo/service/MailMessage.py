@@ -122,7 +122,7 @@ class MailMessage(unohelper.Base,
         self.Body = body
         self._attachments = []
         self._charset = 'charset'
-        self._encode = 'utf-8'
+        self._encoding = 'utf-8'
         if attachment is not None:
             self._attachments.append(attachment)
         self.ThreadId = ''
@@ -190,22 +190,22 @@ class MailMessage(unohelper.Base,
         parsed = False
         COMMASPACE = ', '
         body = Message()
-        encode = self._encode
+        encoding = self._encoding
         #Use first flavor that's sane for an email body
         for flavor in self.Body.getTransferDataFlavors():
             mimetype = flavor.MimeType
             if mimetype.startswith('text/html') or mimetype.startswith('text/plain'):
                 mct = self._mtf.createMimeContentType(mimetype)
                 if mct.hasParameter(self._charset):
-                    encode = mct.getParameterValue(self._charset)
+                    encoding = mct.getParameterValue(self._charset)
                 else:
-                    mimetype += '; %s=%s' % (self._charset, encode)
+                    mimetype += '; %s=%s' % (self._charset, encoding)
                 data = self._getTransferData(self.Body, flavor)
                 if len(data):
                     body['Content-Type'] = mimetype
                     body['MIME-Version'] = '1.0'
-                    data = self._getBodyData(data, encode).decode(encode)
-                    c = Charset(encode)
+                    data = self._getBodyData(data, encoding).decode(encoding)
+                    c = Charset(encoding)
                     c.body_encoding = QP
                     body.set_payload(data, c)
                     parsed = True
@@ -257,11 +257,11 @@ class MailMessage(unohelper.Base,
                 msg = self._logger.resolveString(2003, name, self.Subject)
                 raise UnsupportedFlavorException(msg, self)
             flavor = flavors[0]
-            msgattachment, encode = self._getMessageAttachment(content, flavor, name)
+            msgattachment, encoding = self._getMessageAttachment(content, flavor, name)
             encode_base64(msgattachment)
             msgattachment.add_header('Content-Disposition',
                                      'attachment',
-                                      filename=(encode, self._local.Language, name))
+                                      filename=(encoding, self._local.Language, name))
             message.attach(msgattachment)
         return message
 
@@ -275,13 +275,13 @@ class MailMessage(unohelper.Base,
             data = getStreamSequence(data)
         return data
 
-    def _getBodyData(self, data, encode):
+    def _getBodyData(self, data, encoding):
         # Normally it's a bytesequence, get raw bytes
         if isinstance(data, uno.ByteSequence):
             data = data.value
-        # If it's a string, get it as 'encode' bytes
+        # If it's a string, get it as 'encoding' bytes
         elif isinstance(data, str):
-            data = data.encode(encode)
+            data = data.encode(encoding)
         # No data is available, we need to raise an Exception
         else:
             msg = self._logger.resolveString(2021, self.Subject, repr(type(data)))
@@ -291,24 +291,24 @@ class MailMessage(unohelper.Base,
     def _getMessageAttachment(self, content, flavor, name):
         mct = self._mtf.createMimeContentType(flavor.MimeType)
         if mct.hasParameter(self._charset):
-            encode = mct.getParameterValue(self._charset)
+            encoding = mct.getParameterValue(self._charset)
         else:
             # Default to utf-8
-            encode = self._encode
+            encoding = self._encoding
         data = self._getTransferData(content, flavor)
         # Normally it's a bytesequence, get raw bytes
         if isinstance(data, uno.ByteSequence):
             data = data.value
-        # If it's a string, we need to get its encoding
+        # If it's a string, get it as 'encoding' bytes
         elif isinstance(data, str):
-            data = data.encode(encode)
+            data = data.encode(encoding)
         # No data is available, we need to raise an Exception
         else:
             msg = self._logger.resolveString(2031, name, self.Subject, repr(type(data)))
             raise UnsupportedFlavorException(msg, self)
         msgattachment = MIMEBase(mct.getMediaType(), mct.getMediaSubtype())
         msgattachment.set_payload(data)
-        return msgattachment, encode
+        return msgattachment, encoding
 
     # XServiceInfo
     def supportsService(self, service):

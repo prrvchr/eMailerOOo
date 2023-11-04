@@ -34,7 +34,8 @@
 ## Introduction:
 
 **eMailerOOo** is part of a [Suite][6] of [LibreOffice][7] ~~and/or [OpenOffice][8]~~ extensions allowing to offer you innovative services in these office suites.  
-This extension allows you to send documents in LibreOffice / OpenOffice as an email, possibly by mail merge, to your telephone contacts.  
+
+This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.  
 It also provides an API usable in BASIC allowing you to send emails and supporting the most advanced technologies (OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP, ...).  
 
 Being free software I encourage you:

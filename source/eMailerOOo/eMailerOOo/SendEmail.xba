@@ -109,10 +109,14 @@ Sub Main
 
     Rem First we create a MailUser from the sender address. This is not necessary the
     Rem sender address but it must follow the rfc822 (ie: my surname &lt;myname@myisp.com&gt;).
+    Rem The IspDB Wizard will automatically be launched if this user has never been configured.
     oUser = com.sun.star.mail.MailUser.create(sSender)
+    Rem User canceled IspDB Wizard.
+    if isNull(oUser) then
+        exit sub
+    endif
 
     Rem Now that we have the user we can check if they want to use a Reply-To address.
-    Rem The ISPDB Wizard will automatically be launched if this user has never been configured.
     if oUser.useReplyTo() then
         oMail.ReplyToAddress = oUser.getReplyToAddress()
     endif

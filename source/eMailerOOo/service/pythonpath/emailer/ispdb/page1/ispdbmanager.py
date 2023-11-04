@@ -42,7 +42,7 @@ class IspdbManager(unohelper.Base):
         self._model = model
         self._pageid = pageid
         self._view = IspdbView(ctx, WindowHandler(self), parent)
-        self._view.setSender(self._model.Sender)
+        self._view.setSender(*self._model.getSender())
 
 # XWizardPage
     @property

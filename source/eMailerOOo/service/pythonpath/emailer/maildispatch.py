@@ -127,11 +127,14 @@ class MailDispatch(unohelper.Base,
             email = None
             msg = "Wizard Loading ..."
             sender = ''
+            readonly = False
             for argument in arguments:
                 if argument.Name == 'Sender':
                     sender = argument.Value
+                elif argument.Name == 'ReadOnly':
+                    readonly = argument.Value
             wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
-            controller = IspdbController(self._ctx, wizard, sender)
+            controller = IspdbController(self._ctx, wizard, sender, readonly)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
             msg += " Done ..."

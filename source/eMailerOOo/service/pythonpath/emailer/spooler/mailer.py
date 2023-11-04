@@ -136,7 +136,7 @@ class Mailer():
         self._url, self._urls = self._getUrls(recipient, job, document, merge)
         if self._send:
             sender = metadata.get('Sender')
-            user = getMailUser(self._ctx, sender)
+            user = self._getMailUser(job, sender)
             self._server = self._getMailServer(user, SMTP)
             if self._needThread(user, merge):
                 threadid = self._createThread(recipient.BatchId, user, document, sender, metadata)
@@ -191,6 +191,13 @@ class Mailer():
 ''' % (g_extension, logo, g_logourl, title, message, subject,
         label, document, self._getDocumentTitle(),
         files, attachments)
+
+    def _getMailUser(self, job, sender):
+        user = getMailUser(self._ctx, sender)
+        if user is None:
+            msg = self._getErrorMessage(1512, job, sender)
+            raise MailSpoolerException(msg, self._source, ())
+        return user
 
     def _getMailServer(self, user, mailtype):
         server = getMailService(self._ctx, mailtype.value)

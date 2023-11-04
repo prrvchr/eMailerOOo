@@ -34,10 +34,10 @@ from com.sun.star.mail import XMailUser
 
 from com.sun.star.lang import XServiceInfo
 
-from emailer import DispatchListener
 from emailer import User
 
 from emailer import executeDispatch
+from emailer import getConfiguration
 from emailer import getPropertyValueSet
 
 from emailer import g_identifier
@@ -52,52 +52,38 @@ g_ImplementationName = '%s.MailUser' % g_identifier
 class MailUser(unohelper.Base,
                XServiceInfo,
                XMailUser):
-    def __init__(self, ctx, sender=''):
-        self._ctx = ctx
-        self._sender = sender
-        user = User(ctx, sender)
-        if user.isNew():
-            self._user = None
-        else:
-            self._user = user
-        print("MailUser.__init__() Sender: %s" % sender)
+    # FIXME: We should be able to return None if the user does
+    # FIXME: not exist and the IspDB Wizard has been canceled.
+    def __new__(cls, ctx, sender=''):
+        senders = getConfiguration(ctx, g_identifier).getByName('Senders')
+        if not senders.hasByName(sender):
+            # FIXME: The Sender name must not be able to be changed (ie: ReadOnly)
+            arguments = getPropertyValueSet({'Sender': sender, 'ReadOnly': True})
+            executeDispatch(ctx, 'smtp:ispdb', arguments)
+            # The IspDB Wizard has been canceled
+            if not senders.hasByName(sender):
+                return None
+        return super(MailUser, cls).__new__(cls)
+
+    def __init__(self, ctx, sender):
+        self._user = User(ctx, sender)
 
 # XMailUser
     def supportIMAP(self):
-        if self._user is None:
-            self._initUser()
         return self._user.useIMAP()
 
     def useReplyTo(self):
-        if self._user is None:
-            self._initUser()
         return self._user.useReplyTo()
 
     def getReplyToAddress(self):
-        if self._user is None:
-            self._initUser()
         return self._user.ReplyToAddress
 
     def getAuthenticator(self, stype):
-        if self._user is None:
-            self._initUser()
-        print("MailUser.getAuthenticator() MailServerType: %s" % stype.value)
         return self._user.getAuthenticator(stype.value)
 
     def getConnectionContext(self, stype):
-        if self._user is None:
-            self._initUser()
-        print("MailUser.getConnectionContext() MailServerType: %s" % stype.value)
         return self._user.getConnectionContext(stype.value)
 
-# Internal method
-    def setUser(self, sender):
-        self._user = User(self._ctx, sender)
-
-    def _initUser(self):
-        listener = DispatchListener(self.setUser)
-        arguments = getPropertyValueSet({'Sender': self._sender})
-        executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
 
     # XServiceInfo
     def supportsService(self, service):

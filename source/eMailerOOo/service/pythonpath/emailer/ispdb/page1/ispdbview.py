@@ -49,8 +49,10 @@ class IspdbView(unohelper.Base):
         return self._getSender().Text.strip()
 
 # IspdbView setter methods
-    def setSender(self, sender):
-        self._getSender().Text = sender
+    def setSender(self, sender, enabled):
+        control = self._getSender()
+        control.Text = sender
+        control.Model.Enabled = enabled
 
     def setSenderFocus(self):
         self._getSender().setFocus()

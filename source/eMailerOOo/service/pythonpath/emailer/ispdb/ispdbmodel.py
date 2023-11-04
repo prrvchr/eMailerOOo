@@ -84,9 +84,10 @@ import traceback
 
 
 class IspdbModel(unohelper.Base):
-    def __init__(self, ctx, sender):
+    def __init__(self, ctx, sender, readonly):
         self._ctx = ctx
         self._sender = sender
+        self._readonly = readonly
         self._servers = None
         self._services = [SMTP.value, IMAP.value]
         self._offline = 0
@@ -142,6 +143,10 @@ class IspdbModel(unohelper.Base):
         if self._listener is not None:
             self._logger.removeModifyListener(self._listener)
             self._listener = None
+
+# IspdbModel getter methods called by WizardPages 1
+    def getSender(self):
+        return self._sender, not self._readonly
 
 # IspdbModel getter methods called by WizardPages 2 and 4
     def isDisposed(self):

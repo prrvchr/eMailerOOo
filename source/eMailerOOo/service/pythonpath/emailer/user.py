@@ -79,6 +79,10 @@ class User(unohelper.Base):
         return self._user.getByName('Servers')
 
     @property
+    def Sender(self):
+        return self._sender
+
+    @property
     def ReplyToAddress(self):
         if self.useReplyTo():
             return self._user.getByName('ReplyToAddress')

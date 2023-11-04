@@ -52,7 +52,7 @@ class Transferable():
         self._detection = getTypeDetection(ctx)
         self._charset = 'charset'
         self._encode = False
-        self._default = 'utf-8'
+        self._default = 'UTF-8'
         self._encoding = self._default
         self._uiname = 'E Documents'
         self._mimetype = 'application/octet-stream'

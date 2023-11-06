@@ -1,27 +1,2 @@
 title,cwe,description,cvss,finding,stream,kind,where,snippet,method
-313. Insecure service configuration - Certificates,CWE-295,Server certificates are not verified during SSL/TLS connections in eMailerOOo/source/eMailerOOo/service/pythonpath/emailer/imapclient/config.py,CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:N/E:U/RL:O/RC:C,https://docs.fluidattacks.com/criteria/vulnerabilities/313,skims,SAST,163,"
-  153 |
-  154 |
-  155 | def create_client_from_config(conf, login=True):
-  156 |     assert conf.host, ""missing host""
-  157 |
-  158 |     ssl_context = None
-  159 |     if conf.ssl:
-  160 |         ssl_context = ssl.create_default_context()
-  161 |         ssl_context.check_hostname = conf.ssl_check_hostname
-  162 |         if not conf.ssl_verify_cert:
-> 163 |             ssl_context.verify_mode = ssl.CERT_NONE
-  164 |         if conf.ssl_ca_file:
-  165 |             ssl_context.load_verify_locations(cafile=conf.ssl_ca_file)
-  166 |
-  167 |     client = imapclient.IMAPClient(
-  168 |         conf.host,
-  169 |         port=conf.port,
-  170 |         ssl=conf.ssl,
-  171 |         ssl_context=ssl_context,
-  172 |         stream=conf.stream,
-  173 |         timeout=conf.timeout,
-      ^ Col 0
-",python.python_unsafe_certificate_validation
-Summary: 1 vulnerabilities were found in your targets. 
-
+Summary: No vulnerabilities were found in your targets.

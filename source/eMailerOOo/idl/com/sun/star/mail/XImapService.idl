@@ -29,6 +29,10 @@
 
 #include <com/sun/star/mail/XMailService.idl>
 #include <com/sun/star/mail/XMailMessage.idl>
+#include <com/sun/star/io/NotConnectedException.idl>
+#include <com/sun/star/mail/MailException.idl>
+#include <com/sun/star/mail/SendMailMessageFailedException.idl>
+#include <com/sun/star/datatransfer/UnsupportedFlavorException.idl>
 
 module com { module sun { module star { module mail {
 
@@ -67,12 +71,16 @@ interface XImapService : XMailService
     */
     sequence<string> getSupportedAuthenticationTypes();
 
-    string getSentFolder();
+    string getSentFolder()
+        raises(com::sun::star::io::NotConnectedException);
 
-    boolean hasFolder([in] string Folder);
+    boolean hasFolder([in] string Folder)
+        raises(com::sun::star::io::NotConnectedException);
 
     void uploadMessage([in] string Folder,
-                       [in] com::sun::star::mail::XMailMessage MailMessage);
+                       [in] com::sun::star::mail::XMailMessage MailMessage)
+        raises(com::sun::star::io::NotConnectedException, com::sun::star::mail::SendMailMessageFailedException, com::sun::star::mail::MailException, com::sun::star::datatransfer::UnsupportedFlavorException);
+
 
 };
 

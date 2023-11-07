@@ -34,10 +34,13 @@ from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.auth import AuthenticationFailedException
+
 from com.sun.star.lang import IllegalArgumentException
 from com.sun.star.lang import EventObject
 
 from com.sun.star.io import AlreadyConnectedException
+from com.sun.star.io import NotConnectedException
 from com.sun.star.io import ConnectException
 from com.sun.star.io import UnknownHostException
 
@@ -96,6 +99,8 @@ class SmtpService(unohelper.Base,
         return self._supportedauthentication
 
     def getCurrentConnectionContext(self):
+        if self._server is None:
+            raise NotConnectedException()
         return self._context
 
     def connect(self, context, authenticator):
@@ -133,6 +138,8 @@ class SmtpService(unohelper.Base,
         return self._server is not None
 
     def sendMailMessage(self, message):
+        if self._server is None:
+            raise NotConnectedException()
         if self._smtp:
             self._sendSmtpMailMessage(message)
         else:
@@ -154,6 +161,8 @@ class SmtpService(unohelper.Base,
         self._smtp = False
         self._url = self._domains[domain]
         server = getRequest(self._ctx, servername, username)
+        if server is None:
+            raise AuthenticationFailedException()
         return server
 
     def _getSmtpServer(self, context, servername, username, password):

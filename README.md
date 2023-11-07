@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3] and [Data Protection Policy][4].**
 
-# version [1.1.0][5]
+# version [1.1.1][5]
 
 ## Introduction:
 
@@ -69,7 +69,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** extension version 1.1.1.  
+- Install ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** extension version 1.2.0.  
 You must first install this extension, if it is not already installed.
 
 - Install ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** extension version 1.0.5.  
@@ -86,7 +86,7 @@ This extension is necessary to use HsqlDB version 2.7.2 with all its features.
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.1.0.  
+- Install ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** extension version 1.1.1.  
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -378,7 +378,11 @@ ___
   These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][77].  
   You will find a Basic macro allowing you to send emails in: **Tools -> Macros -> Edit Macros... -> eMailerOOo -> SendEmail**.
 
-### What remains to be done for version 1.1.0:
+### What has been done for version 1.1.1:
+
+- Support for version **1.2.0** of the **OAuth2OOo** extension. Previous versions will not work with **OAuth2OOo** extension 1.2.0 or higher.
+
+### What remains to be done for version 1.1.1:
 
 - Add new languages for internationalization...
 

@@ -33,10 +33,13 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.auth import AuthenticationFailedException
+
 from com.sun.star.lang import IllegalArgumentException
 from com.sun.star.lang import EventObject
 
 from com.sun.star.io import AlreadyConnectedException
+from com.sun.star.io import NotConnectedException
 
 from com.sun.star.mail import MailException
 from com.sun.star.mail import XImapService
@@ -93,6 +96,8 @@ class ImapService(unohelper.Base,
         return self._supportedauthentication
 
     def getCurrentConnectionContext(self):
+        if self._server is None:
+            raise NotConnectedException()
         return self._context
 
     def connect(self, context, authenticator):
@@ -130,12 +135,18 @@ class ImapService(unohelper.Base,
         return self._server is not None
 
     def getSentFolder(self):
+        if self._server is None:
+            raise NotConnectedException()
         return self._getImapSentFolder() if self._imap else self._getApiSentFolder()
 
     def hasFolder(self, folder):
+        if self._server is None:
+            raise NotConnectedException()
         return self._hasImapFolder(folder) if self._imap else self._hasApiFolder(folder)
 
     def uploadMessage(self, folder, message):
+        if self._server is None:
+            raise NotConnectedException()
         if self._imap:
             self._uploadImapMessage(folder, message)
         else:
@@ -157,6 +168,8 @@ class ImapService(unohelper.Base,
         self._imap = False
         self._url = self._domains[domain]
         server = getRequest(self._ctx, servername, username)
+        if server is None:
+            raise AuthenticationFailedException()
         return server
 
     def _getImapServer(self, context, servername, username, password):
@@ -220,7 +233,7 @@ class ImapService(unohelper.Base,
             msg = self._logger.resolveString(352, username, pwd, getExceptionMessage(e))
             if self._debug:
                 self._logger.logp(SEVERE, 'ImapService', '_doLogin()', msg)
-            raise ConnectException(msg, self)
+            raise AuthenticationFailedException(msg, self)
         if self._debug:
             pwd = '*' * len(password)
             self._logger.logprb(INFO, 'ImapService', '_doLogin()', 353, username, pwd, self._getReply(code))
@@ -235,7 +248,7 @@ class ImapService(unohelper.Base,
             msg = self._logger.resolveString(362, username, getExceptionMessage(e))
             if self._debug:
                 self._logger.logp(SEVERE, 'ImapService', '_doOAuth2()', msg)
-            raise ConnectException(msg, self)
+            raise AuthenticationFailedException(msg, self)
         if self._debug:
             self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 363, username, self._getReply(code))
 

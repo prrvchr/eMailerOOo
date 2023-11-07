@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3] et à notre [Politique de protection des données][4].**
 
-# version [1.1.0][5]
+# version [1.1.1][5]
 
 ## Introduction:
 
@@ -69,7 +69,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.1.1.  
+- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.2.0.  
 Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
 - Installer l'extension ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** version 1.0.5.  
@@ -86,7 +86,7 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
   - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.1.0.  
+- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.1.1.  
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -378,7 +378,11 @@ ___
   Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][77].  
   Vous trouverez une macro Basic vous permettant d'envoyer des emails dans : **Outils -> Macros -> Editer les Macros... -> eMailerOOo -> SendEmail**.
 
-### Que reste-t-il à faire pour la version 1.1.0:
+### Ce qui a été fait pour la version 1.1.1:
+
+- Prise en charge de la version 1.2.0 de l'extension **OAuth2OOo**. Les versions précédentes ne fonctionneront pas avec l'extension **OAuth2OOo** 1.2.0 ou ultérieure.
+
+### Que reste-t-il à faire pour la version 1.1.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 

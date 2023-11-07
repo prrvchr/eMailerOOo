@@ -169,7 +169,10 @@ class ImapService(unohelper.Base,
         self._url = self._domains[domain]
         server = getRequest(self._ctx, servername, username)
         if server is None:
-            raise AuthenticationFailedException()
+            msg = self._logger.resolveString(321, username)
+            if self._debug:
+                self._logger.logp(SEVERE, 'ImapService', '_getHttpServer()', msg)
+            raise AuthenticationFailedException(msg, self)
         return server
 
     def _getImapServer(self, context, servername, username, password):

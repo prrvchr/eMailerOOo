@@ -70,26 +70,26 @@ Il semble important que le fichier n'ait pas été renommé lors de son téléch
 Si nécessaire, renommez-le avant de l'installer.
 
 - Installer l'extension ![OAuth2OOo logo][15] **[OAuth2OOo.oxt][16]** [![Version][17]][16]
-  
-  Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
+
+    Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
 - Installer l'extension ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** [![Version][20]][19]
-  
-  Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
+
+    Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
 
 - Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** [![Version][23]][22]
-  
-  Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][24] comme source de données pour les listes de diffusion et la fusion de documents.
+    - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** [![Version][23]][22]
 
-  - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** [![Version][27]][26]
-  
-  Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
+        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][24] comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** [![Version][30]][29]
-  
-  Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
+    - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** [![Version][27]][26]
+
+        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
+
+    - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** [![Version][30]][29]
+
+        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
 - Installer l'extension ![eMailerOOo logo][31] **[eMailerOOo.oxt][32]** [![Version][33]][32]
 
@@ -320,10 +320,10 @@ ___
 ### Ce qui a été fait pour la version 0.0.2:
 
 - Réécriture de [IspDB][63] ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
-  - Utilisation de [IMAPClient][69] version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
-  - Extension des fichiers IDL [com.sun.star.mail.*][70]:
-    - [XMailMessage2.idl][71] prend désormais en charge la hiérarchisation des courriels (thread).
-    - La nouvelle interface [XImapService][72] permet d'accéder à une partie de la bibliothèque IMAPClient.
+    - Utilisation de [IMAPClient][69] version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
+    - Extension des fichiers IDL [com.sun.star.mail.*][70]:
+        - [XMailMessage2.idl][71] prend désormais en charge la hiérarchisation des courriels (thread).
+        - La nouvelle interface [XImapService][72] permet d'accéder à une partie de la bibliothèque IMAPClient.
 
 - Réécriture du [Spouleur][73] afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
 
@@ -332,19 +332,19 @@ ___
 ### Ce qui a été fait pour la version 0.0.3:
 
 - Réécriture du [Grid][68] afin de permettre:
-  - Le tri sur une colonne avec l'intégration du service UNO [SortableGridDataModel][74].
-  - La génération des filtres des enregistrements nécessaires au service [Spouleur][65].
-  - Le partage du module python avec l'extension [jdbcDriverOOo][75].
+    - Le tri sur une colonne avec l'intégration du service UNO [SortableGridDataModel][74].
+    - La génération des filtres des enregistrements nécessaires au service [Spouleur][65].
+    - Le partage du module python avec l'extension [jdbcDriverOOo][75].
 
 - Réécriture du [Merger][66] afin de permettre:
-  - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][76].
-  - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
-  - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][77] `VARCHAR` et `INTEGER` ou derivé.
-  - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au [Grid][68].
+    - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][76].
+    - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
+    - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][77] `VARCHAR` et `INTEGER` ou derivé.
+    - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au [Grid][68].
 
 - Réécriture du [Spouleur][65] afin de permettre:
-  - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][66].
-  - L'utilisation du nouveau [Grid][68] permettant le tri sur une colonne.
+    - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][66].
+    - L'utilisation du nouveau [Grid][68] permettant le tri sur une colonne.
 
 - Encore plein d'autres choses...
 
@@ -369,19 +369,19 @@ ___
 ### Ce qui a été fait pour la version 1.1.0:
 
 - Dans l'assistant de configuration de la connexion (IspDB Wizard) il est maintenant possible de désactiver la configuration IMAP.  
-  En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.  
-  Dans ce même assistant, il est désormais possible de saisir une adresse courriel de réponse.
+    En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.  
+    Dans ce même assistant, il est désormais possible de saisir une adresse courriel de réponse.
 
 - Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][80].  
-  Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
-  Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
+    Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
+    Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
 
 - Il est désormais possible dans le Spooler de visualiser les courriels au format eml.
 
 - Un service [com.sun.star.mail.MailUser][81] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel qui suite la rfc822.  
-  Un autre service [com.sun.star.datatransfer.TransferableFactory][82] permet, comme son nom l'indique, la création de [Transferable][83] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).  
-  Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][84].  
-  Vous trouverez une macro Basic vous permettant d'envoyer des emails dans : **Outils -> Macros -> Editer les Macros... -> eMailerOOo -> SendEmail**.
+    Un autre service [com.sun.star.datatransfer.TransferableFactory][82] permet, comme son nom l'indique, la création de [Transferable][83] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).  
+    Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][84].  
+    Vous trouverez une macro Basic vous permettant d'envoyer des emails dans : **Outils -> Macros -> Editer les Macros... -> eMailerOOo -> SendEmail**.
 
 ### Ce qui a été fait pour la version 1.1.1:
 

@@ -69,29 +69,29 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![OAuth2OOo logo][15] **[OAuth2OOo.oxt][16]** extension [![Version][17]][16]  
+- Install ![OAuth2OOo logo][15] **[OAuth2OOo.oxt][16]** extension [![Version][17]][16]
 
-  You must first install this extension, if it is not already installed.
+    You must first install this extension, if it is not already installed.
 
-- Install ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** extension [![Version][20]][19]  
+- Install ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** extension [![Version][20]][19]
 
-  This extension is necessary to use HsqlDB version 2.7.2 with all its features.
+    This extension is necessary to use HsqlDB version 2.7.2 with all its features.
 
 - If you don't have a datasource, you can install one of the following extensions:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** [![Version][23]][22]  
+    - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** [![Version][23]][22]
 
-  This extension is only necessary if you want to use your contacts present on a [**Nextcloud**][24] platform as a data source for mailing lists and document merging.
+        This extension is only necessary if you want to use your contacts present on a [**Nextcloud**][24] platform as a data source for mailing lists and document merging.
 
-  - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** [![Version][27]][26]  
+    - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** [![Version][27]][26]
 
-  This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
+        This extension is only needed if you want to use your personal phone contacts (Android contact) as a data source for mailing lists and document merging.
 
-  - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** [![Version][30]][29]  
+    - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** [![Version][30]][29]
 
-  This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
+        This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- Install ![eMailerOOo logo][31] **[eMailerOOo.oxt][32]** extension [![Version][33]][32]  
+- Install ![eMailerOOo logo][31] **[eMailerOOo.oxt][32]** extension [![Version][33]][32]
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -320,10 +320,10 @@ ___
 ### What has been done for version 0.0.2:
 
 - Rewrite of [IspDB][63] or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
-  - Use of [IMAPClient][69] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
-  - Extension of [com.sun.star.mail.*][70] IDL files:
-    - [XMailMessage2.idl][71] now supports email threading.
-    - The new [XImapService.idl][72] interface allows access to part of the IMAPClient library.
+    - Use of [IMAPClient][69] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
+    - Extension of [com.sun.star.mail.*][70] IDL files:
+        - [XMailMessage2.idl][71] now supports email threading.
+        - The new [XImapService.idl][72] interface allows access to part of the IMAPClient library.
 
 - Rewriting of the [Spooler][73] in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
 
@@ -332,19 +332,19 @@ ___
 ### What has been done for version 0.0.3:
 
 - Rewrote the [Grid][68] to allow:
-  - Sorting on a column with the integration of the UNO service [SortableGridDataModel][74].
-  - To generate the filter of records needed by the service [Spooler][65].
-  - Sharing the python module with the [jdbcDriverOOo][75] extension.
+    - Sorting on a column with the integration of the UNO service [SortableGridDataModel][74].
+    - To generate the filter of records needed by the service [Spooler][65].
+    - Sharing the python module with the [jdbcDriverOOo][75] extension.
 
 - Rewrote the [Merger][66] to allow:
-  - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][76]
-  - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
-  - The use of primary key, which can be composite, supporting [DataType][77] `VARCHAR` and `INTEGER` or derived.
-  - A preview of the document with merge fields filled in faster thanks to the [Grid][68].
+    - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][76]
+    - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
+    - The use of primary key, which can be composite, supporting [DataType][77] `VARCHAR` and `INTEGER` or derived.
+    - A preview of the document with merge fields filled in faster thanks to the [Grid][68].
 
 - Rewrote the [Spooler][65] to allow:
-  - The use of new filters supporting composite primary keys provided by the [Merger][66].
-  - The use of the new [Grid][68] allowing sorting on a column.
+    - The use of new filters supporting composite primary keys provided by the [Merger][66].
+    - The use of the new [Grid][68] allowing sorting on a column.
 
 - Many other things...
 
@@ -369,19 +369,19 @@ ___
 ### What has been done for version 1.1.0:
 
 - In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration.  
-  As a result, this no longer sends a thread (IMAP message) when merging a mailing.  
-  In this same wizard, it is now possible to enter an email reply-to address.
+    As a result, this no longer sends a thread (IMAP message) when merging a mailing.  
+    In this same wizard, it is now possible to enter an email reply-to address.
 
 - In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][80].  
-  In the subject of an email, a merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).  
-  When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
+    In the subject of an email, a merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).  
+    When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
 
 - It is now possible in the Spooler to view emails in eml format.
 
 - A service [com.sun.star.mail.MailUser][81] now allows access to a connection configuration (SMTP and/or IMAP) from an email address following rfc822.  
-  Another service [com.sun.star.datatransfer.TransferableFactory][82] allows, as its name suggests, the creation of [Transferable][83] from a String, a binary sequence, an Url (file://...) or a data stream (InputStream).  
-  These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][84].  
-  You will find a Basic macro allowing you to send emails in: **Tools -> Macros -> Edit Macros... -> eMailerOOo -> SendEmail**.
+    Another service [com.sun.star.datatransfer.TransferableFactory][82] allows, as its name suggests, the creation of [Transferable][83] from a String, a binary sequence, an Url (file://...) or a data stream (InputStream).  
+    These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][84].  
+    You will find a Basic macro allowing you to send emails in: **Tools -> Macros -> Edit Macros... -> eMailerOOo -> SendEmail**.
 
 ### What has been done for version 1.1.1:
 

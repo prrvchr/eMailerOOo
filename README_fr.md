@@ -69,7 +69,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.2.0.  
+- Installer l'extension ![OAuth2OOo logo][17] **[OAuth2OOo.oxt][18]** version 1.2.1.  
 Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
 - Installer l'extension ![jdbcDriverOOo logo][19] **[jdbcDriverOOo.oxt][20]** version 1.0.5.  
@@ -77,16 +77,16 @@ Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes s
 
 - Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.1.  
+  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.3.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][23] comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.1.  
+  - ![gContactOOo logo][24] **[gContactOOo.oxt][25]** version 1.0.3.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.1.  
+  - ![mContactOOo logo][26] **[mContactOOo.oxt][27]** version 1.0.3.  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version 1.1.1.  
+- Installer l'extension ![eMailerOOo logo][1] **[eMailerOOo.oxt][28]** version  [![Version][0]][28]
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -388,6 +388,7 @@ ___
 
 - Tout ce qui est bienvenu...
 
+[0]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.1.1>
 [1]: <img/eMailerOOo.svg>
 [2]: <https://prrvchr.github.io/eMailerOOo/>
 [3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
@@ -405,17 +406,17 @@ ___
 [15]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
 [16]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [17]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg>
-[18]: <https://github.com/prrvchr/OAuth2OOo/raw/master/OAuth2OOo.oxt>
+[18]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
 [19]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.svg>
-[20]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
+[20]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
 [21]: <https://prrvchr.github.io/vCardOOo/img/vCardOOo.svg>
-[22]: <https://github.com/prrvchr/vCardOOo/raw/main/vCardOOo.oxt>
+[22]: <https://github.com/prrvchr/vCardOOo/releases/latest/download/vCardOOo.oxt>
 [23]: <https://fr.wikipedia.org/wiki/Nextcloud>
 [24]: <https://prrvchr.github.io/gContactOOo/img/gContactOOo.svg>
-[25]: <https://github.com/prrvchr/gContactOOo/raw/master/gContactOOo.oxt>
+[25]: <https://github.com/prrvchr/gContactOOo/releases/latest/download/gContactOOo.oxt>
 [26]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.svg>
-[27]: <https://github.com/prrvchr/mContactOOo/raw/main/mContactOOo.oxt>
-[28]: <https://github.com/prrvchr/eMailerOOo/raw/master/eMailerOOo.oxt>
+[27]: <https://github.com/prrvchr/mContactOOo/releases/latest/download/mContactOOo.oxt>
+[28]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
 [29]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [30]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [31]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>

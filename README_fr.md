@@ -69,24 +69,29 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![OAuth2OOo logo][15] **[OAuth2OOo.oxt][16]** version 1.2.1. [![Download][17]][16]  
-Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
+- Installer l'extension ![OAuth2OOo logo][15] **[OAuth2OOo.oxt][16]** [![Version][17]][16]
+  
+  Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
-- Installer l'extension ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** version 1.0.5. [![Download][20]][19]  
-Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
+- Installer l'extension ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** ![Version][20]][19]
+  
+  Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
 
 - Si vous n'avez pas de source de données, vous pouvez installer l'une des extensions suivantes:
 
-  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** version 1.0.3. [![Download][23]][22]  
+  - ![vCardOOo logo][21] **[vCardOOo.oxt][22]** [![Version][23]][22]
+  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][24] comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** version 1.0.3. [![Download][27]][26]  
+  - ![gContactOOo logo][25] **[gContactOOo.oxt][26]** [![Version][27]][26]
+  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
-  - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** version 1.0.3. [![Download][30]][29]  
+  - ![mContactOOo logo][28] **[mContactOOo.oxt][29]** [![Version][30]][29]
+  
   Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-- Installer l'extension ![eMailerOOo logo][31] **[eMailerOOo.oxt][32]** version  [![Version][33]][32]
+- Installer l'extension ![eMailerOOo logo][31] **[eMailerOOo.oxt][32]** [![Version][33]][32]
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -404,23 +409,23 @@ ___
 [14]: <https://prrvchr.github.io/HyperSQLOOo/>
 [15]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg>
 [16]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
-[17]: <https://img.shields.io/github/downloads/prrvchr/OAuth2OOo/latest/total#right>
+[17]: <https://img.shields.io/github/downloads/prrvchr/OAuth2OOo/latest/total?label=v1.2.1#right>
 [18]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.svg>
 [19]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[20]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total#right>
+[20]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.5#right>
 [21]: <https://prrvchr.github.io/vCardOOo/img/vCardOOo.svg>
 [22]: <https://github.com/prrvchr/vCardOOo/releases/latest/download/vCardOOo.oxt>
-[23]: <https://img.shields.io/github/downloads/prrvchr/vCardOOo/latest/total#right>
+[23]: <https://img.shields.io/github/downloads/prrvchr/vCardOOo/latest/total?label=v1.0.3#right>
 [24]: <https://fr.wikipedia.org/wiki/Nextcloud>
 [25]: <https://prrvchr.github.io/gContactOOo/img/gContactOOo.svg>
 [26]: <https://github.com/prrvchr/gContactOOo/releases/latest/download/gContactOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/gContactOOo/latest/total#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/gContactOOo/latest/total?label=v1.0.3#right>
 [28]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.svg>
 [29]: <https://github.com/prrvchr/mContactOOo/releases/latest/download/mContactOOo.oxt>
-[30]: <https://img.shields.io/github/downloads/prrvchr/mContactOOo/latest/total#right>
+[30]: <https://img.shields.io/github/downloads/prrvchr/mContactOOo/latest/total?label=v1.0.3#right>
 [31]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg>
 [32]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[33]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total#right>
+[33]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.1.1#right>
 [34]: <https://prrvchr.github.io/vCardOOo/README_fr>
 [35]: <https://prrvchr.github.io/gContactOOo/README_fr>
 [36]: <https://prrvchr.github.io/mContactOOo/README_fr>

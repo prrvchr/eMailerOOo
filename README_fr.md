@@ -73,7 +73,7 @@ Si nécessaire, renommez-le avant de l'installer.
   
   Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
-- Installer l'extension ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** ![Version][20]][19]
+- Installer l'extension ![jdbcDriverOOo logo][18] **[jdbcDriverOOo.oxt][19]** [![Version][20]][19]
   
   Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
 

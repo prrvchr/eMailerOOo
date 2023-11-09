@@ -47,6 +47,7 @@ Bref, à participer au developpement de cette extension.
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
 ___
+
 ## Prérequis:
 
 Afin de profiter des dernières versions des bibliothèques Python utilisées dans eMailerOOo, la version 2 de Python a été abandonnée au profit de **Python 3.8 minimum**.  
@@ -64,6 +65,7 @@ Si vous utilisez **LibreOffice Community sous Linux**, vous êtes sujet au [dysf
 Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][14].  
 
 ___
+
 ## Installation:
 
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
@@ -96,6 +98,7 @@ Si nécessaire, renommez-le avant de l'installer.
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ___
+
 ## Utilisation:
 
 ### Introduction:
@@ -275,6 +278,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 ![eMailerOOo Spooler screenshot 3][61]
 
 ___
+
 ## A été testé avec:
 
 * LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
@@ -290,6 +294,7 @@ de créer un [dysfonctionnement][9]
 J'essaierai de le résoudre :smile:
 
 ___
+
 ## Historique:
 
 ### Ce qui a été fait pour la version 0.0.1:

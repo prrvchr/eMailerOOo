@@ -205,8 +205,8 @@ class MergerModel(MailModel):
 
     # AddressBook private methods
     def _setAddressBook(self, book, progress, setAddressBook):
-        step = 2
         sleep(0.2)
+        step = 2
         progress(5)
         queries = label = message = None
         self._tables = {}
@@ -713,6 +713,7 @@ class MergerModel(MailModel):
 
 # Private procedures called by WizardPage2
     def _initPage2(self, window1, window2, initPage):
+        sleep(0.2)
         self._initRowSet()
         self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, 'MergerGrid1', MULTI, None, 8, True)
         self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, 'MergerGrid2', MULTI, None, 8, True)

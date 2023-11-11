@@ -25,7 +25,7 @@ modify it under the terms of either (at your option):
 
 - The [Mozilla Public License version 2.0][4].
 
-- The GNU [Lesser General Public License][2] as published by the Free Software
+- The GNU [Lesser General Public License][5] as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later version.
 
 [1]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>

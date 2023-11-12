@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-# Documentation
+# [![eMailerOOo logo][0]][-1] Documentation
 
 **Ce [document][1] en français.**
 
@@ -398,6 +398,8 @@ ___
 
 - Anything welcome...
 
+[0]: </img/emailer.svg#collapse>
+[-1]: <https://prrvchr.github.io/eMailerOOo/>
 [1]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [2]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>

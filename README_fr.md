@@ -398,6 +398,8 @@ ___
 
 - Tout ce qui est bienvenu...
 
+
+
 [1]: <https://prrvchr.github.io/eMailerOOo/>
 [2]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [3]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>

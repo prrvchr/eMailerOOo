@@ -54,6 +54,7 @@ from .spooler import Mailer
 
 from .wizard import Wizard
 
+from .mailertool import checkOAuth2
 from .mailertool import getDataSource
 
 from .unotool import createMessageBox
@@ -96,7 +97,14 @@ class MailDispatch(unohelper.Base,
         state = FAILURE
         result = None
         if url.Path == 'ispdb':
-            state, result = self._showIspdb(arguments)
+            oauth2 = None
+            # FIXME: We need to check the presence of OAuth2OOo extension
+            if not self._isInitialized():
+                oauth2 = checkOAuth2(self._ctx, g_extension, '\n')
+            if oauth2 is not None:
+                self._showMsgBox(*oauth2)
+            else:
+                state, result = self._showIspdb(arguments)
         else:
             # FIXME: We need to check the configuration
             if not self._isInitialized():

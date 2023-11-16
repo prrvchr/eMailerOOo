@@ -66,17 +66,21 @@ import base64
 import traceback
 
 
-def getDataSource(ctx, method, sep, callback):
+def checkOAuth2(ctx, method, sep):
     oauth2 = getOAuth2Version(ctx)
-    driver = getExtensionVersion(ctx, jdbcid)
     if oauth2 is None:
-        callback(method, 501, oauth2ext, sep, g_extension)
-    elif not checkVersion(oauth2, oauth2ver):
-        callback(method, 503, oauth2, oauth2ext, sep, oauth2ver)
-    elif driver is None:
-        callback(method, 501, jdbcext, sep, g_extension)
-    elif not checkVersion(driver, jdbcver):
-        callback(method, 503, driver, jdbcext, sep, jdbcver)
+        return method, 501, oauth2ext, sep, g_extension
+    if not checkVersion(oauth2, oauth2ver):
+        return method, 503, oauth2, oauth2ext, sep, oauth2ver
+    return None
+
+def getDataSource(ctx, method, sep, callback):
+    oauth2 = checkOAuth2(ctx, method, sep)
+    driver = _checkJdbc(ctx, method, sep)
+    if oauth2 is not None:
+        callback(*oauth2)
+    elif driver is not None:
+        callback(*driver)
     else:
         path = g_folder + '/' + g_basename
         url = getConnectionUrl(ctx, path)
@@ -232,3 +236,12 @@ def _getDocumentExtension(document):
     else:
         extension = None
     return extension
+
+def _checkJdbc(ctx, method, sep):
+    driver = getExtensionVersion(ctx, jdbcid)
+    if driver is None:
+        return method, 501, jdbcext, sep, g_extension
+    elif not checkVersion(driver, jdbcver):
+        return method, 503, driver, jdbcext, sep, jdbcver
+    return None
+

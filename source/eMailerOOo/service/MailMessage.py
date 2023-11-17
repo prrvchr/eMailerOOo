@@ -143,9 +143,8 @@ class MailMessage(unohelper.Base,
         return message.as_string()
 
     def _getMessage(self):
-        parsed = False
+        body = None
         COMMASPACE = ', '
-        body = Message()
         encoding = self._encoding
         #Use first flavor that's sane for an email body
         for flavor in self.Body.getTransferDataFlavors():
@@ -156,39 +155,28 @@ class MailMessage(unohelper.Base,
                     encoding = mct.getParameterValue(self._charset)
                 else:
                     mimetype += '; %s=%s' % (self._charset, encoding)
-                data = self._getTransferData(self.Body, flavor)
+                data = self._getData(self.Body, flavor)
                 if len(data):
-                    body['Content-Type'] = mimetype
-                    body['MIME-Version'] = '1.0'
-                    data = self._getBodyData(data, encoding)
-                    c = Charset(encoding)
-                    c.body_encoding = QP
-                    body.set_payload(data, c)
-                    parsed = True
+                    body = self._getBody(data, encoding, mimetype)
                     break
         # FIXME: We need to check if the body has been parsed,
         # FIXME: if not we raise a UnsupportedFlavorException
-        if not parsed:
+        if body is None:
             msg = self._getLogger().resolveString(2001, self.Subject)
             raise UnsupportedFlavorException(msg, self)
         if self.hasAttachments():
-            message = MIMEMultipart()
-            message.epilogue = ''
-            message.attach(body)
+            message = self._getMultipart(body)
         else:
             message = body
         message['Subject'] = self.Subject
-        header = Header(self.SenderName, 'utf-8')
-        header.append('<' + self.SenderAddress + '>','us-ascii')
-        message['From'] = header
+        message['From'] = self._getHeader()
         message['To'] = COMMASPACE.join(self.getRecipients())
         message['Message-ID'] = self.MessageId
+        message['Reply-To'] = self.ReplyToAddress
         if self.ThreadId:
             message['References'] = self.ThreadId
         if self.hasCcRecipients():
             message['Cc'] = COMMASPACE.join(self.getCcRecipients())
-        if self.ReplyToAddress:
-            message['Reply-To'] = self.ReplyToAddress
         try:
             configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')
@@ -213,7 +201,7 @@ class MailMessage(unohelper.Base,
                 msg = self._getLogger().resolveString(2003, name, self.Subject)
                 raise UnsupportedFlavorException(msg, self)
             flavor = flavors[0]
-            msgattachment, encoding = self._getMessageAttachment(content, flavor, name)
+            msgattachment, encoding = self._getAttachment(content, flavor, name)
             encode_base64(msgattachment)
             msgattachment.add_header('Content-Disposition',
                                      'attachment',
@@ -221,7 +209,7 @@ class MailMessage(unohelper.Base,
             message.attach(msgattachment)
         return message
 
-    def _getTransferData(self, transferable, flavor):
+    def _getData(self, transferable, flavor):
         interface = 'com.sun.star.io.XInputStream'
         data = transferable.getTransferData(flavor)
         if flavor.DataType == uno.getTypeByName(interface):
@@ -231,7 +219,7 @@ class MailMessage(unohelper.Base,
             data = getStreamSequence(data)
         return data
 
-    def _getBodyData(self, data, encoding):
+    def _getBody(self, data, encoding, mimetype):
         # If it's a byte sequence, decode it
         if isinstance(data, uno.ByteSequence):
             data = data.value.decode(encoding)
@@ -242,10 +230,30 @@ class MailMessage(unohelper.Base,
         else:
             msg = self._getLogger().resolveString(2021, self.Subject, repr(type(data)))
             raise UnsupportedFlavorException(msg, self)
-        return data
+        body = Message()
+        body['Content-Type'] = mimetype
+        body['MIME-Version'] = '1.0'
+        body.set_payload(data, self._getCharset(encoding))
+        return body
 
-    def _getMessageAttachment(self, content, flavor, name):
-        data = self._getTransferData(content, flavor)
+    def _getCharset(self, encoding):
+        charset = Charset(encoding)
+        charset.body_encoding = QP
+        return charset
+
+    def _getMultipart(self, body):
+        message = MIMEMultipart()
+        message.epilogue = ''
+        message.attach(body)
+        return message
+
+    def _getHeader(self):
+        header = Header(self.SenderName, 'utf-8')
+        header.append('<' + self.SenderAddress + '>','us-ascii')
+        return header
+
+    def _getAttachment(self, content, flavor, name):
+        data = self._getData(content, flavor)
         if not len(data):
             msg = self._getLogger().resolveString(2031, name, self.Subject)
             raise UnsupportedFlavorException(msg, self)

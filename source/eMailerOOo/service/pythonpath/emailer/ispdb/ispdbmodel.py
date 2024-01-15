@@ -291,7 +291,10 @@ class IspdbModel(unohelper.Base):
         return self._isHostValid(host) and self._isPortValid(port)
 
     def isStringValid(self, value):
-        if validators.length(value, min=1):
+        # FIXME: validators 0.22.0 seem to be buggy, as workaround we need to set max_val
+        # FIXME: see: https://github.com/python-validators/validators/issues/323)
+        max_val = max(1, len(value))
+        if validators.length(value, min_val=1, max_val=max_val):
             return True
         return False
 
@@ -496,7 +499,7 @@ class IspdbModel(unohelper.Base):
         return False
 
     def _isPortValid(self, port):
-        if validators.between(port, min=1, max=1023):
+        if validators.between(port, min_val=1, max_val=1023):
             return True
         return False
 

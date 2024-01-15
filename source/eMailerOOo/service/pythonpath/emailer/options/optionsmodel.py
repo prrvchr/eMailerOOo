@@ -57,6 +57,10 @@ class OptionsModel():
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
 
+    @property
+    def _Timeout(self):
+        return self._config.getByName('ConnectTimeout')
+
     def addStreamListener(self, listener):
         self._spooler.addListener(listener)
 
@@ -65,14 +69,16 @@ class OptionsModel():
 
     def getViewData(self):
         exist = getSimpleFile(self._ctx).exists(self._url)
-        timeout = self._config.getByName('ConnectTimeout')
         msg, state = self._getSpoolerStatus()
-        return exist, timeout, msg, state
+        return exist, self._Timeout, msg, state
 
     def saveTimeout(self, timeout):
-        self._config.replaceByName('ConnectTimeout', timeout)
+        if timeout != self._Timeout:
+            self._config.replaceByName('ConnectTimeout', timeout)
         if self._config.hasPendingChanges():
             self._config.commitChanges()
+            return True
+        return False
 
     def toogleSpooler(self, state):
         if state:

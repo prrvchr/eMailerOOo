@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4] et à notre [Politique de protection des données][5].**
 
-# version [1.1.1][6]
+# version [1.2.0][6]
 
 ## Introduction:
 
@@ -50,19 +50,19 @@ ___
 
 ## Prérequis:
 
-Afin de profiter des dernières versions des bibliothèques Python utilisées dans eMailerOOo, la version 2 de Python a été abandonnée au profit de **Python 3.8 minimum**.  
-Cela signifie que **eMailerOOo ne supporte plus OpenOffice et LibreOffice 6.x sous Windows depuis sa version 1.0.0**.
-Je ne peux que vous conseiller **de migrer vers LibreOffice 7.x**.
+L'extension eMailerOOo utilise l'extension OAuth2OOo pour fonctionner.  
+Elle doit donc répondre aux [prérequis de l'extension OAuth2OOo][12].
 
-eMailerOOo utilise une base de données locale [HsqlDB][12] version 2.7.2.  
-HsqlDB étant une base de données écrite en Java, son utilisation nécessite [l'installation et la configuration][13] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
-Je vous recommande [Adoptium][14] comme source d'installation de Java.
+L'extension eMailerOOo utilise l'extension jdbcDriverOOo pour fonctionner.  
+Elle doit donc répondre aux [prérequis de l'extension jdbcDriverOOo][13].
 
-Si vous utilisez **LibreOffice Community sous Linux**, vous êtes sujet au [dysfonctionnement 139538][15]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
-- `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
-- `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
+**Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
+Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
+**Outils -> Options -> Internet -> eMailerOOo -> Voir journal -> Info système**  
+Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
+`pip install --upgrade <package-name>`
 
-Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][16].  
+Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][14].
 
 ___
 
@@ -96,6 +96,9 @@ Si nécessaire, renommez-le avant de l'installer.
 - ![eMailerOOo logo][38] Installer l'extension **[eMailerOOo.oxt][39]** [![Version][40]][39]
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
+
+**Sous Windows, redémarrer LibreOffice peut ne pas suffire.**  
+Pour vous assurer que LibreOffice redémarre correctement, utilisez le Gestionnaire de tâche de Windows pour vérifier qu'aucun service LibreOffice n'est visible après l'arrêt de LibreOffice.
 
 ___
 
@@ -392,7 +395,14 @@ ___
 
 - Prise en charge de la version 1.2.0 de l'extension **OAuth2OOo**. Les versions précédentes ne fonctionneront pas avec l'extension **OAuth2OOo** 1.2.0 ou ultérieure.
 
-### Que reste-t-il à faire pour la version 1.1.1:
+### Ce qui a été fait pour la version 1.2.0:
+
+- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][88] suivant la [PEP 508][89].
+- Désormais si vous n'êtes pas sous Windows alors les paquets Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
+  `pip install requirements.txt`
+- Modification de la section [Prérequis][90].
+
+### Que reste-t-il à faire pour la version 1.2.0:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -409,11 +419,9 @@ ___
 [9]: <https://www.openoffice.org/download/index.html>
 [10]: <https://github.com/prrvchr/eMailerOOo>
 [11]: <https://github.com/prrvchr/eMailerOOo/issues/new>
-[12]: <http://hsqldb.org/>
-[13]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
-[14]: <https://adoptium.net/releases.html?variant=openjdk11>
-[15]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[16]: <https://prrvchr.github.io/HyperSQLOOo/>
+[12]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
+[13]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[14]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
 [17]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
 [18]: <https://prrvchr.github.io/OAuth2OOo/README_fr>
 [19]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
@@ -485,3 +493,6 @@ ___
 [85]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
 [86]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
 [87]: <https://github.com/prrvchr/eMailerOOo/issues/4>
+[88]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/requirements.txt>
+[89]: <https://peps.python.org/pep-0508/>
+[90]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>

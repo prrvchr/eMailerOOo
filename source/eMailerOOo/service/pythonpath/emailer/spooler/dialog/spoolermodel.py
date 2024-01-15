@@ -55,7 +55,6 @@ from ...configuration import g_fetchsize
 
 from collections import OrderedDict
 from threading import Thread
-import validators
 import json
 import traceback
 

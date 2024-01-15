@@ -75,7 +75,7 @@ Le `Fournisseur` est seul responsable de l'expiration des données qu'il collect
 [1]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
 [2]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
-[4]: <https://github.com/prrvchr/OAuth2OOo/raw/master/OAuth2OOo.oxt>
-[5]: <https://github.com/prrvchr/eMailerOOo/raw/master/eMailerOOo.oxt>
+[4]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
+[5]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
 [6]: <https://prrvchr.github.io/OAuth2OOo/source/OAuth2OOo/registration/PrivacyPolicy_fr>
 [7]: <https://developers.google.com/terms/api-services-user-data-policy?hl=fr>

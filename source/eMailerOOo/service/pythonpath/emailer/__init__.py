@@ -29,6 +29,7 @@
 
 from .configuration import g_identifier
 from .configuration import g_mailservicelog
+from .configuration import g_defaultlog
 from .configuration import g_version
 
 from .options import OptionsManager

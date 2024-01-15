@@ -79,15 +79,15 @@ class IspdbManager(unohelper.Base):
     def commitPage(self, reason):
         server, user = self._view.getConfiguration(self._service)
         self._model.updateConfiguration(self._service, server, user)
+        # If we are in offline mode, this page may be the last
+        # and in this case we must save the configuration
         if reason == FINISH:
             self._model.saveConfiguration()
         return True
 
     def canAdvance(self):
-        host = self._view.getHost()
-        port = self._view.getPort()
+        host, port, index = self._view.getData()
         valid = self._model.isConnectionValid(host, port)
-        index = self._view.getAuthentication()
         if valid and index > 0:
             login = self._view.getLogin()
             valid = self._model.isStringValid(login)

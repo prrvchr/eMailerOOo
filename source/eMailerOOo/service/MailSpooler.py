@@ -46,7 +46,7 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.MailSpooler' % g_identifier
+g_ImplementationName = f'{g_identifier}.MailSpooler'
 
 
 class MailSpooler(unohelper.Base,

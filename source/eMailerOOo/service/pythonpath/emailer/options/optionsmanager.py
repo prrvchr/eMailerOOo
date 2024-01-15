@@ -30,6 +30,9 @@
 import uno
 import unohelper
 
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from .optionsmodel import OptionsModel
 
 from .optionsview import OptionsView
@@ -48,23 +51,20 @@ from ..configuration import g_defaultlog
 from ..configuration import g_spoolerlog
 from ..configuration import g_mailservicelog
 
-import os
-import sys
 import traceback
 
 
 class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, window):
+    def __init__(self, ctx, window, logger):
         self._ctx = ctx
         self._model = OptionsModel(ctx)
         self._view = OptionsView(window, *self._model.getViewData())
-        version  = ' '.join(sys.version.split())
-        path = os.pathsep.join(sys.path)
-        infos = {111: version, 112: path}
-        self._logger = LogManager(ctx, window.getPeer(), infos, g_identifier, g_defaultlog, g_spoolerlog, g_mailservicelog)
+        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_identifier, g_defaultlog, g_spoolerlog, g_mailservicelog)
         window.addEventListener(OptionsListener(self))
         self._listener = StreamListener(self)
         self._model.addStreamListener(self._listener)
+        self._logger = logger
+        self._logger.logprb(INFO, 'OptionsManager', '__init__()', 151)
 
     def started(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
@@ -79,16 +79,18 @@ class OptionsManager(unohelper.Base):
         self._view.setSpoolerError(e.Message)
 
     def dispose(self):
-        self._logger.dispose()
+        self._logmanager.dispose()
         self._model.removeStreamListener(self._listener)
 
     def loadSetting(self):
-        self._logger.loadSetting()
         self._view.initControl(*self._model.getViewData())
+        self._logmanager.loadSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 161)
 
     def saveSetting(self):
-        self._logger.saveSetting()
-        self._model.saveTimeout(self._view.getTimeout())
+        option = self._model.saveTimeout(self._view.getTimeout())
+        log = self._logmanager.saveSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 171, option, log)
 
     def changeTimeout(self, timeout):
         self._model.setTimeout(timeout)

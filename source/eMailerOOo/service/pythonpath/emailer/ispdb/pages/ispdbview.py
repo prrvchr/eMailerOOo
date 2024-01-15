@@ -56,11 +56,8 @@ class IspdbView(unohelper.Base):
     def getConnection(self):
         return self._getConnection().getSelectedItemPos()
 
-    def getHost(self):
-        return self._getHost().Text
-
-    def getPort(self):
-        return int(self._getPort().Value)
+    def getData(self):
+        return self._getHostValue(), self._getPortValue(), self.getAuthentication()
 
     def getLogin(self):
         return self._getLogin().Text
@@ -69,8 +66,8 @@ class IspdbView(unohelper.Base):
         return self._getPassword().Text, self._getConfirmPwd().Text
 
     def getConfiguration(self, service):
-        host = self.getHost()
-        port = self.getPort()
+        host = self._getHostValue()
+        port = self._getPortValue()
         connection = self.getConnection()
         authentication = self.getAuthentication()
         server = self._getServer(service, host, port, connection, authentication)
@@ -78,8 +75,8 @@ class IspdbView(unohelper.Base):
         return server, user
 
     def getServerConfig(self, service):
-        host = self.getHost()
-        port = self.getPort()
+        host = self._getHostValue()
+        port = self._getPortValue()
         connection = self.getConnection()
         authentication = self.getAuthentication()
         server = self._getServer(service, host, port, connection, authentication)
@@ -110,6 +107,12 @@ class IspdbView(unohelper.Base):
         self._getConfirmPwd().Model.Enabled = enabled
 
 # IspdbView private getter methods
+    def _getHostValue(self):
+        return self._getHost().Text
+
+    def _getPortValue(self):
+        return int(self._getPort().Value)
+
     def _getServer(self, service, host, port, connection, authentication):
         server = {}
         server['Service'] = service

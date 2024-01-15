@@ -30,18 +30,23 @@
 import uno
 import unohelper
 
+from com.sun.star.logging.LogLevel import SEVERE
+
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 
 from emailer import OptionsManager
 
+from emailer import getLogger
+
 from emailer import g_identifier
+from emailer import g_defaultlog
 
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.OptionsHandler' % g_identifier
+g_ImplementationName = f'{g_identifier}.OptionsHandler'
 
 
 class OptionsHandler(unohelper.Base,
@@ -50,6 +55,7 @@ class OptionsHandler(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._manager = None
+        self._logger = getLogger(ctx, g_defaultlog)
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
@@ -57,7 +63,7 @@ class OptionsHandler(unohelper.Base,
             handled = False
             if method == 'external_event':
                 if event == 'initialize':
-                    self._manager = OptionsManager(self._ctx, window)
+                    self._manager = OptionsManager(self._ctx, window, self._logger)
                     handled = True
                 elif event == 'ok':
                     self._manager.saveSetting()
@@ -81,8 +87,7 @@ class OptionsHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "OptionsHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
-            print(msg)
+            self._logger.logprb(SEVERE, 'OptionsHandler', 'callHandlerMethod()', 141, e, traceback.format_exc())
 
         def getSupportedMethodNames(self):
             return ('external_event',

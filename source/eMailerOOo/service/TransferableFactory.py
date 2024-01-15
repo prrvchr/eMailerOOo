@@ -45,7 +45,7 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.TransferableFactory' % g_identifier
+g_ImplementationName = f'{g_identifier}.TransferableFactory'
 
 
 class TransferableFactory(unohelper.Base,

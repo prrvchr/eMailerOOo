@@ -62,7 +62,7 @@ To ensure that your Python packages are up to date it is recommended to use the 
 If outdated packages appear, you can update them with the command:  
 `pip install --upgrade <package-name>`
 
-For more information see: [What has been done for version 1.1.0][14].
+For more information see: [What has been done for version 1.2.0][14].
 
 ___
 
@@ -95,7 +95,7 @@ If necessary, rename it before installing it.
 
 - ![eMailerOOo logo][38] Install **[eMailerOOo.oxt][39]** extension [![Version][40]][39]
 
-Restart LibreOffice / OpenOffice after installation.
+Restart LibreOffice after installation.
 
 **On Windows, restarting LibreOffice may not be enough.**  
 To ensure that LibreOffice restarts correctly, use the Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice is shut down.

@@ -62,7 +62,7 @@ Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utili
 Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
 `pip install --upgrade <package-name>`
 
-Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][14].
+Pour plus d'information voir: [Ce qui a été fait pour la version 1.2.0][14].
 
 ___
 
@@ -95,7 +95,7 @@ Si nécessaire, renommez-le avant de l'installer.
 
 - ![eMailerOOo logo][38] Installer l'extension **[eMailerOOo.oxt][39]** [![Version][40]][39]
 
-Redémarrez LibreOffice / OpenOffice après l'installation.
+Redémarrez LibreOffice après l'installation.
 
 **Sous Windows, redémarrer LibreOffice peut ne pas suffire.**  
 Pour vous assurer que LibreOffice redémarre correctement, utilisez le Gestionnaire de tâche de Windows pour vérifier qu'aucun service LibreOffice n'est visible après l'arrêt de LibreOffice.

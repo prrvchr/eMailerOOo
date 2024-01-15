@@ -40,13 +40,19 @@ from com.sun.star.ucb import IllegalIdentifierException
 
 from .oauth2 import getOAuth2UserName
 
-from .unotool import createService
+from .unotool import getUrlTransformer
+from .unotool import getUriFactory
+from .unotool import parseUrl
 
 from .ucp import User
+from .ucp import getExceptionMessage
 
 from .provider import Provider
 
 from .replicator import Replicator
+
+from .configuration import g_extension
+from .configuration import g_separator
 
 from threading import Event
 from threading import Lock
@@ -63,7 +69,8 @@ class DataSource(unohelper.Base,
         self.Error = None
         self._sync = Event()
         self._lock = Lock()
-        self._factory = createService(ctx, 'com.sun.star.uri.UriReferenceFactory')
+        self._urifactory = getUriFactory(ctx)
+        self._transformer = getUrlTransformer(ctx)
         database.addCloseListener(self)
         folder, link = database.getContentType()
         self._provider = Provider(ctx, logger, folder, link)
@@ -75,10 +82,21 @@ class DataSource(unohelper.Base,
     def getDefaultUser(self):
         return self._default
 
+    def parseIdentifier(self, identifier):
+        url = self._getPresentationUrl(identifier.getContentIdentifier())
+        return self._urifactory.parse(url)
+
     # FIXME: Get called from ParameterizedProvider.queryContent()
-    def queryContent(self, source, authority, identifier):
-        user, path = self._getUser(source, identifier.getContentIdentifier(), authority)
-        content = user.getContent(path, authority)
+    def queryContent(self, source, authority, url):
+        user, uri = self._getUser(source, authority, url)
+        itemid = user.getItemByUri(uri)
+        if itemid is None:
+            msg = self._logger.resolveString(311, url)
+            raise IllegalIdentifierException(msg, source)
+        content = user.getContent(authority, itemid)
+        if content is None:
+            msg = self._logger.resolveString(311, url)
+            raise IllegalIdentifierException(msg, source)
         return content
 
     # XCloseListener
@@ -93,11 +111,13 @@ class DataSource(unohelper.Base,
         self._logger.logprb(INFO, 'DataSource', 'queryClosing()', 341, self._provider.Scheme)
     def notifyClosing(self, source):
         pass
+    def disposing(self, source):
+        pass
 
     # Private methods
-    def _getUser(self, source, url, authority):
+    def _getUser(self, source, authority, url):
         default = False
-        uri = self._factory.parse(url)
+        uri = self._urifactory.parse(self._getPresentationUrl(url))
         if uri is None:
             msg = self._logger.resolveString(321, url)
             raise IllegalIdentifierException(msg, source)
@@ -105,7 +125,7 @@ class DataSource(unohelper.Base,
             if uri.hasAuthority() and uri.getAuthority() != '':
                 name = uri.getAuthority()
             else:
-                msg = self._logger.resolveString(322, url)
+                msg = self._getExceptionMessage('_getUser()', 322, url)
                 raise IllegalIdentifierException(msg, source)
         elif self._default:
             name = self._default
@@ -118,21 +138,31 @@ class DataSource(unohelper.Base,
             if not user.Request.isAuthorized():
                 # The user's OAuth2 configuration has been deleted and
                 # the OAuth2 configuration wizard has been canceled.
-                msg = self._logger.resolveString(323, name)
+                msg = self._getExceptionMessage('_getUser()', 324, name)
                 raise IllegalIdentifierException(msg, source)
         else:
-            user = User(self._ctx, self._logger, source, self.DataBase,
-                        self._provider, name, self._sync, self._lock)
+            user = User(self._ctx, source, self._logger, self.DataBase,
+                        self._provider, self._sync, name)
             self._users[name] = user
         # FIXME: if the user has been instantiated then we can consider it as the default user
         if default:
             self._default = name
-        return user, uri.getPath()
+        return user, uri
+
+    def _getPresentationUrl(self, url):
+        # FIXME: Sometimes the url can end with a dot or a slash, it must be deleted
+        url = url.rstrip('/.')
+        uri = parseUrl(self._transformer, url)
+        if uri is not None:
+            uri = self._transformer.getPresentation(uri, True)
+        return uri if uri else url
 
     def _getUserName(self, source, url):
         name = getOAuth2UserName(self._ctx, self, self._provider.Scheme)
         if not name:
-            msg = self._logger.resolveString(331, url)
+            msg = self._getExceptionMessage('_getUserName', 331, url)
             raise IllegalIdentifierException(msg, source)
         return name
 
+    def _getExceptionMessage(self, method, code, *args):
+        return getExceptionMessage(self._ctx, self._logger, 'DataSource', method, code, g_extension, *args)

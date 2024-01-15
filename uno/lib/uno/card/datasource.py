@@ -68,10 +68,8 @@ class DataSource(object):
         if name in self._users:
             user = self._users.get(name)
             user.removeSession(self._database.getSessionId(connection))
-            print("DataSource.closeConnection() 1: %s - %s" % (len(self._users), name))
         if not self._hasSession():
             self._replicator.stop()
-        print("DataSource.closeConnection() 2")
 
 # Procedures called by Driver
     def getConnection(self, source, scheme, server, account, password):

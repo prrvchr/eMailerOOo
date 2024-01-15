@@ -50,7 +50,6 @@ from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 
 from ..dbtool import currentDateTimeInTZ
-from ..dbtool import getDateTimeFromString
 
 from ..logger import getLogger
 
@@ -59,6 +58,7 @@ from ..configuration import g_scheme
 from ..configuration import g_separator
 from ..configuration import g_chunk
 
+from dateutil import parser, tz
 from collections import OrderedDict
 import traceback
 
@@ -103,9 +103,6 @@ class Provider(object):
         raise NotImplementedError
     @property
     def Buffer(self):
-        raise NotImplementedError
-    @property
-    def DateTimeFormat(self):
         raise NotImplementedError
     @property
     def Folder(self):
@@ -271,7 +268,21 @@ class Provider(object):
 
     # Base method
     def parseDateTime(self, timestamp):
-        return getDateTimeFromString(timestamp, self.DateTimeFormat)
+        datetime = uno.createUnoStruct('com.sun.star.util.DateTime')
+        try:
+            dt = parser.parse(timestamp)
+        except parser.ParserError:
+            pass
+        else:
+            datetime.Year = dt.year
+            datetime.Month = dt.month
+            datetime.Day = dt.day
+            datetime.Hours = dt.hour
+            datetime.Minutes = dt.minute
+            datetime.Seconds = dt.second
+            datetime.NanoSeconds = dt.microsecond * 1000
+            datetime.IsUTC = dt.tzinfo == tz.tzutc()
+        return datetime
     def isOnLine(self):
         return OFFLINE != getConnectionMode(self._ctx, self.Host)
     def isOffLine(self):
@@ -294,18 +305,27 @@ class Provider(object):
         response = user.Request.execute(parameter)
         return self.mergeNewFolder(user, itemid, response)
 
-    def uploadFile(self, user, item, data, chunk, retry, delay, new=False):
+    def uploadFile(self, code, user, item, data, created, chunk, retry, delay, new=False):
         method = 'getNewUploadLocation' if new else 'getUploadLocation'
         parameter = self.getRequestParameter(user.Request, method, data)
         response = user.Request.execute(parameter)
+        if not response.Ok:
+            msg = response.Text
+            response.close()
+            return None, (code +1, data.get('Title'), msg)
         location = self.parseUploadLocation(response)
-        if location:
-            parameter = self.getRequestParameter(user.Request, 'getUploadStream', location)
-            url = self.SourceURL + g_separator + item
-            response = user.Request.upload(parameter, url, chunk, retry, delay)
-            if response:
-                return self.updateItemId(user.DataBase, item, response)
-        return None
+        if location is None:
+            return None, (code +2, data.get('Title'))
+        parameter = self.getRequestParameter(user.Request, 'getUploadStream', location)
+        url = self.SourceURL + g_separator + item
+        response = user.Request.upload(parameter, url, chunk, retry, delay)
+        if not response.Ok:
+            msg = response.Text
+            response.close()
+            return None, (code +3, data.get('Title'), msg)
+        newid = self.updateItemId(user.DataBase, item, response)
+        return newid, (code, data.get('Title'), created, data.get('Size'))
+
 
     def updateTitle(self, request, itemid, item):
         parameter = self.getRequestParameter(request, 'updateTitle', item)

@@ -29,6 +29,9 @@
 
 import unohelper
 
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 
@@ -39,32 +42,34 @@ from ..logger import LogManager
 
 from ..configuration import g_identifier
 from ..configuration import g_defaultlog
+from ..configuration import g_synclog
 
-from collections import OrderedDict
-import os
-import sys
 import traceback
 
 
 class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, window):
+    def __init__(self, ctx, window, logger):
         self._ctx = ctx
         self._model = OptionsModel(ctx)
         exist = self._model.hasData()
         resumable = self._model.isResumable()
         data = self._model.getViewData()
         self._view = OptionsView(window, exist, resumable, data)
-        self._logger = LogManager(ctx, window.Peer, self._getInfos(), g_identifier, g_defaultlog)
-
-    def saveSetting(self):
-        share, name, index, timeout, download, upload = self._view.getViewData()
-        self._model.setViewData(share, name, index, timeout, download, upload)
-        self._logger.saveSetting()
+        self._logmanager = LogManager(ctx, window.Peer, 'requirements.txt', g_identifier, g_defaultlog, g_synclog)
+        self._logger = logger
+        self._logger.logprb(INFO, 'OptionsManager', '__init__()', 151)
 
     def loadSetting(self):
         data = self._model.getViewData()
         self._view.setViewData(*data)
-        self._logger.loadSetting()
+        self._logmanager.loadSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 161)
+
+    def saveSetting(self):
+        share, name, index, timeout, download, upload = self._view.getViewData()
+        option = self._model.setViewData(share, name, index, timeout, download, upload)
+        log = self._logmanager.saveSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 171, option, log)
 
     def enableShare(self, enabled):
         self._view.enableShare(enabled)
@@ -74,31 +79,11 @@ class OptionsManager(unohelper.Base):
 
     def viewData(self):
         url = self._model.getDatasourceUrl()
-        getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, ())
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
 
     def download(self):
         self._view.setStep(1)
 
     def upload(self):
         self._view.setStep(2)
-
-    def _getInfos(self):
-        infos = OrderedDict()
-        version  = ' '.join(sys.version.split())
-        infos[111] = version
-        path = os.pathsep.join(sys.path)
-        infos[112] = path
-        # Required modules for ijson
-        try:
-            import ijson
-        except Exception as e:
-            infos[136] = self._getExceptionMsg(e)
-        else:
-            infos[137] = ijson.__version__, ijson.__file__
-        return infos
-
-    def _getExceptionMsg(self, e):
-        error = repr(e)
-        trace = repr(traceback.format_exc())
-        return error, trace
 

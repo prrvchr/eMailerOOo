@@ -49,7 +49,7 @@ from ...configuration import g_basename
 
 
 class LogModel(LogController):
-    def __init__(self, ctx, listener, *names):
+    def __init__(self, ctx, listener, names):
         self._ctx = ctx
         self._basename = g_basename
         self._pool = LoggerPool(ctx)
@@ -85,6 +85,12 @@ class LogModel(LogController):
         text = sequence.value.decode('utf-8')
         return url, text, length
 
+    def saveSetting(self):
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
+            return True
+        return False
+
 # Public setter method
     def dispose(self):
         self._pool.removeModifyListener(self._listener)
@@ -93,8 +99,4 @@ class LogModel(LogController):
         config = self._getLogConfig()
         config.LogLevel = setting.LogLevel
         config.DefaultHandler = setting.DefaultHandler
-
-    def saveSetting(self):
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
 

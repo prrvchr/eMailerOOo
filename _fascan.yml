@@ -5,8 +5,8 @@ output:
 working_dir: .
 sast:
   include:
-    - source/eMailerOOo/service/pythonpath/emailer/
     - glob(source/eMailerOOo/service/*.py)
+    - glob(source/eMailerOOo/service/pythonpath/emailer/*)
 sca:
   include:
     - .

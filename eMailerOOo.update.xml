@@ -28,7 +28,7 @@
   xmlns="http://openoffice.org/extensions/update/2006"
   xmlns:xlink="http://www.w3.org/1999/xlink">
     <identifier value="io.github.prrvchr.eMailerOOo"/>
-    <version value="1.1.1" />
+    <version value="1.2.0" />
     <update-download>
         <src xlink:href="https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt"/>
     </update-download>

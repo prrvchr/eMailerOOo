@@ -37,11 +37,13 @@
 
 This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.  
 It also provides an API usable in BASIC allowing you to send emails and supporting the most advanced technologies (OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP, ...).  
+A BASIC macro [SendEmail][10] allows you to send emails. If you open a document beforehand, you can launch it by:
+**Tools -> Macros -> Run Macro... -> My Macros -> eMailerOOo -> SendEmail -> Main -> Run**
 
 Being free software I encourage you:
-- To duplicate its [source code][10].
+- To duplicate its [source code][11].
 - To make changes, corrections, improvements.
-- To open [issue][11] if needed.
+- To open [issue][12] if needed.
 
 In short, to participate in the development of this extension.  
 Because it is together that we can make Free Software smarter.
@@ -51,10 +53,10 @@ ___
 ## Requirement:
 
 The eMailerOOo extension uses the OAuth2OOo extension to work.  
-It must therefore meet the [requirement of the OAuth2OOo extension][12].
+It must therefore meet the [requirement of the OAuth2OOo extension][13].
 
 The eMailerOOo extension uses the jdbcDriverOOo extension to work.  
-It must therefore meet the [requirement of the jdbcDriverOOo extension][13].
+It must therefore meet the [requirement of the jdbcDriverOOo extension][14].
 
 **On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
 To ensure that your Python packages are up to date it is recommended to use the **System Info** option in the extension Options accessible by:  
@@ -62,7 +64,7 @@ To ensure that your Python packages are up to date it is recommended to use the 
 If outdated packages appear, you can update them with the command:  
 `pip install --upgrade <package-name>`
 
-For more information see: [What has been done for version 1.2.0][14].
+For more information see: [What has been done for version 1.2.0][15].
 
 ___
 
@@ -417,11 +419,12 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://github.com/prrvchr/eMailerOOo>
-[11]: <https://github.com/prrvchr/eMailerOOo/issues/new>
-[12]: <https://prrvchr.github.io/OAuth2OOo/#requirement>
-[13]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>
-[14]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-120>
+[10]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/eMailerOOo/SendEmail.xba>
+[11]: <https://github.com/prrvchr/eMailerOOo>
+[12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
+[13]: <https://prrvchr.github.io/OAuth2OOo/#requirement>
+[14]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>
+[15]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-120>
 [17]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
 [18]: <https://prrvchr.github.io/OAuth2OOo/>
 [19]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>

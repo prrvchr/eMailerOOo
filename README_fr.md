@@ -37,11 +37,13 @@
 
 Cette extension vous permet d'envoyer des documents dans LibreOffice sous forme de courriel, éventuellement par publipostage, à vos contacts téléphoniques.  
 Elle fournit en plus une API utilisable en BASIC permettant d'envoyer des courriels et supportant les technologies les plus avancées (protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP, ...).  
+Une macro en BASIC [SendEmail][10] vous permet d'envoyer des emails. Si au préalable vous ouvrez un document, vous pouvez la lancer par:  
+**Outils -> Macros -> Exécuter la macro... -> Mes macros -> eMailerOOo -> SendEmail -> Main -> Exécuter**
 
 Etant un logiciel libre je vous encourage:
-- A dupliquer son [code source][10].
+- A dupliquer son [code source][11].
 - A apporter des modifications, des corrections, des améliorations.
-- D'ouvrir un [dysfonctionnement][11] si nécessaire.
+- D'ouvrir un [dysfonctionnement][12] si nécessaire.
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -51,10 +53,10 @@ ___
 ## Prérequis:
 
 L'extension eMailerOOo utilise l'extension OAuth2OOo pour fonctionner.  
-Elle doit donc répondre aux [prérequis de l'extension OAuth2OOo][12].
+Elle doit donc répondre aux [prérequis de l'extension OAuth2OOo][13].
 
 L'extension eMailerOOo utilise l'extension jdbcDriverOOo pour fonctionner.  
-Elle doit donc répondre aux [prérequis de l'extension jdbcDriverOOo][13].
+Elle doit donc répondre aux [prérequis de l'extension jdbcDriverOOo][14].
 
 **Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
 Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
@@ -62,7 +64,7 @@ Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utili
 Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
 `pip install --upgrade <package-name>`
 
-Pour plus d'information voir: [Ce qui a été fait pour la version 1.2.0][14].
+Pour plus d'information voir: [Ce qui a été fait pour la version 1.2.0][15].
 
 ___
 
@@ -417,11 +419,12 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://github.com/prrvchr/eMailerOOo>
-[11]: <https://github.com/prrvchr/eMailerOOo/issues/new>
-[12]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
-[13]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
-[14]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
+[10]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/eMailerOOo/SendEmail.xba>
+[11]: <https://github.com/prrvchr/eMailerOOo>
+[12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
+[13]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
+[14]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[15]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
 [17]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
 [18]: <https://prrvchr.github.io/OAuth2OOo/README_fr>
 [19]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>

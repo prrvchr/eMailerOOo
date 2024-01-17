@@ -33,11 +33,11 @@
 
 ## Introduction:
 
-**eMailerOOo** is part of a [Suite][7] of [LibreOffice][8] ~~and/or [OpenOffice][9]~~ extensions allowing to offer you innovative services in these office suites.  
+**eMailerOOo** is part of a [Suite][7] of [LibreOffice][8] ~~and/or [OpenOffice][9]~~ extensions allowing to offer you innovative services in these office suites.
 
 This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.  
-It also provides an API usable in BASIC allowing you to send emails and supporting the most advanced technologies (OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP, ...).  
-A BASIC macro [SendEmail][10] allows you to send emails. If you open a document beforehand, you can launch it by:  
+It also provides an **API allowing you to send emails in BASIC** and supporting the most advanced technologies (OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP, ...).  
+A macro [SendEmail][10] allows you to send emails. If you open a document beforehand, you can launch it by:  
 **Tools -> Macros -> Run Macro... -> My Macros -> eMailerOOo -> SendEmail -> Main -> Run**
 
 Being free software I encourage you:

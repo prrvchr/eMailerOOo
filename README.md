@@ -70,7 +70,7 @@ ___
 
 ## Installation:
 
-It seems important that the file was not renamed when it was downloaded.
+It seems important that the file was not renamed when it was downloaded.  
 If necessary, rename it before installing it.
 
 - [![OAuth2OOo logo][17]][18] Install **[OAuth2OOo.oxt][19]** extension [![Version][20]][19]
@@ -97,10 +97,10 @@ If necessary, rename it before installing it.
 
 - ![eMailerOOo logo][38] Install **[eMailerOOo.oxt][39]** extension [![Version][40]][39]
 
-Restart LibreOffice after installation.
-
-**On Windows, restarting LibreOffice may not be enough.**  
-To ensure that LibreOffice restarts correctly, use the Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice is shut down.
+Restart LibreOffice after installation.  
+**Be careful, restarting LibreOffice may not be enough.**
+- **On Windows** to ensure that LibreOffice restarts correctly, use Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice shuts down (and kill it if so).
+- **Under Linux or macOS** you can also ensure that LibreOffice restarts correctly, by launching it from a terminal with the command `soffice` and using the key combination `Ctrl + C` if after stopping LibreOffice, the terminal is not active (no command prompt).
 
 ___
 

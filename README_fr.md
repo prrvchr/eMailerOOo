@@ -37,7 +37,7 @@
 
 Cette extension vous permet d'envoyer des documents dans LibreOffice sous forme de courriel, éventuellement par publipostage, à vos contacts téléphoniques.
 
-Elle fournit en plus une **API permettant d'envoyer des courriels en BASIC** et supportant les technologies les plus avancées (protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP, ...). Une macro [SendEmail][10] permettant d'envoyer des courriels est fournie à titre d'exemple.  
+Elle fournit en plus une **API permettant d'envoyer des courriels en BASIC** et supportant les technologies les plus avancées: protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP pour les serveurs Google... Une macro [SendEmail][10] permettant d'envoyer des courriels est fournie à titre d'exemple.  
 Si au préalable vous ouvrez un document, vous pouvez la lancer par:  
 **Outils -> Macros -> Exécuter la macro... -> Mes macros -> eMailerOOo -> SendEmail -> Main -> Exécuter**
 
@@ -497,6 +497,6 @@ ___
 [85]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
 [86]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
 [87]: <https://github.com/prrvchr/eMailerOOo/issues/4>
-[88]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/requirements.txt>
+[88]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
 [89]: <https://peps.python.org/pep-0508/>
 [90]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>

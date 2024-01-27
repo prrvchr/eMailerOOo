@@ -37,7 +37,7 @@
 
 This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.
 
-It also provides an **API allowing you to send emails in BASIC** and supporting the most advanced technologies (OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP, ...). A macro [SendEmail][10] for sending emails is provided as an example.  
+It also provides an **API allowing you to send emails in BASIC** and supporting the most advanced technologies: OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP for Google servers... A macro [SendEmail][10] for sending emails is provided as an example.  
 If you open a document beforehand, you can launch it by:  
 **Tools -> Macros -> Run Macro... -> My Macros -> eMailerOOo -> SendEmail -> Main -> Run**
 
@@ -497,6 +497,6 @@ ___
 [85]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
 [86]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
 [87]: <https://github.com/prrvchr/eMailerOOo/issues/4>
-[88]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/requirements.txt>
+[88]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
 [89]: <https://peps.python.org/pep-0508/>
 [90]: <https://prrvchr.github.io/eMailerOOo/#requirement>

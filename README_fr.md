@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-# Documentation
+# [![eMailerOOo logo][1]][2] Documentation
 
 **This [document][3] in english.**
 
@@ -296,7 +296,7 @@ ___
 * **Ne fonctionne pas avec OpenOffice sous Windows** voir [dysfonctionnement 128569][66]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
 
 Je vous encourage en cas de problème :confused:  
-de créer un [dysfonctionnement][11]  
+de créer un [dysfonctionnement][12]  
 J'essaierai de le résoudre :smile:
 
 ___

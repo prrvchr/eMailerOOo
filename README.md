@@ -407,6 +407,7 @@ ___
 
 ### What has been done for version 1.2.1:
 
+- Fixed a regression allowing errors to be displayed in the Spooler.
 - Integration of a fix to workaround the [issue #159988][91].
 
 ### What remains to be done for version 1.2.1:

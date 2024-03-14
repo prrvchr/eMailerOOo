@@ -202,8 +202,8 @@ class Spooler():
             self._closed()
 
     def _sendMails(self, jobs):
-        mailer = Mailer(self._ctx, self._source, self.DataSource.DataBase, self._logger, True)
         count = 0
+        mailer = Mailer(self._ctx, self._source, self.DataSource.DataBase, self._logger, True)
         for job in jobs:
             self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1021, job)
             if self._stop.is_set():
@@ -215,17 +215,11 @@ class Spooler():
                     self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
                     break
                 mailer.sendMail(mail)
-            except MailBaseException as e:
-                self._error(e)
-                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, type(e).__name__, e.Message)
-                continue
             except UnoException as e:
-                self._error(MailBaseException(e.Message, e.Context, ()))
-                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, type(e).__name__, e.Message)
+                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, e.__class__.__name__, e.Message)
                 continue
             except Exception as e:
-                self._error(MailBaseException(str(e), self._source, ()))
-                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, type(e).__name__, repr(e), traceback.format_exc())
+                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, e.__class__.__name__, traceback.format_exc())
                 continue
             self.DataSource.DataBase.updateRecipient(1, mail.MessageId, job)
             self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1025, job)

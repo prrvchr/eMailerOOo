@@ -407,6 +407,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.1:
 
+- Correction d'une régression permettant l'affichage des erreurs dans le Spooler.
 - Intégration d'un correctif pour contourner le [dysfonctionnement #159988][91].
 
 ### Que reste-t-il à faire pour la version 1.2.1:

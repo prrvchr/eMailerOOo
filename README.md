@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.0][6]
+# version [1.2.1][6]
 
 ## Introduction:
 
@@ -405,7 +405,11 @@ ___
   `pip install requirements.txt`
 - Modification of the [Requirement][90] section.
 
-### What remains to be done for version 1.2.0:
+### What has been done for version 1.2.1:
+
+- Integration of a fix to workaround the [issue #159988][91].
+
+### What remains to be done for version 1.2.1:
 
 - Add new languages for internationalization...
 
@@ -449,7 +453,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.0#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.1#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [42]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [43]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
@@ -500,3 +504,4 @@ ___
 [88]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
 [89]: <https://peps.python.org/pep-0508/>
 [90]: <https://prrvchr.github.io/eMailerOOo/#requirement>
+[91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>

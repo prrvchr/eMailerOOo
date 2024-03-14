@@ -101,7 +101,7 @@ class MergerModel(MailModel):
         self._name = None
         self._labeler = None
         self._nominator = None
-        self._quoted = False
+        self._quoted = True
         self._quote = ''
         self._rows = ()
         self._tables = {}
@@ -117,18 +117,18 @@ class MergerModel(MailModel):
         self._lock = Condition()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
-        self._resources = {'Step': 'MergerPage%s.Step',
-                           'Title': 'MergerPage%s.Title',
-                           'TabTitle': 'MergerTab%s.Title',
-                           'Progress': 'MergerPage1.Label6.Label.%s',
-                           'Error': 'MergerPage1.Label8.Label.%s',
-                           'Index': 'MergerPage1.Label14.Label.%s',
-                           'Query': 'MergerTab2.Label1.Label',
-                           'Recipient': 'MailWindow.Label4.Label',
-                           'PickerTitle': 'Mail.FilePicker.Title',
-                           'Property': 'Mail.Document.Property.%s',
-                           'Document': 'MailWindow.Label8.Label.1',
-                           'DialogTitle': 'MessageBox.Title',
+        self._resources = {'Step':          'MergerPage%s.Step',
+                           'Title':         'MergerPage%s.Title',
+                           'TabTitle':      'MergerTab%s.Title',
+                           'Progress':      'MergerPage1.Label6.Label.%s',
+                           'Error':         'MergerPage1.Label8.Label.%s',
+                           'Index':         'MergerPage1.Label14.Label.%s',
+                           'Query':         'MergerTab2.Label1.Label',
+                           'Recipient':     'MailWindow.Label4.Label',
+                           'PickerTitle':   'Mail.FilePicker.Title',
+                           'Property':      'Mail.Document.Property.%s',
+                           'Document':      'MailWindow.Label8.Label.1',
+                           'DialogTitle':   'MessageBox.Title',
                            'DialogMessage': 'MessageBox.Message'}
 
     @property
@@ -254,7 +254,8 @@ class MergerModel(MailModel):
             self._recipient.ActiveConnection = connection
             progress(80)
             self._queries = datasource.getQueryDefinitions()
-            self._quoted = connection.getMetaData().supportsMixedCaseQuotedIdentifiers()
+            # FIXME: SQLite need quoted identifier but don't supports mixed case quoted identifiers.
+            #self._quoted = connection.getMetaData().supportsMixedCaseQuotedIdentifiers()
             self._quote = connection.getMetaData().getIdentifierQuoteString()
             self._labeler = connection.getObjectNames()
             self._nominator = connection.createTableName()

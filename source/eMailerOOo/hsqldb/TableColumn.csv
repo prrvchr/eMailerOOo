@@ -1,5 +1,4 @@
 Table|Column|TypeName|Type|Scale|IsNullable|DefaultValue|IsRowVersion|IsAutoIncrement|Primary
-Table|Column|Type|Default|Options|Primary|Unique|ForeignTable|ForeignColumn
 0|0|INTEGER|4||0|||true|true
 0|1|VARCHAR|12|100|1|NULL|||
 0|2|VARCHAR|12|320|0||||
@@ -14,7 +13,7 @@ Table|Column|Type|Default|Options|Primary|Unique|ForeignTable|ForeignColumn
 1|0|INTEGER|4||0||||
 1|9|VARCHAR|12|320|0||||
 1|10|VARCHAR|12|256|1|NULL|||
-1|11|SMALLINT|0|NOT NULL|false|false||
+1|11|SMALLINT|5||0||||
 1|12|VARCHAR|12|100|1|NULL|||
 1|14|TIMESTAMP|93|6|0|CURRENT_TIMESTAMP(6)|||
 1|15|TIMESTAMP|93|6|0|CURRENT_TIMESTAMP(6)|||

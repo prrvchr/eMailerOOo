@@ -32,17 +32,21 @@ from com.sun.star.sdbc import SQLException
 from .dbtool import createStaticTables
 from .dbtool import createStaticIndexes
 from .dbtool import createStaticForeignKeys
-from .dbtool import setStaticTable
 from .dbtool import createTables
 from .dbtool import createIndexes
 from .dbtool import createForeignKeys
 from .dbtool import executeQueries
+from .dbtool import getConnectionInfos
+from .dbtool import getDataBaseTables
+from .dbtool import getDataBaseIndexes
+from .dbtool import getDataBaseForeignKeys
 from .dbtool import getDataSourceConnection
 from .dbtool import getDriverInfos
 from .dbtool import getTableNames
 from .dbtool import getTables
 from .dbtool import getIndexes
 from .dbtool import getForeignKeys
+from .dbtool import setStaticTable
 
 from .dbconfig import g_csv
 from .dbconfig import g_drvinfos

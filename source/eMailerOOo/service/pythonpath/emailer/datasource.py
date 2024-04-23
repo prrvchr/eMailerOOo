@@ -58,16 +58,12 @@ class DataSource(unohelper.Base,
         DataSource.__database = database
 
     __database = None
-
     @property
-    def _lock(self):
-        return DataSource.__lock
-    @property
-    def IdentifierQuoteString(self):
-        return self.DataBase().IdentifierQuoteString
-
     def DataBase(self):
         return DataSource.__database
+    @property
+    def IdentifierQuoteString(self):
+        return self.DataBase.IdentifierQuoteString
 
     def dispose(self):
         self.waitForDataBase()

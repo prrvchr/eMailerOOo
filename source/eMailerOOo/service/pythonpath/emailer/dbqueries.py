@@ -39,102 +39,8 @@ g_basename = 'dbqueries'
 def getSqlQuery(ctx, name, format=None):
 
 # DataBase creation Queries
-    # Create Text Table Queries
-    if name == 'createTableTables':
-        c1 = '"Table" INTEGER NOT NULL PRIMARY KEY'
-        c2 = '"Name" VARCHAR(100) NOT NULL'
-        c3 = '"Identity" INTEGER DEFAULT NULL'
-        c4 = '"View" BOOLEAN DEFAULT TRUE'
-        c5 = '"Versioned" BOOLEAN DEFAULT FALSE'
-        k1 = 'CONSTRAINT "UniqueTablesName" UNIQUE("Name")'
-        c = (c1, c2, c3, c4, c5, k1)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "Tables"(%s);' % ','.join(c)
-
-    elif name == 'createTableColumns':
-        c1 = '"Column" INTEGER NOT NULL PRIMARY KEY'
-        c2 = '"Name" VARCHAR(100) NOT NULL'
-        k1 = 'CONSTRAINT "UniqueColumnsName" UNIQUE("Name")'
-        c = (c1, c2, k1)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "Columns"(%s);' % ','.join(c)
-
-    elif name == 'createTableTableColumn':
-        c1 = '"Table" INTEGER NOT NULL'
-        c2 = '"Column" INTEGER NOT NULL'
-        c3 = '"Type" VARCHAR(100) NOT NULL'
-        c4 = '"Default" VARCHAR(100) DEFAULT NULL'
-        c5 = '"Options" VARCHAR(100) DEFAULT NULL'
-        c6 = '"Primary" BOOLEAN NOT NULL'
-        c7 = '"Unique" BOOLEAN NOT NULL'
-        c8 = '"ForeignTable" INTEGER DEFAULT NULL'
-        c9 = '"ForeignColumn" INTEGER DEFAULT NULL'
-        k1 = 'PRIMARY KEY("Table","Column")'
-        k2 = 'CONSTRAINT "ForeignTableColumnTable" FOREIGN KEY("Table") REFERENCES '
-        k2 += '"Tables"("Table") ON DELETE CASCADE ON UPDATE CASCADE'
-        k3 = 'CONSTRAINT "ForeignTableColumnColumn" FOREIGN KEY("Column") REFERENCES '
-        k3 += '"Columns"("Column") ON DELETE CASCADE ON UPDATE CASCADE'
-        c = (c1, c2, c3, c4, c5, c6, c7, c8, c9, k1, k2, k3)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "TableColumn"(%s);' % ','.join(c)
-
-    elif name == 'createTableSettings':
-        c1 = '"Id" INTEGER NOT NULL PRIMARY KEY'
-        c2 = '"Name" VARCHAR(100) NOT NULL'
-        c3 = '"Value1" VARCHAR(100) NOT NULL'
-        c4 = '"Value2" VARCHAR(100) DEFAULT NULL'
-        c5 = '"Value3" VARCHAR(100) DEFAULT NULL'
-        c = (c1, c2, c3, c4, c5)
-        p = ','.join(c)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "Settings"(%s);' % p
-
-    elif name == 'createTableConnectionType':
-        c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
-        c2 = '"Connection" VARCHAR(20) NOT NULL'
-        c = (c1, c2)
-        p = ','.join(c)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "ConnectionType"(%s);' % p
-
-    elif name == 'createTableAuthenticationType':
-        c1 = '"Type" INTEGER NOT NULL PRIMARY KEY'
-        c2 = '"Authentication" VARCHAR(20) NOT NULL'
-        c = (c1, c2)
-        p = ','.join(c)
-        query = 'CREATE TEXT TABLE IF NOT EXISTS "AuthenticationType"(%s);' % p
-
-    # Create Text Table Options
-    elif name == 'setTableSource':
-        query = 'SET TABLE "%s" SOURCE "%s"' % format
-
-    elif name == 'setTableHeader':
-        query = 'SET TABLE "%s" SOURCE HEADER "%s"' % format
-
-    elif name == 'setTableReadOnly':
-        query = 'SET TABLE "%s" READONLY TRUE' % format
-
-    # Create Cached Table Queries
-    elif name == 'createTable':
-        query = 'CREATE CACHED TABLE IF NOT EXISTS "%s"(%s)' % format
-
-    # Create Cached Table Options
-    elif name == 'getPrimayKey':
-        query = 'PRIMARY KEY(%s)' % ','.join(format)
-
-    elif name == 'getUniqueConstraint':
-        query = 'CONSTRAINT "Unique%(Table)s%(Column)s" UNIQUE("%(Column)s")' % format
-
-    elif name == 'getForeignConstraint':
-        q = 'CONSTRAINT "Foreign%(Table)s%(ColumnNames)s" FOREIGN KEY(%(Columns)s) REFERENCES '
-        q += '"%(ForeignTable)s"(%(ForeignColumns)s) ON DELETE CASCADE ON UPDATE CASCADE'
-        query = q % format
-
-    elif name == 'getPeriodColumns':
-        query = '"RowStart" TIMESTAMP GENERATED ALWAYS AS ROW START,'
-        query += '"RowEnd" TIMESTAMP GENERATED ALWAYS AS ROW END,'
-        query += 'PERIOD FOR SYSTEM_TIME("RowStart","RowEnd")'
-
-    elif name == 'getSystemVersioning':
-        query = ' WITH SYSTEM VERSIONING'
-
     # Create View Queries
-    elif name == 'createSpoolerView':
+    if name == 'createSpoolerView':
         c1 = '"JobId"'
         c2 = '"BatchId"'
         c3 = '"State"'
@@ -170,38 +76,6 @@ def getSqlQuery(ctx, name, format=None):
         query = 'CREATE VIEW "Spooler" (%s) AS SELECT %s FROM %s;' % p
 
 # Select Queries
-    # DataBase creation Select Queries
-    elif name == 'getTableName':
-        query = 'SELECT "Name" FROM "Tables" ORDER BY "Table";'
-    elif name == 'getTables':
-        s1 = '"T"."Table" AS "TableId"'
-        s2 = '"C"."Column" AS "ColumnId"'
-        s3 = '"T"."Name" AS "Table"'
-        s4 = '"C"."Name" AS "Column"'
-        s5 = '"TC"."Type"'
-        s6 = '"TC"."Default"'
-        s7 = '"TC"."Options"'
-        s8 = '"TC"."Primary"'
-        s9 = '"TC"."Unique"'
-        s10 = '"TC"."ForeignTable" AS "ForeignTableId"'
-        s11 = '"TC"."ForeignColumn" AS "ForeignColumnId"'
-        s12 = '"T2"."Name" AS "ForeignTable"'
-        s13 = '"C2"."Name" AS "ForeignColumn"'
-        s14 = '"T"."View"'
-        s15 = '"T"."Versioned"'
-        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15)
-        f1 = '"Tables" AS "T"'
-        f2 = 'JOIN "TableColumn" AS "TC" ON "T"."Table"="TC"."Table"'
-        f3 = 'JOIN "Columns" AS "C" ON "TC"."Column"="C"."Column"'
-        f4 = 'LEFT JOIN "Tables" AS "T2" ON "TC"."ForeignTable"="T2"."Table"'
-        f5 = 'LEFT JOIN "Columns" AS "C2" ON "TC"."ForeignColumn"="C2"."Column"'
-        w = '"T"."Name"=?'
-        f = (f1, f2, f3, f4, f5)
-        p = (','.join(s), ' '.join(f), w)
-        query = 'SELECT %s FROM %s WHERE %s;' % p
-    elif name == 'getTablesName':
-        query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLES WHERE TABLE_TYPE='TABLE'"
-
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
         query = 'SELECT %s.* FROM %s;' % format
@@ -405,14 +279,6 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
 # Get prepareCommand Query
     elif name == 'prepareCommand':
         query = 'SELECT * FROM "%s"' % format
-
-# Get Users and Privileges Query
-    elif name == 'getUsers':
-        query = 'SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS'
-    elif name == 'getPrivileges':
-        query = 'SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES'
-    elif name == 'changePassword':
-        query = "SET PASSWORD '%s'" % format
 
 # Queries don't exist!!!
     else:

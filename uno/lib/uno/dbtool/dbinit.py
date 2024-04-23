@@ -283,28 +283,7 @@ def _getStaticTables(**kwargs):
                                            'TypeName': 'BOOLEAN',
                                            'Type': BOOLEAN,
                                            'IsNullable': NO_NULLS,
-                                           'DefaultValue': 'TRUE'})},
-              'Privileges':  {'CatalogName': 'PUBLIC',
-                              'SchemaName':  'PUBLIC',
-                              'Type':        'TEXT TABLE',
-                              'Columns': ({'Name': 'Table',
-                                           'TypeName': 'INTEGER',
-                                           'Type': INTEGER,
-                                           'IsNullable': NO_NULLS},
-                                          {'Name': 'Column',
-                                           'TypeName': 'INTEGER',
-                                           'Type': INTEGER,
-                                           'IsNullable': NULLABLE,
-                                           'DefaultValue': 'NULL'},
-                                          {'Name': 'Role',
-                                           'TypeName': 'VARCHAR',
-                                           'Type': VARCHAR,
-                                           'Scale': 100,
-                                           'IsNullable': NO_NULLS},
-                                          {'Name': 'Privilege',
-                                           'TypeName': 'INTEGER',
-                                           'Type': INTEGER,
-                                           'IsNullable': NO_NULLS})}}
+                                           'DefaultValue': 'TRUE'})}}
     for name, value in kwargs.items():
         tables[name] = value
     return tables
@@ -322,9 +301,7 @@ def _getForeignKeys(*args):
                    ('PUBLIC.PUBLIC.ForeignKeys', 'Table',  'PUBLIC.PUBLIC.Tables',  'Table',  CASCADE, CASCADE),
                    ('PUBLIC.PUBLIC.ForeignKeys', 'Column', 'PUBLIC.PUBLIC.Columns', 'Column', CASCADE, CASCADE),
                    ('PUBLIC.PUBLIC.Indexes',     'Table',  'PUBLIC.PUBLIC.Tables',  'Table',  CASCADE, CASCADE),
-                   ('PUBLIC.PUBLIC.Indexes',     'Column', 'PUBLIC.PUBLIC.Columns', 'Column', CASCADE, CASCADE),
-                   ('PUBLIC.PUBLIC.Privileges',  'Table',  'PUBLIC.PUBLIC.Tables',  'Table',  CASCADE, CASCADE),
-                   ('PUBLIC.PUBLIC.Privileges',  'Column', 'PUBLIC.PUBLIC.Columns', 'Column', CASCADE, CASCADE)]
+                   ('PUBLIC.PUBLIC.Indexes',     'Column', 'PUBLIC.PUBLIC.Columns', 'Column', CASCADE, CASCADE)]
     for foreignkey in args:
         foreignkeys.append(foreignkey)
     return tuple(foreignkeys)

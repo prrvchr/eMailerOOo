@@ -71,6 +71,9 @@ class MailModel(unohelper.Base):
     @Path.setter
     def Path(self, path):
         self._path = path
+    @property
+    def IdentifierQuoteString(self):
+        return self._datasource.IdentifierQuoteString
 
 # MailModel getter methods
     def isDisposed(self):

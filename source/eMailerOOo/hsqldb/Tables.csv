@@ -1,4 +1,4 @@
-Table|Name|Identity|View|Versioned
-0|Senders|||false
-1|Recipients|||false
-2|Attachments|||false
+Table|CatalogName|SchemaName|Name|Identity|View
+0|PUBLIC|PUBLIC|Senders||
+1|PUBLIC|PUBLIC|Recipients||
+2|PUBLIC|PUBLIC|Attachments||

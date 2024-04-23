@@ -29,226 +29,62 @@
 
 from com.sun.star.sdbc import SQLException
 
-from .unotool import checkVersion
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
+from .dbtool import createStaticTables
+from .dbtool import createStaticIndexes
+from .dbtool import createStaticForeignKeys
+from .dbtool import setStaticTable
+from .dbtool import createTables
+from .dbtool import createIndexes
+from .dbtool import createForeignKeys
+from .dbtool import executeQueries
+from .dbtool import getDataSourceConnection
+from .dbtool import getDriverInfos
+from .dbtool import getTableNames
+from .dbtool import getTables
+from .dbtool import getIndexes
+from .dbtool import getForeignKeys
 
 from .dbconfig import g_csv
-from .dbconfig import g_folder
-from .dbconfig import g_version
+from .dbconfig import g_drvinfos
 
-from .dbqueries import getSqlQuery
-
-from .dbtool import createDataSource
-from .dbtool import createStaticTable
-from .dbtool import executeQueries
-from .dbtool import executeSqlQueries
-from .dbtool import getDataFromResult
-from .dbtool import getDataSourceCall
-from .dbtool import getDataSourceConnection
-from .dbtool import getSequenceFromResult
-from .dbtool import registerDataSource
-
-from .dbtool import checkDataBase
-from .dbtool import createStaticTable
-
+from time import sleep
 import traceback
 
 
-def getDataSourceUrl(ctx, dbname, plugin, register):
-    error = None
-    url = getResourceLocation(ctx, plugin, g_folder)
-    odb = '%s/%s.odb' % (url, dbname)
-    if not getSimpleFile(ctx).exists(odb):
-        dbcontext = ctx.ServiceManager.createInstance('com.sun.star.sdb.DatabaseContext')
-        datasource = createDataSource(dbcontext, url, dbname)
-        error = _createDataBase(ctx, datasource, url, dbname)
-        if error is None:
-            datasource.DatabaseDocument.storeAsURL(odb, ())
-            if register:
-                registerDataSource(dbcontext, dbname, odb)
-    return url, error
+def getDataBaseConnection(ctx, url, user, pwd, new=False, infos=None):
+    if new:
+        infos = getDriverInfos(ctx, url, g_drvinfos)
+    return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
-def _createDataBase(ctx, datasource, url, dbname):
-    error = None
-    print("dbinit._createDataBase() 1")
-    try:
-        connection = datasource.getConnection('', '')
-    except SQLException as e:
-        error = e
-    else:
-        ver, error = checkDataBase(ctx, connection)
-        if error is None:
-            statement = connection.createStatement()
-            createStaticTable(ctx, statement, _getStaticTables(), g_csv)
-            tables, queries = _getTablesAndStatements(ctx, statement, ver)
-            executeSqlQueries(statement, tables)
-            _executeQueries(ctx, statement, _getQueries())
-            executeSqlQueries(statement, queries)
-            print("dbinit._createDataBase() 2")
-            views, triggers = _getViewsAndTriggers(ctx, statement)
-            executeSqlQueries(statement, views)
-            #executeSqlQueries(statement, triggers)
-        connection.close()
-        connection.dispose()
-    print("dbinit._createDataBase() 3")
-    return error
-
-def _executeQueries(ctx, statement, queries):
-    for name, format in queries.items():
-        query = getSqlQuery(ctx, name, format)
-        statement.executeQuery(query)
-
-def _getTableColumns(connection, tables):
-    columns = {}
-    metadata = connection.MetaData
-    for table in tables:
-        columns[table] = _getColumns(metadata, table)
-    return columns
-
-def _getColumns(metadata, table):
-    columns = []
-    result = metadata.getColumns("", "", table, "%")
-    while result.next():
-        column = '"%s"' % result.getString(4)
-        columns.append(column)
-    return columns
-
-def _createPreparedStatement(ctx, datasource, statements):
-    queries = datasource.getQueryDefinitions()
-    for name, sql in statements.items():
-        if not queries.hasByName(name):
-            query = ctx.ServiceManager.createInstance("com.sun.star.sdb.QueryDefinition")
-            query.Command = sql
-            queries.insertByName(name, query)
-
-def getTablesAndStatements(ctx, connection, version=g_version):
-    tables = []
-    statements = []
+def createDataBase(ctx, connection, odb):
+    print("smtpMailer.DataBase._initialize() 1")
+    sleep(0.2)
+    tables = connection.getTables()
     statement = connection.createStatement()
-    query = getSqlQuery(ctx, 'getTableName')
-    result = statement.executeQuery(query)
-    sequence = getSequenceFromResult(result)
-    result.close()
+    statics = createStaticTables(tables)
+    createStaticIndexes(tables)
+    createStaticForeignKeys(tables)
+    setStaticTable(statement, statics, g_csv, True)
+    _createTables(connection, statement, tables)
+    _createIndexes(statement, tables)
+    _createForeignKeys(statement, tables)
+    executeQueries(ctx, statement, _getQueries())
     statement.close()
-    call = getDataSourceCall(ctx, connection, 'getTables')
-    for table in sequence:
-        view = False
-        versioned = False
-        columns = []
-        primary = []
-        unique = []
-        constraint = {}
-        call.setString(1, table)
-        result = call.executeQuery()
-        while result.next():
-            data = getDataFromResult(result)
-            view = data.get('View')
-            versioned = data.get('Versioned')
-            column = data.get('Column')
-            definition = '"%s"' % column
-            definition += ' %s' % data.get('Type')
-            default = data.get('Default')
-            definition += ' DEFAULT %s' % default if default else ''
-            options = data.get('Options')
-            definition += ' %s' % options if options else ''
-            columns.append(definition)
-            if data.get('Primary'):
-                primary.append('"%s"' % column)
-            if data.get('Unique'):
-                unique.append({'Table': table, 'Column': column})
-            if data.get('ForeignTable') and data.get('ForeignColumn'):
-                foreign = data.get('ForeignTable')
-                if foreign in constraint:
-                    constraint[foreign]['ColumnNames'] += column
-                    constraint[foreign]['Columns'] += ',"%s"' % column
-                    constraint[foreign]['ForeignColumns'] += ',"%s"' % data.get('ForeignColumn')
-                else:
-                    constraint[foreign] = {'Table': table,
-                                           'ColumnNames': column,
-                                           'Columns': '"%s"' % column,
-                                           'ForeignTable': foreign,
-                                           'ForeignColumns': '"%s"' % data.get('ForeignColumn')}
-        result.close()
-        if primary:
-            columns.append(getSqlQuery(ctx, 'getPrimayKey', primary))
-        for format in unique:
-            columns.append(getSqlQuery(ctx, 'getUniqueConstraint', format))
-        for format in constraint.values():
-            columns.append(getSqlQuery(ctx, 'getForeignConstraint', format))
-        if checkVersion(version, g_version) and versioned:
-            columns.append(getSqlQuery(ctx, 'getPeriodColumns'))
-        format = (table, ','.join(columns))
-        query = getSqlQuery(ctx, 'createTable', format)
-        if checkVersion(version, g_version) and versioned:
-            query += getSqlQuery(ctx, 'getSystemVersioning')
-        tables.append(query)
-    call.close()
-    return tables, statements
+    connection.getParent().DatabaseDocument.storeAsURL(odb, ())
+    connection.close()
+    print("smtpMailer.DataBase._initialize() 2")
 
-def getViewsAndTriggers(ctx, statement):
-    c1 = []
-    s1 = []
-    f1 = []
-    queries = []
-    triggers = []
-    triggercore = []
-    call = getDataSourceCall(ctx, statement.getConnection(), 'getViews')
-    tables = getSequenceFromResult(statement.executeQuery(getSqlQuery(ctx, 'getViewName')))
-    for table in tables:
-        call.setString(1, table)
-        result = call.executeQuery()
-        while result.next():
-            c2 = []
-            s2 = []
-            f2 = []
-            trigger = {}
-            data = getDataFromResult(result)
-            view = data['View']
-            ptable = data['PrimaryTable']
-            pcolumn = data['PrimaryColumn']
-            labelid = data['LabelId']
-            typeid = data['TypeId']
-            c1.append('"%s"' % view)
-            c2.append('"%s"' % pcolumn)
-            c2.append('"Value"')
-            s1.append('"%s"."Value"' % view)
-            s2.append('"%s"."%s"' % (table, pcolumn))
-            s2.append('"%s"."Value"' % table)
-            f = 'LEFT JOIN "%s" ON "%s"."%s"="%s"."%s"' % (view, ptable, pcolumn, view, pcolumn)
-            f1.append(f)
-            f2.append('"%s"' % table)
-            f = 'JOIN "Labels" ON "%s"."Label"="Labels"."Label" AND "Labels"."Label"=%s'
-            f2.append(f % (table, labelid))
-            if typeid is not None:
-                f = 'JOIN "Types" ON "%s"."Type"="Types"."Type" AND "Types"."Type"=%s'
-                f2.append(f % (table, typeid))
-            format = (view, ','.join(c2), ','.join(s2), ' '.join(f2))
-            query = getSqlQuery(ctx, 'createView', format)
-            queries.append(query)
-            triggercore.append(getSqlQuery(ctx, 'createTriggerUpdateAddressBookCore', data))
-    call.close()
-    if queries:
-        column = 'Resource'
-        c1.insert(0, '"%s"' % column)
-        s1.insert(0, '"%s"."%s"' % (ptable, column))
-        f1.insert(0, '"%s"' % ptable)
-        f1.append('ORDER BY "%s"."%s"' % (ptable, pcolumn))
-        format = ('AddressBook', ','.join(c1), ','.join(s1), ' '.join(f1))
-        query = getSqlQuery(ctx, 'createView', format)
-        #print("dbinit._getViewsAndTriggers() %s"  % query)
-        queries.append(query)
-        trigger = getSqlQuery(ctx, 'createTriggerUpdateAddressBook', ' '.join(triggercore))
-        triggers.append(trigger)
-    return queries, triggers
+def _createTables(connection, statement, tables):
+    infos = getConnectionInfos(connection, 'AutoIncrementCreation', 'RowVersionCreation')
+    createTables(tables, getDataBaseTables(connection, statement, getTables(), getTableNames(), infos[0], infos[1]))
 
-def getStaticTables():
-    tables = ('Tables',
-              'Columns',
-              'TableColumn')
-    return tables
+def _createIndexes(statement, tables):
+    createIndexes(tables, getDataBaseIndexes(statement, getIndexes()))
 
-def getQueries():
+def _createForeignKeys(statement, tables):
+    createForeignKeys(tables, getDataBaseForeignKeys(statement, getForeignKeys()))
+
+def _getQueries():
     return (('createSpoolerView', None),
             ('createInsertJob', None),
             ('createInsertMergeJob', None),
@@ -257,3 +93,4 @@ def getQueries():
             ('createGetMailer', None),
             ('createGetAttachments', None),
             ('createUpdateMailer', None))
+

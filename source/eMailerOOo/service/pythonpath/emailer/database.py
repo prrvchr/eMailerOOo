@@ -33,43 +33,27 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.mail.MailServiceType import SMTP
-from com.sun.star.mail.MailServiceType import IMAP
-
 from com.sun.star.sdb.CommandType import QUERY
-
-from com.sun.star.sdbc.DataType import VARCHAR
-from com.sun.star.sdbc.DataType import SMALLINT
 
 from .unotool import checkVersion
 from .unotool import getDateTime
-from .unotool import getResourceLocation
 from .unotool import getSimpleFile
-from .unotool import getUrlPresentation
 
 from .dbqueries import getSqlQuery
 
-from .dbconfig import g_csv
-from .dbconfig import g_version
-
-from .dbtool import createStaticTable
 from .dbtool import getDataSourceCall
-from .dbtool import getDataSourceConnection
 from .dbtool import getDataFromResult
 from .dbtool import getObjectFromResult
 from .dbtool import getResultValue
 from .dbtool import getSequenceFromResult
-from .dbtool import executeQueries
-from .dbtool import executeSqlQueries
 
-from .dbinit import getStaticTables
-from .dbinit import getQueries
-from .dbinit import getTablesAndStatements
+from .dbinit import createDataBase
+from .dbinit import getDataBaseConnection
 
-from .configuration import g_identifier
 from .configuration import g_basename
 
-from time import sleep
+from .dbconfig import g_version
+
 from threading import Lock
 from threading import Thread
 import traceback
@@ -84,10 +68,11 @@ class DataBase(unohelper.Base):
         self._url = url
         odb = url + '.odb'
         self._new = not getSimpleFile(ctx).exists(odb)
-        connection = getDataSourceConnection(ctx, url, user, pwd, self._new)
+        connection = getDataBaseConnection(ctx, url, user, pwd, self._new)
         self._version = connection.getMetaData().getDriverVersion()
+        self._quote = connection.getMetaData().getIdentifierQuoteString()
         if self._new and self.isUptoDate():
-            self._init = Thread(target=self._initialize, args=(connection, odb))
+            self._init = Thread(target=createDataBase, args=(ctx, connection, odb))
             self._init.start()
         else:
             connection.close()
@@ -101,6 +86,9 @@ class DataBase(unohelper.Base):
     @property
     def Url(self):
         return self._url
+    @property
+    def IdentifierQuoteString(self):
+        return self._quote
 
     @property
     def Connection(self):
@@ -131,7 +119,7 @@ class DataBase(unohelper.Base):
             self._init.join()
 
     def getConnection(self, user='', password=''):
-        return getDataSourceConnection(self._ctx, self._url, user, password, False)
+        return getDataBaseConnection(self._ctx, self._url, user, password)
 
 # Procedures called by the Merger
     def getInnerJoinTable(self, subquery, identifiers, table):
@@ -278,19 +266,6 @@ class DataBase(unohelper.Base):
         call.close()
 
 # Procedures called internally
-    def _initialize(self, connection, odb):
-        sleep(0.2)
-        print("smtpMailer.DataBase._initialize() 1")
-        statement = connection.createStatement()
-        createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
-        tables, statements = getTablesAndStatements(self._ctx, connection, self._version)
-        executeSqlQueries(statement, tables)
-        executeQueries(self._ctx, statement, getQueries())
-        statement.close()
-        connection.getParent().DatabaseDocument.storeAsURL(odb, ())
-        connection.close()
-        print("smtpMailer.DataBase._initialize() 2")
-
     def _getCall(self, name, format=None):
         return self._getDataBaseCall(self.Connection, name, format)
 

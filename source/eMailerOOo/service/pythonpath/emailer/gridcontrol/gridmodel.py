@@ -27,9 +27,69 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .gridmanager import GridManager
+from ..grid import GridModel as GridModelBase
 
-from .gridmodel import GridModel
+from ..dbtool import getResultValue
 
-from .gridhandler import GridListener
-from .gridhandler import RowSetListener
+import traceback
+
+
+class GridModel(GridModelBase):
+    def __init__(self, ctx):
+        GridModelBase.__init__(self, ctx)
+        self._resultset = None
+
+# XCloneable
+    def createClone(self):
+         return self
+
+# XGridDataModel
+    def getCellData(self, column, row):
+        self._resultset.absolute(row +1)
+        return  getResultValue(self._resultset, column +1)
+
+    def getCellToolTip(self, column, row):
+        return self.getCellData(column, row)
+
+    def getRowData(self, row):
+        data = []
+        self._resultset.absolute(row +1)
+        for column in range(self._column):
+            data.append(getResultValue(self._resultset, column +1))
+        return tuple(data)
+
+# GridModel setter methods
+    def resetRowSetData(self):
+        row = self._row
+        self._row = 0
+        if self._row < row:
+            self._removeRow(self._row, row -1)
+
+    def setRowSetData(self, rowset):
+        self._resultset = rowset.createResultSet()
+        row = self._row
+        self._row = rowset.RowCount
+        self._column = rowset.getMetaData().getColumnCount()
+        if self._row < row:
+            sort = self._sortable.getCurrentSortOrder()
+            self._removeRow(self._row, row -1)
+            if self._row > 0:
+                self._changeData(0, self._row -1)
+            self._sortable.removeColumnSort()
+            if sort.First != -1:
+                self._sortable.sortByColumn(sort.First, sort.Second)
+        elif self._row > row:
+            sort = self._sortable.getCurrentSortOrder()
+            self._insertRow(row, self._row -1)
+            if row > 0:
+                self._changeData(0, row -1)
+            self._sortable.removeColumnSort()
+            if sort.First != -1:
+                self._sortable.sortByColumn(sort.First, sort.Second)
+        elif self._row > 0:
+            sort = self._sortable.getCurrentSortOrder()
+            self._changeData(0, row -1)
+            self._sortable.removeColumnSort()
+            if sort.First != -1:
+                self._sortable.sortByColumn(sort.First, sort.Second)
+

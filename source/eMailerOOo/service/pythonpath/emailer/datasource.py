@@ -63,6 +63,9 @@ class DataSource(unohelper.Base,
     def _lock(self):
         return DataSource.__lock
     @property
+    def IdentifierQuoteString(self):
+        return self.DataBase().IdentifierQuoteString
+
     def DataBase(self):
         return DataSource.__database
 

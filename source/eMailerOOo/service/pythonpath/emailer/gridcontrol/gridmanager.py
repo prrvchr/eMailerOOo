@@ -27,69 +27,59 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .gridmodelbase import GridModelBase
+from ..grid import GridManager as GridManagerBase
 
-from ..dbtool import getResultValue
-
+from collections import OrderedDict
 import traceback
 
 
-class GridModel(GridModelBase):
-    def __init__(self, ctx):
-        GridModelBase.__init__(self, ctx)
-        self._resultset = None
+class GridManager(GridManagerBase):
+    def __init__(self, ctx, url, model, window, quote, setting, selection, resource=None, maxi=None, multi=False):
+        GridManagerBase.__init__(self, ctx, url, model, window, quote, setting, selection, resource, maxi, multi)
 
-# XCloneable
-    def createClone(self):
-         return self
+# GridManager setter methods
+    def setDataModel(self, rowset, identifiers):
+        print("GridManager.setDataModel()")
+        datasource = rowset.DataSourceName
+        table = rowset.UpdateTableName
+        changed = self._isDataSourceChanged(datasource, table)
+        if changed:
+            print("GridManager.setDataModel() Column changed")
+            if self._isGridLoaded():
+                self._saveWidths()
+                self._saveOrders()
+            # We can hide GridColumnHeader and reset GridDataModel
+            # but after saving GridColumnModel Widths
+            self._view.showGridColumnHeader(False)
+            #self._model.resetRowSetData()
+            self._headers, self._indexes, self._types = self._getHeadersInfo(rowset.getMetaData(), identifiers)
+            self._view.initColumns(self._url, self._headers, self._initColumnModel(datasource, table))
+            self._table = table
+            self._datasource = datasource
+            self._view.showGridColumnHeader(True)
+        self._view.setGridVisible(False)
+        self._model.setRowSetData(rowset)
+        self._view.setGridVisible(True)
+        if changed:
+            self._model.sortByColumn(*self._getSavedOrders(datasource, table))
 
-# XGridDataModel
-    def getCellData(self, column, row):
-        self._resultset.absolute(row +1)
-        return  getResultValue(self._resultset, column +1)
+# GridManager private methods
+    def _isDataSourceChanged(self, name, table):
+        return self._datasource != name or self._table != table
 
-    def getCellToolTip(self, column, row):
-        return self.getCellData(column, row)
+    def _isGridLoaded(self):
+        return self._datasource is not None
 
-    def getRowData(self, row):
-        data = []
-        self._resultset.absolute(row +1)
-        for column in range(self._column):
-            data.append(getResultValue(self._resultset, column +1))
-        return tuple(data)
-
-# GridModel setter methods
-    def resetRowSetData(self):
-        row = self._row
-        self._row = 0
-        if self._row < row:
-            self._removeRow(self._row, row -1)
-
-    def setRowSetData(self, rowset):
-        self._resultset = rowset.createResultSet()
-        row = self._row
-        self._row = rowset.RowCount
-        self._column = rowset.getMetaData().getColumnCount()
-        if self._row < row:
-            sort = self._sortable.getCurrentSortOrder()
-            self._removeRow(self._row, row -1)
-            if self._row > 0:
-                self._changeData(0, self._row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
-        elif self._row > row:
-            sort = self._sortable.getCurrentSortOrder()
-            self._insertRow(row, self._row -1)
-            if row > 0:
-                self._changeData(0, row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
-        elif self._row > 0:
-            sort = self._sortable.getCurrentSortOrder()
-            self._changeData(0, row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
+    def _getHeadersInfo(self, metadata, identifiers):
+        headers = OrderedDict()
+        indexes = OrderedDict([(identifier, -1) for identifier in identifiers])
+        types = {}
+        for i in range(metadata.getColumnCount()):
+            name = metadata.getColumnLabel(i +1)
+            title = self._getColumnTitle(name)
+            if name in identifiers:
+                indexes[name] = i
+                types[name] = metadata.getColumnType(i +1)
+            headers[name] = title
+        return headers, indexes, types
 

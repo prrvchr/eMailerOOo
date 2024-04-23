@@ -27,59 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .gridmanagerbase import GridManagerBase
+from .gridmanager import GridManager
 
-from collections import OrderedDict
-import traceback
-
-
-class GridManager(GridManagerBase):
-    def __init__(self, ctx, url, model, window, setting, selection, resource=None, maxi=None, multi=False):
-        GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resource, maxi, multi)
-
-# GridManager setter methods
-    def setDataModel(self, rowset, identifiers):
-        print("GridManager.setDataModel()")
-        datasource = rowset.DataSourceName
-        table = rowset.UpdateTableName
-        changed = self._isDataSourceChanged(datasource, table)
-        if changed:
-            print("GridManager.setDataModel() Column changed")
-            if self._isGridLoaded():
-                self._saveWidths()
-                self._saveOrders()
-            # We can hide GridColumnHeader and reset GridDataModel
-            # but after saving GridColumnModel Widths
-            self._view.showGridColumnHeader(False)
-            #self._model.resetRowSetData()
-            self._headers, self._indexes, self._types = self._getHeadersInfo(rowset.getMetaData(), identifiers)
-            self._view.initColumns(self._url, self._headers, self._initColumnModel(datasource, table))
-            self._table = table
-            self._datasource = datasource
-            self._view.showGridColumnHeader(True)
-        self._view.setGridVisible(False)
-        self._model.setRowSetData(rowset)
-        self._view.setGridVisible(True)
-        if changed:
-            self._model.sortByColumn(*self._getSavedOrders(datasource, table))
-
-# GridManager private methods
-    def _isDataSourceChanged(self, name, table):
-        return self._datasource != name or self._table != table
-
-    def _isGridLoaded(self):
-        return self._datasource is not None
-
-    def _getHeadersInfo(self, metadata, identifiers):
-        headers = OrderedDict()
-        indexes = OrderedDict([(identifier, -1) for identifier in identifiers])
-        types = {}
-        for i in range(metadata.getColumnCount()):
-            name = metadata.getColumnLabel(i +1)
-            title = self._getColumnTitle(name)
-            if name in identifiers:
-                indexes[name] = i
-                types[name] = metadata.getColumnType(i +1)
-            headers[name] = title
-        return headers, indexes, types
-
+from .gridmodel import GridModel

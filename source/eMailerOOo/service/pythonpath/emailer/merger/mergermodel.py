@@ -47,8 +47,8 @@ from com.sun.star.sdb.tools.CompositionType import ForDataManipulation
 
 from ..dispatchlistener import DispatchListener
 
-from ..grid import GridManager
-from ..grid import GridModel
+from ..gridcontrol import GridManager
+from ..gridcontrol import GridModel
 
 from ..mail import MailModel
 
@@ -96,6 +96,7 @@ class MergerModel(MailModel):
         self._recipient = self._getRowSet(QUERY)
         self._grid1 = None
         self._grid2 = None
+        self._quote = datasource.IdentifierQuoteString
         self._composer = None
         self._subcomposer = None
         self._name = None
@@ -716,8 +717,8 @@ class MergerModel(MailModel):
     def _initPage2(self, window1, window2, initPage):
         sleep(0.2)
         self._initRowSet()
-        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, 'MergerGrid1', MULTI, None, 8, True)
-        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, 'MergerGrid2', MULTI, None, 8, True)
+        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
         initPage(self._grid1, self._grid2, self._address, self._recipient, self._subquery.Second)
         self._recipient.execute()
 

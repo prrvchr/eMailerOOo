@@ -37,9 +37,8 @@ from com.sun.star.view.SelectionType import MULTI
 
 from com.sun.star.sdb.CommandType import TABLE
 
-from ...grid import GridManager
-
-from ...grid import GridModel
+from ...gridcontrol import GridManager
+from ...gridcontrol import GridModel
 
 from ...unotool import createService
 from ...unotool import getConfiguration
@@ -159,7 +158,8 @@ class SpoolerModel(unohelper.Base):
         self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
         resources = (self._resolver, self._resources.get('GridColumns'))
-        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), window, 'Spooler', MULTI, resources)
+        quote = self._datasource.IdentifierQuoteString
+        self._grid = GridManager(self._ctx, self._url, GridModel(self._ctx), window, quote, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener)
         initView(self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!

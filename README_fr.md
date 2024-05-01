@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4] et à notre [Politique de protection des données][5].**
 
-# version [1.2.1][6]
+# version [1.2.2][6]
 
 ## Introduction:
 
@@ -410,7 +410,13 @@ ___
 - Correction d'une régression permettant l'affichage des erreurs dans le Spooler.
 - Intégration d'un correctif pour contourner le [dysfonctionnement #159988][91].
 
-### Que reste-t-il à faire pour la version 1.2.1:
+### Ce qui a été fait pour la version 1.2.2:
+
+- La création de la base de données, lors de la première connexion, utilise l'API UNO proposée par l'extension jdbcDriverOOo depuis la version 1.3.2. Cela permet d'enregistrer toutes les informations nécessaires à la création de la base de données dans 5 tables texte qui sont en fait [5 fichiers csv][92].
+- L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.4 et 1.3.2 minimum.
+- De nombreuses corrections.
+
+### Que reste-t-il à faire pour la version 1.2.2:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -454,7 +460,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.1#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.2#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [42]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [43]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
@@ -506,3 +512,4 @@ ___
 [89]: <https://peps.python.org/pep-0508/>
 [90]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>
 [91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
+[92]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>

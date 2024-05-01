@@ -40,40 +40,27 @@ def getSqlQuery(ctx, name, format=None):
 
 # DataBase creation Queries
     # Create View Queries
-    if name == 'createSpoolerView':
-        c1 = '"JobId"'
-        c2 = '"BatchId"'
-        c3 = '"State"'
-        c4 = '"Subject"'
-        c5 = '"Sender"'
-        c6 = '"Recipient"'
-        c7 = '"Document"'
-        c8 = '"DataSource"'
-        c9 = '"Query"'
-        c10 = '"Table"'
-        c11 = '"Filter"'
-        c12 = '"Submit"'
-        c13 = '"Sending"'
+    if name == 'getSpoolerViewCommand':
+        c1 = 'R."JobId"'
+        c2 = 'S."BatchId"'
+        c3 = 'R."State"'
+        c4 = 'S."Subject"'
+        c5 = 'S."Sender"'
+        c6 = 'R."Recipient"'
+        c7 = 'S."Document"'
+        c8 = 'S."DataSource"'
+        c9 = 'S."Query"'
+        c10 = 'S."Table"'
+        c11 = 'R."Filter"'
+        c12 = 'S."Created" AS "Submit"'
+        c13 = 'R."Modified" AS "Sending"'
         c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13)
-        s1 = '"Recipients"."JobId"'
-        s2 = '"Senders"."BatchId"'
-        s3 = '"Recipients"."State"'
-        s4 = '"Senders"."Subject"'
-        s5 = '"Senders"."Sender"'
-        s6 = '"Recipients"."Recipient"'
-        s7 = '"Senders"."Document"'
-        s8 = '"Senders"."DataSource"'
-        s9 = '"Senders"."Query"'
-        s10 = '"Senders"."Table"'
-        s11 = '"Recipients"."Filter"'
-        s12 = '"Senders"."Created"'
-        s13 = '"Recipients"."Modified"'
-        s = (s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13)
-        f1 = '"Senders"'
-        f2 = 'JOIN "Recipients" ON "Senders"."BatchId"="Recipients"."BatchId"'
+        f1 = '%(Catalog)s.%(Schema)s."Senders" AS S'
+        f2 = 'INNER JOIN %(Catalog)s.%(Schema)s."Recipients" AS R ON R."BatchId" = S."BatchId"'
         f = (f1,f2)
-        p = (','.join(c), ','.join(s), ' '.join(f))
-        query = 'CREATE VIEW "Spooler" (%s) AS SELECT %s FROM %s;' % p
+        p = (', '.join(c), ' '.join(f))
+        command = 'SELECT %s FROM %s;' % p
+        query = command % format
 
 # Select Queries
     # Merger Composer Select Queries

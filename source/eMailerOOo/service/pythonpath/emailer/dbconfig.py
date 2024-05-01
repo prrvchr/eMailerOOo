@@ -38,6 +38,9 @@ g_version = '2.5.1'
 g_role = 'FrontOffice'
 g_dba = 'AD'
 
+g_catalog = 'PUBLIC'
+g_schema  = 'PUBLIC'
+
 # XXX: If we want to be able to create DataBase we need to get some
 # XXX: DriverPropertyInfo from the driver. Here is the necessary information
 g_drvinfos = {'AutoIncrementCreation':   lambda x: x.Value,

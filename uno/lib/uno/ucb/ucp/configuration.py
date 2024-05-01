@@ -27,46 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = ';hsqldb.default_table_type=cached;ifexists=false;shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.1'
-g_role = 'FrontOffice'
-g_dba = 'SA'
-g_superuser = ('#', 'https://', 'localhost', '/', 'admin')
-g_schema = '%i'
-g_user = '%i'
+g_ucbseparator = '/'
+g_ucbprefix =    ' ~'
+g_ucbsuffix =    ''
 
-g_dotcode = 183
+g_ucboffice = 'application/vnd.oasis.opendocument'
 
-# View parameter
-g_cardview = 'CardView'
-g_bookview = 'BookView'
-g_usercolumn = 'User'
-g_view = {'UserTable': 'Users',
-          'UserColumn': g_usercolumn,
-          'BookCardTable': 'BookCards',
-          'CardTable': 'Cards',
-          'CardColumn': 'Card',
-          'CardUri': 'Uri',
-          'BookTable': 'Books',
-          'BookColumn': 'Book',
-          'DataTable': 'CardValues',
-          'DataColumn': 'Column',
-          'DataValue': 'Value',
-          'Admin': g_dba}
-
-
-g_bookmark = 'Bookmark'
-
-# XXX: If we want to be able to create DataBase we need to get some
-# XXX: DriverPropertyInfo from the driver. Here is the necessary information
-g_drvinfos = {'AutoIncrementCreation':   lambda x: x.Value,
-              'RowVersionCreation':      lambda x: x.Choices,
-              'TypeInfoSettings':        lambda x: x.Choices,
-              'TablePrivilegesSettings': lambda x: x.Choices}
-
+g_ucbfolder = 'application/vnd.sun.star.hierarchy-folder'
+g_ucbfile = 'application/vnd.sun.star.hierarchy-file'
+g_ucblink = 'application/vnd.sun.star.hierarchy-link'

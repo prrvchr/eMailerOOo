@@ -27,6 +27,15 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .ucp import g_ucbseparator
+from .ucp import g_ucbprefix
+from .ucp import g_ucbsuffix
+
+from .ucp import g_ucbfolder
+from .ucp import g_ucbfile
+
+from .configuration import g_ucpfolder
+
 # DataSource configuration
 g_protocol = 'xdbc:hsqldb:'
 g_folder = 'hsqldb'
@@ -38,6 +47,24 @@ g_shutdown = ';shutdown=true'
 g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
 g_version = '2.7.2'
 g_role = 'FrontOffice'
+
+g_catalog = 'PUBLIC'
+g_schema  = 'PUBLIC'
+g_queries = {'Users':     f'{g_catalog}.{g_schema}."Users"',
+             'Items':     f'{g_catalog}.{g_schema}."Items"',
+             'Parents':   f'{g_catalog}.{g_schema}."Parents"',
+             'Child':     f'{g_catalog}.{g_schema}."Child"',
+             'Twin':      f'{g_catalog}.{g_schema}."Twin"',
+             'Duplicate': f'{g_catalog}.{g_schema}."Duplicate"',
+             'Path':      f'{g_catalog}.{g_schema}."Path"',
+             'Children':  f'{g_catalog}.{g_schema}."Children"',
+             'Role':      g_role,
+             'Separator': g_ucbseparator,
+             'UcbFolder': g_ucbfolder,
+             'UcbFile':   g_ucbfile,
+             'UcpFolder': g_ucpfolder,
+             'Prefix':    g_ucbprefix,
+             'Suffix':    g_ucbsuffix}
 
 # XXX: If we want to be able to create DataBase we need to get some
 # XXX: DriverPropertyInfo from the driver. Here is the necessary information

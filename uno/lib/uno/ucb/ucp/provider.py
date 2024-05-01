@@ -48,6 +48,7 @@ from com.sun.star.ucb import IllegalIdentifierException
 from ..unotool import getConnectionMode
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
+from ..unotool import getSimpleFile
 
 from ..dbtool import currentDateTimeInTZ
 
@@ -55,8 +56,9 @@ from ..logger import getLogger
 
 from ..configuration import g_identifier
 from ..configuration import g_scheme
-from ..configuration import g_separator
 from ..configuration import g_chunk
+
+from .configuration import g_ucbseparator
 
 from dateutil import parser, tz
 from collections import OrderedDict
@@ -64,20 +66,14 @@ import traceback
 
 
 class Provider(object):
-    def __init__(self, ctx, logger, folder, link):
+    def __init__(self, ctx, logger):
         self._ctx = ctx
         self._logger = logger
-        self._folder = folder
-        self._link = link
         self.Scheme = g_scheme
+        self._sf = getSimpleFile(ctx)
         self.SourceURL = getResourceLocation(ctx, g_identifier, g_scheme)
         self._folders = []
         self._config = getConfiguration(ctx, g_identifier, False)
-
-    # Base properties
-    @property
-    def Error(self):
-        return self._Error
 
     # Must be implemented properties
     @property
@@ -93,22 +89,10 @@ class Provider(object):
     def UploadUrl(self):
         raise NotImplementedError
     @property
-    def Office(self):
-        raise NotImplementedError
-    @property
-    def Document(self):
-        raise NotImplementedError
-    @property
     def Chunk(self):
         raise NotImplementedError
     @property
     def Buffer(self):
-        raise NotImplementedError
-    @property
-    def Folder(self):
-        raise NotImplementedError
-    @property
-    def Link(self):
         raise NotImplementedError
 
     # Can be rewrited properties
@@ -125,9 +109,6 @@ class Provider(object):
     def FolderSyncModes(self):
         return (SYNC_FOLDER, )
     @property
-    def SupportDuplicate(self):
-        return False
-    @property
     def SupportSharedDocuments(self):
         return self._config.getByName('SupportShare') and self._config.getByName('SharedDocuments')
     @property
@@ -143,11 +124,9 @@ class Provider(object):
         return count
 
     def getDocumentContent(self, content, url):
-        print('Provider.getDocumentContent() Url: %s' % url)
         data = self.getDocumentLocation(content)
         if data is None:
             return False
-        print('Provider.getDocumentContent() Data: %s' % data)
         parameter = self.getRequestParameter(content.User.Request, 'getDocumentContent', data)
         chunk, retry, delay = self._getDownloadSetting()
         return content.User.Request.download(parameter, url, chunk, retry, delay)
@@ -172,7 +151,7 @@ class Provider(object):
             self.initSharedDocuments(user, datetime)
         for root in self.getFirstPullRoots(user):
             parameter = self.getRequestParameter(user.Request, 'getFirstPull', root)
-            iterator = self.parseItems(user.Request, parameter)
+            iterator = self.parseItems(user.Request, parameter, user.RootId)
             count +=  user.DataBase.pullItems(iterator, user.Id, datetime)
             page += parameter.PageCount
         return page, count, parameter.SyncToken
@@ -183,7 +162,7 @@ class Provider(object):
     def pullUser(self, user):
         timestamp = currentDateTimeInTZ()
         parameter = self.getRequestParameter(user.Request, 'getPull', user)
-        iterator = self.parseItems(user.Request, parameter)
+        iterator = self.parseItems(user.Request, parameter, user.RootId)
         count = user.DataBase.pullItems(iterator, user.Id, timestamp)
         return parameter.PageCount, count, parameter.SyncToken
 
@@ -234,7 +213,7 @@ class Provider(object):
     def parseNewIdentifiers(self, response):
         raise NotImplementedError
 
-    def parseItems(self, request, parameter):
+    def parseItems(self, request, parameter, rootid):
         raise NotImplementedError
 
     def parseChanges(self, user, parameter):
@@ -284,22 +263,28 @@ class Provider(object):
             datetime.NanoSeconds = dt.microsecond * 1000
             datetime.IsUTC = dt.tzinfo == tz.tzutc()
         return datetime
+
     def isOnLine(self):
         return OFFLINE != getConnectionMode(self._ctx, self.Host)
+
     def isOffLine(self):
         return ONLINE != getConnectionMode(self._ctx, self.Host)
-
-    # Can be rewrited method
-    def isFolder(self, contenttype):
-        return contenttype == self.Folder
-    def isLink(self, contenttype):
-        return contenttype == self.Link
-    def isDocument(self, contenttype):
-        return not (self.isFolder(contenttype) or self.isLink(contenttype))
 
     def getItem(self, request, identifier):
         parameter = self.getRequestParameter(request, 'getItem', identifier)
         return request.execute(parameter)
+
+    def updateNewItemId(self, oldid, newid):
+        source = self.getTargetUrl(oldid)
+        target = self.getTargetUrl(newid)
+        if self._sf.exists(source) and not self._sf.exists(target):
+            self._sf.move(source, target)
+
+    def getSimpleFile(self):
+        return self._sf
+
+    def getTargetUrl(self, itemid):
+        return self.SourceURL + g_ucbseparator + itemid
 
     def createFolder(self, user, itemid, item):
         parameter = self.getRequestParameter(user.Request, 'createNewFolder', item)
@@ -312,30 +297,30 @@ class Provider(object):
         parameter = self.getRequestParameter(user.Request, method, data)
         response = user.Request.execute(parameter)
         if not response.Ok:
-            args = code, data.get('Title'), response.Text
+            args = code, data.get('Name'), response.Text
             response.close()
         else:
             location = self.parseUploadLocation(response)
             if location is None:
-                args = code + 1, data.get('Title')
+                args = code + 1, data.get('Name')
             else:
                 parameter = self.getRequestParameter(user.Request, 'getUploadStream', location)
-                url = self.SourceURL + g_separator + item
+                url = self.getTargetUrl(item)
                 response = user.Request.upload(parameter, url, chunk, retry, delay)
                 if not response.Ok:
-                    args = code + 2, data.get('Title'), response.Text
+                    args = code + 2, data.get('Name'), response.Text
                     response.close()
                 elif new:
                     newid = self.updateItemId(user.DataBase, item, response)
-                    args = code + 3, data.get('Title'), created, data.get('Size')
+                    args = code + 3, data.get('Name'), created, data.get('Size')
                 else:
                     response.close()
                     newid = item
-                    args = code + 4, data.get('Title'), created, data.get('Size')
+                    args = code + 4, data.get('Name'), created, data.get('Size')
         return newid, args
 
-    def updateTitle(self, request, itemid, item):
-        parameter = self.getRequestParameter(request, 'updateTitle', item)
+    def updateName(self, request, itemid, item):
+        parameter = self.getRequestParameter(request, 'updateName', item)
         response = request.execute(parameter)
         response.close()
         return itemid

@@ -66,17 +66,17 @@ import base64
 import traceback
 
 
-def checkOAuth2(ctx, method, sep):
+def checkOAuth2(ctx, method):
     oauth2 = getOAuth2Version(ctx)
     if oauth2 is None:
-        return method, 501, oauth2ext, sep, g_extension
+        return method, 501, oauth2ext, g_extension
     if not checkVersion(oauth2, oauth2ver):
-        return method, 503, oauth2, oauth2ext, sep, oauth2ver
+        return method, 503, oauth2, oauth2ext, oauth2ver
     return None
 
-def getDataSource(ctx, method, sep, callback):
-    oauth2 = checkOAuth2(ctx, method, sep)
-    driver = _checkJdbc(ctx, method, sep)
+def getDataSource(ctx, method, callback):
+    oauth2 = checkOAuth2(ctx, method)
+    driver = _checkJdbc(ctx, method)
     if oauth2 is not None:
         callback(*oauth2)
     elif driver is not None:
@@ -87,10 +87,10 @@ def getDataSource(ctx, method, sep, callback):
         try:
             database = DataBase(ctx, url)
         except SQLException as e:
-            callback(method, 505, url, sep, e.Message)
+            callback(method, 505, url, e.Message)
         else:
             if not database.isUptoDate():
-                callback(method, 507, database.Version, sep, g_version)
+                callback(method, 507, database.Version, g_version)
             else:
                 return DataSource(ctx, database)
     return None
@@ -190,7 +190,6 @@ def saveTempDocument(document, url, name, format=None):
     filter = getDocumentFilter(extension, format)
     if filter is not None:
         descriptor['FilterName'] = filter
-    print("mailtool.saveTempDocument() %s - %s" % (format, filter))
     document.storeToURL(url, getPropertyValueSet(descriptor))
     return name if format is None else '%s.%s' % (title, format)
 
@@ -203,7 +202,6 @@ def saveDocumentTmp(ctx, document, format=None):
     filter = getDocumentFilter(extension, format)
     if filter is not None:
         descriptor['FilterName'] = filter
-    print("mailtool.saveDocumentTmp() %s - %s" % (format, filter))
     temp = getPathSettings(ctx).Temp
     if format is None:
         url = '%s/%s' % (temp, document.Title)
@@ -237,11 +235,11 @@ def _getDocumentExtension(document):
         extension = None
     return extension
 
-def _checkJdbc(ctx, method, sep):
+def _checkJdbc(ctx, method):
     driver = getExtensionVersion(ctx, jdbcid)
     if driver is None:
-        return method, 501, jdbcext, sep, g_extension
+        return method, 501, jdbcext, g_extension
     elif not checkVersion(driver, jdbcver):
-        return method, 503, driver, jdbcext, sep, jdbcver
+        return method, 503, driver, jdbcext, jdbcver
     return None
 

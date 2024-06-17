@@ -96,7 +96,6 @@ class MergerManager(MailManager,
 
     def refreshRecipients(self):
         recipients, message = self._model.getRecipients()
-        print("MergerManager.refreshRecipients()")
         self._view.setRecipients(recipients, message)
         self._updateUI()
 
@@ -105,7 +104,6 @@ class MergerManager(MailManager,
             subject, attachments = self._getSavedDocumentProperty()
             sender, recipients = self._view.getEmail()
             url, datasource, query, table, filters = self._model.getDocumentInfo()
-            print("MergerManager.sendDocument() %s: %s - %s - %s - %s - %s\n%s" % (sender, subject, url, datasource, query, table, recipients))
             id = getMailSpooler(self._ctx).addMergeJob(sender, subject, url, datasource, query, table, recipients, filters, attachments)
 
 # MergerManager private setter methods

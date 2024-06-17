@@ -152,7 +152,7 @@ class Spooler():
         return self.DataSource is not None
 
     def _initialize(self, method):
-        self.DataSource = getDataSource(self._ctx, method, ' ', self._logError)
+        self.DataSource = getDataSource(self._ctx, method, self._logError)
 
     def _logError(self, method, code, *args):
         self._logger.logprb(SEVERE, 'MailSpooler', method, code, *args)

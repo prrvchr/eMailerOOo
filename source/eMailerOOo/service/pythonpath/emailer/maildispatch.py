@@ -100,7 +100,7 @@ class MailDispatch(unohelper.Base,
             oauth2 = None
             # FIXME: We need to check the presence of OAuth2OOo extension
             if not self._isInitialized():
-                oauth2 = checkOAuth2(self._ctx, g_extension, '\n')
+                oauth2 = checkOAuth2(self._ctx, g_extension)
             if oauth2 is not None:
                 self._showMsgBox(*oauth2)
             else:
@@ -108,7 +108,7 @@ class MailDispatch(unohelper.Base,
         else:
             # FIXME: We need to check the configuration
             if not self._isInitialized():
-                MailDispatch._datasource = getDataSource(self._ctx, g_extension, '\n', self._showMsgBox)
+                MailDispatch._datasource = getDataSource(self._ctx, g_extension, self._showMsgBox)
             # FIXME: Configuration has been checked we can continue
             if self._isInitialized():
                 if url.Path == 'spooler':
@@ -254,8 +254,8 @@ class MailDispatch(unohelper.Base,
 
     def _showMsgBox(self, method, code, *args):
         resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
-        message = resource.resolveString(code) % args
-        title = resource.resolveString(code +1) % method
+        message = resource.resolveString(code).format(*args)
+        title = resource.resolveString(code +1).format(method)
         msgbox = createMessageBox(self._parent, message, title, 'error', 1)
         msgbox.execute()
         msgbox.dispose()

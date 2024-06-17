@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4] et à notre [Politique de protection des données][5].**
 
-# version [1.2.2][6]
+# version [1.2.3][6]
 
 ## Introduction:
 
@@ -416,7 +416,12 @@ ___
 - L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.4 et 1.3.2 minimum.
 - De nombreuses corrections.
 
-### Que reste-t-il à faire pour la version 1.2.2:
+### Ce qui a été fait pour la version 1.2.3:
+
+- Correction d'une régression provenant de la version 1.2.2 et empêchant la soumission des travaux dans le spooler de courriels.
+- Correction du [dysfonctionnement #7][93] ne permettant pas l'affichage des messages d'erreur en cas de configuration incorrecte.
+
+### Que reste-t-il à faire pour la version 1.2.3:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -427,7 +432,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-123>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -460,7 +465,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.3#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [42]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [43]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
@@ -513,3 +518,4 @@ ___
 [90]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>
 [91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
 [92]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
+[93]: <https://github.com/prrvchr/eMailerOOo/issues/7>

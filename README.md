@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.2][6]
+# version [1.2.3][6]
 
 ## Introduction:
 
@@ -416,7 +416,12 @@ ___
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.4 and 1.3.2 respectively minimum.
 - Many fixes.
 
-### What remains to be done for version 1.2.2:
+### What has been done for version 1.2.3:
+
+- Fixed a regression from version 1.2.2 preventing jobs from being submitted to the email spooler.
+- Fixed [issue #7][93] not allowing error messages to be displayed in case of incorrect configuration.
+
+### What remains to be done for version 1.2.3:
 
 - Add new languages for internationalization...
 
@@ -427,7 +432,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-110>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-123>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -460,7 +465,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.3#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [42]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [43]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
@@ -513,3 +518,4 @@ ___
 [90]: <https://prrvchr.github.io/eMailerOOo/#requirement>
 [91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
 [92]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
+[93]: <https://github.com/prrvchr/eMailerOOo/issues/7>

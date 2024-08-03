@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.3][6]
+# version [1.2.4][6]
 
 ## Introduction:
 
@@ -421,7 +421,15 @@ ___
 - Fixed a regression from version 1.2.2 preventing jobs from being submitted to the email spooler.
 - Fixed [issue #7][93] not allowing error messages to be displayed in case of incorrect configuration.
 
-### What remains to be done for version 1.2.3:
+### What has been done for version 1.2.4:
+
+- Updated the [Python decorator][94] package to version 5.1.1.
+- Updated the [Python ijson][95] package to version 3.3.0.
+- Updated the [Python packaging][96] package to version 24.1.
+- Updated the [Python setuptools][97] package to version 72.1.0 in order to respond to the [Dependabot security alert][98].
+- Updated the [Python validators][99] package to version 0.33.0.
+
+### What remains to be done for version 1.2.4:
 
 - Add new languages for internationalization...
 
@@ -432,7 +440,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-123>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-124>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -465,7 +473,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.3#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.4#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [42]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [43]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
@@ -519,3 +527,9 @@ ___
 [91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
 [92]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
 [93]: <https://github.com/prrvchr/eMailerOOo/issues/7>
+[94]: <https://pypi.org/project/decorator/>
+[95]: <https://pypi.org/project/ijson/>
+[96]: <https://pypi.org/project/packaging/>
+[97]: <https://pypi.org/project/setuptools/>
+[98]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
+[99]: <https://pypi.org/project/validators/>

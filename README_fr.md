@@ -428,6 +428,7 @@ ___
 - Mise à jour du paquet [Python packaging][96] vers la version 24.1.
 - Mise à jour du paquet [Python setuptools][97] vers la version 72.1.0 afin de répondre à l'[alerte de sécurité Dependabot][98].
 - Mise à jour du paquet [Python validators][99] vers la version 0.33.0.
+- L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.6 et 1.4.2 minimum.
 
 ### Que reste-t-il à faire pour la version 1.2.4:
 

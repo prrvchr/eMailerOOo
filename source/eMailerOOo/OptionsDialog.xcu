@@ -48,7 +48,7 @@
             <value xml:lang="fr-FR">eMailerOOo</value>
           </prop>
           <prop oor:name="OptionsPage">
-            <value>%origin%/eMailerOOo/OptionsDialog.xdl</value>
+            <value>%origin%/dialogs/OptionsDialog.xdl</value>
           </prop>
           <prop oor:name="EventHandlerService">
             <value>io.github.prrvchr.eMailerOOo.OptionsHandler</value>

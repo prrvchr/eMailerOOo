@@ -40,7 +40,6 @@ from ..dbconfig  import g_folder
 
 from ..configuration import g_basename
 from ..configuration import g_identifier
-from ..configuration import g_extension
 from ..configuration import g_separator
 
 import traceback
@@ -51,8 +50,9 @@ class OptionsModel():
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
         self._spooler = getMailSpooler(ctx)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
-        self._resources = {'SpoolerStatus': 'OptionsDialog.Label5.Label.%s'}
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._resources = {'SpoolerStatus':  'OptionsDialog.Label5.Label.%s',
+                           'RestartMessage': 'OptionsDialog.Label7.Label.%s'}
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
@@ -67,10 +67,11 @@ class OptionsModel():
     def removeStreamListener(self, listener):
         self._spooler.removeListener(listener)
 
-    def getViewData(self):
-        exist = getSimpleFile(self._ctx).exists(self._url)
-        msg, state = self._getSpoolerStatus()
-        return exist, self._Timeout, msg, state
+    def getViewData(self, restart):
+        exist = self.getDataBaseStatus()
+        state, status = self._getSpoolerStatus()
+        msg = self.getRestartMessage(restart)
+        return exist, self._Timeout, state, status, msg
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:
@@ -88,7 +89,14 @@ class OptionsModel():
 
     def getSpoolerStatus(self, started):
         resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource), started
+        return started, self._resolver.resolveString(resource)
+
+    def getRestartMessage(self, restart):
+        resource = self._resources.get('RestartMessage') % restart
+        return self._resolver.resolveString(resource)
+
+    def getDataBaseStatus(self):
+        return getSimpleFile(self._ctx).exists(self._url)
 
     def getDataBaseUrl(self):
         return self._url
@@ -96,6 +104,5 @@ class OptionsModel():
     # OptionsModel private methods
     def _getSpoolerStatus(self):
         started = int(self._spooler.isStarted())
-        resource = self._resources.get('SpoolerStatus') % started
-        return self._resolver.resolveString(resource), started
+        return self.getSpoolerStatus(started)
 

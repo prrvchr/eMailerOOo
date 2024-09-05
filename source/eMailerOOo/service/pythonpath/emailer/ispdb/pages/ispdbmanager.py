@@ -32,8 +32,6 @@ import unohelper
 
 from com.sun.star.uno import Exception as UnoException
 
-from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
-from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
@@ -41,11 +39,13 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from ...unotool import createService
-from ...unotool import getDialog
-
 from .ispdbhandler import WindowHandler
+
 from .ispdbview import IspdbView
+
+from ...unotool import getStringResource
+
+from ...configuration import g_identifier
 
 import traceback
 
@@ -56,6 +56,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPages')
         self._view = IspdbView(ctx, WindowHandler(self), parent, pageid)
         self._service = service.value
         self._version = 0
@@ -70,7 +71,7 @@ class IspdbManager(unohelper.Base):
 
     def activatePage(self):
         if self._model.refreshView(self._version):
-            label = self._model.getPagesLabel(self._service)
+            label = self._model.getPagesLabel(self._resolver, self._service)
             self._view.setPageLabel(label)
             config = self._model.getConfig(self._service)
             self._view.updatePage(config)
@@ -102,14 +103,14 @@ class IspdbManager(unohelper.Base):
 
     def changeConnection(self, i):
         j = self._view.getAuthentication()
-        message, level = self._model.getSecurity(i, j)
+        message, level = self._model.getSecurity(self._resolver, i, j)
         self._view.setSecurityMessage(message, level)
 
     def changeAuthentication(self, j):
         self._view.enableLogin(j > 0)
         self._view.enablePassword(j == 1)
         i = self._view.getConnection()
-        message, level = self._model.getSecurity(i, j)
+        message, level = self._model.getSecurity(self._resolver, i, j)
         self._view.setSecurityMessage(message, level)
         self._wizard.updateTravelUI()
 

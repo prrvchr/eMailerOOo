@@ -34,7 +34,7 @@ from com.sun.star.awt.FontWeight import NORMAL
 
 from ...unotool import getContainerWindow
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 import traceback
 
@@ -42,8 +42,8 @@ import traceback
 class IspdbView(unohelper.Base):
     def __init__(self, ctx, handler, parent, pageid):
         idl = 'IspdbPage%s' % pageid
-        self._dialog = getContainerWindow(ctx, parent, None, g_extension, idl)
-        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_extension, 'IspdbPages')
+        self._dialog = getContainerWindow(ctx, parent, None, g_identifier, idl)
+        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_identifier, 'IspdbPages')
         self._window.setVisible(True)
 
 # IspdbView getter methods

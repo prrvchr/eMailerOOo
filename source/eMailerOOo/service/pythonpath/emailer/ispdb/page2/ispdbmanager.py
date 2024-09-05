@@ -34,6 +34,10 @@ from com.sun.star.awt.FontWeight import NORMAL
 from .ispdbview import IspdbView
 from .ispdbhandler import WindowHandler
 
+from ...unotool import getStringResource
+
+from ...configuration import g_identifier
+
 import traceback
 
 
@@ -43,6 +47,7 @@ class IspdbManager(unohelper.Base):
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPage2')
         self._view = IspdbView(ctx, WindowHandler(self), parent)
         self._finish = False
 
@@ -59,9 +64,9 @@ class IspdbManager(unohelper.Base):
         self._model.Offline = 0
         self._wizard.activatePath(1, False)
         self._wizard.enablePage(1, False)
-        self._view.initSearch(self._model.getPageLabel(self._pageid, self._model.Email))
+        self._view.initSearch(self._model.getPageLabel(self._resolver, self._pageid, self._model.Email))
         self._wizard.updateTravelUI()
-        self._model.getServerConfig(self.updateProgress, self.updateView)
+        self._model.getServerConfig(self._resolver, self.updateProgress, self.updateView)
 
     def commitPage(self, reason):
         if self._view.useReplyTo():
@@ -84,7 +89,7 @@ class IspdbManager(unohelper.Base):
 
     def updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
-            message = self._model.getProgressMessage(value + offset)
+            message = self._model.getProgressMessage(self._resolver, value + offset)
             self._view.updateProgress(value, message, style)
 
     def updateView(self, title, auto, state, replyto, imap, offline):

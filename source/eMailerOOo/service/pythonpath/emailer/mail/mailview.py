@@ -34,12 +34,12 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from ..unotool import createService
 from ..unotool import getContainerWindow
 
-from ..configuration import g_extension
+from ..configuration import g_identifier
 
 class MailView(unohelper.Base):
     def __init__(self, ctx, handler, parent, step):
         self._ctx = ctx
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MailWindow')
+        self._window = getContainerWindow(ctx, parent, handler, g_identifier, 'MailWindow')
         self._window.Model.Step = step
         self._window.setVisible(True)
 

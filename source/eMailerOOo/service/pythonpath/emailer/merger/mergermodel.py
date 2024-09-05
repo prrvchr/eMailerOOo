@@ -117,18 +117,18 @@ class MergerModel(MailModel):
         self._saved = False
         self._lock = Condition()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
-        self._url = getResourceLocation(ctx, g_identifier, g_extension)
+        self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._resources = {'Step':          'MergerPage%s.Step',
                            'Title':         'MergerPage%s.Title',
                            'TabTitle':      'MergerTab%s.Title',
                            'Progress':      'MergerPage1.Label6.Label.%s',
-                           'Error':         'MergerPage1.Label8.Label.%s',
+                           'Error':         'MergerPage1.Label8.Error.%s',
                            'Index':         'MergerPage1.Label14.Label.%s',
                            'Query':         'MergerTab2.Label1.Label',
                            'Recipient':     'MailWindow.Label4.Label',
-                           'PickerTitle':   'Mail.FilePicker.Title',
+                           'Document':      'MailWindow.Label8.Label',
                            'Property':      'Mail.Document.Property.%s',
-                           'Document':      'MailWindow.Label8.Label.1',
+                           'PickerTitle':   'Mail.FilePicker.Title',
                            'DialogTitle':   'MessageBox.Title',
                            'DialogMessage': 'MessageBox.Message'}
 
@@ -635,9 +635,9 @@ class MergerModel(MailModel):
         return self._grid1 is not None
 
 # Procedures called by WizardPage2
-    def getPageInfos(self):
+    def getPageInfos(self, resolver):
         tables = self._getTables() if self._similar else self._getSimilarTables()
-        return tables, self._getTabTitle(1), self._getTabTitle(2), self._getQueryLabel()
+        return tables, self._getTabTitle(resolver, 1), self._getTabTitle(resolver, 2), self._getQueryLabel(resolver)
 
     def resetPendingChanges(self):
         self._changes = 0
@@ -645,8 +645,8 @@ class MergerModel(MailModel):
     def hasQueryChanged(self):
         return self._changes & 1 == 1
 
-    def getQueryLabel(self):
-        return self._getQueryLabel()
+    def getQueryLabel(self, resolver):
+        return self._getQueryLabel(resolver)
 
     def hasTablesChanged(self):
         return self._changes & 2 == 2
@@ -964,23 +964,26 @@ class MergerModel(MailModel):
         rowset.Order = composer.getOrder()
 
 # MergerModel StringRessoure methods
-    def getPageStep(self, pageid):
+    def getPageStep(self, resolver, pageid):
         resource = self._resources.get('Step') % pageid
-        step = self._resolver.resolveString(resource)
+        step = resolver.resolveString(resource)
         return step
 
-    def getPageTitle(self, pageid):
+    def getPageTitle(self, resolver, pageid):
         resource = self._resources.get('Title') % pageid
-        title = self._resolver.resolveString(resource)
+        title = resolver.resolveString(resource)
         return title
 
-    def _getTabTitle(self, tab):
+    def _getTabTitle(self, resolver, tab):
         resource = self._resources.get('TabTitle') % tab
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
 
-    def getProgressMessage(self, value):
+    def getProgressMessage(self, resolver, value):
         resource = self._resources.get('Progress') % value
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
+
+    def _getErrorResource(self, code):
+        return self._resources.get('Error') % code
 
     def _getErrorMessage(self, code, *format):
         resource = self._resources.get('Error') % code
@@ -994,9 +997,9 @@ class MergerModel(MailModel):
         resource = self._resources.get('Recipient')
         return self._resolver.resolveString(resource) + '%s' % total
 
-    def _getQueryLabel(self):
+    def _getQueryLabel(self, resolver):
         resource = self._resources.get('Query')
-        return self._resolver.resolveString(resource) + self._query
+        return resolver.resolveString(resource) + self._query
 
     def _getDialogTitle(self):
         resource = self._resources.get('DialogTitle')

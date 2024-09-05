@@ -34,31 +34,34 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, dialog, exist, timeout, msg, state):
+    def __init__(self, dialog):
         self._dialog = dialog
-        self.initControl(exist, timeout, msg, state)
+
+# OptionsView setter methods
+    def initView(self, exist, timeout, state, status, msg):
+        self._getDataBaseButton().Model.Enabled = exist
+        self._getTimeout().Value = timeout
+        self.setSpoolerStatus(state, status)
+        self.setOptionMessage(msg)
+
+    def updateDataBase(self, exist):
+        self._getDataBaseButton().Model.Enabled = exist
+
+    def setSpoolerStatus(self, state, status):
+        control = self._getSpoolerButton().Model
+        control.State = state
+        control.Enabled = True
+        self._getSpoolerStatus().Text = status
+
+    def setOptionMessage(self, error):
+        self._getOptionMessage().Text = error
+
+    def clearOptionMessage(self):
+        self._getOptionMessage().Text = ''
 
 # OptionsView getter methods
     def getTimeout(self):
         return int(self._getTimeout().Value)
-
-# OptionsView setter methods
-    def initControl(self, exist, timeout, msg, state):
-        self._getDataBaseButton().Model.Enabled = exist
-        self._getTimeout().Value = timeout
-        self.setSpoolerStatus(msg, state)
-
-    def setSpoolerStatus(self, msg, state):
-        control = self._getSpoolerButton().Model
-        control.State = state
-        control.Enabled = True
-        self._getSpoolerStatus().Text = msg
-
-    def setSpoolerError(self, error):
-        self._getSpoolerError().Text = error
-
-    def clearSpoolerError(self):
-        self._getSpoolerError().Text = ''
 
 # OptionsView private control methods
     def _getTimeout(self):
@@ -67,7 +70,7 @@ class OptionsView(unohelper.Base):
     def _getSpoolerStatus(self):
         return self._dialog.getControl('Label5')
 
-    def _getSpoolerError(self):
+    def _getOptionMessage(self):
         return self._dialog.getControl('Label7')
 
     def _getDataBaseButton(self):

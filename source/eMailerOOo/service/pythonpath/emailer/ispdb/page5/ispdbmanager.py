@@ -31,21 +31,20 @@ import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
-from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
 
-from ...unotool import createService
-from ...unotool import getDialog
+from .ispdbview import IspdbView
+
+from .ispdbhandler import WindowHandler
+
+from .send import DialogHandler
+from .send import SendView
+
+from ...unotool import getStringResource
 
 from ...logger import LoggerListener
 
-from ...configuration import g_mailservicelog
-
-from .ispdbview import IspdbView
-from .ispdbhandler import WindowHandler
-from .send import SendView
-from .send import DialogHandler
+from ...configuration import g_identifier
 
 import traceback
 
@@ -58,6 +57,7 @@ class IspdbManager(unohelper.Base):
         self._pageid = pageid
         self._connected = False
         self._dialog = None
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPage5')
         self._view = IspdbView(ctx, WindowHandler(self), parent)
         self._model.addLogListener(LoggerListener(self))
         self.updateLogger()
@@ -89,7 +89,7 @@ class IspdbManager(unohelper.Base):
 
     def setLabel(self, *format):
         if not self._model.isDisposed():
-            label = self._model.getPageLabel(self._pageid, *format)
+            label = self._model.getPageLabel(self._resolver, self._pageid, *format)
             self._view.setPageLabel(label)
 
     def updateProgress(self, value):
@@ -108,10 +108,10 @@ class IspdbManager(unohelper.Base):
 
     def sendMail(self):
         parent = self._wizard.DialogWindow.getPeer()
-        title = self._model.getSendTitle()
+        title = self._model.getSendTitle('SendDialog')
         email = self._model.Email
-        subject = self._model.getSendSubject()
-        msg = self._model.getSendMessage()
+        subject = self._model.getSendSubject('SendDialog')
+        msg = self._model.getSendMessage('SendDialog')
         self._dialog = SendView(self._ctx, DialogHandler(self), parent, title, email, subject, msg)
         if self._dialog.execute() == OK:
             self._view.setPageStep(1)

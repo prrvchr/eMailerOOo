@@ -35,19 +35,19 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from ...unotool import getContainerWindow
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class SpoolerView(unohelper.Base):
     def __init__(self, ctx, handler, handler1, handler2, parent, title, title1, title2):
-        self._dialog = getDialog(ctx, g_extension, 'SpoolerDialog', handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, 'SpoolerDialog', handler, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
         tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
         parent = tab1.getPeer()
-        self._tab1 = getContainerWindow(ctx, parent, handler1, g_extension, 'SpoolerTab1')
+        self._tab1 = getContainerWindow(ctx, parent, handler1, g_identifier, 'SpoolerTab1')
         self._tab1.setVisible(True)
         parent = tab2.getPeer()
-        self._tab2 = getContainerWindow(ctx, parent, handler2, g_extension, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, parent, handler2, g_identifier, 'SpoolerTab2')
         self._tab2.setVisible(True)
         self._dialog.setTitle(title)
 

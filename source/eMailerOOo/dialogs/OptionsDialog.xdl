@@ -44,7 +44,7 @@
     </dlg:button>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine3" dlg:tab-index="8" dlg:left="6" dlg:top="163" dlg:width="244" dlg:height="14" dlg:help-text="&amp;OptionsDialog.FixedLine3.HelpText" dlg:value="&amp;OptionsDialog.FixedLine3.Label"/>
     <dlg:text dlg:id="Label4" dlg:tab-index="9" dlg:left="10" dlg:top="180" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label4.HelpText" dlg:value="&amp;OptionsDialog.Label4.Label" dlg:valign="center" dlg:tabstop="false"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:left="85" dlg:top="180" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label.1" dlg:valign="center" dlg:tabstop="false"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:left="85" dlg:top="180" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label.0" dlg:valign="center" dlg:tabstop="false"/>
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="11" dlg:left="155" dlg:top="180" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton3.HelpText" dlg:value="&amp;OptionsDialog.CommandButton3.Label" dlg:toggled="1">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ToggleSpooler" script:language="UNO"/>
     </dlg:button>
@@ -52,6 +52,6 @@
     <dlg:button dlg:id="CommandButton4" dlg:tab-index="13" dlg:left="155" dlg:top="200" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton4.HelpText" dlg:value="&amp;OptionsDialog.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSpooler" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label7" dlg:tab-index="14" dlg:left="10" dlg:top="220" dlg:width="240" dlg:height="35" dlg:help-text="&amp;OptionsDialog.Label7.HelpText" dlg:value="&amp;OptionsDialog.Label7.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label7" dlg:tab-index="14" dlg:left="10" dlg:top="220" dlg:width="240" dlg:height="35" dlg:help-text="&amp;OptionsDialog.Label7.HelpText" dlg:value="&amp;OptionsDialog.Label7.Label.0" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false"/>
   </dlg:bulletinboard>
 </dlg:window>

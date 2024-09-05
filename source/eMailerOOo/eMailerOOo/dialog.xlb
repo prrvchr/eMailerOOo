@@ -25,26 +25,4 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE library:library PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "library.dtd">
-<library:library xmlns:library="http://openoffice.org/2000/library" library:name="eMailerOOo" library:readonly="false" library:passwordprotected="false">
-  <library:element library:name="LogDialog"/>
-  <library:element library:name="LogWindow"/>
-  <library:element library:name="OptionsDialog"/>
-  <library:element library:name="Wizard"/>
-  <library:element library:name="IspdbPage1"/>
-  <library:element library:name="IspdbPage2"/>
-  <library:element library:name="IspdbPage3"/>
-  <library:element library:name="IspdbPage4"/>
-  <library:element library:name="IspdbPages"/>
-  <library:element library:name="IspdbPage5"/>
-  <library:element library:name="SendDialog"/>
-  <library:element library:name="SpoolerDialog"/>
-  <library:element library:name="SpoolerTab1"/>
-  <library:element library:name="SpoolerTab2"/>
-  <library:element library:name="MergerPage1"/>
-  <library:element library:name="MergerPage2"/>
-  <library:element library:name="MergerTab1"/>
-  <library:element library:name="MergerTab2"/>
-  <library:element library:name="MailerDialog"/>
-  <library:element library:name="MailWindow"/>
-  <library:element library:name="GridWindow"/>
-</library:library>
+<library:library xmlns:library="http://openoffice.org/2000/library" library:name="eMailerOOo" library:readonly="false" library:passwordprotected="false"/>

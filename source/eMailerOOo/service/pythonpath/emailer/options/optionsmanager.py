@@ -57,14 +57,17 @@ import traceback
 class OptionsManager(unohelper.Base):
     def __init__(self, ctx, window, logger):
         self._ctx = ctx
+        self._logger = logger
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(window, *self._model.getViewData())
-        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_identifier, g_defaultlog, g_spoolerlog, g_mailservicelog)
         window.addEventListener(OptionsListener(self))
+        self._view = OptionsView(window)
+        self._view.initView(*self._model.getViewData(OptionsManager._restart))
+        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._listener = StreamListener(self)
         self._model.addStreamListener(self._listener)
-        self._logger = logger
         self._logger.logprb(INFO, 'OptionsManager', '__init__()', 151)
+
+    _restart = 0
 
     def started(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
@@ -76,20 +79,23 @@ class OptionsManager(unohelper.Base):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
 
     def error(self, e):
-        self._view.setSpoolerError(e.Message)
+        self._view.setOptionMessage(e.Message)
 
     def dispose(self):
         self._logmanager.dispose()
         self._model.removeStreamListener(self._listener)
 
     def loadSetting(self):
-        self._view.initControl(*self._model.getViewData())
+        self._view.initView(*self._model.getViewData(OptionsManager._restart))
         self._logmanager.loadSetting()
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 161)
 
     def saveSetting(self):
         option = self._model.saveTimeout(self._view.getTimeout())
         log = self._logmanager.saveSetting()
+        if log:
+            OptionsManager._restart = 1
+            self._view.setOptionMessage(self._model.getRestartMessage(1))
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 171, option, log)
 
     def changeTimeout(self, timeout):
@@ -99,16 +105,18 @@ class OptionsManager(unohelper.Base):
         frame = getDesktop(self._ctx).getCurrentFrame()
         if frame is not None:
             executeFrameDispatch(self._ctx, frame, 'smtp:ispdb')
+            self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def toogleSpooler(self, state):
         self._model.toogleSpooler(state)
         if state:
-            self._view.clearSpoolerError()
+            self._view.clearOptionMessage()
 
     def showSpooler(self):
         frame = getDesktop(self._ctx).getCurrentFrame()
         if frame is not None:
             executeFrameDispatch(self._ctx, frame, 'smtp:spooler')
+            self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def showDataBase(self):
         url = self._model.getDataBaseUrl()

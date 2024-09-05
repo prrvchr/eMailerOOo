@@ -59,7 +59,7 @@ class MailModel(unohelper.Base):
         self._datasource = datasource
         self._close = close
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._disposed = False
 
     @property

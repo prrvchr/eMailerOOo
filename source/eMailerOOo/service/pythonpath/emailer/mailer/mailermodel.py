@@ -51,11 +51,11 @@ class MailerModel(MailModel):
         MailModel.__init__(self, ctx, datasource, close)
         self._path = path
         self._url = None
-        self._resources = {'DialogTitle': 'MailerDialog.Title',
-                           'PickerTitle': 'Mail.FilePicker.Title',
+        self._resources = {'DialogTitle':   'MailerDialog.Title',
+                           'PickerTitle':   'Mail.FilePicker.Title',
                            'PickerFilters': 'Mail.FilePicker.Filters',
-                           'Property': 'Mail.Document.Property.%s',
-                           'Document': 'MailWindow.Label8.Label.1'}
+                           'Property':      'Mail.Document.Property.%s',
+                           'Document':      'MailWindow.Label8.Label'}
 
 # MailerModel getter methods
     def isSubjectValid(self, subject):

@@ -25,7 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="1.2.4"/>
+  <version value="1.2.5"/>
   <identifier value="io.github.prrvchr.eMailerOOo"/>
   <platform value="all"/>
   <dependencies>
@@ -52,8 +52,8 @@
     <name lang="en">eMailerOOo</name>
   </display-name>
   <icon>
-    <default xlink:href="eMailerOOo/eMailerOOo.svg"/>
-    <high-contrast xlink:href="eMailerOOo/eMailerOOo.svg"/>
+    <default xlink:href="img/eMailerOOo.svg"/>
+    <high-contrast xlink:href="img/eMailerOOo.svg"/>
   </icon>
   <extension-description>
     <src xlink:href="description/desc_en.txt" lang="en"/>

@@ -60,7 +60,8 @@ class MergerManager(unohelper.Base,
         self._model = model
         self._pageid = pageid
         self._disabled = False
-        tables, title1, title2, message = self._model.getPageInfos()
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerTab')
+        tables, title1, title2, message = self._model.getPageInfos(self._resolver)
         self._view = MergerView(ctx, Tab1Handler(self), Tab2Handler(self), parent, tables, title1, title2, message)
         window1, window2 = self._view.getGridWindows()
         self._model.initPage2(window1, window2, self.initPage)
@@ -84,7 +85,7 @@ class MergerManager(unohelper.Base,
 
     def activatePage(self):
         if self._model.hasQueryChanged():
-            label = self._model.getQueryLabel()
+            label = self._model.getQueryLabel(self._resolver)
             print("MergerManager.activatePage() Label changed: %s" % label)
             self._view.setQueryLabel(label)
         if self._model.hasTablesChanged():

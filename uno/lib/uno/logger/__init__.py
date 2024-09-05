@@ -38,3 +38,4 @@ from .loghandler import RollerHandler
 
 from .loghelper import getLogger
 
+from .logcontroller import LogController

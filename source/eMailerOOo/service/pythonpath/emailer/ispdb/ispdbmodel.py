@@ -103,14 +103,14 @@ class IspdbModel(unohelper.Base):
         self._url = configuration.getByName('IspDBUrl')
         self._timeout = configuration.getByName('ConnectTimeout')
         self._logger = LogController(ctx, g_mailservicelog)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'Step': 'IspdbPage%s.Step',
-                           'Title': 'IspdbPage%s.Title.%s',
-                           'PageLabel': 'IspdbPage%s.Label1.Label',
-                           'PagesLabel': 'IspdbPages.Label1.Label',
-                           'Progress': 'IspdbPage2.Label2.Label.%s',
-                           'Security': 'IspdbPages.Label10.Label.%s',
-                           'SendTitle': 'SendDialog.Title',
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
+        self._resources = {'Step':        'IspdbPage%s.Step',
+                           'Title':       'IspdbPage%s.Title.%s',
+                           'PageLabel':   'IspdbPage%s.Label1.Label',
+                           'PagesLabel':  'IspdbPages.Label1.Label',
+                           'Progress':    'IspdbPage2.Label2.Label.%s',
+                           'Security':    'IspdbPages.Label10.Label.%s',
+                           'SendTitle':   'SendDialog.Title',
                            'SendSubject': 'SendDialog.TextField2.Text',
                            'SendMessage': 'SendDialog.TextField3.Text',
                            'ThreadTitle': 'SendThread.Title'}
@@ -164,7 +164,7 @@ class IspdbModel(unohelper.Base):
         self._version += 1
         Thread(target=self._getServerConfig, args=args).start()
 
-    def _getServerConfig(self, progress, update):
+    def _getServerConfig(self, resolver, progress, update):
         # FIXME: Because we call this thread in the WizardPage.activatePage(),
         # FIXME: if we want to be able to navigate through the Wizard roadmap
         # FIXME: without GUI refreshing problem then we need to pause this thread.
@@ -205,7 +205,7 @@ class IspdbModel(unohelper.Base):
         self._servers = IspdbServer(user, config)
         self._offline = mode
         progress(*status)
-        update(self.getPageTitle(2), auto, user.getReplyToState(), user.ReplyToAddress, user.getImapState(), mode)
+        update(self.getPageTitle(resolver, 2), auto, user.getReplyToState(), user.ReplyToAddress, user.getImapState(), mode)
 
     def _getIspdbConfig(self, user, request, url):
         config = None
@@ -313,9 +313,9 @@ class IspdbModel(unohelper.Base):
     def saveConfiguration(self):
         self._servers.User.saveConfig()
 
-    def getSecurity(self, i, j):
+    def getSecurity(self, resolver, i, j):
         level = self._levels.get(i).get(j)
-        message = self.getSecurityMessage(level)
+        message = self.getSecurityMessage(resolver, level)
         return message, level
 
 # IspdbModel getter methods called by WizardPage5
@@ -528,44 +528,47 @@ class IspdbModel(unohelper.Base):
         return len(self._services)
 
 # IspdbModel StringResource methods
-    def getPageStep(self, pageid):
+    def getPageStep(self, resolver, pageid):
         resource = self._resources.get('Step') % pageid
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
 
-    def getPageTitle(self, pageid):
+    def getPageTitle(self, resolver, pageid):
         resource = self._resources.get('Title') % (pageid, self._offline)
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
 
-    def getPageLabel(self, pageid, *format):
+    def getPageLabel(self, resolver, pageid, *format):
         resource = self._resources.get('PageLabel') % pageid
-        return self._resolver.resolveString(resource) % format
+        return resolver.resolveString(resource) % format
 
-    def getPagesLabel(self, service):
+    def getPagesLabel(self, resolver, service):
         resource = self._resources.get('PagesLabel')
-        label = self._resolver.resolveString(resource)
+        label = resolver.resolveString(resource)
         return label % (service, self.Email)
 
-    def getProgressMessage(self, value):
+    def getProgressMessage(self, resolver, value):
         resource = self._resources.get('Progress') % value
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
 
-    def getSecurityMessage(self, level):
+    def getSecurityMessage(self, resolver, level):
         resource = self._resources.get('Security') % level
-        return self._resolver.resolveString(resource)
+        return resolver.resolveString(resource)
 
-    def getSendTitle(self):
+    def getSendTitle(self, name):
         resource = self._resources.get('SendTitle')
-        title = self._resolver.resolveString(resource)
+        title = self._getResolver(name).resolveString(resource)
         return title % self.Email
 
-    def getSendSubject(self):
+    def getSendSubject(self, name):
         resource = self._resources.get('SendSubject')
-        return self._resolver.resolveString(resource)
+        return self._getResolver(name).resolveString(resource)
 
-    def getSendMessage(self):
+    def getSendMessage(self, name):
         resource = self._resources.get('SendMessage')
-        return self._resolver.resolveString(resource)
+        return self._getResolver(name).resolveString(resource)
 
     def _getThreadTitle(self):
         resource = self._resources.get('ThreadTitle')
         return self._resolver.resolveString(resource) % g_extension
+
+    def _getResolver(self, name):
+        return getStringResource(self._ctx, g_identifier, 'dialogs', name)

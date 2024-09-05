@@ -31,14 +31,14 @@ import unohelper
 
 from ...unotool import getContainerWindow
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 import traceback
 
 
 class MergerView(unohelper.Base):
     def __init__(self, ctx, handler, parent, addressbooks):
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'MergerPage1')
+        self._window = getContainerWindow(ctx, parent, handler, g_identifier, 'MergerPage1')
         self.initAddressBook(addressbooks)
         self.setPageStep(3)
 

@@ -60,6 +60,7 @@ class MergerManager(unohelper.Base,
         self._pageid = pageid
         self._disabled = False
         addressbooks = self._model.getAvailableAddressBooks()
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPage1')
         self._view = MergerView(ctx, WindowHandler(self), parent, addressbooks)
         addressbook = self._model.getDefaultAddressBook()
         if addressbook in addressbooks:
@@ -109,12 +110,12 @@ class MergerManager(unohelper.Base,
             self._view.enablePage(False)
             self._view.enableButton(False)
             self._view.setPageStep(1)
-            message = self._model.getProgressMessage(0)
+            message = self._model.getProgressMessage(self._resolver, 0)
             self._view.updateProgress(0, message)
             self._model.setAddressBook(addressbook, self.progress, self.setAddressBook)
 
     def progress(self, value):
-        message = self._model.getProgressMessage(value)
+        message = self._model.getProgressMessage(self._resolver, value)
         self._view.updateProgress(value, message)
 
     def setAddressBook(self, step, queries, tables, label, msg):

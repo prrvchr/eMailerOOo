@@ -33,12 +33,12 @@ from ..mail import MailView
 
 from ..unotool import getDialog
 
-from ..configuration import g_extension
+from ..configuration import g_identifier
 
 
 class MailerView(MailView):
     def __init__(self, ctx, handler1, handler2, parent, step):
-        self._dialog = getDialog(ctx, g_extension, 'MailerDialog', handler1, parent)
+        self._dialog = getDialog(ctx, g_identifier, 'MailerDialog', handler1, parent)
         MailView.__init__(self, ctx, handler2, self._dialog.getPeer(), step)
 
 # MailerView getter methods

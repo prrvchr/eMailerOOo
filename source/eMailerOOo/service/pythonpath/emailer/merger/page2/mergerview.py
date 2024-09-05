@@ -35,7 +35,7 @@ from com.sun.star.view.SelectionType import MULTI
 from ...unotool import createService
 from ...unotool import getContainerWindow
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 import traceback
 
@@ -43,11 +43,11 @@ import traceback
 class MergerView(unohelper.Base):
     def __init__(self, ctx, handler1, handler2, parent, tables, title1, title2, label):
         self._ctx = ctx
-        self._window = getContainerWindow(ctx, parent, None, g_extension, 'MergerPage2')
+        self._window = getContainerWindow(ctx, parent, None, g_identifier, 'MergerPage2')
         tab1, tab2 = self._getTabPages(title1, title2, 'Tab1', 1)
-        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_extension, 'MergerTab1')
+        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'MergerTab1')
         self._tab1.setVisible(True)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'MergerTab2')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_identifier, 'MergerTab2')
         self._tab2.setVisible(True)
         self._initTables(tables)
         self.setQueryLabel(label)

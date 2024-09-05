@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.4][6]
+# version [1.2.5][6]
 
 ## Introduction:
 
@@ -293,6 +293,10 @@ ___
 
 * LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Python version 3.8.15  - Adoptium JDK Hotspot 11.0.17 (x64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
+* LibreOffice 24.2.1.2 - Lubuntu 22.04
+
+* LibreOffice 24.8.0.3 (x86_64) - Windows 10(x64) - Python version 3.9.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
+
 * **Does not work with OpenOffice on Windows** see [bug 128569][66]. Having no solution, I encourage you to install **LibreOffice**.
 
 I encourage you in case of problem :confused:  
@@ -430,7 +434,14 @@ ___
 - Updated the [Python validators][99] package to version 0.33.0.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.6 and 1.4.2 respectively minimum.
 
-### What remains to be done for version 1.2.4:
+### What has been done for version 1.2.5:
+
+- Updated the [Python setuptools][97] package to version 73.0.1.
+- The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.7 and 1.4.4 respectively minimum.
+- Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
+- Support for LibreOffice version 24.8.x.
+
+### What remains to be done for version 1.2.5:
 
 - Add new languages for internationalization...
 
@@ -441,7 +452,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-124>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-125>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -474,7 +485,7 @@ ___
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
 [38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.4#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.5#right>
 [41]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [42]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [43]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

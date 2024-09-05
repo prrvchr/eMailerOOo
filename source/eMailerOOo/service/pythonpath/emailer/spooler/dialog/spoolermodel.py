@@ -66,12 +66,12 @@ class SpoolerModel(unohelper.Base):
         self._datasource = datasource
         self._rowset = self._getRowSet()
         self._grid = None
-        self._url = getResourceLocation(ctx, g_identifier, g_extension)
+        self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'Title': 'SpoolerDialog.Title',
-                           'State': 'SpoolerDialog.Label2.Label.%s',
-                           'TabTitle': 'SpoolerTab%s.Title',
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SpoolerDialog')
+        self._resources = {'Title':       'SpoolerDialog.Title',
+                           'State':       'SpoolerDialog.Label2.Label.%s',
+                           'TabTitle':    'SpoolerTab%s.Title',
                            'GridColumns': 'SpoolerTab1.Grid1.Column.%s'}
 
     @property

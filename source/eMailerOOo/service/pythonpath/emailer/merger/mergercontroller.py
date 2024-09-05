@@ -41,6 +41,10 @@ from .page1 import MergerManager as WizardPage1
 from .page2 import MergerManager as WizardPage2
 from .page3 import MergerManager as WizardPage3
 
+from ..unotool import getStringResource
+
+from ..configuration import g_identifier
+
 import traceback
 
 
@@ -50,6 +54,7 @@ class MergerController(unohelper.Base,
         self._ctx = ctx
         self._wizard = wizard
         self._model = MergerModel(ctx, datasource)
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerController')
 
     def saveGrids(self):
         self._model.saveGrids()
@@ -73,13 +78,13 @@ class MergerController(unohelper.Base,
             print(msg)
 
     def getPageTitle(self, pageid):
-        return self._model.getPageStep(pageid)
+        return self._model.getPageStep(self._resolver, pageid)
 
     def canAdvance(self):
         return True
 
     def onActivatePage(self, pageid):
-        title = self._model.getPageTitle(pageid)
+        title = self._model.getPageTitle(self._resolver, pageid)
         self._wizard.setTitle(title)
 
     def onDeactivatePage(self, pageid):

@@ -1,6 +1,6 @@
 decorator>=5.1.1
 ijson>=3.3.0
 packaging>=24.1
-setuptools>=72.1.0
+setuptools>=73.0.1
 six>=1.16.0
 validators>=0.33.0

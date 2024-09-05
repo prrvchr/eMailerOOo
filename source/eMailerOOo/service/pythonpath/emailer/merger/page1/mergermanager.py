@@ -47,6 +47,9 @@ from .mergerhandler import WindowHandler
 from ...unotool import createMessageBox
 from ...unotool import createService
 from ...unotool import executeDispatch
+from ...unotool import getStringResource
+
+from ...configuration import g_identifier
 
 import traceback
 
@@ -60,7 +63,7 @@ class MergerManager(unohelper.Base,
         self._pageid = pageid
         self._disabled = False
         addressbooks = self._model.getAvailableAddressBooks()
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPage1')
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerPage1')
         self._view = MergerView(ctx, WindowHandler(self), parent, addressbooks)
         addressbook = self._model.getDefaultAddressBook()
         if addressbook in addressbooks:

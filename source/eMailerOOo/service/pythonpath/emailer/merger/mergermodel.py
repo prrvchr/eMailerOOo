@@ -661,6 +661,7 @@ class MergerModel(MailModel):
         return tuple(tables)
 
     def initPage2(self, *args):
+        print("MergerModel.initPage2() 1")
         Thread(target=self._initPage2, args=args).start()
 
     def setAddressTable(self, *args):

@@ -49,6 +49,10 @@ from .mergerhandler import RecipientHandler
 
 from ...grid import GridListener
 
+from ...unotool import getStringResource
+
+from ...configuration import g_identifier
+
 import traceback
 
 
@@ -86,11 +90,9 @@ class MergerManager(unohelper.Base,
     def activatePage(self):
         if self._model.hasQueryChanged():
             label = self._model.getQueryLabel(self._resolver)
-            print("MergerManager.activatePage() Label changed: %s" % label)
             self._view.setQueryLabel(label)
         if self._model.hasTablesChanged():
             tables, table = self._model.getQueryTables()
-            print("MergerManager.activatePage() Tables changed: %s" % table)
             # FIXME: We must disable the handler "ChangeAddressTable"
             # FIXME: otherwise it activates twice
             self._disableHandler()
@@ -101,10 +103,7 @@ class MergerManager(unohelper.Base,
         return True
 
     def canAdvance(self):
-        print("MergerManager2.canAdvance() 1")
-        advance = self._model.canAdvancePage2()
-        print("MergerManager2.canAdvance() 2 %s" % advance)
-        return advance
+        return self._model.canAdvancePage2()
 
 # MergerManager setter methods
     def initPage(self, grid1, grid2, rowset1, rowset2, table):

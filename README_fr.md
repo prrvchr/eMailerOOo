@@ -37,7 +37,7 @@
 
 Cette extension vous permet d'envoyer des documents dans LibreOffice sous forme de courriel, éventuellement par publipostage, à vos contacts téléphoniques.
 
-Elle fournit en plus une **API permettant d'envoyer des courriels en BASIC** et supportant les technologies les plus avancées: protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP pour les serveurs Google... Une macro [SendEmail][10] permettant d'envoyer des courriels est fournie à titre d'exemple.  
+Elle fournit en plus une API permettant d'[**envoyer des courriels en BASIC**][10] et supportant les technologies les plus avancées: protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP pour les serveurs Google... Une macro **SendEmail** permettant d'envoyer des courriels est fournie à titre d'exemple.  
 Si au préalable vous ouvrez un document, vous pouvez la lancer par:  
 **Outils -> Macros -> Exécuter la macro... -> Mes macros -> eMailerOOo -> SendEmail -> Main -> Exécuter**
 
@@ -285,19 +285,157 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ___
 
+## Envoi de courriel avec une macro en Basic:
+
+Il est possible d'envoyer des courriels à l'aide de **macros écrites en Basic**. L'envoi d'un courriel nécessite une macro de quelques 50 lignes de code et pourra supporter la plupart des serveurs SMTP/IMAP.  
+Voici le code minimum nécessaire pour envoyer un courriel avec des fichiers joints.
+
+```
+Sub Main
+
+    Rem Demandez à l’utilisateur une adresse courriel d’expéditeur.
+    sSender = InputBox("Veuillez saisir l'adresse courriel de l'expéditeur")
+    Rem User clicked Cancel.
+    if sSender = "" then
+        exit sub
+    endif
+
+    Rem Demandez à l'utilisateur l'adresse courriel du destinataire.
+    sRecipient = InputBox("Veuillez saisir l'adresse courriel du destinataire")
+    Rem User clicked Cancel.
+    if sRecipient = "" then
+        exit sub
+    endif
+
+    Rem Demandez à l'utilisateur le sujet du courriel.
+    sSubject = InputBox("Veuillez saisir l'objet du courriel")
+    Rem User clicked Cancel.
+    if sSubject = "" then
+        exit sub
+    endif
+
+    Rem Demander à l'utilisateur le contenu du courriel.
+    sBody = InputBox("Veuillez saisir le contenu du courriel")
+    Rem User clicked Cancel.
+    if sBody = "" then
+        exit sub
+    endif
+
+    Rem Ok, maintenant que nous avons tout, nous commençons à envoyer un email.
+
+    Rem Nous utiliserons 4 services UNO qui sont:
+    Rem - com.sun.star.mail.MailUser: C'est le service qui va assurer la bonne configuration
+    Rem des serveurs SMTP et IMAP (on peut remercier Mozilla pour la base de données ISPBD que j'utilise).
+    Rem - com.sun.star.mail.MailServiceProvider: il s'agit du service qui vous permet d'utiliser les serveurs
+    Rem SMTP et IMAP. Nous utiliserons ce service à l'aide du service précédent.
+    Rem - com.sun.star.datatransfer.TransferableFactory: Ce service est une forge pour la création de
+    Rem Transferable qui sont la base du corps de l'email ainsi que de ses fichiers joints.
+    Rem - com.sun.star.mail.MailMessage: il s'agit du service qui implémente le message électronique.
+    Rem Maintenant que tout est clair, nous pouvons commencer.
+
+
+    Rem Nous créons d’abord l’email.
+
+    Rem Il s'agit de notre forge de transférable, elle simplifie grandement l'API de messagerie de LibreOffice...
+    oTransferable = createUnoService("com.sun.star.datatransfer.TransferableFactory")
+
+    Rem oBody est le corps du courriel. Il est créé ici à partir d'une chaîne de caractères mais pourrait également
+    Rem avoir été créé à partir d'un InputStream, d'une URL de fichier (file://...) ou d'une séquence d'octets.
+    oBody = oTransferable.getByString(sBody)
+
+    Rem oMail est le message électronique. Il est créé à partir du service com.sun.star.mail.MailMessage.
+    Rem Il peut être créé avec une pièce jointe avec la méthode createWithAttachment().
+    oMail = com.sun.star.mail.MailMessage.create(sRecipient, sSender, sSubject, oBody)
+
+    Rem Demandez à l'utilisateur les URL des fichiers joints.
+    oDialog = createUnoService("com.sun.star.ui.dialogs.FilePicker")
+    oDialog.setMultiSelectionMode(true)
+    if oDialog.execute() = com.sun.star.ui.dialogs.ExecutableDialogResults.OK then
+        oFiles() = oDialog.getSelectedFiles()
+        Rem Ces deux services sont simplement utilisés pour obtenir un nom de fichier approprié.
+        oUrlTransformer = createUnoService("com.sun.star.util.URLTransformer")
+        oUriFactory = createUnoService("com.sun.star.uri.UriReferenceFactory")
+        for i = lbound(oFiles()) To ubound(oFiles())
+            oUri = getUri(oUrlTransformer, oUriFactory, oFiles(i))
+            oAttachment = createUnoStruct("com.sun.star.mail.MailAttachment")
+            Rem Il faut saisir ReadableName. Il s'agit du nom du fichier joint
+            Rem tel qu'il apparaît dans l'e-mail. Ici, nous obtenons le nom du fichier.
+            oAttachment.ReadableName = oUri.getPathSegment(oUri.getPathSegmentCount() - 1)
+            Rem La pièce jointe est récupérée à partir d'une URL mais comme pour oBody elle peut être
+            Rem récupérée à partir d'une chaîne de caractères, d'un InputStream ou d'une séquence d'octets.
+            oAttachment.Data = oTransferable.getByUrl(oUri.getUriReference())
+            oMail.addAttachment(oAttachment)
+            next i
+    endif
+    Rem Fin de la création du courriel.
+
+
+    Rem Maintenant, nous devons envoyer le courriel.
+
+    Rem Nous créons d'abord un MailUser à partir de l'adresse de l'expéditeur. Il ne s'agit pas nécessairement de
+    Rem l'adresse de l'expéditeur, mais elle doit suivre la rfc822 (ie: surnom <nom@fai.com>).
+    Rem L'assistant IspDB sera automatiquement lancé si cet utilisateur n'a jamais été configuré.
+    oUser = com.sun.star.mail.MailUser.create(sSender)
+    Rem L'utilisateur a annulé l'assistant IspDB.
+    if isNull(oUser) then
+        exit sub
+    endif
+
+    Rem Maintenant que nous avons l’utilisateur, nous pouvons vérifier s’il souhaite utiliser une adresse de réponse.
+    if oUser.useReplyTo() then
+        oMail.ReplyToAddress = oUser.getReplyToAddress()
+    endif
+    Rem De la même manière, je peux tester si l'utilisateur a une configuration IMAP avec oUser.supportIMAP()
+    Rem puis créer un fil de discussion par e-mail si nécessaire. Dans ce cas, vous devez :
+    Rem - Construire un fil de discussion par e-mail (comme précédemment pour oMail).
+    Rem - Créer et vous connecter à un serveur IMAP (comme nous le ferons pour SMTP).
+    Rem - Télécharger cet e-mail sur le serveur IMAP avec: oServer.uploadMessage(oServer.getSentFolder(), oMail).
+    Rem - Une fois téléchargé, récupérer le MessageId avec la propriété oMail.MessageId.
+    Rem - Définir la propriété oMail.ThreadId sur MessageId pour tous les e-mails suivants.
+    Rem Super, vous avez réussi à regrouper l'envoi d'e-mails dans un fil de discussion.
+
+    Rem Pour envoyer l'e-mail, nous devons créer un serveur SMTP. Voici comment procéder :
+    SMTP = com.sun.star.mail.MailServiceType.SMTP
+    oServer = createUnoService("com.sun.star.mail.MailServiceProvider").create(SMTP)
+    Rem Nous nous connectons maintenant en utilisant la configuration de l'utilisateur SMTP.
+    oServer.connect(oUser.getConnectionContext(SMTP), oUser.getAuthenticator(SMTP))
+    Rem Et bien ça y est, nous sommes connectés, il ne reste plus qu'à envoyer le mail.
+    oServer.sendMailMessage(oMail)
+    Rem N'oubliez pas de fermer la connexion.
+    oServer.disconnect()
+    MsgBox "Le courriel a été envoyé avec succès." & chr(13) & "Son MessageId est: " & oMail.MessageId
+    Rem Et voilà, le tour est joué...
+
+End Sub
+
+
+Function getUri(oUrlTransformer As Variant, oUriFactory As Variant, sUrl As String) As Variant
+    oUrl = createUnoStruct("com.sun.star.util.URL")
+    oUrl.Complete = sUrl
+    oUrlTransformer.parseStrict(oUrl)
+    oUri = oUriFactory.parse(oUrlTransformer.getPresentation(oUrl, false))
+    getUri = oUri
+End Function
+```
+
+Et voilà, le tour est joué, cela n'a pris que quelques lignes de code alors profitez-en...  
+Par contre, ce n'est qu'un exemple de vulgarisation, et tous les contrôles d'erreurs nécessaires ne sont pas en place...
+
+___
+
 ## A été testé avec:
 
 * LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
 
-* LibreOffice 7.5.4.2(x86) - Windows 10 - Python version 3.8.16 - Adoptium JDK Hotspot 11.0.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.5.4.2(x86) - Windows 10 - Python version 3.8.16 - Adoptium JDK Hotspot 11.0.19 (sous Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Python version 3.8.15  - Adoptium JDK Hotspot 11.0.17 (x64) (under Lubuntu 22.04 / VirtualBox 6.1.38)
+* LibreOffice 7.4.3.2(x64) - Windows 10(x64) - Python version 3.8.15  - Adoptium JDK Hotspot 11.0.17 (x64) (sous Lubuntu 22.04 / VirtualBox 6.1.38)
 
 * LibreOffice 24.2.1.2 - Lubuntu 22.04
 
 * LibreOffice 24.8.0.3 (X86_64) - Windows 10(x64) - Python version 3.9.19 (sous Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* **Ne fonctionne pas avec OpenOffice sous Windows** voir [dysfonctionnement 128569][66]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
+* **Ne fonctionne pas avec OpenOffice** voir [dysfonctionnement 128569][66]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
 
 Je vous encourage en cas de problème :confused:  
 de créer un [dysfonctionnement][12]  
@@ -456,7 +594,7 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/eMailerOOo/SendEmail.xba>
+[10]: <https://prrvchr.github.io/eMailerOOo/README_fr#envoi-de-courriel-avec-une-macro-en-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
 [13]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>

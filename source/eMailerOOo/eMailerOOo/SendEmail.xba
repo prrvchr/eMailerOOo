@@ -28,8 +28,8 @@ Rem ╚════════════════════════�
 
 Sub Main
 
-    Rem Ask the user for a sender email address.
-    sSender = InputBox(&quot;Please enter the sender email address&quot;)
+    Rem Ask the user for the sender&apos;s email address.
+    sSender = InputBox(&quot;Please enter the sender&apos;s email address&quot;)
     Rem User clicked Cancel.
     if sSender = &quot;&quot; then
         exit sub
@@ -42,15 +42,15 @@ Sub Main
         exit sub
     endif
 
-    Rem Ask the user for subject&apos;s email.
-    sSubject = InputBox(&quot;Please enter the subject&apos;s email&quot;)
+    Rem Ask the user for email&apos;s subject.
+    sSubject = InputBox(&quot;Please enter the email&apos;s subject&quot;)
     Rem User clicked Cancel.
     if sSubject = &quot;&quot; then
         exit sub
     endif
 
-    Rem Ask the user for content&apos;s email.
-    sBody = InputBox(&quot;Please enter the content&apos;s email&quot;)
+    Rem Ask the user for email&apos;s content.
+    sBody = InputBox(&quot;Please enter the email&apos;s content&quot;)
     Rem User clicked Cancel.
     if sBody = &quot;&quot; then
         exit sub
@@ -139,9 +139,8 @@ Sub Main
     Rem Don&apos;t forget to close the connection.
     oServer.disconnect()
     MsgBox &quot;The email has been sent successfully.&quot; &amp; chr(13) &amp; &quot;Its MessageId is: &quot; &amp; oMail.MessageId
-    Rem Et voilà le tour est joué...
 
-    Rem Ok all done, this took 40 lines of code so enjoy...
+    Rem Et voilà, you have it, it took less than 40 lines of code so enjoy...
     Rem On the other hand, this is only an example of popularization,
     Rem and all the necessary error checks are not in place...
 

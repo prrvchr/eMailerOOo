@@ -37,7 +37,7 @@
 
 This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.
 
-It also provides an **API allowing you to send emails in BASIC** and supporting the most advanced technologies: OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP for Google servers... A macro [SendEmail][10] for sending emails is provided as an example.  
+It also provides an API allowing you to [**send emails in BASIC**][10] and supporting the most advanced technologies: OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP for Google servers... A macro **SendEmail** for sending emails is provided as an example.  
 If you open a document beforehand, you can launch it by:  
 **Tools -> Macros -> Run Macro... -> My Macros -> eMailerOOo -> SendEmail -> Main -> Run**
 
@@ -285,6 +285,144 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ___
 
+## Sending email with a macro in Basic:
+
+It is possible to send emails using **macros written in Basic**. Sending an email requires a macro of some 50 lines of code and will support most SMTP/IMAP servers.  
+Here is the minimum code needed to send an email with attachments.
+
+```
+Sub Main
+
+    Rem Ask the user for a sender's email address.
+    sSender = InputBox("Please enter the sender's email address")
+    Rem User clicked Cancel.
+    if sSender = "" then
+        exit sub
+    endif
+
+    Rem Ask the user for recipient's email address.
+    sRecipient = InputBox("Please enter the recipient's email address")
+    Rem User clicked Cancel.
+    if sRecipient = "" then
+        exit sub
+    endif
+
+    Rem Ask the user for email's subject.
+    sSubject = InputBox("Please enter the email's subject")
+    Rem User clicked Cancel.
+    if sSubject = "" then
+        exit sub
+    endif
+
+    Rem Ask the user for email's content.
+    sBody = InputBox("Please enter the email's content")
+    Rem User clicked Cancel.
+    if sBody = "" then
+        exit sub
+    endif
+
+    Rem Ok now we have everything, we start sending an email.
+
+    Rem We will use 4 UNO services which are:
+    Rem - com.sun.star.mail.MailUser: This is the service which will ensure the correct configuration
+    Rem   of SMTP and IMAP servers (we can thank Mozilla for the ISPBD database that I use).
+    Rem - com.sun.star.mail.MailServiceProvider: This is the service that allows you to use SMTP and
+    Rem   IMAP servers. We will use this service with the help of the previous service.
+    Rem - com.sun.star.datatransfer.TransferableFactory: This service is a forge for the creation of
+    Rem   Transferable which are the basis of the body of the email as well as these attached files.
+    Rem - com.sun.star.mail.MailMessage: This is the service that implements the email message.
+    Rem Now that everything is clear we can begin.
+
+
+    Rem First we create the email.
+
+    Rem This is our Transferable forge, it greatly simplifies the LibreOffice mail API...
+    oTransferable = createUnoService("com.sun.star.datatransfer.TransferableFactory")
+
+    Rem oBody is the body of the email. It is created here from a String but could also
+    Rem have been created from an InputStream, a file Url (file://...) or a sequence of bytes.
+    oBody = oTransferable.getByString(sBody)
+
+    Rem oMail is the email message. It is created from the com.sun.star.mail.MailMessage service.
+    Rem It can be created with an attachment with the createWithAttachment() method.
+    oMail = com.sun.star.mail.MailMessage.create(sRecipient, sSender, sSubject, oBody)
+
+    Rem Ask the user for the URLs of the attached files.
+    oDialog = createUnoService("com.sun.star.ui.dialogs.FilePicker")
+    oDialog.setMultiSelectionMode(true)
+    if oDialog.execute() = com.sun.star.ui.dialogs.ExecutableDialogResults.OK then
+        oFiles() = oDialog.getSelectedFiles()
+        Rem These two services are simply used to get a suitable file name.
+        oUrlTransformer = createUnoService("com.sun.star.util.URLTransformer")
+        oUriFactory = createUnoService("com.sun.star.uri.UriReferenceFactory")
+        for i = lbound(oFiles()) To ubound(oFiles())
+            oUri = getUri(oUrlTransformer, oUriFactory, oFiles(i))
+            oAttachment = createUnoStruct("com.sun.star.mail.MailAttachment")
+            Rem ReadableName must be entered. This is the name of the attached file
+            Rem as it appears in the email. Here we get the file name.
+            oAttachment.ReadableName = oUri.getPathSegment(oUri.getPathSegmentCount() - 1)
+            Rem The attachment is retrieved from an Url but same as for oBody
+            Rem it can be retrieved from a String, an InputStream or a sequence of bytes.
+            oAttachment.Data = oTransferable.getByUrl(oUri.getUriReference())
+            oMail.addAttachment(oAttachment)
+            next i
+    endif
+    Rem End of creating the email.
+
+
+    Rem Now we need to send the email.
+
+    Rem First we create a MailUser from the sender address. This is not necessary the
+    Rem sender address but it must follow the rfc822 (ie: my surname <myname@myisp.com>).
+    Rem The IspDB Wizard will automatically be launched if this user has never been configured.
+    oUser = com.sun.star.mail.MailUser.create(sSender)
+    Rem User canceled IspDB Wizard.
+    if isNull(oUser) then
+        exit sub
+    endif
+
+    Rem Now that we have the user we can check if they want to use a Reply-To address.
+    if oUser.useReplyTo() then
+        oMail.ReplyToAddress = oUser.getReplyToAddress()
+    endif
+    Rem In the same way I can test if the user has an IMAP configuration with oUser.supportIMAP()
+    Rem and then create an email thread if necessary. In this case you must:
+    Rem - Construct an email message thread (as done previously for oMail).
+    Rem - Create and connect to an IMAP server (as we will do for SMTP).
+    Rem - Upload this email to the IMAP server with: oServer.uploadMessage(oServer.getSentFolder(), oMail).
+    Rem - Once it has been uploaded, retrieve the MessageId with the oMail.MessageId property.
+    Rem - Set the oMail.ThreadId property to MessageId for all subsequent emails.
+    Rem Great you have successfully grouped the sending of emails into a thread.
+
+    Rem To send the email we need to create an SMTP server. Here's how to do it:
+    SMTP = com.sun.star.mail.MailServiceType.SMTP
+    oServer = createUnoService("com.sun.star.mail.MailServiceProvider").create(SMTP)
+    Rem Now we connect using the SMTP user's configuration.
+    oServer.connect(oUser.getConnectionContext(SMTP), oUser.getAuthenticator(SMTP))
+    Rem Well, that's it, we are connected, all we have to do is send the email.
+    oServer.sendMailMessage(oMail)
+    Rem Don't forget to close the connection.
+    oServer.disconnect()
+    MsgBox "The email has been sent successfully." & chr(13) & "Its MessageId is: " & oMail.MessageId
+    Rem Et voilà, you have it...
+
+End Sub
+
+
+Function getUri(oUrlTransformer As Variant, oUriFactory As Variant, sUrl As String) As Variant
+    oUrl = createUnoStruct("com.sun.star.util.URL")
+    oUrl.Complete = sUrl
+    oUrlTransformer.parseStrict(oUrl)
+    oUri = oUriFactory.parse(oUrlTransformer.getPresentation(oUrl, false))
+    getUri = oUri
+End Function
+```
+
+And there you have it, it only took a few lines of code so enjoy...  
+However, this is only an example of popularization, and all the necessary error checks are not in place...
+
+___
+
 ## Has been tested with:
 
 * LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
@@ -297,7 +435,7 @@ ___
 
 * LibreOffice 24.8.0.3 (x86_64) - Windows 10(x64) - Python version 3.9.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* **Does not work with OpenOffice on Windows** see [bug 128569][66]. Having no solution, I encourage you to install **LibreOffice**.
+* **Does not work with OpenOffice** see [bug 128569][66]. Having no solution, I encourage you to install **LibreOffice**.
 
 I encourage you in case of problem :confused:  
 to create an [issue][12]  
@@ -456,7 +594,7 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/eMailerOOo/SendEmail.xba>
+[10]: <https://prrvchr.github.io/eMailerOOo/#sending-email-with-a-macro-in-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
 [13]: <https://prrvchr.github.io/OAuth2OOo/#requirement>

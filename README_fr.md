@@ -285,7 +285,7 @@ Lorsque le spouleur de courriel est démarré, son activité peut être visualis
 
 ___
 
-## Envoi de courriel avec une macro en Basic:
+## Envoi de courriel avec une macro LibreOffice en Basic:
 
 Il est possible d'envoyer des courriels à l'aide de **macros écrites en Basic**. L'envoi d'un courriel nécessite une macro de quelques 50 lignes de code et pourra supporter la plupart des serveurs SMTP/IMAP.  
 Voici le code minimum nécessaire pour envoyer un courriel avec des fichiers joints.
@@ -594,7 +594,7 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://prrvchr.github.io/eMailerOOo/README_fr#envoi-de-courriel-avec-une-macro-en-basic>
+[10]: <https://prrvchr.github.io/eMailerOOo/README_fr#envoi-de-courriel-avec-une-macro-libreoffice-en-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
 [13]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>

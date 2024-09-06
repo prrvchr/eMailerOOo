@@ -285,7 +285,7 @@ When the email spooler is started, its activity can be viewed in the activity lo
 
 ___
 
-## Sending email with a macro in Basic:
+## Sending email with a LibreOffice macro in Basic:
 
 It is possible to send emails using **macros written in Basic**. Sending an email requires a macro of some 50 lines of code and will support most SMTP/IMAP servers.  
 Here is the minimum code needed to send an email with attachments.
@@ -594,7 +594,7 @@ ___
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
-[10]: <https://prrvchr.github.io/eMailerOOo/#sending-email-with-a-macro-in-basic>
+[10]: <https://prrvchr.github.io/eMailerOOo/#sending-email-with-a-libreoffice-macro-in-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
 [13]: <https://prrvchr.github.io/OAuth2OOo/#requirement>

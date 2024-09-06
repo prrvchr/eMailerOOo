@@ -37,8 +37,8 @@
 
 Cette extension vous permet d'envoyer des documents dans LibreOffice sous forme de courriel, éventuellement par publipostage, à vos contacts téléphoniques.
 
-Elle fournit en plus une API permettant d'[**envoyer des courriels en BASIC**][10] et supportant les technologies les plus avancées: protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP pour les serveurs Google... Une macro **SendEmail** permettant d'envoyer des courriels est fournie à titre d'exemple.  
-Si au préalable vous ouvrez un document, vous pouvez la lancer par:  
+Elle fournit en plus une API permettant d'**[envoyer des courriels en BASIC][10]** et supportant les technologies les plus avancées: protocole OAuth2, Mozilla IspDB, HTTP au lieu de SMTP/IMAP pour les serveurs Google...  
+Une macro **SendEmail** permettant d'envoyer des courriels est fournie à titre d'exemple. Si au préalable vous ouvrez un document, vous pouvez la lancer par:  
 **Outils -> Macros -> Exécuter la macro... -> Mes macros -> eMailerOOo -> SendEmail -> Main -> Exécuter**
 
 Etant un logiciel libre je vous encourage:

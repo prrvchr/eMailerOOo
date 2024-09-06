@@ -37,8 +37,8 @@
 
 This extension allows you to send documents in LibreOffice as an email, possibly by mail merge, to your telephone contacts.
 
-It also provides an API allowing you to [**send emails in BASIC**][10] and supporting the most advanced technologies: OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP for Google servers... A macro **SendEmail** for sending emails is provided as an example.  
-If you open a document beforehand, you can launch it by:  
+It also provides an API allowing you to **[send emails in BASIC][10]** and supporting the most advanced technologies: OAuth2 protocol, Mozilla IspDB, HTTP instead of SMTP/IMAP for Google servers...  
+A macro **SendEmail** for sending emails is provided as an example. If you open a document beforehand, you can launch it by:  
 **Tools -> Macros -> Run Macro... -> My Macros -> eMailerOOo -> SendEmail -> Main -> Run**
 
 Being free software I encourage you:

@@ -295,28 +295,28 @@ Sub Main
 
     Rem Demandez à l’utilisateur une adresse courriel d’expéditeur.
     sSender = InputBox("Veuillez saisir l'adresse courriel de l'expéditeur")
-    Rem User clicked Cancel.
+    Rem L'utilisateur a cliqué sur Annuler.
     if sSender = "" then
         exit sub
     endif
 
     Rem Demandez à l'utilisateur l'adresse courriel du destinataire.
     sRecipient = InputBox("Veuillez saisir l'adresse courriel du destinataire")
-    Rem User clicked Cancel.
+    Rem L'utilisateur a cliqué sur Annuler.
     if sRecipient = "" then
         exit sub
     endif
 
     Rem Demandez à l'utilisateur le sujet du courriel.
     sSubject = InputBox("Veuillez saisir l'objet du courriel")
-    Rem User clicked Cancel.
+    Rem L'utilisateur a cliqué sur Annuler.
     if sSubject = "" then
         exit sub
     endif
 
     Rem Demander à l'utilisateur le contenu du courriel.
     sBody = InputBox("Veuillez saisir le contenu du courriel")
-    Rem User clicked Cancel.
+    Rem L'utilisateur a cliqué sur Annuler.
     if sBody = "" then
         exit sub
     endif
@@ -386,20 +386,20 @@ Sub Main
         oMail.ReplyToAddress = oUser.getReplyToAddress()
     endif
     Rem De la même manière, je peux tester si l'utilisateur a une configuration IMAP avec oUser.supportIMAP()
-    Rem puis créer un fil de discussion par e-mail si nécessaire. Dans ce cas, vous devez :
-    Rem - Construire un fil de discussion par e-mail (comme précédemment pour oMail).
+    Rem puis créer un courriel de regroupement si nécessaire. Dans ce cas, vous devez :
+    Rem - Construire un courriel de regroupement (comme précédemment pour oMail).
     Rem - Créer et vous connecter à un serveur IMAP (comme nous le ferons pour SMTP).
-    Rem - Télécharger cet e-mail sur le serveur IMAP avec: oServer.uploadMessage(oServer.getSentFolder(), oMail).
+    Rem - Télécharger ce courriel sur le serveur IMAP avec: oServer.uploadMessage(oServer.getSentFolder(), oMail).
     Rem - Une fois téléchargé, récupérer le MessageId avec la propriété oMail.MessageId.
-    Rem - Définir la propriété oMail.ThreadId sur MessageId pour tous les e-mails suivants.
-    Rem Super, vous avez réussi à regrouper l'envoi d'e-mails dans un fil de discussion.
+    Rem - Définir la propriété oMail.ThreadId sur MessageId pour tous les courriels suivants.
+    Rem Super, vous avez réussi à regrouper l'envoi de courriels dans un courriel de regroupement.
 
     Rem Pour envoyer l'e-mail, nous devons créer un serveur SMTP. Voici comment procéder :
     SMTP = com.sun.star.mail.MailServiceType.SMTP
     oServer = createUnoService("com.sun.star.mail.MailServiceProvider").create(SMTP)
-    Rem Nous nous connectons maintenant en utilisant la configuration de l'utilisateur SMTP.
+    Rem Nous nous connectons maintenant en utilisant la configuration SMTP de l'utilisateur.
     oServer.connect(oUser.getConnectionContext(SMTP), oUser.getAuthenticator(SMTP))
-    Rem Et bien ça y est, nous sommes connectés, il ne reste plus qu'à envoyer le mail.
+    Rem Et bien ça y est, nous sommes connectés, il ne reste plus qu'à envoyer le courriel.
     oServer.sendMailMessage(oMail)
     Rem N'oubliez pas de fermer la connexion.
     oServer.disconnect()

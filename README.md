@@ -96,7 +96,11 @@ If necessary, rename it before installing it.
 
         This extension is only needed if you want to use your Microsoft Outlook contacts as a data source for mailing lists and document merging.
 
-- ![eMailerOOo logo][38] Install **[eMailerOOo.oxt][39]** extension [![Version][40]][39]
+    - [![HyperSQLOOo logo][38]][39] Install **[HyperSQLOOo.oxt][40]** extension [![Version][41]][40]
+
+        This extension is only necessary if you want to use a Calc file as a data source for mailing lists and document merging. See: [How to import data from a Calc file][42].
+
+- ![eMailerOOo logo][43] Install **[eMailerOOo.oxt][44]** extension [![Version][45]][44]
 
 Restart LibreOffice after installation.  
 **Be careful, restarting LibreOffice may not be enough.**
@@ -119,14 +123,15 @@ If you do not have such a **datasource** then I invite you to install one of the
 - [vCardOOo][26]. This extension will allow you to use your contacts present on a [**Nextcloud**][29] platform as a data source.
 - [gContactOOo][31]. This extension will allow you to use your Android phone (your phone contacts) as a datasource.
 - [mContactOOo][35]. This extension will allow you to use your Microsoft Outlook contacts as a datasource.
+- [HyperSQLOOo][39]. This extension will allow you to use a Calc file as a datasource. See: [How to import data from a Calc file][42].
 
 For these 3 extensions the name of the **main table** can be found (and even changed before any connection) in:  
 **Tools -> Options -> Internet -> Extension name -> Main table name**
 
 This mode of use is made up of 3 sections:
-- [Merge emails with mailing lists][41].
-- [Configure connection][42].
-- [Outgoing emails][43].
+- [Merge emails with mailing lists][46].
+- [Configure connection][47].
+- [Outgoing emails][48].
 
 ### Merge emails with mailing lists:
 
@@ -147,26 +152,26 @@ If these recommendations are not followed then **merging of documents will not w
 
 In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 
-![eMailerOOo Merger screenshot 1][44]
+![eMailerOOo Merger screenshot 1][49]
 
 #### Data source selection:
 
 The datasource load for the **Email merging** wizard should appear: 
 
-![eMailerOOo Merger screenshot 2][45]
+![eMailerOOo Merger screenshot 2][50]
 
 The following screenshots use the [gContactOOo][31] extension as the **datasource**. If you are using your own **datasource**, it is necessary to adapt the settings in relation to it.
 
 In the following screenshot, we can see that the **datasource** gContactOOo is called: `Addresses` and that in the list of tables the table: `PUBLIC.All my contacts` is selected.
 
-![eMailerOOo Merger screenshot 3][46]
+![eMailerOOo Merger screenshot 3][51]
 
 If no mailing list exists, you need to create one, by entering its name and validating with: `ENTER` or the `Add` button.
 
 Make sure when creating the mailing list that the **main table** is always selected in the list of tables.  
 If this recommendation is not followed then **merging of documents will not work** and this silently.
 
-![eMailerOOo Merger screenshot 4][47]
+![eMailerOOo Merger screenshot 4][52]
 
 Now that your new mailing list is available in the list, you need to select it.
 
@@ -175,10 +180,10 @@ And add the following columns:
 - Email address columns: `HomeEmail`, `WorkEmail` and `OtherEmail`
 
 If several columns of email addresses are selected, then the order becomes relevant since the email will be sent to the first available address.  
-In addition, on Recipients selection step of the wizard, in the [Available recipients][48] tab, only records with at least one email address column entered will be listed.  
+In addition, on Recipients selection step of the wizard, in the [Available recipients][53] tab, only records with at least one email address column entered will be listed.  
 So make sure you have an address book with at least one of the email address field (Home, Work or Other) entered.
 
-![eMailerOOo Merger screenshot 5][49]
+![eMailerOOo Merger screenshot 5][54]
 
 This setting is to be made only for new mailing lists.  
 You can now proceed to the next step.
@@ -191,11 +196,11 @@ The recipients are selected using 2 buttons `Add all` and `Add` allowing respect
 - Either add the group of recipients selected from the `Address book` list. This allows during a mailing, that the modifications of the contents of the group are taken into account. A mailing list only accepts one group.
 - Either add the selection, which can be multiple using the `CTRL` key. This selection is immutable regardless of the modification of the address book groups.
 
-![eMailerOOo Merger screenshot 6][50]
+![eMailerOOo Merger screenshot 6][55]
 
 Example of multiple selection:
 
-![eMailerOOo Merger screenshot 7][51]
+![eMailerOOo Merger screenshot 7][56]
 
 ##### Selected recipients:
 
@@ -203,7 +208,7 @@ The recipients are deselected using 2 buttons `Remove all` and `Remove` allowing
 - Either remove the group that has been assigned to this mailing list. This is necessary in order to be able to edit the content of this mailing list again.
 - Either remove the selection, which can be multiple using the `CTRL` key. 
 
-![eMailerOOo Merger screenshot 8][52]
+![eMailerOOo Merger screenshot 8][57]
 
 If you have selected at least 1 recipient, you can proceed to the next step.
 
@@ -211,22 +216,22 @@ If you have selected at least 1 recipient, you can proceed to the next step.
 
 If this is not already done, you must create a new sender using the `Add` button.
 
-![eMailerOOo Merger screenshot 9][53]
+![eMailerOOo Merger screenshot 9][58]
 
-The creation of the new sender is described in the [Configure connection][42] section.
+The creation of the new sender is described in the [Configure connection][47] section.
 
 The email must have a subject. It can be saved in the Writer document.  
 You can insert merge fields in the email subject. A merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).
 
-![eMailerOOo Merger screenshot 10][54]
+![eMailerOOo Merger screenshot 10][59]
 
 The email may optionally have attached files. They can be saved in the Writer document.  
 The following screenshot shows 1 attached file which will be merged on the data source then converted to PDF format before being attached to the email.
 
-![eMailerOOo Merger screenshot 11][55]
+![eMailerOOo Merger screenshot 11][60]
 
 Make sure to always exit the wizard with the `Finish` button to confirm submitting the send jobs.  
-To submit mailing jobs, please follow the section [Outgoing emails][43].
+To submit mailing jobs, please follow the section [Outgoing emails][48].
 
 ### Configure connection:
 
@@ -234,27 +239,27 @@ To submit mailing jobs, please follow the section [Outgoing emails][43].
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
 
-![eMailerOOo Ispdb screenshot 1][56]
+![eMailerOOo Ispdb screenshot 1][61]
 
 #### Account selection:
 
-![eMailerOOo Ispdb screenshot 2][57]
+![eMailerOOo Ispdb screenshot 2][62]
 
 #### Find the configuration:
 
-![eMailerOOo Ispdb screenshot 3][58]
+![eMailerOOo Ispdb screenshot 3][63]
 
 #### SMTP configuration:
 
-![eMailerOOo Ispdb screenshot 4][59]
+![eMailerOOo Ispdb screenshot 4][64]
 
 #### IMAP configuration:
 
-![eMailerOOo Ispdb screenshot 5][60]
+![eMailerOOo Ispdb screenshot 5][65]
 
 #### Connection test:
 
-![eMailerOOo Ispdb screenshot 6][61]
+![eMailerOOo Ispdb screenshot 6][66]
 
 Always exit the wizard with the `Finish` button to save the connection settings.
 
@@ -264,16 +269,16 @@ Always exit the wizard with the `Finish` button to save the connection settings.
 
 In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
 
-![eMailerOOo Spooler screenshot 1][62]
+![eMailerOOo Spooler screenshot 1][67]
 
 #### List of outgoing emails:
 
 Each send job has 3 different states:
 - State **0**: the email is ready for sending.
 - State **1**: the email was sent successfully.
-- State **2**: An error occurred while sending the email. You can view the error message in the [Spooler activity log][63]. 
+- State **2**: An error occurred while sending the email. You can view the error message in the [Spooler activity log][68]. 
 
-![eMailerOOo Spooler screenshot 2][64]
+![eMailerOOo Spooler screenshot 2][69]
 
 The email spooler is stopped by default. **It must be started with the `Start / Stop` button so that the pending emails are sent**.
 
@@ -281,7 +286,7 @@ The email spooler is stopped by default. **It must be started with the `Start / 
 
 When the email spooler is started, its activity can be viewed in the activity log.
 
-![eMailerOOo Spooler screenshot 3][65]
+![eMailerOOo Spooler screenshot 3][70]
 
 ___
 
@@ -435,7 +440,7 @@ ___
 
 * LibreOffice 24.8.0.3 (x86_64) - Windows 10(x64) - Python version 3.9.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* **Does not work with OpenOffice** see [bug 128569][66]. Having no solution, I encourage you to install **LibreOffice**.
+* **Does not work with OpenOffice** see [bug 128569][71]. Having no solution, I encourage you to install **LibreOffice**.
 
 I encourage you in case of problem :confused:  
 to create an [issue][12]  
@@ -447,57 +452,57 @@ ___
 
 ### What has been done for version 0.0.1:
 
-- Writing an [IspDB][67] or SMTP servers connection configuration wizard allowing:
-    - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database][68] or IspDB, which made this challenge possible...
+- Writing an [IspDB][72] or SMTP servers connection configuration wizard allowing:
+    - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database][73] or IspDB, which made this challenge possible...
     - Display the activity of the UNO service `com.sun.star.mail.MailServiceProvider` when connecting to the SMTP server and sending an email.
 
-- Writing an email [Spooler][69] allowing:
+- Writing an email [Spooler][74] allowing:
     - View the email sending jobs with their respective status.
     - Display the activity of the UNO service `com.sun.star.mail.SpoolerService` when sending emails.
     - Start and stop the spooler service.
 
-- Writing an email [Merger][70] allowing:
+- Writing an email [Merger][75] allowing:
     - To create mailing lists.
     - To merge and convert the current document to HTML format to make it the email message.
     - To merge and/or convert in PDF format any possible files attached to the email. 
 
-- Writing a document [Mailer][71] allowing:
+- Writing a document [Mailer][76] allowing:
     - To convert the document to HTML format to make it the email message.
     - To convert in PDF format any possible files attached to the email.
 
-- Writing a [Grid][72] driven by a `com.sun.star.sdb.RowSet` allowing:
+- Writing a [Grid][77] driven by a `com.sun.star.sdb.RowSet` allowing:
     - To be configurable on the columns to be displayed.
     - To be configurable on the sort order to be displayed.
     - Save the display settings.
 
 ### What has been done for version 0.0.2:
 
-- Rewrite of [IspDB][67] or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
-    - Use of [IMAPClient][73] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
-    - Extension of [com.sun.star.mail.*][74] IDL files:
-        - [XMailMessage2.idl][75] now supports email threading.
-        - The new [XImapService.idl][76] interface allows access to part of the IMAPClient library.
+- Rewrite of [IspDB][72] or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
+    - Use of [IMAPClient][78] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
+    - Extension of [com.sun.star.mail.*][79] IDL files:
+        - [XMailMessage2.idl][80] now supports email threading.
+        - The new [XImapService.idl][81] interface allows access to part of the IMAPClient library.
 
-- Rewriting of the [Spooler][77] in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
+- Rewriting of the [Spooler][82] in order to integrate IMAP functionality such as the creation of a thread summarizing the mailing and grouping all the emails sent.
 
 - Submitting the eMailerOOo extension to Google and obtaining permission to use its GMail API to send emails with a Google account.
 
 ### What has been done for version 0.0.3:
 
-- Rewrote the [Grid][72] to allow:
-    - Sorting on a column with the integration of the UNO service [SortableGridDataModel][78].
-    - To generate the filter of records needed by the service [Spooler][69].
-    - Sharing the python module with the [Grid][79] module of the [jdbcDriverOOo][22] extension.
+- Rewrote the [Grid][77] to allow:
+    - Sorting on a column with the integration of the UNO service [SortableGridDataModel][83].
+    - To generate the filter of records needed by the service [Spooler][74].
+    - Sharing the python module with the [Grid][84] module of the [jdbcDriverOOo][22] extension.
 
-- Rewrote the [Merger][70] to allow:
+- Rewrote the [Merger][75] to allow:
     - Schema name management in table names to be compatible with version 0.0.4 of [jdbcDriverOOo][22]
     - The creation of a mailing list on a group of the address book and allowing to follow the modification of its content.
-    - The use of primary key, which can be composite, supporting [DataType][80] `VARCHAR` and `INTEGER` or derived.
-    - A preview of the document with merge fields filled in faster thanks to the [Grid][72].
+    - The use of primary key, which can be composite, supporting [DataType][85] `VARCHAR` and `INTEGER` or derived.
+    - A preview of the document with merge fields filled in faster thanks to the [Grid][77].
 
-- Rewrote the [Spooler][69] to allow:
-    - The use of new filters supporting composite primary keys provided by the [Merger][70].
-    - The use of the new [Grid][72] allowing sorting on a column.
+- Rewrote the [Spooler][74] to allow:
+    - The use of new filters supporting composite primary keys provided by the [Merger][75].
+    - The use of the new [Grid][77] allowing sorting on a column.
 
 - Many other things...
 
@@ -507,7 +512,7 @@ ___
 
 ### What has been done for version 1.0.1:
 
-- The absence or obsolescence of the **OAuth2OOo** and/or **jdbcDriverOOo** extensions necessary for the proper functioning of **eMailerOOo** now displays an error message. This is to prevent a malfunction such as [issue #3][81] from recurring...
+- The absence or obsolescence of the **OAuth2OOo** and/or **jdbcDriverOOo** extensions necessary for the proper functioning of **eMailerOOo** now displays an error message. This is to prevent a malfunction such as [issue #3][86] from recurring...
 
 - The underlying HsqlDB database can be opened in Base with: **Tools -> Options -> Internet -> eMailerOOo -> Database**.
 
@@ -517,7 +522,7 @@ ___
 
 ### What has been done for version 1.0.2:
 
-- If no configuration is found in the connection configuration wizard (IspDB Wizard) then it is possible to configure the connection manually. See [issue #5][82].
+- If no configuration is found in the connection configuration wizard (IspDB Wizard) then it is possible to configure the connection manually. See [issue #5][87].
 
 ### What has been done for version 1.1.0:
 
@@ -525,15 +530,15 @@ ___
     As a result, this no longer sends a thread (IMAP message) when merging a mailing.  
     In this same wizard, it is now possible to enter an email reply-to address.
 
-- In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][83].  
+- In the email merge wizard, it is now possible to insert merge fields in the subject of the email. See [issue #6][88].  
     In the subject of an email, a merge field is composed of an opening brace, the name of the referenced column (case sensitive) and a closing brace (ie: `{ColumnName}`).  
     When entering the email subject, a syntax error in a merge field will be reported and will prevent the mailing from being submitted.
 
 - It is now possible in the Spooler to view emails in eml format.
 
-- A service [com.sun.star.mail.MailUser][84] now allows access to a connection configuration (SMTP and/or IMAP) from an email address following rfc822.  
-    Another service [com.sun.star.datatransfer.TransferableFactory][85] allows, as its name suggests, the creation of [Transferable][86] from a String, a binary sequence, an Url (file://...) or a data stream (InputStream).  
-    These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][87].  
+- A service [com.sun.star.mail.MailUser][89] now allows access to a connection configuration (SMTP and/or IMAP) from an email address following rfc822.  
+    Another service [com.sun.star.datatransfer.TransferableFactory][90] allows, as its name suggests, the creation of [Transferable][91] from a String, a binary sequence, an Url (file://...) or a data stream (InputStream).  
+    These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][92].  
     You will find a Basic macro allowing you to send emails in: **Tools -> Macros -> Edit Macros... -> eMailerOOo -> SendEmail**.
 
 ### What has been done for version 1.1.1:
@@ -542,39 +547,39 @@ ___
 
 ### What has been done for version 1.2.0:
 
-- All Python packages necessary for the extension are now recorded in a [requirements.txt][88] file following [PEP 508][89].
+- All Python packages necessary for the extension are now recorded in a [requirements.txt][93] file following [PEP 508][94].
 - Now if you are not on Windows then the Python packages necessary for the extension can be easily installed with the command:  
   `pip install requirements.txt`
-- Modification of the [Requirement][90] section.
+- Modification of the [Requirement][95] section.
 
 ### What has been done for version 1.2.1:
 
 - Fixed a regression allowing errors to be displayed in the Spooler.
-- Integration of a fix to workaround the [issue #159988][91].
+- Integration of a fix to workaround the [issue #159988][96].
 
 ### What has been done for version 1.2.2:
 
-- The creation of the database, during the first connection, uses the UNO API offered by the jdbcDriverOOo extension since version 1.3.2. This makes it possible to record all the information necessary for creating the database in 5 text tables which are in fact [5 csv files][92].
+- The creation of the database, during the first connection, uses the UNO API offered by the jdbcDriverOOo extension since version 1.3.2. This makes it possible to record all the information necessary for creating the database in 5 text tables which are in fact [5 csv files][97].
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.4 and 1.3.2 respectively minimum.
 - Many fixes.
 
 ### What has been done for version 1.2.3:
 
 - Fixed a regression from version 1.2.2 preventing jobs from being submitted to the email spooler.
-- Fixed [issue #7][93] not allowing error messages to be displayed in case of incorrect configuration.
+- Fixed [issue #7][98] not allowing error messages to be displayed in case of incorrect configuration.
 
 ### What has been done for version 1.2.4:
 
-- Updated the [Python decorator][94] package to version 5.1.1.
-- Updated the [Python ijson][95] package to version 3.3.0.
-- Updated the [Python packaging][96] package to version 24.1.
-- Updated the [Python setuptools][97] package to version 72.1.0 in order to respond to the [Dependabot security alert][98].
-- Updated the [Python validators][99] package to version 0.33.0.
+- Updated the [Python decorator][99] package to version 5.1.1.
+- Updated the [Python ijson][100] package to version 3.3.0.
+- Updated the [Python packaging][101] package to version 24.1.
+- Updated the [Python setuptools][102] package to version 72.1.0 in order to respond to the [Dependabot security alert][103].
+- Updated the [Python validators][104] package to version 0.33.0.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.6 and 1.4.2 respectively minimum.
 
 ### What has been done for version 1.2.5:
 
-- Updated the [Python setuptools][97] package to version 73.0.1.
+- Updated the [Python setuptools][102] package to version 73.0.1.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.7 and 1.4.5 respectively minimum.
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
@@ -621,65 +626,70 @@ ___
 [35]: <https://prrvchr.github.io/mContactOOo/>
 [36]: <https://github.com/prrvchr/mContactOOo/releases/latest/download/mContactOOo.oxt>
 [37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
-[38]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
-[39]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.5#right>
-[41]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
-[42]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
-[43]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
-[44]: <img/eMailerOOo-Merger1.png>
-[45]: <img/eMailerOOo-Merger2.png>
-[46]: <img/eMailerOOo-Merger3.png>
-[47]: <img/eMailerOOo-Merger4.png>
-[48]: <https://prrvchr.github.io/eMailerOOo/#available-recipients>
-[49]: <img/eMailerOOo-Merger5.png>
-[50]: <img/eMailerOOo-Merger6.png>
-[51]: <img/eMailerOOo-Merger7.png>
-[52]: <img/eMailerOOo-Merger8.png>
-[53]: <img/eMailerOOo-Merger9.png>
-[54]: <img/eMailerOOo-Merger10.png>
-[55]: <img/eMailerOOo-Merger11.png>
-[56]: <img/eMailerOOo-Ispdb1.png>
-[57]: <img/eMailerOOo-Ispdb2.png>
-[58]: <img/eMailerOOo-Ispdb3.png>
-[59]: <img/eMailerOOo-Ispdb4.png>
-[60]: <img/eMailerOOo-Ispdb5.png>
-[61]: <img/eMailerOOo-Ispdb6.png>
-[62]: <img/eMailerOOo-Spooler1.png>
-[63]: <https://prrvchr.github.io/eMailerOOo/#spooler-activity-log>
-[64]: <img/eMailerOOo-Spooler2.png>
-[65]: <img/eMailerOOo-Spooler3.png>
-[66]: <https://bz.apache.org/ooo/show_bug.cgi?id=128569>
-[67]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
-[68]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
-[69]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
-[70]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
-[71]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
-[72]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
-[73]: <https://github.com/mjs/imapclient#readme>
-[74]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
-[75]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
-[76]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[77]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/spooler.py>
-[78]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
-[79]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
-[80]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
-[81]: <https://github.com/prrvchr/eMailerOOo/issues/3>
-[82]: <https://github.com/prrvchr/eMailerOOo/issues/5>
-[83]: <https://github.com/prrvchr/eMailerOOo/issues/6>
-[84]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
-[85]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
-[86]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
-[87]: <https://github.com/prrvchr/eMailerOOo/issues/4>
-[88]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
-[89]: <https://peps.python.org/pep-0508/>
-[90]: <https://prrvchr.github.io/eMailerOOo/#requirement>
-[91]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
-[92]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
-[93]: <https://github.com/prrvchr/eMailerOOo/issues/7>
-[94]: <https://pypi.org/project/decorator/>
-[95]: <https://pypi.org/project/ijson/>
-[96]: <https://pypi.org/project/packaging/>
-[97]: <https://pypi.org/project/setuptools/>
-[98]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
-[99]: <https://pypi.org/project/validators/>
+[38]: <https://prrvchr.github.io/HyperSQLOOo/img/HyperSQLOOo.svg#middle>
+[39]: <https://prrvchr.github.io/HyperSQLOOo/>
+[40]: <https://github.com/prrvchr/HyperSQLOOo/releases/latest/download/HyperSQLOOo.oxt>
+[41]: <https://img.shields.io/github/v/tag/prrvchr/HyperSQLOOo?label=latest#right>
+[42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
+[43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
+[44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.5#right>
+[46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
+[47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
+[48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
+[49]: <img/eMailerOOo-Merger1.png>
+[50]: <img/eMailerOOo-Merger2.png>
+[51]: <img/eMailerOOo-Merger3.png>
+[52]: <img/eMailerOOo-Merger4.png>
+[53]: <https://prrvchr.github.io/eMailerOOo/#available-recipients>
+[54]: <img/eMailerOOo-Merger5.png>
+[55]: <img/eMailerOOo-Merger6.png>
+[56]: <img/eMailerOOo-Merger7.png>
+[57]: <img/eMailerOOo-Merger8.png>
+[58]: <img/eMailerOOo-Merger9.png>
+[59]: <img/eMailerOOo-Merger10.png>
+[60]: <img/eMailerOOo-Merger11.png>
+[61]: <img/eMailerOOo-Ispdb1.png>
+[62]: <img/eMailerOOo-Ispdb2.png>
+[63]: <img/eMailerOOo-Ispdb3.png>
+[64]: <img/eMailerOOo-Ispdb4.png>
+[65]: <img/eMailerOOo-Ispdb5.png>
+[66]: <img/eMailerOOo-Ispdb6.png>
+[67]: <img/eMailerOOo-Spooler1.png>
+[68]: <https://prrvchr.github.io/eMailerOOo/#spooler-activity-log>
+[69]: <img/eMailerOOo-Spooler2.png>
+[70]: <img/eMailerOOo-Spooler3.png>
+[71]: <https://bz.apache.org/ooo/show_bug.cgi?id=128569>
+[72]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
+[73]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
+[74]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
+[75]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
+[76]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
+[77]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
+[78]: <https://github.com/mjs/imapclient#readme>
+[79]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
+[80]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
+[81]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
+[82]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/spooler.py>
+[83]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
+[84]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
+[85]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[86]: <https://github.com/prrvchr/eMailerOOo/issues/3>
+[87]: <https://github.com/prrvchr/eMailerOOo/issues/5>
+[88]: <https://github.com/prrvchr/eMailerOOo/issues/6>
+[89]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
+[90]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
+[91]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
+[92]: <https://github.com/prrvchr/eMailerOOo/issues/4>
+[93]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
+[94]: <https://peps.python.org/pep-0508/>
+[95]: <https://prrvchr.github.io/eMailerOOo/#requirement>
+[96]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
+[97]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
+[98]: <https://github.com/prrvchr/eMailerOOo/issues/7>
+[99]: <https://pypi.org/project/decorator/>
+[100]: <https://pypi.org/project/ijson/>
+[101]: <https://pypi.org/project/packaging/>
+[102]: <https://pypi.org/project/setuptools/>
+[103]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
+[104]: <https://pypi.org/project/validators/>

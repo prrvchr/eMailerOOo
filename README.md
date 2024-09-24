@@ -86,7 +86,7 @@ If necessary, rename it before installing it.
 
     - [![vCardOOo logo][25]][26] Install **[vCardOOo.oxt][27]** extension [![Version][28]][27]
 
-        This extension is only necessary if you want to use your contacts present on a [**Nextcloud**][29] platform as a data source for mailing lists and document merging.
+        This extension is only necessary if you want to use your contacts present on a [Nextcloud][29] platform as a data source for mailing lists and document merging.
 
     - [![gContactOOo logo][30]][31] Install **[gContactOOo.oxt][32]** extension [![Version][33]][32]
 
@@ -120,7 +120,7 @@ To be able to use the email merge feature using mailing lists, it is necessary t
 In addition, this **datasource** must have at least one **main table**, including all the records that can be used during the email merge.
 
 If you do not have such a **datasource** then I invite you to install one of the following extensions:
-- [vCardOOo][26]. This extension will allow you to use your contacts present on a [**Nextcloud**][29] platform as a data source.
+- [vCardOOo][26]. This extension will allow you to use your contacts present on a [Nextcloud][29] platform as a data source.
 - [gContactOOo][31]. This extension will allow you to use your Android phone (your phone contacts) as a datasource.
 - [mContactOOo][35]. This extension will allow you to use your Microsoft Outlook contacts as a datasource.
 - [HyperSQLOOo][39]. This extension will allow you to use a Calc file as a datasource. See: [How to import data from a Calc file][42].
@@ -139,7 +139,7 @@ This mode of use is made up of 3 sections:
 
 To be able to post emails to a mailing list, you must:
 - Have a **datasource** as described in the previous introduction.
-- Open a **new document** in LibreOffice / OpenOffice Writer.
+- Open a **new document** in LibreOffice Writer.
 
 This Writer document can include merge fields (insertable by the command: **Insert -> Field -> More fields -> Database -> Mail merge fields**), this is even necessary if you want to be able to customize the content of the email and any attached files.  
 These merge fields should only refer to the **main table** of the **datasource**.
@@ -150,7 +150,7 @@ If these recommendations are not followed then **merging of documents will not w
 
 #### Starting the mail merge wizard:
 
-In LibreOffice / OpenOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
+In LibreOffice Writer document go to: **Tools -> Add-Ons -> Sending emails -> Merge a document**
 
 ![eMailerOOo Merger screenshot 1][49]
 
@@ -237,7 +237,7 @@ To submit mailing jobs, please follow the section [Outgoing emails][48].
 
 #### Starting the connection wizard:
 
-In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
+In LibreOffice go to: **Tools -> Add-Ons -> Sending emails -> Configure connection**
 
 ![eMailerOOo Ispdb screenshot 1][61]
 
@@ -267,7 +267,7 @@ Always exit the wizard with the `Finish` button to save the connection settings.
 
 #### Starting the email spooler:
 
-In LibreOffice / OpenOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
+In LibreOffice go to: **Tools -> Add-Ons -> Sending emails -> Outgoing emails**
 
 ![eMailerOOo Spooler screenshot 1][67]
 

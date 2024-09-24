@@ -86,7 +86,7 @@ Si nécessaire, renommez-le avant de l'installer.
 
     - [![vCardOOo logo][25]][26] Installer l'extension **[vCardOOo.oxt][27]** [![Version][28]][27]
 
-        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [**Nextcloud**][29] comme source de données pour les listes de diffusion et la fusion de documents.
+        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [Nextcloud][29] comme source de données pour les listes de diffusion et la fusion de documents.
 
     - [![gContactOOo logo][30]][31] Installer l'extension **[gContactOOo.oxt][32]** [![Version][33]][32]
 
@@ -120,7 +120,7 @@ Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisa
 De plus, cette **source de données** doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
 Si vous ne disposez pas d'une telle **source de données** alors je vous invite à installer une des extensions suivantes :
-- [vCardOOo][26]. Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [**Nextcloud**][29] comme source de données.
+- [vCardOOo][26]. Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [Nextcloud][29] comme source de données.
 - [gContactOOo][31]. Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
 - [mContactOOo][35]. Cette extension vous permettra d'utiliser vos contacts Microsoft Outlook comme source de données.
 - [HyperSQLOOo][39]. Cette extension vous permettra d'utiliser un fichier Calc comme source de données. Voir: [Comment importer des données depuis un fichier Calc][42].
@@ -139,7 +139,7 @@ Ce mode d'utilisation est composé de 3 sections:
 
 Pour pouvoir publiposter des courriels suivant une liste de diffusion, vous devez:
 - Disposer d'une **source de données** comme décrit dans l'introduction précédente.
-- Ouvrir un **nouveau document** Writer dans LibreOffice / OpenOffice.
+- Ouvrir un **nouveau document** Writer dans LibreOffice.
 
 Ce document Writer peut inclure des champs de fusion (insérables par la commande: **Insertion -> Champ -> Autres champs -> Base de données -> Champ de publipostage**), cela est même nécessaire si vous souhaitez pouvoir personnaliser le contenu du courriel et d'eventuel fichiers attachés.  
 Ces champs de fusion doivent uniquement faire référence à la **table principale** de la **source de données**.
@@ -150,7 +150,7 @@ Si ces recommandations ne sont pas suivies alors **la fusion de documents ne fon
 
 #### Démarrage de l'assistant de publipostage de courriels:
 
-Dans un document LibreOffice / OpenOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
+Dans un document LibreOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
 ![eMailerOOo Merger screenshot 1][49]
 
@@ -237,7 +237,7 @@ Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants
 
 #### Démarrage de l'assistant de connexion:
 
-Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
+Dans LibreOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
 
 ![eMailerOOo Ispdb screenshot 1][61]
 
@@ -267,7 +267,7 @@ Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'en
 
 #### Démarrage du spouleur de courriels:
 
-Dans LibreOffice / OpenOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
+Dans LibreOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
 
 ![eMailerOOo Spooler screenshot 1][67]
 

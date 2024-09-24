@@ -125,7 +125,7 @@ If you do not have such a **datasource** then I invite you to install one of the
 - [mContactOOo][35]. This extension will allow you to use your Microsoft Outlook contacts as a datasource.
 - [HyperSQLOOo][39]. This extension will allow you to use a Calc file as a datasource. See: [How to import data from a Calc file][42].
 
-For these 3 extensions the name of the **main table** can be found (and even changed before any connection) in:  
+For the first 3 extensions the name of the **main table** can be found (and even changed before any connection) in:  
 **Tools -> Options -> Internet -> Extension name -> Main table name**
 
 This mode of use is made up of 3 sections:

@@ -125,7 +125,7 @@ Si vous ne disposez pas d'une telle **source de données** alors je vous invite 
 - [mContactOOo][35]. Cette extension vous permettra d'utiliser vos contacts Microsoft Outlook comme source de données.
 - [HyperSQLOOo][39]. Cette extension vous permettra d'utiliser un fichier Calc comme source de données. Voir: [Comment importer des données depuis un fichier Calc][42].
 
-Pour ces 3 extensions le nom de la **table principale** peut être trouvé (et même changé avant toute connexion) dans:  
+Pour les 3 premières extensions le nom de la **table principale** peut être trouvé (et même changé avant toute connexion) dans:  
 **Outils -> Options -> Internet -> Nom de l'extension -> Nom de la table principale**
 
 Ce mode d'utilisation est composé de 3 sections:

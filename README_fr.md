@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4] et à notre [Politique de protection des données][5].**
 
-# version [1.2.5][6]
+# version [1.2.6][6]
 
 ## Introduction:
 
@@ -534,7 +534,7 @@ ___
     Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
     Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
 
-- Il est désormais possible dans le Spooler de visualiser les courriels au format eml.
+- Il est désormais possible dans le Spouleur de visualiser les courriels au format eml.
 
 - Un service [com.sun.star.mail.MailUser][89] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel qui suite la rfc822.  
     Un autre service [com.sun.star.datatransfer.TransferableFactory][90] permet, comme son nom l'indique, la création de [Transferable][91] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).  
@@ -554,7 +554,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.1:
 
-- Correction d'une régression permettant l'affichage des erreurs dans le Spooler.
+- Correction d'une régression permettant l'affichage des erreurs dans le Spouleur.
 - Intégration d'un correctif pour contourner le [dysfonctionnement #159988][96].
 
 ### Ce qui a été fait pour la version 1.2.2:
@@ -565,7 +565,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.3:
 
-- Correction d'une régression provenant de la version 1.2.2 et empêchant la soumission des travaux dans le spooler de courriels.
+- Correction d'une régression provenant de la version 1.2.2 et empêchant la soumission des travaux dans le spouleur de courriels.
 - Correction du [dysfonctionnement #7][98] ne permettant pas l'affichage des messages d'erreur en cas de configuration incorrecte.
 
 ### Ce qui a été fait pour la version 1.2.4:
@@ -584,7 +584,13 @@ ___
 - Les modifications apportées aux options de l'extension, qui nécessitent un redémarrage de LibreOffice, entraîneront l'affichage d'un message.
 - Support de LibreOffice version 24.8.x.
 
-### Que reste-t-il à faire pour la version 1.2.5:
+### Ce qui a été fait pour la version 1.2.6:
+
+- Si une adresse de réponse a été fournie, elle sera utilisée lors de la génération du fichier eml par le spouleur.
+- L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.8 et 1.4.6 minimum.
+- Modification des options de l'extension accessibles via : **Outils -> Options... -> Internet -> eMailerOOo** afin de respecter la nouvelle charte graphique.
+
+### Que reste-t-il à faire pour la version 1.2.6:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -595,7 +601,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-125>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-126>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -633,7 +639,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.5#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.6#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [47]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [48]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>

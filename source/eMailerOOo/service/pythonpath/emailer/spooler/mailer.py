@@ -140,14 +140,14 @@ class Mailer():
         self._urls = self._getMailAttachmentUrl(recipient.BatchId, job)
         self._rowset, self._descriptor = self._getDescriptors(merge, metadata)
         self._url = self._getMailUrl(recipient, url, merge)
+        sender = metadata.get('Sender')
+        user = self._getMailUser(job, sender)
+        self._reply = user.useReplyTo()
+        self._replyto = user.getReplyToAddress()
         if self._send:
-            sender = metadata.get('Sender')
-            user = self._getMailUser(job, sender)
             self._server = self._getMailServer(user, SMTP)
             if self._needThread(user, merge):
                 threadid = self._createThread(recipient.BatchId, user, url, sender, metadata)
-            self._reply = user.useReplyTo()
-            self._replyto = user.getReplyToAddress()
         self._batch = recipient.BatchId
         self._metadata = metadata
         self._threadid = threadid

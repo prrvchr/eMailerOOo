@@ -55,7 +55,6 @@ class OptionsHandler(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._manager = None
-        self._logger = getLogger(ctx, g_defaultlog)
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
@@ -63,7 +62,7 @@ class OptionsHandler(unohelper.Base,
             handled = False
             if method == 'external_event':
                 if event == 'initialize':
-                    self._manager = OptionsManager(self._ctx, window, self._logger)
+                    self._manager = OptionsManager(self._ctx, window)
                     handled = True
                 elif event == 'ok':
                     self._manager.saveSetting()
@@ -75,9 +74,7 @@ class OptionsHandler(unohelper.Base,
                 self._manager.showIspdb()
                 handled = True
             elif method == 'ToggleSpooler':
-                control = event.Source.Model
-                control.Enabled = False
-                self._manager.toogleSpooler(control.State)
+                self._manager.toogleSpooler(event.Source.Model.State)
                 handled = True
             elif method == 'ShowSpooler':
                 self._manager.showSpooler()
@@ -88,7 +85,7 @@ class OptionsHandler(unohelper.Base,
             return handled
         except Exception as e:
             print("Error: %s - %s" % (e, traceback.format_exc()))
-            self._logger.logprb(SEVERE, 'OptionsHandler', 'callHandlerMethod()', 141, e, traceback.format_exc())
+            getLogger(self._ctx, g_defaultlog).logprb(SEVERE, 'OptionsHandler', 'callHandlerMethod()', 141, e, traceback.format_exc())
 
         def getSupportedMethodNames(self):
             return ('external_event',

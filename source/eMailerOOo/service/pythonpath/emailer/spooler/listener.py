@@ -50,7 +50,7 @@ class StreamListener(unohelper.Base,
         self._manager.terminated()
 
     def error(self, e):
-        self._manager.error(e)
+        pass
 
     def disposing(self, source):
         pass

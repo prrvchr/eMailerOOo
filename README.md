@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.5][6]
+# version [1.2.6][6]
 
 ## Introduction:
 
@@ -584,7 +584,13 @@ ___
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
 
-### What remains to be done for version 1.2.5:
+### What has been done for version 1.2.6:
+
+- If a reply address was given then it will be used when generating the eml file by the Spooler.
+- The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.8 and 1.4.6 respectively minimum.
+- Modification of the extension options accessible via: **Tools -> Options... -> Internet -> eMailerOOo** in order to comply with the new graphic charter.
+
+### What remains to be done for version 1.2.6:
 
 - Add new languages for internationalization...
 
@@ -595,7 +601,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-125>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-126>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -633,7 +639,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.5#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.6#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

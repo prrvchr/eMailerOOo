@@ -39,6 +39,7 @@ from .optionsview import OptionsView
 
 from .optionshandler import OptionsListener
 
+from ..logger import getLogger
 from ..logger import LogManager
 
 from ..spooler import StreamListener
@@ -55,38 +56,37 @@ import traceback
 
 
 class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, window, logger):
+    def __init__(self, ctx, window):
         self._ctx = ctx
-        self._logger = logger
+        self._logger = getLogger(ctx, g_defaultlog)
         self._model = OptionsModel(ctx)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(window)
-        self._view.initView(*self._model.getViewData(OptionsManager._restart))
-        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
+        self._view.initView(OptionsManager._restart, *self._model.getViewData())
+        self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._listener = StreamListener(self)
         self._model.addStreamListener(self._listener)
         self._logger.logprb(INFO, 'OptionsManager', '__init__()', 151)
 
-    _restart = 0
+    _restart = False
 
     def started(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
 
     def closed(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
+        self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def terminated(self):
         self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
 
-    def error(self, e):
-        self._view.setOptionMessage(e.Message)
-
     def dispose(self):
         self._logmanager.dispose()
         self._model.removeStreamListener(self._listener)
+        self._view.dispose()
 
     def loadSetting(self):
-        self._view.initView(*self._model.getViewData(OptionsManager._restart))
+        self._view.initView(OptionsManager._restart, *self._model.getViewData())
         self._logmanager.loadSetting()
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 161)
 
@@ -94,8 +94,8 @@ class OptionsManager(unohelper.Base):
         option = self._model.saveTimeout(self._view.getTimeout())
         log = self._logmanager.saveSetting()
         if log:
-            OptionsManager._restart = 1
-            self._view.setOptionMessage(self._model.getRestartMessage(1))
+            OptionsManager._restart = True
+            self._view.setRestart(OptionsManager._restart)
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 171, option, log)
 
     def changeTimeout(self, timeout):
@@ -109,8 +109,6 @@ class OptionsManager(unohelper.Base):
 
     def toogleSpooler(self, state):
         self._model.toogleSpooler(state)
-        if state:
-            self._view.clearOptionMessage()
 
     def showSpooler(self):
         frame = getDesktop(self._ctx).getCurrentFrame()

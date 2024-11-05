@@ -126,9 +126,6 @@ class SpoolerManager(unohelper.Base):
         self._model.executeRowSet()
         self._refreshSpoolerView(0)
 
-    def error(self, e):
-        print("SpoolerManager.error(): %s" % e.Message)
-
     def saveGrid(self):
         self._model.saveGrid()
 

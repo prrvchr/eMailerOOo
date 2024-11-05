@@ -30,7 +30,6 @@
 from .configuration import g_identifier
 from .configuration import g_mailservicelog
 from .configuration import g_defaultlog
-from .configuration import g_version
 
 from .options import OptionsManager
 
@@ -40,6 +39,7 @@ from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
 from .unotool import getCurrentLocale
+from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile

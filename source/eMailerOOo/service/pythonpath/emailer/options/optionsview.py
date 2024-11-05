@@ -34,48 +34,46 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, dialog):
-        self._dialog = dialog
-
-# OptionsView setter methods
-    def initView(self, exist, timeout, state, status, msg):
-        self._getDataBaseButton().Model.Enabled = exist
-        self._getTimeout().Value = timeout
-        self.setSpoolerStatus(state, status)
-        self.setOptionMessage(msg)
-
-    def updateDataBase(self, exist):
-        self._getDataBaseButton().Model.Enabled = exist
-
-    def setSpoolerStatus(self, state, status):
-        control = self._getSpoolerButton().Model
-        control.State = state
-        control.Enabled = True
-        self._getSpoolerStatus().Text = status
-
-    def setOptionMessage(self, error):
-        self._getOptionMessage().Text = error
-
-    def clearOptionMessage(self):
-        self._getOptionMessage().Text = ''
+    def __init__(self, window):
+        self._window = window
 
 # OptionsView getter methods
     def getTimeout(self):
         return int(self._getTimeout().Value)
 
+# OptionsView setter methods
+    def dispose(self):
+        self._window.dispose()
+
+    def initView(self, restart, exist, timeout, state, status):
+        self.setRestart(restart)
+        self.updateDataBase(exist)
+        self._getTimeout().Value = timeout
+        self.setSpoolerStatus(state, status)
+
+    def updateDataBase(self, exist):
+        self._getDataBaseButton().Model.Enabled = exist
+
+    def setSpoolerStatus(self, state, status):
+        self._getSpoolerButton().Model.State = state
+        self._getSpoolerStatus().Text = status
+
+    def setRestart(self, enabled):
+        self._getRestart().setVisible(enabled)
+
 # OptionsView private control methods
     def _getTimeout(self):
-        return self._dialog.getControl('NumericField1')
+        return self._window.getControl('NumericField1')
 
     def _getSpoolerStatus(self):
-        return self._dialog.getControl('Label5')
-
-    def _getOptionMessage(self):
-        return self._dialog.getControl('Label7')
+        return self._window.getControl('Label5')
 
     def _getDataBaseButton(self):
-        return self._dialog.getControl('CommandButton2')
+        return self._window.getControl('CommandButton2')
 
     def _getSpoolerButton(self):
-        return self._dialog.getControl('CommandButton3')
+        return self._window.getControl('CommandButton3')
+
+    def _getRestart(self):
+        return self._window.getControl('Label7')
 

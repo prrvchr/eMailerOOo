@@ -41,13 +41,14 @@ from com.sun.star.mail import XMailMessage2
 
 from emailer import getConfiguration
 from emailer import getCurrentLocale
+from emailer import getExtensionVersion
 from emailer import getLogger
 from emailer import getMimeTypeFactory
 from emailer import getStreamSequence
 from emailer import hasInterface
 
+from emailer import g_identifier
 from emailer import g_mailservicelog
-from emailer import g_version
 
 from email.mime.base import MIMEBase
 from email.message import Message
@@ -59,7 +60,6 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate
 from email.utils import make_msgid
 from email.utils import parseaddr
-
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -180,10 +180,11 @@ class MailMessage(unohelper.Base,
         try:
             configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
             name = configuration.getByName('ooName')
-            version = configuration.getByName('ooSetupVersion')
-            xmailer = "%s %s via eMailerOOo v%s extension" % (name, version, g_version)
+            version1 = configuration.getByName('ooSetupVersion')
+            version2 = getExtensionVersion(self._ctx, g_identifier)
+            xmailer = "%s %s via eMailerOOo v%s extension" % (name, version1, version2)
         except:
-            xmailer = "LibreOffice / OpenOffice via eMailerOOo v%s extension" % g_version
+            xmailer = "LibreOffice via eMailerOOo extension"
         message['X-Mailer'] = xmailer
         message['Date'] = formatdate(localtime=True)
         for attachment in self.getAttachments():

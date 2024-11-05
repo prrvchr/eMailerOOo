@@ -51,8 +51,7 @@ class OptionsModel():
         self._config = getConfiguration(ctx, g_identifier, True)
         self._spooler = getMailSpooler(ctx)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'SpoolerStatus':  'OptionsDialog.Label5.Label.%s',
-                           'RestartMessage': 'OptionsDialog.Label7.Label.%s'}
+        self._resources = {'SpoolerStatus':  'OptionsDialog.Label5.Label.%s'}
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
@@ -67,11 +66,10 @@ class OptionsModel():
     def removeStreamListener(self, listener):
         self._spooler.removeListener(listener)
 
-    def getViewData(self, restart):
+    def getViewData(self):
         exist = self.getDataBaseStatus()
         state, status = self._getSpoolerStatus()
-        msg = self.getRestartMessage(restart)
-        return exist, self._Timeout, state, status, msg
+        return exist, self._Timeout, state, status
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:
@@ -90,10 +88,6 @@ class OptionsModel():
     def getSpoolerStatus(self, started):
         resource = self._resources.get('SpoolerStatus') % started
         return started, self._resolver.resolveString(resource)
-
-    def getRestartMessage(self, restart):
-        resource = self._resources.get('RestartMessage') % restart
-        return self._resolver.resolveString(resource)
 
     def getDataBaseStatus(self):
         return getSimpleFile(self._ctx).exists(self._url)

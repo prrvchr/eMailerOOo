@@ -27,13 +27,29 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .contentprovider import ContentProvider
+import unohelper
 
-from .options import OptionsManager
+from com.sun.star.util import XCloseListener
+from com.sun.star.util import CloseVetoException
 
-from .logger import getLogger
+import traceback
 
-from .configuration import g_identifier
-from .configuration import g_basename
-from .configuration import g_defaultlog
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, datasource):
+        self._datasource = datasource
+
+    # XCloseListener
+    def queryClosing(self, source, ownership):
+        # XXX: If it's the ownership we need to throw CloseVetoException
+        if ownership:
+            raise CloseVetoException()
+        self._datasource.dispose()
+
+    def notifyClosing(self, source):
+        pass
+
+    def disposing(self, source):
+        pass
 

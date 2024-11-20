@@ -4,7 +4,7 @@
 
 **Use of this software also subjects you to our [Terms Of Use][2].**
 
-Regarding installation, configuration and use, please consult the **[documentation][3]**.
+Regarding installation, configuration and use, please consult the **[Documentation][3]**.
 
 ## Introduction:
 
@@ -48,14 +48,27 @@ Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo`, may subm
 ___
 ## Nature and scope rights over your data:
 
-`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **consult, write and send emails from your email account**.
+`eMailerOOo` allows you to send email with your `Supplier` email account. Consequently, `eMailerOOo` claims through `OAuth2OOo` the right to **write and send emails from your email account**.
+
+**The exact scope of the rights claimed over your data depends on the email account used.**
+
+- **For a Google email account, it is:**
+    - [https://www.googleapis.com/auth/gmail.send][8]
+
+- **For a Microsoft email account, it is:**
+    - [https://graph.microsoft.com/mail.send][9]
+    - [offline_access][10]
+
+Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo`, may submit you to the Data Protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
+
+`Supplier` is solely responsible for the nature and scope rights over the data it collects as described in its Policy.
 
 ___
 ## Security of collected data:
 
 Since the data collected by `OAuth2OOo` and/or `eMailerOOo` is located on the `Computer`, **only the** `User` **is responsible for the security of the data collected**.
 
-Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
+Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the Data Protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 
 `Supplier` is solely responsible for the security of the data it collects as described in its Policy.
 
@@ -68,7 +81,7 @@ Updating the data collected locally is done each time `OAuth2OOo` and/or `eMaile
 
 It is the responsibility of the `User` to uninstall `OAuth2OOo` and/or `eMailerOOo` in order to delete the collected data.
 
-Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the data protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
+Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subject you to the Data Protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 
 `Supplier` is solely responsible for the expiration of the data it collects as described in its Policy.
 
@@ -79,3 +92,6 @@ Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo` may subje
 [5]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
 [6]: <https://prrvchr.github.io/OAuth2OOo/source/OAuth2OOo/registration/PrivacyPolicy_en>
 [7]: <https://developers.google.com/terms/api-services-user-data-policy?hl=en>
+[8]: <https://developers.google.com/identity/protocols/oauth2/scopes#gmail>
+[9]: <https://learn.microsoft.com/en-us/graph/permissions-reference#mailsend>
+[10]: <https://learn.microsoft.com/en-us/graph/permissions-reference#offline_access>

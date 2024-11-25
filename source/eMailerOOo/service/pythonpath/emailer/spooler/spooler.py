@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -210,7 +210,7 @@ class Spooler():
                 self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
                 break
             try:
-                mail = mailer.getMail(job)
+                batch, mail = mailer.getMail(job)
                 if self._stop.is_set():
                     self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
                     break
@@ -221,7 +221,7 @@ class Spooler():
             except Exception as e:
                 self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, e.__class__.__name__, traceback.format_exc())
                 continue
-            self.DataSource.DataBase.updateRecipient(1, mail.MessageId, job)
+            self.DataSource.DataBase.updateSpooler(batch, job, mail.ThreadId, mail.MessageId, mail.ForeignId, 1)
             self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1025, job)
             count += 1
         mailer.dispose()

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,6 +49,9 @@ from emailer import SmtpService
 
 from emailer import getLogger
 
+from emailer import getConfiguration
+
+from emailer import g_identifier
 from emailer import g_mailservicelog
 
 from email.utils import parseaddr
@@ -63,33 +66,36 @@ class MailServiceProvider(unohelper.Base,
                           XMailServiceProvider,
                           XServiceInfo):
     def __init__(self, ctx):
+        mtd = '__init__'
+        self._cls = 'MailServiceProvider'
         logger = getLogger(ctx, g_mailservicelog)
         debug = logger.Level == ALL
         if debug:
-            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 101)
+            logger.logprb(INFO, self._cls, mtd, 101)
         self._ctx = ctx
         self._logger = logger
         self._debug = debug
-        self._domains = {'gmail.com': 'https://gmail.googleapis.com/gmail/v1/users/me/messages/'}
+        self._hosts = self._getHosts(getConfiguration(ctx, g_identifier).getByName('Providers'))
         if debug:
-            logger.logprb(INFO, 'MailServiceProvider', '__init__()', 102)
+            logger.logprb(INFO, self._cls, mtd, 102)
 
     def create(self, stype):
+        mtd = 'create'
         if self._debug:
-            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 111, stype.value)
+            self._logger.logprb(INFO, self._cls, mtd, 111, stype.value)
         if stype == SMTP:
-            service = SmtpService(self._ctx, self._logger, self._domains, self._debug)
+            service = SmtpService(self._ctx, self._logger, self._hosts, self._debug)
         elif stype == POP3:
             service = Pop3Service(self._ctx)
         elif stype == IMAP:
-            service = ImapService(self._ctx, self._logger, self._domains, self._debug)
+            service = ImapService(self._ctx, self._logger, self._hosts, self._debug)
         else:
             e = self._getNoMailServiceProviderException(112, stype.value)
             if self._debug:
-                self._logger.logp(SEVERE, 'MailServiceProvider', 'create()', e.Message)
+                self._logger.logp(SEVERE, self._cls, mtd, e.Message)
             raise e
         if self._debug:
-            self._logger.logprb(INFO, 'MailServiceProvider', 'create()', 113, stype.value)
+            self._logger.logprb(INFO, self._cls, mtd, 113, stype.value)
         return service
 
     # XServiceInfo
@@ -99,6 +105,12 @@ class MailServiceProvider(unohelper.Base,
         return g_ImplementationName
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+    def _getHosts(self, providers):
+        hosts = {}
+        for name in providers.getElementNames():
+            hosts[name] = providers.getByName(name).getByName('Hosts').getElementNames()
+        return hosts
 
     def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()

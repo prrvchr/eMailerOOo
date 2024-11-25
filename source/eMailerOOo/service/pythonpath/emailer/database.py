@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -36,7 +36,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import QUERY
 
 from .unotool import checkVersion
-from .unotool import getDateTime
 from .unotool import getSimpleFile
 
 from .dbqueries import getSqlQuery
@@ -240,13 +239,6 @@ class DataBase(unohelper.Base):
         call.close()
         return mailer
 
-    def updateMailer(self, batch, thread):
-        call = self._getCall('updateMailer')
-        call.setInt(1, batch)
-        call.setString(2, thread)
-        state = call.executeUpdate()
-        call.close()
-
     def getAttachments(self, batch):
         attachments = ()
         call = self._getCall('getAttachments')
@@ -256,13 +248,15 @@ class DataBase(unohelper.Base):
         call.close()
         return attachments
 
-    def updateRecipient(self, state, messageid, jobid):
-        call = self._getCall('updateRecipient')
-        call.setInt(1, state)
-        call.setString(2, messageid)
-        call.setTimestamp(3, getDateTime(False))
-        call.setInt(4, jobid)
-        state = call.executeUpdate()
+    def updateSpooler(self, batchid, jobid, threadid, messageid, foreignid, state):
+        call = self._getCall('updateSpooler')
+        call.setInt(1, batchid)
+        call.setInt(2, jobid)
+        call.setString(3, threadid)
+        call.setString(4, messageid)
+        call.setString(5, foreignid)
+        call.setInt(6, state)
+        call.executeUpdate()
         call.close()
 
 # Procedures called internally

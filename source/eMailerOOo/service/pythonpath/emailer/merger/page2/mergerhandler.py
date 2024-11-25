@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,9 +49,7 @@ class Tab1Handler(unohelper.Base,
             if method == 'ChangeAddressTable':
                 print("Tab1Handler.callHandlerMethod() ChangeAddressTable *************** %s" % enabled)
                 if enabled:
-                    control = event.Source
-                    table = control.getSelectedItem()
-                    self._manager.setAddressTable(table)
+                    self._manager.setAddressTable(event.Source.getSelectedItem())
                 handled = True
             elif method == 'Add':
                 self._manager.addItem()

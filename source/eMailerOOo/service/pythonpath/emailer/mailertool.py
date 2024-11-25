@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -63,6 +63,8 @@ from .configuration import g_extension
 from .configuration import g_basename
 
 import base64
+from urllib import parse
+import json
 import traceback
 
 
@@ -220,6 +222,47 @@ def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True
             elif t.Name == 'MediaType':
                 mimetype = t.Value
     return uiname, mimetype
+
+def setParametersArguments(parameters, arguments):
+    print("mailertool.setParametersArguments() 1")
+    for name in parameters.getElementNames():
+        print("mailertool.setParametersArguments() 2 name: %s" % name)
+        parameter = parameters.getByName(name)
+        template = parameter.getByName('Template')
+        command = parameter.getByName('Command')
+        if not command:
+            print("mailertool.setParametersArguments() 3 name: %s" % name)
+            arguments.setTemplate(name, template, parameter.getByName('Parameters'))
+        else:
+            method = command[0]
+            value = arguments[template]
+            if method == 'encodeURI':
+                args = ' '.join(command[1:]) if len(command) > 1 else ''
+                safe = args if args else "~@#$&()*!+=:;,?/'"
+                arguments[template] = parse.quote(value, safe=safe)
+            elif method == 'encodeURIComponent':
+                args = ' '.join(command[1:]) if len(command) > 1 else ''
+                safe = args if args else "~()*!'"
+                arguments[template] = parse.quote(value, safe=safe)
+            elif method == 'base64URL':
+                print("mailertool.setParametersArguments() 4 name: %s - template: %s" % (name, template))
+                arguments[template] = base64.urlsafe_b64encode(value)
+            elif method == 'base64':
+                print("mailertool.setParametersArguments() 5 name: %s" % name)
+                arguments[template] = base64.b64encode(value)
+            elif method == 'decode':
+                print("mailertool.setParametersArguments() 6 name: %s - template: %s" % (name, template))
+                encoding = command[1] if len(command) > 1 else 'utf-8'
+                errors = command[2] if len(command) > 2 else 'strict'
+                arguments[template] = value.decode(encoding=encoding, errors=errors)
+            elif method == 'encode':
+                print("mailertool.setParametersArguments() 6 name: %s - template: %s" % (name, template))
+                encoding = command[1] if len(command) > 1 else 'utf-8'
+                errors = command[2] if len(command) > 2 else 'strict'
+                arguments[template] = value.encode(encoding=encoding, errors=errors)
+            elif method == 'strip':
+                args = ' '.join(command[1:]) if len(command) > 1 else ''
+                arguments[template] = value.strip(args)
 
 def _getDocumentExtension(document):
     identifier = document.getIdentifier()

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -133,7 +133,11 @@ class MergerManager(unohelper.Base,
         self._model.resetGrid2Data()
 
     def setAddressTable(self, table):
-        self._model.setAddressTable(table)
+        self._view.enableAddresTable(False)
+        self._model.setAddressTable(table, self.enableAddresTable)
+
+    def enableAddresTable(self, enabled):
+        self._view.enableAddresTable(enabled)
 
     def changeGridSelection(self, index, grid):
         selected = index != -1

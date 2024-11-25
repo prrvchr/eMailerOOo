@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -112,9 +112,9 @@ class Transferable():
 
     def _getDataType(self, data):
         if isinstance(data, str):
-            dtype = uno.getTypeByName('string')
+            datatype = uno.getTypeByName('string')
         elif  isinstance(data, uno.ByteSequence):
-            dtype = uno.getTypeByName('[]byte')
+            datatype = uno.getTypeByName('[]byte')
         elif hasInterface(data, 'com.sun.star.io.XInputStream'):
-            dtype = uno.getTypeByName('com.sun.star.io.XInputStream')
-        return dtype
+            datatype = uno.getTypeByName('com.sun.star.io.XInputStream')
+        return datatype

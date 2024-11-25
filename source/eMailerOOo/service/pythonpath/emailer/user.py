@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -45,6 +45,7 @@ import traceback
 
 class User(unohelper.Base):
     def __init__(self, ctx, sender, new=False):
+        self._ctx = ctx
         self._sender = sender
         name, address = parseaddr(sender)
         self._email = address
@@ -59,6 +60,7 @@ class User(unohelper.Base):
         else:
             senders.insertByName(sender, senders.createInstance())
             user = senders.getByName(sender)
+            user.replaceByName('Client', '')
             user.replaceByName('UseReplyTo', False)
             user.replaceByName('UseIMAP', True)
             user.replaceByName('ReplyToAddress', '')
@@ -93,6 +95,9 @@ class User(unohelper.Base):
     def enableReplyTo(self, enabled):
         if self.useReplyTo() != enabled:
             self._user.replaceByName('UseReplyTo', enabled)
+
+    def setClient(self, client):
+        self._user.replaceByName('Client', client)
 
     def setReplyToAddress(self, replyto):
         self._user.replaceByName('ReplyToAddress', replyto)

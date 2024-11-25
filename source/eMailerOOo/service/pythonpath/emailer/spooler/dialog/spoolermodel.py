@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -47,10 +47,14 @@ from ...unotool import getStringResource
 
 from ...dbtool import getValueFromResult
 
+from ...mailertool import setParametersArguments
+
 from ...configuration import g_identifier
 from ...configuration import g_extension
 from ...configuration import g_fetchsize
 
+from string import Template
+from urllib import parse
 from collections import OrderedDict
 from threading import Thread
 import json
@@ -65,6 +69,7 @@ class SpoolerModel(unohelper.Base):
         self._datasource = datasource
         self._rowset = self._getRowSet()
         self._grid = None
+        self._identifiers = ('JobId', )
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SpoolerDialog')
@@ -91,6 +96,9 @@ class SpoolerModel(unohelper.Base):
     def getGridSelectedRows(self):
         return self._grid.getSelectedRows()
 
+    def getSelectedColumn(self, column):
+        return self._grid.getSelectedColumn(column)
+
     def getSelectedIdentifier(self, identifier):
         return self._grid.getSelectedIdentifier(identifier)
 
@@ -100,16 +108,64 @@ class SpoolerModel(unohelper.Base):
     def getDialogTitles(self):
         return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2)
 
+    def getRowClientInfo(self):
+        link = False
+        sent = self.getSelectedColumn('State') == 1
+        if sent:
+            sender = self.getSelectedColumn('Sender')
+            client = self._config.getByName('Senders').getByName(sender).getByName('Client')
+            if client:
+                link = self._config.getByName('WebLinks').hasByName(client)
+        return sent, link
+
     def getSpoolerState(self, state):
         resource = self._resources.get('State') % state
         return self._resolver.resolveString(resource)
+
+    def getSenderClient(self, sender):
+        client = None
+        senders = self._config.getByName('Senders')
+        if senders.hasByName(sender):
+            client = senders.getByName(sender).getByName('Client')
+        return client
+
+    def getWebLinkCommand(self, client, arguments):
+        return self._getCommand(self._config.getByName('WebLinks'), client, arguments)
+
+    def getClientCommand(self, arguments):
+        return self._getCommand(self._config.getByName('Clients'), 'LocalClient', arguments)
+
+    def getCommandArguments(self):
+        sender = self.getSelectedColumn('Sender')
+        threadid = self.getSelectedColumn('ThreadId')
+        foreignid = self.getSelectedColumn('ForeignId')
+        messageid = self.getSelectedColumn('MessageId')
+        return {'Sender': sender, 'ThreadId': threadid, 'ForeignId': foreignid, 'MessageId': messageid}
+
+    def _getCommand(self, clients, name, arguments):
+        cmd = None
+        opt = ''
+        if clients.hasByName(name):
+            client = clients.getByName(name)
+            parameters = client.getByName('Parameters')
+            setParametersArguments(parameters, arguments)
+            command = client.getByName('Command')
+            if command:
+                cmd = Template(command[0]).safe_substitute(arguments)
+                option = ' '.join(command[1:]) if len(command) > 1 else ''
+                if option:
+                    opt = Template(option).safe_substitute(arguments)
+        return cmd, opt
 
 # SpoolerModel setter methods
     def initSpooler(self, *args):
         Thread(target=self._initSpooler, args=args).start()
 
     def setGridData(self, rowset):
-        self._grid.setDataModel(rowset, ('JobId', ))
+        self._grid.setDataModel(rowset, self._identifiers)
+
+    def deselectAllRows(self):
+        self._grid.deselectAllRows()
 
     def dispose(self):
         self._diposed = True

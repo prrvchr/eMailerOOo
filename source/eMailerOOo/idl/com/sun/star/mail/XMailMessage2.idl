@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -40,12 +40,19 @@ interface XMailMessage2 : XMailMessage
     boolean hasBccRecipients();
     boolean hasAttachments();
 
+    boolean hasHeaders();
+    void setHeader([in] string Key,
+                   [in] string Value);
+    sequence<string> getHeaderNames();
+    string getHeader([in] string Key);
+
     sequence<byte> asBytes()
         raises (com::sun::star::mail::MailMessageException);
 
     string asString()
         raises (com::sun::star::mail::MailMessageException);
 
+    [attribute] string ForeignId;
     [attribute] string MessageId;
     [attribute] string ThreadId;
 

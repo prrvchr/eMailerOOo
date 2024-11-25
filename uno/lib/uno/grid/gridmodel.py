@@ -124,3 +124,35 @@ class GridModel(unohelper.Base,
         if listener in self._events:
             self._events.remove(listener)
 
+# GridModel getter methods
+    def hasGridDataListener(self):
+        # FIXME: To work around bug#164040 it is necessary to know if there are any registered listeners
+        # FIXME: https://bugs.documentfoundation.org/show_bug.cgi?id=164040
+        return len(self._listeners) > 0
+
+# GridModel setter methods
+    def rowsRemoved(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.rowsRemoved(event)
+
+    def rowsInserted(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.rowsInserted(event)
+
+    def dataChanged(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.dataChanged(event)
+
+# GridModel private methods
+    def _getGridDataEvent(self, first, last):
+        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
+        event.Source = self
+        event.FirstColumn = -1
+        event.LastColumn = -1
+        event.FirstRow = first
+        event.LastRow = last
+        return event
+

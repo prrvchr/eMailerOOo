@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -33,6 +33,8 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.mail.MailServiceType import IMAP
+
 from com.sun.star.auth import AuthenticationFailedException
 
 from com.sun.star.lang import IllegalArgumentException
@@ -46,11 +48,16 @@ from com.sun.star.mail import XImapService
 
 from com.sun.star.uno import Exception as UnoException
 
-from .apihelper import parseMessage
-from .apihelper import setDefaultFolder
+from .apihelper import getHttpProvider
+from .apihelper import getHttpRequest
+from .apihelper import getHttpRequests
+from .apihelper import getParserItems
+from .apihelper import getResponseResults
+from .apihelper import setResquestParameter
+
+from ..mailerlib import CustomParser
 
 from ..oauth2 import getOAuth2Token
-from ..oauth2 import getRequest
 
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface
@@ -64,22 +71,24 @@ import traceback
 
 class ImapService(unohelper.Base,
                   XImapService):
-    def __init__(self, ctx, logger, domains, debug=False):
+    def __init__(self, ctx, logger, hosts, debug=False):
+        mtd = '__init__'
+        self._cls = 'ImapService'
         self._ctx = ctx
         if debug:
-            logger.logprb(INFO, 'ImapService', '__init__()', 301)
+            logger.logprb(INFO, self._cls, mtd, 301)
         self._listeners = []
         self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
         self._server = None
         self._context = None
-        self._imap = True
+        self._provider = None
         self._url = ''
-        self._domains = domains
+        self._hosts = hosts
         self._logger = logger
         self._debug = debug
         if debug:
-            logger.logprb(INFO, 'ImapService', '__init__()', 302)
+            logger.logprb(INFO, self._cls, mtd, 302)
 
 # XMailService interface implementation
     def addConnectionListener(self, listener):
@@ -101,8 +110,9 @@ class ImapService(unohelper.Base,
         return self._context
 
     def connect(self, context, authenticator):
+        mtd = 'connect'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', 'connect()', 311)
+            self._logger.logprb(INFO, self._cls, mtd, 311)
         if self.isConnected():
             raise AlreadyConnectedException()
         if not hasInterface(context, 'com.sun.star.uno.XCurrentContext'):
@@ -115,13 +125,14 @@ class ImapService(unohelper.Base,
         for listener in self._listeners:
             listener.connected(notify)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', 'connect()', 312)
+            self._logger.logprb(INFO, self._cls, mtd, 312)
 
     def disconnect(self):
+        mtd = 'disconnect'
         if self.isConnected():
             if self._debug:
-                self._logger.logprb(INFO, 'ImapService', 'disconnect()', 391)
-            if self._imap:
+                self._logger.logprb(INFO, self._cls, mtd, 391)
+            if self._isImapServer():
                 self._server.logout()
             self._server = None
             self._context = None
@@ -129,7 +140,7 @@ class ImapService(unohelper.Base,
             for listener in self._listeners:
                 listener.disconnected(notify)
             if self._debug:
-                self._logger.logprb(INFO, 'ImapService', 'disconnect()', 392)
+                self._logger.logprb(INFO, self._cls, mtd, 392)
 
     def isConnected(self):
         return self._server is not None
@@ -137,17 +148,17 @@ class ImapService(unohelper.Base,
     def getSentFolder(self):
         if self._server is None:
             raise NotConnectedException()
-        return self._getImapSentFolder() if self._imap else self._getApiSentFolder()
+        return self._getImapSentFolder() if self._isImapServer() else self._getApiSentFolder()
 
     def hasFolder(self, folder):
         if self._server is None:
             raise NotConnectedException()
-        return self._hasImapFolder(folder) if self._imap else self._hasApiFolder(folder)
+        return self._hasImapFolder(folder) if self._isImapServer() else self._hasApiFolder(folder)
 
     def uploadMessage(self, folder, message):
         if self._server is None:
             raise NotConnectedException()
-        if self._imap:
+        if self._isImapServer():
             self._uploadImapMessage(folder, message)
         else:
             self._uploadHttpMessage(folder, message)
@@ -157,64 +168,68 @@ class ImapService(unohelper.Base,
         servername = context.getValueByName('ServerName')
         username = authenticator.getUserName()
         password = authenticator.getPassword()
-        host, sep, domain = servername.partition('.')
-        if domain in self._domains:
-            server = self._getHttpServer(servername, username, domain)
+        provider = getHttpProvider(self._hosts, servername)
+        if provider:
+            server = self._getHttpServer(provider, servername, username)
         else:
             server = self._getImapServer(context, servername, username, password)
         return server
 
-    def _getHttpServer(self, servername, username, domain):
-        self._imap = False
-        self._url = self._domains[domain]
-        server = getRequest(self._ctx, servername, username)
+    def _isImapServer(self):
+        return self._provider is None
+
+    def _getHttpServer(self, provider, servername, username):
+        self._provider = provider
+        server = getHttpRequest(self._ctx, provider, servername, username)
         if server is None:
             msg = self._logger.resolveString(321, username)
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_getHttpServer()', msg)
+                self._logger.logp(SEVERE, self._cls, '_getHttpServer()', msg)
             raise AuthenticationFailedException(msg, self)
         return server
 
     def _getImapServer(self, context, servername, username, password):
-        self._imap = True
+        mtd = '_getImapServer'
+        self._provider = None
         port = context.getValueByName('Port')
         timeout = context.getValueByName('Timeout')
         connection = context.getValueByName('ConnectionType')
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_getImapServer()', 331, connection)
+            self._logger.logprb(INFO, self._cls, mtd, 331, connection)
         try:
             if connection.upper() == 'SSL':
                 if self._debug:
-                    self._logger.logprb(INFO, 'ImapService', '_getImapServer()', 332, timeout)
+                    self._logger.logprb(INFO, self._cls, mtd, 332, timeout)
                 server = imapclient.IMAPClient(servername, port=port, ssl=True, timeout=timeout)
             else:
                 if self._debug:
-                    self._logger.logprb(INFO, 'ImapService', '_getImapServer()', 333, timeout)
+                    self._logger.logprb(INFO, self._cls, mtd, 333, timeout)
                 server = imapclient.IMAPClient(servername, port=port, ssl=False, timeout=timeout)
         except imapclient.exceptions.IMAPClientError as e:
             msg = self._logger.resolveString(334, getExceptionMessage(e))
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_getImapServer()', msg)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise ConnectException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_getImapServer()', 335, servername, port)
+            self._logger.logprb(INFO, self._cls, mtd, 335, servername, port)
         if connection.upper() == 'TLS':
             self._doStartTls(server)
         self._doAuthentication(context, server, servername, username, password)
         return server
 
     def _doStartTls(self, server):
+        mtd = '_doStartTls'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doStartTls()', 341)
+            self._logger.logprb(INFO, self._cls, mtd, 341)
         try:
             server.starttls()
         except imapclient.exceptions.IMAPClientError as e:
             msg = self._logger.resolveString(342, getExceptionMessage(e))
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_doStartTls()', msg)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise ConnectException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doStartTls()', 343)
+            self._logger.logprb(INFO, self._cls, mtd, 343)
 
     def _doAuthentication(self, context, server, servername, username, password):
         authentication = context.getValueByName('AuthenticationType')
@@ -227,33 +242,35 @@ class ImapService(unohelper.Base,
             self._doOAuth2(server, servername, username, authentication)
 
     def _doLogin(self, server, username, password, authentication):
+        mtd = '_doLogin'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doLogin()', 351, authentication)
+            self._logger.logprb(INFO, self._cls, mtd, 351, authentication)
         try:
             code = server.login(username, password)
         except imapclient.exceptions.IMAPClientError as e:
             pwd = '*' * len(password)
             msg = self._logger.resolveString(352, username, pwd, getExceptionMessage(e))
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_doLogin()', msg)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         if self._debug:
             pwd = '*' * len(password)
-            self._logger.logprb(INFO, 'ImapService', '_doLogin()', 353, username, pwd, self._getReply(code))
+            self._logger.logprb(INFO, self._cls, mtd, 353, username, pwd, self._getReply(code))
 
     def _doOAuth2(self, server, servername, username, authentication):
+        mtd = '_doOAuth2'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 361, authentication)
-        token = getOAuth2Token(self._ctx, self, servername, username)
+            self._logger.logprb(INFO, self._cls, mtd, 361, authentication)
         try:
+            token = getOAuth2Token(self._ctx, self, servername, username)
             code = server.oauth2_login(username, token)
         except imapclient.exceptions.IMAPClientError as e:
             msg = self._logger.resolveString(362, username, getExceptionMessage(e))
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_doOAuth2()', msg)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_doOAuth2()', 363, username, self._getReply(code))
+            self._logger.logprb(INFO, self._cls, mtd, 363, username, self._getReply(code))
 
     def _getImapSentFolder(self):
         data = self._server.find_special_folder(imapclient.imapclient.SENT)
@@ -275,42 +292,53 @@ class ImapService(unohelper.Base,
         return find
 
     def _uploadHttpMessage(self, folder, message):
+        mtd = '_uploadHttpMessage'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_uploadHttpMessage()', 371, message.Subject)
-        parameter = self._server.getRequestParameter('uploadMessage')
-        parameter.Method = 'POST'
-        parameter.Url = self._url + 'send'
-        raw = base64.urlsafe_b64encode(message.asBytes().value)
-        parameter.setJson('raw', raw)
-        try:
-            response = self._server.execute(parameter)
-            response.raiseForStatus()
-        except UnoException as e:
-            msg = self._logger.resolveString(372, message.Subject, e.Message)
-            if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_uploadHttpMessage()', msg)
-            raise MailException(msg, self)
-        if response.Ok:
-            messageid, labels = parseMessage(response)
-            setDefaultFolder(self._server, self._url, messageid, labels, folder)
-            interface = 'com.sun.star.mail.XMailMessage2'
-            if hasInterface(message, interface):
-                message.MessageId = messageid
-        response.close()
+            self._logger.logprb(INFO, self._cls, mtd, 371, message.Subject)
+        requests = getHttpRequests(self._ctx, self._provider, IMAP)
+        if requests:
+            for name in requests.getElementNames():
+                request = requests.getByName(name)
+                parameter = self._server.getRequestParameter(name)
+                setResquestParameter(self._logger, self._cls, request, parameter, message)
+                try:
+                    response = self._server.execute(parameter)
+                    response.raiseForStatus()
+                except UnoException as e:
+                    msg = self._logger.resolveString(372, message.Subject, e.Message)
+                    if self._debug:
+                        self._logger.logp(SEVERE, self._cls, mtd, msg)
+                    raise MailException(msg, self)
+                if response.Ok:
+                    items = CustomParser(*getParserItems(request))
+                    # XXX: It may be possible that there is nothing to parse
+                    if items.hasItems():
+                        results = getResponseResults(items, response)
+                        interface = 'com.sun.star.mail.XMailMessage2'
+                        if hasInterface(message, interface):
+                            print("ImapService._uploadHttpMessage() Results: %s" % (results, ))
+                            for name, value in results.items():
+                                self._logger.logprb(INFO, self._cls, mtd, 373, message.Subject, name, value)
+                                message.setHeader(name, value)
+                response.close()
+        else:
+            self._logger.logprb(SEVERE, self._cls, mtd, 374, message.Subject, self._provider)
+            return
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_uploadHttpMessage()', 373, message.Subject)
+            self._logger.logprb(INFO, self._cls, mtd, 375, message.Subject)
 
     def _uploadImapMessage(self, folder, message):
+        mtd = '_uploadImapMessage'
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_uploadImapMessage()', 381, message.Subject)
+            self._logger.logprb(INFO, self._cls, mtd, 381, message.Subject)
         try:
             code = self._server.append(folder, message.asString())
         except imapclient.exceptions.IMAPClientError as e:
             msg = self._logger.resolveString(382, message.Subject, getExceptionMessage(e))
             if self._debug:
-                self._logger.logp(SEVERE, 'ImapService', '_uploadImapMessage()', msg)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
         if self._debug:
-            self._logger.logprb(INFO, 'ImapService', '_uploadImapMessage()', 383, message.Subject, self._getReply(code))
+            self._logger.logprb(INFO, self._cls, mtd, 383, message.Subject, self._getReply(code))
 
     def _getReply(self, reply):
         if isinstance(reply, six.binary_type):

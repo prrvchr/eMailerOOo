@@ -12,6 +12,7 @@ Column|Name
 10|Filter
 11|State
 12|MessageId
-13|Attachment
-14|Created
-15|Modified
+13|ForeignId
+14|Attachment
+15|Created
+16|Modified

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -113,7 +113,11 @@ class SpoolerManager(unohelper.Base):
                 self._model.setGridData(rowset)
 
     def changeGridSelection(self, index, grid):
-        self._view.enableButtons(index != -1)
+        selected = index != -1
+        sent = link = False
+        if selected:
+            sent, link = self._model.getRowClientInfo()
+        self._view.enableButtons(selected, sent, link)
 
     def started(self):
         self._refreshSpoolerView(1)
@@ -146,28 +150,61 @@ class SpoolerManager(unohelper.Base):
         self._model.Path = path
         self._model.executeRowSet()
 
-    def viewDocument(self):
-        self._view.enableButtonView(False)
+    def viewEml(self):
+        self._view.disableButtons()
         job = self._model.getSelectedIdentifier('JobId')
-        listener = DispatchListener(self.documentViewed)
+        listener = DispatchListener(self._viewEml)
         arguments = getPropertyValueSet({'JobId': job})
         args = (listener, arguments)
         Thread(target=self._executeDispatch, args=args).start()
 
+    def viewClient(self):
+        self._view.disableButtons()
+        self._viewClient(**self._model.getCommandArguments())
+
+    def viewWeb(self):
+        self._view.disableButtons()
+        sender = self._model.getSelectedColumn('Sender')
+        self._viewWeb(sender, **self._model.getCommandArguments())
+
+    def _viewClient(self, **args):
+        command, option = self._model.getClientCommand(args)
+        print("SpoolerManager._viewLocal() Command: %s" % command)
+        self._executeCommand(command, option)
+
+    def _viewWeb(self, sender, **args):
+        command = None
+        client = self._model.getSenderClient(sender)
+        if client:
+            command, option = self._model.getWebLinkCommand(client, args)
+        print("SpoolerManager._viewWeb() Command: %s" % command)
+        self._executeCommand(command, option)
+
+    def _executeCommand(self, command, option):
+        if command:
+            executeShell(self._ctx, command, option)
+        self._enableButtonView(self._model.hasGridSelectedRows())
+
     def _executeDispatch(self, listener, arguments):
         executeDispatch(self._ctx, 'smtp:mail', arguments, listener)
 
-    def documentViewed(self, mail):
+    def _viewEml(self, mail):
         url = '%s/Email.eml' % getTempFile(self._ctx).Uri
         output = getSimpleFile(self._ctx).openFileWrite(url)
         output.writeBytes(uno.ByteSequence(mail.asBytes()))
         output.flush()
         output.closeOutput()
-        self._view.enableButtonView(self._model.hasGridSelectedRows())
         executeShell(self._ctx, url)
+        self._enableButtonView(self._model.hasGridSelectedRows())
+
+    def _enableButtonView(self, selected):
+        if selected:
+            sent, link = self._model.getRowClientInfo()
+        self._view.enableButtons(selected, sent, link)
 
     def removeDocument(self):
         rows = self._model.getGridSelectedRows()
+        self._model.deselectAllRows()
         self._model.removeRows(rows)
 
     def toogleSpooler(self, state):

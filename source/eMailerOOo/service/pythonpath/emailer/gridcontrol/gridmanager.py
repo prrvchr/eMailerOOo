@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -56,11 +56,15 @@ class GridManager(GridManagerBase):
             self._table = table
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
-        self._view.setGridVisible(False)
         sort = self.Model.getCurrentSortOrder()
         # XXX: Before changing the data, the sort order must be deactivated
         self.Model.removeColumnSort()
-        self._broadcastRowCountChange(*self._model.setRowSetData(rowset))
+        notified = self._model.hasGridDataListener()
+        if not notified:
+            self.setGridVisible(False)
+        self._notifyRowCountChange(*self._model.setRowSetData(rowset))
+        if not notified:
+            self.setGridVisible(True)
         # XXX: After changing the data, the sort order must be activated if needed...
         if changed:
             index, ascending = self._getSavedOrders(datasource, table)
@@ -70,7 +74,6 @@ class GridManager(GridManagerBase):
                 self.Model.removeColumnSort()
         elif sort.First != -1:
             self.Model.sortByColumn(sort.First, sort.Second)
-        self._view.setGridVisible(True)
 
     def resetDataModel(self):
         if self._isGridLoaded():
@@ -81,7 +84,7 @@ class GridManager(GridManagerBase):
         self._datasource = None
 
 # GridManager private methods
-    def _broadcastRowCountChange(self, oldcount, newcount):
+    def _notifyRowCountChange(self, oldcount, newcount):
         if newcount < oldcount:
             if newcount == 0:
                 self._model.rowsRemoved(-1, -1)

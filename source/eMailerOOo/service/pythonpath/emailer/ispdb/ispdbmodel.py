@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -93,15 +93,18 @@ class IspdbModel(unohelper.Base):
         self._offline = 0
         self._diposed = False
         self._version = 0
+        self._hosts = {}
         self._listener = None
         secure = {0: 3, 1: 4, 2: 5}
         unsecure = {0: 0, 1: 1, 2: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
         self._connections = {0: 'Insecure', 1: 'SSL', 2: 'TLS'}
         self._authentications = {0: 'None', 1: 'Login', 2: 'OAuth2'}
-        configuration = getConfiguration(ctx, g_identifier)
-        self._url = configuration.getByName('IspDBUrl')
-        self._timeout = configuration.getByName('ConnectTimeout')
+        config = getConfiguration(ctx, g_identifier)
+        self._url = config.getByName('IspDBUrl')
+        self._timeout = config.getByName('ConnectTimeout')
+        self._clients = config.getByName('WebLinks').getElementNames()
+        self._default = 'Thunderbird'
         self._logger = LogController(ctx, g_mailservicelog)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._resources = {'Step':        'IspdbPage%s.Step',
@@ -143,6 +146,8 @@ class IspdbModel(unohelper.Base):
         if self._listener is not None:
             self._logger.removeModifyListener(self._listener)
             self._listener = None
+        if self._hosts:
+            self._removeAddedHosts()
 
 # IspdbModel getter methods called by WizardPages 1
     def getSender(self):
@@ -165,6 +170,7 @@ class IspdbModel(unohelper.Base):
         Thread(target=self._getServerConfig, args=args).start()
 
     def _getServerConfig(self, resolver, progress, update):
+        print("IspdbModel._getServerConfig()")
         # FIXME: Because we call this thread in the WizardPage.activatePage(),
         # FIXME: if we want to be able to navigate through the Wizard roadmap
         # FIXME: without GUI refreshing problem then we need to pause this thread.
@@ -224,6 +230,7 @@ class IspdbModel(unohelper.Base):
         smtps = []
         imaps = []
         config = {}
+        provider = None
         map1 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
         map2 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
                 'password-encrypted': 1, 'secure': 1, 'OAuth2': 2}
@@ -234,18 +241,22 @@ class IspdbModel(unohelper.Base):
             # FIXME: As Decode is False we obtain a sequence of bytes
             parser.feed(iterator.nextElement().value)
             for event, element in parser.read_events():
-                if element.tag != 'emailProvider':
-                    continue
-                for child in element.findall('outgoingServer'):
-                    if child.get('type') == 'smtp':
-                        smtps.append(self._parseServer(child, map1, map2, map3))
-                for child in element.findall('incomingServer'):
-                    if child.get('type') == 'imap':
-                        imaps.append(self._parseServer(child, map1, map2, map3))
+                if element.tag == 'emailProvider':
+                    provider = element.get('id')
+                    for child in element.findall('outgoingServer'):
+                        if child.get('type') == 'smtp':
+                            smtps.append(self._parseServer(child, map1, map2, map3))
+                    for child in element.findall('incomingServer'):
+                        if child.get('type') == 'imap':
+                            imaps.append(self._parseServer(child, map1, map2, map3))
         config[SMTP.value] = tuple(smtps)
         config[IMAP.value] = tuple(imaps)
         if user.isNew():
             user.enableImap(len(imaps) > 0)
+            if provider in self._clients:
+                user.setClient(provider)
+        if provider:
+            self._setProviderHosts(provider, self._getServerHosts(config))
         return config
 
     def _parseServer(self, element, map1, map2, map3):
@@ -256,6 +267,43 @@ class IspdbModel(unohelper.Base):
         server['AuthenticationType'] = map2.get(element.find('authentication').text, 1)
         server['LoginMode'] = map3.get(element.find('username').text, 1)
         return server
+
+    def _getServerHosts(self, config):
+        hosts = []
+        for servers in config.values():
+            for server in servers:
+                hosts.append(server.get('ServerName'))
+        return hosts
+
+    def _setProviderHosts(self, provider, servers):
+        # XXX: If we need to be able to test the connection
+        # XXX: then it is necessary to save the domain used by the user
+        config = getConfiguration(self._ctx, g_identifier, True)
+        providers = config.getByName('Providers')
+        if providers.hasByName(provider):
+            hosts = providers.getByName(provider).getByName('Hosts')
+            self._updateHosts(provider, servers, hosts)
+            if config.hasPendingChanges():
+                config.commitChanges()
+
+    def _updateHosts(self, provider, servers, hosts):
+        for server in servers:
+            if not hosts.hasByName(server):
+                hosts.insertByName(server, hosts.createInstance())
+                # XXX: We need a copy so we can recover in case the Wizard is canceled
+                self._hosts[server] = provider
+
+    def _removeAddedHosts(self):
+        # XXX: The wizard was canceled, we need to remove the added hosts
+        config = getConfiguration(self._ctx, g_identifier, True)
+        providers = config.getByName('Providers')
+        for host, provider in self._hosts.items():
+            if providers.hasByName(provider):
+                hosts = providers.getByName(provider).getByName('Hosts')
+                if hosts.hasByName(host):
+                    hosts.removeByName(host)
+        if config.hasPendingChanges():
+            config.commitChanges()
 
 # IspdbModel setter methods called by WizardPage2
     def enableReplyTo(self, enabled):
@@ -312,6 +360,7 @@ class IspdbModel(unohelper.Base):
 
     def saveConfiguration(self):
         self._servers.User.saveConfig()
+        self._hosts = {}
 
     def getSecurity(self, resolver, i, j):
         level = self._levels.get(i).get(j)
@@ -384,7 +433,9 @@ class IspdbModel(unohelper.Base):
         if self._servers.User.useIMAP():
             i = 100
             reset(200)
-            threadid = self._uploadMessage(transferable, subject, progress)
+            mail = self._uploadMessage(transferable, subject, progress)
+            threadid = mail.ForeignId if mail.ForeignId else mail.MessageId
+            print("IspdbModel._sendMessage() MessageId: %s - ThreadId: %s" % (mail.MessageId, mail.ThreadId))
         else:
             i = 0
             reset(100)
@@ -425,7 +476,7 @@ class IspdbModel(unohelper.Base):
         setstep(step)
 
     def _uploadMessage(self, transferable, subject, progress):
-        mail = msgid = None
+        mail = None
         imap = IMAP.value
         context = self._servers.User.getConnectionContext(imap)
         authenticator = self._servers.User.getAuthenticator(imap)
@@ -433,33 +484,39 @@ class IspdbModel(unohelper.Base):
         server = getMailService(self._ctx, imap)
         progress(20)
         try:
+            print("IspdbModel._uploadMessage() 1")
             server.connect(context, authenticator)
         except UnoException as e:
             print("IspdbModel._uploadMessage() 1 Error: %s" % e.Message)
+        except Exception as e:
+            print("IspdbModel._uploadMessage() 2 Error: %s" % e)
         else:
             progress(40)
             if server.isConnected():
                 try:
+                    print("IspdbModel._uploadMessage() 2")
                     folder = server.getSentFolder()
                     if server.hasFolder(folder):
+                        print("IspdbModel._uploadMessage() 3")
                         message = self._getThreadMessage()
+                        print("IspdbModel._uploadMessage() 4")
                         #body = MailTransferable(self._ctx, message, True)
                         body = transferable.getByString(message)
+                        print("IspdbModel._uploadMessage() 5")
                         mail = getMailMessage(self._ctx, self.Sender, self.Email, subject, body)
                         progress(60)
+                        print("IspdbModel._uploadMessage() 6")
                         server.uploadMessage(folder, mail)
+                        print("IspdbModel._uploadMessage() 7")
                 except UnoException as e:
                     print("IspdbModel._uploadMessage() 2 Error: %s - %s" % (e.Message, traceback.format_exc()))
-                else:
-                    interface = 'com.sun.star.mail.XMailMessage2'
-                    if mail is not None and hasInterface(mail, interface):
-                        msgid = mail.MessageId
-                        print("IspdbModel._uploadMessage() 3 *****************")
+                except Exception as e:
+                    print("IspdbModel._uploadMessage() 3 Error: %s - %s" % (e, traceback.format_exc()))
                 progress(80)
                 server.disconnect()
         progress(100)
-        print("IspdbModel._uploadMessage() 4 MessageId: %s" % msgid)
-        return msgid
+        print("IspdbModel._uploadMessage() 4 MessageId: %s - ThreadId: %s" % (mail.MessageId, mail.ThreadId))
+        return mail
 
     def _getLogLevel(self, handler):
         self._logger.addRollerHandler(handler)
@@ -509,7 +566,7 @@ class IspdbModel(unohelper.Base):
         path = '%s/%s' % (g_extension, g_logo)
         url = getResourceLocation(self._ctx, g_identifier, path)
         logo = getMessageImage(self._ctx, url)
-        return '''\
+        msg = '''\
 <!DOCTYPE html>
 <html>
   <head>
@@ -520,8 +577,8 @@ class IspdbModel(unohelper.Base):
     <img alt="%s Logo" src="data:image/png;charset=utf-8;base64,%s" src="%s" />
     <h3 style="display:inline;" >&nbsp;%s</h3>
   </body>
-</html>
-''' % (g_extension, logo, g_logourl, title)
+</html>''' % (g_extension, logo, g_logourl, title)
+        return msg
 
 # IspdbModel private shared methods
     def _getServicesCount(self):

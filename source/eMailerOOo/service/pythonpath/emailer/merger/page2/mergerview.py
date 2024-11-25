@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -71,6 +71,9 @@ class MergerView(unohelper.Base):
         control.Model.removeAllItems()
         control.Model.StringItemList = tables
         control.selectItem(table, True)
+
+    def enableAddresTable(self, enabled):
+        self._getTable().Model.Enabled = enabled
 
     def enableAdd(self, enabled):
         self._getAdd().Model.Enabled = enabled

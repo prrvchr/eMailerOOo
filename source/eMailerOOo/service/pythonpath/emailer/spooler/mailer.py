@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -115,7 +115,7 @@ class Mailer():
         if self._reply:
             mail.ReplyToAddress = self._replyto
         self._addAttachments(mail, recipient.Filter)
-        return mail
+        return recipient.BatchId, mail
 
     def sendMail(self, mail):
         self._server.sendMailMessage(mail)
@@ -162,7 +162,10 @@ class Mailer():
             body = self._transferable.getByString(message)
             mail = getMailMessage(self._ctx, sender, sender, subject, body)
             server.uploadMessage(folder, mail)
-            threadid = mail.MessageId
+            # XXX: Some providers use their own reference (ie: Microsoft with their ConversationId)
+            # XXX: in order to group the mails and not the MessageId of the first mail.
+            # XXX: If so, the ThreadId is not empty.
+            threadid = mail.ForeignId if mail.ForeignId else mail.MessageId
         server.disconnect()
         return threadid
 

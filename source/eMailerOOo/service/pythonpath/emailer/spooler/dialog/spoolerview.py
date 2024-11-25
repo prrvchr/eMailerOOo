@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -67,12 +67,16 @@ class SpoolerView(unohelper.Base):
         self._enableButtonClose(True)
         self._enableButtonAdd(True)
 
-    def enableButtons(self, enabled):
-        self._getButtonView().Model.Enabled = enabled
-        self._getButtonRemove().Model.Enabled = enabled
+    def enableButtons(self, selected, sent, link):
+        self._getButtonEmlView().Model.Enabled = selected
+        self._getButtonClientView().Model.Enabled = selected and sent
+        self._getButtonWebView().Model.Enabled = selected and sent and link
+        self._getButtonRemove().Model.Enabled = selected
 
-    def enableButtonView(self, enabled):
-        self._getButtonView().Model.Enabled = enabled
+    def disableButtons(self):
+        self._getButtonEmlView().Model.Enabled = False
+        self._getButtonClientView().Model.Enabled = False
+        self._getButtonWebView().Model.Enabled = False
 
     def setSpoolerState(self, text, state):
         control = self._getButtonStartSpooler().Model
@@ -113,14 +117,20 @@ class SpoolerView(unohelper.Base):
     def _getButtonClose(self):
         return self._dialog.getControl('CommandButton2')
 
-    def _getButtonView(self):
+    def _getButtonEmlView(self):
         return self._tab1.getControl('CommandButton1')
 
-    def _getButtonAdd(self):
+    def _getButtonClientView(self):
         return self._tab1.getControl('CommandButton2')
 
-    def _getButtonRemove(self):
+    def _getButtonWebView(self):
         return self._tab1.getControl('CommandButton3')
+
+    def _getButtonAdd(self):
+        return self._tab1.getControl('CommandButton4')
+
+    def _getButtonRemove(self):
+        return self._tab1.getControl('CommandButton5')
 
     def _getGridWindow(self):
         return self._tab1.getControl('FrameControl1')

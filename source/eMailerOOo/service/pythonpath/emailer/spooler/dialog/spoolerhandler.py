@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -77,8 +77,14 @@ class Tab1Handler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'View':
-                self._manager.viewDocument()
+            if method == 'EmlView':
+                self._manager.viewEml()
+                handled = True
+            elif method == 'ClientView':
+                self._manager.viewClient()
+                handled = True
+            elif method == 'WebView':
+                self._manager.viewWeb()
                 handled = True
             elif method == 'Add':
                 self._manager.addDocument()
@@ -92,7 +98,9 @@ class Tab1Handler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('View',
+        return ('EmlView',
+                'ClientView',
+                'WebView',
                 'Add',
                 'Remove')
 

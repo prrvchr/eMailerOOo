@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -52,9 +52,12 @@ def getSqlQuery(ctx, name, format=None):
         c9 = 'S."Query"'
         c10 = 'S."Table"'
         c11 = 'R."Filter"'
-        c12 = 'S."Created" AS "Submit"'
-        c13 = 'R."Modified" AS "Sending"'
-        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13)
+        c12 = 'R."MessageId"'
+        c13 = 'R."ForeignId"'
+        c14 = 'S."ThreadId"'
+        c15 = 'S."Created" AS "Submit"'
+        c16 = 'R."Modified" AS "Sending"'
+        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16)
         f1 = '%(Catalog)s.%(Schema)s."Senders" AS S'
         f2 = 'INNER JOIN %(Catalog)s.%(Schema)s."Recipients" AS R ON R."BatchId" = S."BatchId"'
         f = (f1,f2)
@@ -148,14 +151,19 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER)
     OPEN RSLT;
   END;"""
 
-    elif name == 'createUpdateMailer':
+    elif name == 'createUpdateSpooler':
         query = """\
-CREATE PROCEDURE "UpdateMailer"(IN BATCHID INTEGER,
-                                IN THREADID VARCHAR(100))
-  SPECIFIC "UpdateMailer_1"
+CREATE PROCEDURE "UpdateSpooler"(IN BATCHID INTEGER,
+                                 IN JOBID INTEGER,
+                                 IN THREADID VARCHAR(256),
+                                 IN MESSAGEID VARCHAR(256),
+                                 IN FOREIGNDID VARCHAR(256),
+                                 IN STATE INTEGER)
+  SPECIFIC "UpdateSpooler_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
     UPDATE "Senders" SET "ThreadId"=THREADID WHERE "BatchId"=BATCHID;
+    UPDATE "Recipients" SET "State"=STATE, "MessageId"=MESSAGEID, "ForeignId"=FOREIGNDID, "Modified"=DEFAULT WHERE "JobId"=JOBID;
   END"""
 
     elif name == 'createGetAttachments':
@@ -252,8 +260,8 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':
         query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?)'
-    elif name == 'updateMailer':
-        query = 'CALL "UpdateMailer"(?,?)'
+    elif name == 'updateSpooler':
+        query = 'CALL "UpdateSpooler"(?,?,?,?,?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

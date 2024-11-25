@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -78,6 +78,7 @@ from ..configuration import g_fetchsize
 from threading import Thread
 from threading import Condition
 from time import sleep
+import string
 import traceback
 
 
@@ -660,12 +661,9 @@ class MergerModel(MailModel):
     def initPage2(self, *args):
         Thread(target=self._initPage2, args=args).start()
 
-    def setAddressTable(self, table):
-        self._address.Command = table
-        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
-        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
-        self._address.UpdateTableName = table
-        self._address.execute()
+    def setAddressTable(self, *args):
+        self._grid1.enableColumnSelection(False)
+        Thread(target=self._setAddressTable, args=args).start()
 
     def setGrid1Data(self, rowset):
         self._grid1.deselectAllRows()
@@ -722,6 +720,15 @@ class MergerModel(MailModel):
         self._grid2 = GridManager(self._ctx, self._url, window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
         initPage(self._grid1, self._grid2, self._address, self._recipient, self._subquery.Second)
         self._recipient.execute()
+
+    def _setAddressTable(self, table, enableAddresTable):
+        self._address.Command = table
+        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
+        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
+        self._address.UpdateTableName = table
+        self._address.execute()
+        self._grid1.enableColumnSelection(True)
+        enableAddresTable(True)
 
     def _addItem(self, filters):
         with self._lock:

@@ -52,12 +52,12 @@ ___
 
 **The exact scope of the rights claimed over your data depends on the email account used.**
 
-- **For a Google email account, it is:**
+- For a Google email account, it is:
     - [https://www.googleapis.com/auth/gmail.send][8]
-
-- **For a Microsoft email account, it is:**
+- For a Microsoft email account, it is:
     - [https://graph.microsoft.com/mail.send][9]
     - [offline_access][10]
+- For any other email account, please consult the `Supplier` website to learn the exact scope of the rights claimed over your data.
 
 Use of the `Supplier` services through `OAuth2OOo` and/or `eMailerOOo`, may submit you to the Data Protection Policy of `Supplier`. It is the responsibility of the `User` to take knowledge of these Policy from the `Supplier` website.
 

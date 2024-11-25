@@ -31,9 +31,12 @@ import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
+
 from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
+
+from com.sun.star.sdbc import XRowSetListener
 
 import traceback
 
@@ -113,4 +116,24 @@ class Tab2Handler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('ClearLogger', )
+
+
+class RowSetListener(unohelper.Base,
+                     XRowSetListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XRowSetListener
+    def disposing(self, event):
+        pass
+    def cursorMoved(self, event):
+        pass
+    def rowChanged(self, event):
+        pass
+    def rowSetChanged(self, event):
+        try:
+            self._manager.setDataModel(event.Source)
+        except Exception as e:
+            msg = "Error: %s" % traceback.format_exc()
+            print(msg)
 

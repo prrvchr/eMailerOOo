@@ -52,12 +52,12 @@ ___
 
 **L'étendue exacte des droits revendiqués sur vos données dépend du compte de messagerie utilisé.**
 
-- **Pour un compte de messagerie Google, elle est:**
+- Pour un compte de messagerie Google, elle est:
     - [https://www.googleapis.com/auth/gmail.send][8]
-
-- **Pour un compte de messagerie Microsoft, elle est:**
+- Pour un compte de messagerie Microsoft, elle est:
     - [https://graph.microsoft.com/mail.send][9]
     - [offline_access][10]
+- Pour tout autre compte de messagerie, veuillez consulter le site Web du `Fournisseur` pour connaître l'étendue exacte des droits revendiqués sur vos données.
 
 L'utilisation des services du `Fournisseur` au travers de `OAuth2OOo` et/ou `eMailerOOo` peut vous soumettre à la Politique de Protection des Données du `Fournisseur`. Il incombe à l'`Utilisateur` de consulter ces règles sur le site Web du `Fournisseur`.
 

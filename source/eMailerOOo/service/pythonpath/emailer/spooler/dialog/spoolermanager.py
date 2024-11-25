@@ -38,13 +38,13 @@ from .spoolermodel import SpoolerModel
 from .spoolerview import SpoolerView
 
 from .spoolerhandler import DialogHandler
+from .spoolerhandler import RowSetListener
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
 
 from ..listener import StreamListener
 
 from ...grid import GridListener
-from ...grid import RowSetListener
 
 from ...dispatchlistener import DispatchListener
 

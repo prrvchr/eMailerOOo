@@ -116,15 +116,21 @@ class MergerManager(unohelper.Base,
         self._disableHandler()
         self._view.setTable(table)
 
-    def changeAddressRowSet(self, rowset):
+    def setAddressRowSet(self, rowset):
         self._model.setGrid1Data(rowset)
 
-    def changeRecipientRowSet(self, rowset):
+    def resetAddressRowSet(self):
+        self._model.resetGrid1Data()
+
+    def setRecipientRowSet(self, rowset):
         self._model.setGrid2Data(rowset)
         count = self._model.getFilterCount()
         self._view.enableAddAll(count == 1)
         self._view.enableRemoveAll(count == 0)
         self._wizard.updateTravelUI()
+
+    def resetRecipientRowSet(self):
+        self._model.resetGrid2Data()
 
     def setAddressTable(self, table):
         self._model.setAddressTable(table)

@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
+
 from ..grid import GridModel as GridModelBase
 
 from ..dbtool import getResultValue
@@ -35,18 +37,26 @@ import traceback
 
 
 class GridModel(GridModelBase):
-    def __init__(self, ctx):
-        GridModelBase.__init__(self, ctx)
-        self._resultset = None
+    def __init__(self, rowset=None):
+        GridModelBase.__init__(self)
+        self._rowset = rowset
+        self._resultset, self._row, self._column = self._getRowsetData(rowset)
+
+    @property
+    def RowCount(self):
+        return self._row
+    @property
+    def ColumnCount(self):
+        return self._column
 
 # XCloneable
     def createClone(self):
-         return self
+         return GridModel(self._rowset)
 
 # XGridDataModel
     def getCellData(self, column, row):
-        self._resultset.absolute(row +1)
-        return  getResultValue(self._resultset, column +1)
+        self._resultset.absolute(row + 1)
+        return  getResultValue(self._resultset, column + 1)
 
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
@@ -55,41 +65,48 @@ class GridModel(GridModelBase):
         data = []
         self._resultset.absolute(row +1)
         for column in range(self._column):
-            data.append(getResultValue(self._resultset, column +1))
+            data.append(getResultValue(self._resultset, column + 1))
         return tuple(data)
 
 # GridModel setter methods
     def resetRowSetData(self):
-        row = self._row
+        hasrow = self._row > 0
         self._row = 0
-        if self._row < row:
-            self._removeRow(self._row, row -1)
+        if hasrow:
+            self.removeRow(-1, -1)
 
     def setRowSetData(self, rowset):
-        self._resultset = rowset.createResultSet()
         row = self._row
-        self._row = rowset.RowCount
-        self._column = rowset.getMetaData().getColumnCount()
-        if self._row < row:
-            sort = self._sortable.getCurrentSortOrder()
-            self._removeRow(self._row, row -1)
-            if self._row > 0:
-                self._changeData(0, self._row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
-        elif self._row > row:
-            sort = self._sortable.getCurrentSortOrder()
-            self._insertRow(row, self._row -1)
-            if row > 0:
-                self._changeData(0, row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
-        elif self._row > 0:
-            sort = self._sortable.getCurrentSortOrder()
-            self._changeData(0, row -1)
-            self._sortable.removeColumnSort()
-            if sort.First != -1:
-                self._sortable.sortByColumn(sort.First, sort.Second)
+        self._resultset, self._row, self._column = self._getRowsetData(rowset)
+        return row, self._row
+
+    def removeRow(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.rowsRemoved(event)
+
+    def insertRow(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.rowsInserted(event)
+
+    def changeData(self, first, last):
+        event = self._getGridDataEvent(first, last)
+        for listener in self._listeners:
+            listener.dataChanged(event)
+
+# GridModel private methods
+    def _getRowsetData(self, rowset):
+        if rowset is None:
+            return None, 0 , 0
+        return rowset.createResultSet(), rowset.RowCount, rowset.getMetaData().getColumnCount()
+
+    def _getGridDataEvent(self, first, last):
+        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
+        event.Source = self
+        event.FirstColumn = -1
+        event.LastColumn = -1
+        event.FirstRow = first
+        event.LastRow = last
+        return event
 

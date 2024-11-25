@@ -48,7 +48,6 @@ from com.sun.star.sdb.tools.CompositionType import ForDataManipulation
 from ..dispatchlistener import DispatchListener
 
 from ..gridcontrol import GridManager
-from ..gridcontrol import GridModel
 
 from ..mail import MailModel
 
@@ -76,7 +75,6 @@ from ..configuration import g_identifier
 from ..configuration import g_extension
 from ..configuration import g_fetchsize
 
-import string
 from threading import Thread
 from threading import Condition
 from time import sleep
@@ -141,13 +139,12 @@ class MergerModel(MailModel):
 
     def _closeConnection(self):
         connection = self._statement.getConnection()
-        #self._statement.close()
         self._statement.dispose()
         self._statement = None
-        #self._address.dispose()
-        #self._address = None
-        #self._recipient.dispose()
-        #self._recipient = None
+        if self._grid1 is not None:
+            self._grid1.resetDataModel()
+        if self._grid2 is not None:
+            self._grid2.resetDataModel()
         self._composer.dispose()
         self._composer = None
         self._subcomposer.dispose()
@@ -661,11 +658,14 @@ class MergerModel(MailModel):
         return tuple(tables)
 
     def initPage2(self, *args):
-        print("MergerModel.initPage2() 1")
         Thread(target=self._initPage2, args=args).start()
 
-    def setAddressTable(self, *args):
-        Thread(target=self._setAddressTable, args=args).start()
+    def setAddressTable(self, table):
+        self._address.Command = table
+        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
+        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
+        self._address.UpdateTableName = table
+        self._address.execute()
 
     def setGrid1Data(self, rowset):
         self._grid1.deselectAllRows()
@@ -718,14 +718,10 @@ class MergerModel(MailModel):
     def _initPage2(self, window1, window2, initPage):
         sleep(0.2)
         self._initRowSet()
-        self._grid1 = GridManager(self._ctx, self._url, GridModel(self._ctx), window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
-        self._grid2 = GridManager(self._ctx, self._url, GridModel(self._ctx), window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
+        self._grid1 = GridManager(self._ctx, self._url, window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._url, window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
         initPage(self._grid1, self._grid2, self._address, self._recipient, self._subquery.Second)
         self._recipient.execute()
-
-    def _setAddressTable(self, table):
-        self._address.Command = table
-        self._address.execute()
 
     def _addItem(self, filters):
         with self._lock:
@@ -834,16 +830,13 @@ class MergerModel(MailModel):
         self._address.Filter = self._subcomposer.getFilter()
         self._address.Order = self._subcomposer.getOrder()
         self._address.ApplyFilter = True
-        # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
-        # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
-        self._address.UpdateTableName = self._subquery.Second
 
     def _initGrid2RowSet(self):
         self._recipient.Command = self._query
         self._recipient.Order = self._subcomposer.getOrder()
         # FIXME: RowSet.DataSourceName and RowSet.UpdateTableName will be used by the
         # FIXME: GridManager to detect change in GridColumnModel (ie: columns of the table)
-        self._recipient.UpdateTableName = self._subquery.Second
+        self._recipient.UpdateTableName = self._query
 
 # Procedures called by WizardPage3
     def isSubjectValid(self, subject):
@@ -852,9 +845,9 @@ class MergerModel(MailModel):
                 for literal, field, format, conversion in string.Formatter().parse(subject):
                     if field is not None and field not in self._columns:
                         return False
-            except ValueError as e:
-                return False
-            return True
+                return True
+            except ValueError:
+                pass
         return False
 
     def initPage3(self, *args):
@@ -914,9 +907,9 @@ class MergerModel(MailModel):
         self._setDocumentRecord(document, self._recipient, index +1)
 
 # Private procedures called by WizardPage3
-    def _initPage3(self, handler, initView, initRecipient):
+    def _initPage3(self, listener, initView, initRecipient):
         sleep(0.2)
-        self._recipient.addRowSetListener(handler)
+        self._recipient.addRowSetListener(listener)
         initView(self._document)
         recipients, message = self.getRecipients()
         initRecipient(recipients, message)
@@ -954,6 +947,7 @@ class MergerModel(MailModel):
         # FIXME: we need to disable then re-enable RowSet.ApplyFilter
         self._recipient.ApplyFilter = False
         self._recipient.ApplyFilter = True
+        self._recipient.UpdateTableName = self._recipient.Command
         self._recipient.execute()
 
     def _setRowSetFilter(self, rowset, composer):

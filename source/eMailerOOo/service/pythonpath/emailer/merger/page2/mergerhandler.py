@@ -110,7 +110,7 @@ class AddressHandler(unohelper.Base,
         pass
     def rowSetChanged(self, event):
         try:
-            self._manager.changeAddressRowSet(event.Source)
+            self._manager.setAddressRowSet(event.Source)
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
@@ -130,7 +130,7 @@ class RecipientHandler(unohelper.Base,
         pass
     def rowSetChanged(self, event):
         try:
-            self._manager.changeRecipientRowSet(event.Source)
+            self._manager.setRecipientRowSet(event.Source)
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)

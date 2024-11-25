@@ -84,16 +84,16 @@ class GridManager(GridManagerBase):
     def _broadcastRowCountChange(self, oldcount, newcount):
         if newcount < oldcount:
             if newcount == 0:
-                self._model.removeRow(-1, -1)
+                self._model.rowsRemoved(-1, -1)
             else:
-                self._model.changeData(0, newcount - 1)
-                self._model.removeRow(newcount, oldcount - 1)
+                self._model.dataChanged(0, newcount - 1)
+                self._model.rowsRemoved(newcount, oldcount - 1)
         elif newcount > oldcount:
             if oldcount > 0:
-                self._model.changeData(0, oldcount - 1)
-            self._model.insertRow(oldcount, newcount - 1)
+                self._model.dataChanged(0, oldcount - 1)
+            self._model.rowsInserted(oldcount, newcount - 1)
         elif newcount > 0:
-            self._model.changeData(-1, -1)
+            self._model.dataChanged(-1, -1)
  
     def _isDataSourceChanged(self, datasource, table):
         return self._datasource != datasource or self._table != table

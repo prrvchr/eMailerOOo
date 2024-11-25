@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-
 from ..grid import GridModel as GridModelBase
 
 from ..dbtool import getResultValue
@@ -73,40 +71,16 @@ class GridModel(GridModelBase):
         hasrow = self._row > 0
         self._row = 0
         if hasrow:
-            self.removeRow(-1, -1)
+            self.rowsRemoved(-1, -1)
 
     def setRowSetData(self, rowset):
         row = self._row
         self._resultset, self._row, self._column = self._getRowsetData(rowset)
         return row, self._row
 
-    def removeRow(self, first, last):
-        event = self._getGridDataEvent(first, last)
-        for listener in self._listeners:
-            listener.rowsRemoved(event)
-
-    def insertRow(self, first, last):
-        event = self._getGridDataEvent(first, last)
-        for listener in self._listeners:
-            listener.rowsInserted(event)
-
-    def changeData(self, first, last):
-        event = self._getGridDataEvent(first, last)
-        for listener in self._listeners:
-            listener.dataChanged(event)
-
 # GridModel private methods
     def _getRowsetData(self, rowset):
         if rowset is None:
             return None, 0 , 0
         return rowset.createResultSet(), rowset.RowCount, rowset.getMetaData().getColumnCount()
-
-    def _getGridDataEvent(self, first, last):
-        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
-        event.Source = self
-        event.FirstColumn = -1
-        event.LastColumn = -1
-        event.FirstRow = first
-        event.LastRow = last
-        return event
 

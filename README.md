@@ -596,8 +596,9 @@ ___
 - Connections to Microsoft mail servers, which apparently no longer worked, have been migrated to the Graph API.
 - For servers that no longer use SMTP and IMAP protocols and offer a replacement API (ie: Google API and Microsoft Graph):
     - All HTTP request parameters needed to send emails are stored in the LibreOffice configuration files.
-    - All data needed to process HTTP responses are stored in the LibreOffice configuration files.  
-  This should allow implementing a third-party API for sending emails just by modifying the [Options.xcu][105] configuration file.
+    - All data needed to process HTTP responses are stored in the LibreOffice configuration files.
+
+    This should allow implementing a third-party API for sending emails just by modifying the [Options.xcu][105] configuration file.
 - To work, these new features require the OAuth2OOo extension in version 1.3.9 minimum.
 - The command to open an email in Thunderbird can currently only be changed in the LibreOffice configuration (ie: Tools -> Options -> Advanced -> Open Expert Configuration).
 - Many fixes.

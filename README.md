@@ -601,6 +601,7 @@ ___
     This should allow implementing a third-party API for sending emails just by modifying the [Options.xcu][105] configuration file.
 - To work, these new features require the OAuth2OOo extension in version 1.3.9 minimum.
 - The command to open an email in Thunderbird can currently only be changed in the LibreOffice configuration (ie: Tools -> Options -> Advanced -> Open Expert Configuration).
+- Non-refresh of scrollbars in multi-column lists (ie: grid) has been fixed and will be available from LibreOffice 24.8.4, see [SortableGridDataModel cannot be notified for changes][106].
 - Many fixes.
 
 ### What remains to be done for version 1.2.7:
@@ -713,3 +714,4 @@ ___
 [103]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
 [104]: <https://pypi.org/project/validators/>
 [105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
+[106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>

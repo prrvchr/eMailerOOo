@@ -601,6 +601,7 @@ ___
     Cela devrait permettre d'implémenter une API tierce pour l'envoi de courriels simplement en modifiant le fichier de configuration [Options.xcu][105].
 - Pour fonctionner, ces nouvelles fonctionnalités nécessitent l'extension OAuth2OOo en version 1.3.9 minimum.
 - La commande permettant d'ouvrir un courriel dans Thunderbird ne peut actuellement être modifiée que dans la configuration de LibreOffice (ie: Outils -> Options... -> Avancé -> Ouvrir la configuration avancée)
+- Le non rafraîchissement des barres de défilement dans les listes multicolonnes (ie: grid) a été corrigé et sera disponible à partir de LibreOffice 24.8.4, voir [SortableGridDataModel cannot be notified for changes][106].
 - De nombreuses corrections.
 
 ### Que reste-t-il à faire pour la version 1.2.7:
@@ -713,3 +714,4 @@ ___
 [103]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
 [104]: <https://pypi.org/project/validators/>
 [105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
+[106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>

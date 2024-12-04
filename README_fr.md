@@ -592,13 +592,14 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.7:
 
-- Le spooler permet l'ouverture des courriels envoyés soit dans le client de messagerie local (ie: Thunderbird) soit dans votre navigateur pour les comptes Google.
+- Le spouleur permet l'ouverture des courriels envoyés soit dans le client de messagerie local (ie: Thunderbird) soit dans votre navigateur pour les comptes Google.
 - Les connexions aux serveurs de messagerie Microsoft, qui ne fonctionnaient apparemment plus, ont été migrées vers l'API Graph.
-- Pour les serveurs qui n'utilisent plus les protocoles SMTP et IMAP et proposent une API de remplacement (ie: Google API et Microsoft Graph) :
+- Pour les serveurs qui n'utilisent plus les protocoles SMTP et IMAP et proposent une API de remplacement (ie: Google API et Microsoft Graph):
     - Tous les paramètres des requêtes HTTP nécessaires à l'envoi de courriels sont stockés dans les fichiers de configuration de LibreOffice.
     - Toutes les données nécessaires au traitement des réponses HTTP sont stockées dans les fichiers de configuration de LibreOffice.  
-    Cela devrait permettre d'implémenter une API tierce pour l'envoi de courriels simplement en modifiant le fichier de configuration [Options.xcu][105].
+  Cela devrait permettre d'implémenter une API tierce pour l'envoi de courriels simplement en modifiant le fichier de configuration [Options.xcu][105].
 - Pour fonctionner, ces nouvelles fonctionnalités nécessitent l'extension OAuth2OOo en version 1.3.9 minimum.
+- La commande permettant d'ouvrir un courriel dans Thunderbird ne peut actuellement être modifiée que dans la configuration de LibreOffice (ie: Outils -> Options... -> Avancé -> Ouvrir la configuration avancée)
 - De nombreuses corrections.
 
 ### Que reste-t-il à faire pour la version 1.2.7:

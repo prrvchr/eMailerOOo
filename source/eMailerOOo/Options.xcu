@@ -66,7 +66,7 @@
       </prop>
       <node oor:name="Parameters"/>
     </node>
-    <node oor:name="hotmail.com" oor:op="fuse">
+    <node oor:name="hotmail1.com" oor:op="fuse">
       <prop oor:name="Command">
         <value>https://outlook.live.com/mail/0/id/${ForeignId}&amp;viewmodel=ReadMessageItem&amp;path=&amp;exvsurl=1</value>
       </prop>
@@ -385,6 +385,7 @@
         </node>
       </node>
     </node>
+<!-- unused part ********************************************************************************************* -->
     <node oor:name="hotmail2.com" oor:op="fuse">
       <prop oor:name="Url">
         <value>graph.microsoft.com/Outlook</value>
@@ -422,6 +423,29 @@
                 </node>
               </node>
               <node oor:name="Responses"/>
+            </node>
+            <node oor:name="getExtendedProperties" oor:op="fuse">
+              <prop oor:name="Url">
+                <value>https://graph.microsoft.com/v1.0/me/messages?$expand=singleValueExtendedProperties($filter=id eq 'Binary 0x0FFF')</value>
+              </prop>
+              <node oor:name="Parameters"/>
+              <node oor:name="Responses">
+                <node oor:name="MessageId" oor:op="fuse">
+                  <prop oor:name="Item">
+                    <value>value.item.internetMessageId string</value>
+                  </prop>
+                </node>
+                <node oor:name="ForeignId" oor:op="fuse">
+                  <prop oor:name="Item">
+                    <value>value.item.id string</value>
+                  </prop>
+                </node>
+                <node oor:name="ThreadId" oor:op="fuse">
+                  <prop oor:name="Item">
+                    <value>value.item.conversationId string</value>
+                  </prop>
+                </node>
+              </node>
             </node>
           </node>
         </node>

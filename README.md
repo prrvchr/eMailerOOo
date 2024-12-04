@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.6][6]
+# version [1.2.7][6]
 
 ## Introduction:
 
@@ -590,7 +590,18 @@ ___
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.8 and 1.4.6 respectively minimum.
 - Modification of the extension options accessible via: **Tools -> Options... -> Internet -> eMailerOOo** in order to comply with the new graphic charter.
 
-### What remains to be done for version 1.2.6:
+### What has been done for version 1.2.7:
+
+- The spooler allows the opening of sent emails either in the local email client (ie: Thunderbird) or in your browser for Google accounts.
+- Connections to Microsoft mail servers, which apparently no longer worked, have been migrated to the Graph API.
+- For servers that no longer use SMTP and IMAP protocols and offer a replacement API (ie: Google API and Microsoft Graph):
+    - All HTTP request parameters needed to send emails are stored in the LibreOffice configuration files.
+    - All data needed to process HTTP responses are stored in the LibreOffice configuration files.  
+    This should allow implementing a third-party API for sending emails just by modifying the [Options.xcu][105] configuration file.
+- To work, these new features require the OAuth2OOo extension in version 1.3.9 minimum.
+- Many fixes.
+
+### What remains to be done for version 1.2.7:
 
 - Add new languages for internationalization...
 
@@ -601,7 +612,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-126>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-127>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -639,7 +650,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.6#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.7#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
@@ -699,3 +710,4 @@ ___
 [102]: <https://pypi.org/project/setuptools/>
 [103]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
 [104]: <https://pypi.org/project/validators/>
+[105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>

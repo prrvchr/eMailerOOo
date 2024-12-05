@@ -592,7 +592,8 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.7:
 
-- Le spouleur permet l'ouverture des courriels envoyés soit dans le client de messagerie local (ie: Thunderbird) soit dans votre navigateur pour les comptes Google.
+- Le spouleur permet d'ouvrir les e-mails envoyés soit dans le client de messagerie local (ie: Thunderbird) soit en ligne dans votre navigateur pour les comptes utilisant une API d'envoi du courriel (ie: Google et Microsoft).
+- Un nouvel onglet a été ajouté au spouleur pour permettre le suivi de l'activité du service de messagerie.
 - Les connexions aux serveurs de messagerie Microsoft, qui ne fonctionnaient apparemment plus, ont été migrées vers l'API Graph.
 - Pour les serveurs qui n'utilisent plus les protocoles SMTP et IMAP et proposent une API de remplacement (ie: Google API et Microsoft Graph):
     - Tous les paramètres des requêtes HTTP nécessaires à l'envoi de courriels sont stockés dans les fichiers de configuration de LibreOffice.
@@ -602,6 +603,7 @@ ___
 - Pour fonctionner, ces nouvelles fonctionnalités nécessitent l'extension OAuth2OOo en version 1.3.9 minimum.
 - La commande permettant d'ouvrir un courriel dans Thunderbird ne peut actuellement être modifiée que dans la configuration de LibreOffice (ie: Outils -> Options... -> Avancé -> Ouvrir la configuration avancée)
 - Le non rafraîchissement des barres de défilement dans les listes multicolonnes (ie: grid) a été corrigé et sera disponible à partir de LibreOffice 24.8.4, voir [SortableGridDataModel cannot be notified for changes][106].
+- L'ouverture des courriels dans votre navigateur ne fonctionne pas avec un compte Microsoft, l'url permettant cela n'a pas encore été trouvée...
 - De nombreuses corrections.
 
 ### Que reste-t-il à faire pour la version 1.2.7:

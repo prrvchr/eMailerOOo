@@ -66,11 +66,20 @@
       </prop>
       <node oor:name="Parameters"/>
     </node>
-    <node oor:name="hotmail1.com" oor:op="fuse">
+    <node oor:name="hotmail.com" oor:op="fuse">
       <prop oor:name="Command">
-        <value>https://outlook.live.com/mail/0/id/${ForeignId}&amp;viewmodel=ReadMessageItem&amp;path=&amp;exvsurl=1</value>
+        <value>https://outlook.live.com/mail/0/sentitems/id/${ForeignId}</value>
       </prop>
-      <node oor:name="Parameters"/>
+      <node oor:name="Parameters">
+        <node oor:name="Parameter1" oor:op="fuse">
+          <prop oor:name="Template">
+            <value>ForeignId</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>replace = %3D</value>
+          </prop>
+        </node>
+      </node>
     </node>
   </node>
   <node oor:name="Clients">
@@ -79,12 +88,12 @@
         <value>thunderbird mid:${MessageId}</value>
       </prop>
       <node oor:name="Parameters">
-        <node oor:name="MessageId" oor:op="fuse">
+        <node oor:name="Parameter1" oor:op="fuse">
           <prop oor:name="Template">
             <value>MessageId</value>
           </prop>
           <prop oor:name="Command">
-            <value>strip &lt;&gt;></value>
+            <value>strip &lt;&gt;</value>
           </prop>
         </node>
       </node>
@@ -292,11 +301,6 @@
                 </node>
                 <node oor:name="ForeignId" oor:op="fuse">
                   <prop oor:name="Item">
-                    <value>value.item.id string</value>
-                  </prop>
-                </node>
-                <node oor:name="ThreadId" oor:op="fuse">
-                  <prop oor:name="Item">
                     <value>value.item.conversationId string</value>
                   </prop>
                 </node>
@@ -376,7 +380,7 @@
                 </node>
                 <node oor:name="ForeignId" oor:op="fuse">
                   <prop oor:name="Item">
-                    <value>value.item.id string</value>
+                    <value>value.item.conversationId string</value>
                   </prop>
                 </node>
               </node>

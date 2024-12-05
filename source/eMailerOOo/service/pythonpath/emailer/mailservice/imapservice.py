@@ -184,7 +184,7 @@ class ImapService(unohelper.Base,
         if server is None:
             msg = self._logger.resolveString(321, username)
             if self._debug:
-                self._logger.logp(SEVERE, self._cls, '_getHttpServer()', msg)
+                self._logger.logp(SEVERE, self._cls, '_getHttpServer', msg)
             raise AuthenticationFailedException(msg, self)
         return server
 
@@ -301,6 +301,7 @@ class ImapService(unohelper.Base,
                 request = requests.getByName(name)
                 parameter = self._server.getRequestParameter(name)
                 setResquestParameter(self._logger, self._cls, request, parameter, message)
+                items = getParserItems(self, self._logger, self._cls, name, request)
                 try:
                     response = self._server.execute(parameter)
                     response.raiseForStatus()
@@ -310,15 +311,14 @@ class ImapService(unohelper.Base,
                         self._logger.logp(SEVERE, self._cls, mtd, msg)
                     raise MailException(msg, self)
                 if response.Ok:
-                    items = CustomParser(*getParserItems(request))
+                    parser = CustomParser(*items)
                     # XXX: It may be possible that there is nothing to parse
-                    if items.hasItems():
-                        results = getResponseResults(items, response)
+                    if parser.hasItems():
+                        results = getResponseResults(parser, response)
                         interface = 'com.sun.star.mail.XMailMessage2'
                         if hasInterface(message, interface):
-                            print("ImapService._uploadHttpMessage() Results: %s" % (results, ))
                             for name, value in results.items():
-                                self._logger.logprb(INFO, self._cls, mtd, 373, message.Subject, name, value)
+                                self._logger.logprb(INFO, self._cls, mtd, 373, name, value)
                                 message.setHeader(name, value)
                 response.close()
         else:

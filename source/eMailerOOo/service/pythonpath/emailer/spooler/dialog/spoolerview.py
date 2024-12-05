@@ -39,16 +39,16 @@ from ...configuration import g_identifier
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, handler, handler1, handler2, parent, title, title1, title2):
+    def __init__(self, ctx, handler, handler1, handler2, handler3, parent, title, title1, title2, title3):
         self._dialog = getDialog(ctx, g_identifier, 'SpoolerDialog', handler, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
-        tab1, tab2 = self._getTabPages(self._dialog, 'Tab1', title1, title2, rectangle, 1)
-        parent = tab1.getPeer()
-        self._tab1 = getContainerWindow(ctx, parent, handler1, g_identifier, 'SpoolerTab1')
+        tab1, tab2, tab3 = self._getTabPages(self._dialog, 'Tab1', title1, title2,  title3, rectangle, 1)
+        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'SpoolerTab1')
         self._tab1.setVisible(True)
-        parent = tab2.getPeer()
-        self._tab2 = getContainerWindow(ctx, parent, handler2, g_identifier, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_identifier, 'SpoolerTab2')
         self._tab2.setVisible(True)
+        self._tab3 = getContainerWindow(ctx, tab3.getPeer(), handler3, g_identifier, 'SpoolerTab3')
+        self._tab3.setVisible(True)
         self._dialog.setTitle(title)
 
 # SpoolerView getter methods
@@ -91,9 +91,16 @@ class SpoolerView(unohelper.Base):
     def dispose(self):
         self._dialog.dispose()
 
-    def updateLog(self, text, length):
-        print("SpoolerView.updateLog()")
-        control = self._getActivityLog()
+    def updateLog1(self, text, length):
+        control = self._getSpoolerLog()
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection')
+        selection.Min = length
+        selection.Max = length
+        control.Text = text
+        control.setSelection(selection)
+
+    def updateLog2(self, text, length):
+        control = self._getMailServiceLog()
         selection = uno.createUnoStruct('com.sun.star.awt.Selection')
         selection.Min = length
         selection.Max = length
@@ -141,18 +148,22 @@ class SpoolerView(unohelper.Base):
     def _getLabelState(self):
         return self._dialog.getControl('Label2')
 
-    def _getActivityLog(self):
+    def _getSpoolerLog(self):
         return self._tab2.getControl('TextField1')
 
+    def _getMailServiceLog(self):
+        return self._tab3.getControl('TextField1')
+
 # SpoolerView private methods
-    def _getTabPages(self, page, name, title1, title2, rectangle, id):
+    def _getTabPages(self, page, name, title1, title2, title3, rectangle, id):
         model = self._getTabModel(page, rectangle)
         page.Model.insertByName(name, model)
         tab = page.getControl(name)
         tab1 = self._getTabPage(tab, model, title1, 0)
         tab2 = self._getTabPage(tab, model, title2, 1)
+        tab3 = self._getTabPage(tab, model, title3, 2)
         tab.ActiveTabPageID = id
-        return tab1, tab2
+        return tab1, tab2, tab3
 
     def _getTabModel(self, page, rectangle):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'

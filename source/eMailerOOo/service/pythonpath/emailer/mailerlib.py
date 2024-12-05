@@ -114,17 +114,15 @@ class CustomMessage(UserDict):
         self._keys = ('MessageId', 'ThreadId', 'ForeignId', 'Subject',
                       'Recipients', 'CcRecipients', 'BccRecipients',
                       'Body', 'Attachments', 'Message')
-        self._body = lambda x, y: x.getTransferData(y).value \
-                                  if y.DataType.typeName != 'string' else \
-                                  x.getTransferData(y).encode()
+        self._body = lambda x, y: (x.getTransferData(y).value if y.DataType.typeName != 'string' else
+                                   x.getTransferData(y).encode())
         self._recipients =  {'Recipients':    lambda x: x.getRecipients(),
                              'CcRecipients':  lambda x: x.getCcRecipients(),
                              'BccRecipients': lambda x: x.getBccRecipients()}
-        getdata =    lambda x, y: x.Data.getTransferData(y).value \
-                                  if y.DataType.typeName != 'string' else \
-                                  x.Data.getTransferData(y).encode()
+        getdata =    lambda x, y: (x.Data.getTransferData(y).value if y.DataType.typeName != 'string' else
+                                   x.Data.getTransferData(y).encode())
         self._attachments = {'Data':          getdata,
-                             'DataFlavor':    lambda x, y: y.DataFlavor,
+                             'DataFlavor':    lambda x, y: y.MimeType,
                              'ReadableName':  lambda x, y: x.ReadableName}
         self._datatypes = ('[]byte', 'string')
         self._message = message
@@ -208,18 +206,20 @@ class CustomMessage(UserDict):
         template, parameters = self._templates.get(identifier)
         for attachment in self._message.getAttachments():
             flavor = attachment.Data.getTransferDataFlavors()[0]
+            self._logger.logprb(INFO, self._cls, mtd, 432, attachment.ReadableName, flavor.DataType.typeName)
             for typename in self._datatypes:
-                flavor.DataType = uno.getTypeByName('[]byte')
-                if self._message.Body.isDataFlavorSupported(flavor):
+                flavor.DataType = uno.getTypeByName(typename)
+                if attachment.Data.isDataFlavorSupported(flavor):
                     arguments = {key: data(attachment, flavor) for key, data in self._attachments.items()}
                     setParametersArguments(parameters, arguments)
-                    items = json.loads(template) 
+                    items = json.loads(template)
                     self._setItems(items, identifiers, lambda x: arguments[x])
                     attachments.append(items)
+                    self._logger.logprb(INFO, self._cls, mtd, 433, attachment.ReadableName, flavor.DataType.typeName, flavor.MimeType)
                     break
             else:
-                self._logger.logprb(SEVERE, self._cls, mtd, 432, attachment.ReadableName, flavor.DataType.typeName)
-        self._logger.logprb(INFO, self._cls, mtd, 433, len(attachments))
+                self._logger.logprb(SEVERE, self._cls, mtd, 434, attachment.ReadableName, flavor.DataType.typeName)
+        self._logger.logprb(INFO, self._cls, mtd, 435, len(attachments))
         return attachments
 
     def _setItems(self, items, identifiers, getter):
@@ -245,26 +245,39 @@ class CustomMessage(UserDict):
 
 
 class CustomParser():
-    def __init__(self, keys, items, triggers):
+    def __init__(self, keys, items, triggers, collectors):
         self._keys = keys
         self._items = items
         self._triggers = triggers
+        self._collectors = collectors
         self._key = None
+        self._values = None
 
     def hasItems(self):
         return any((self._items, self._triggers))
 
     def parse(self, results, prefix, event, value):
         if (prefix, event) in self._items:
-            key = self._items[(prefix, event)]
-            results[key] = value
-            if self._key == (prefix, event):
-                del self._items[(prefix, event)]
-                self._key = None
+            if self._values is None:
+                item = self._items[(prefix, event)]
+                results[item] = value
+                if self._key == (prefix, event):
+                    del self._items[(prefix, event)]
+                    self._key = None
+            else:
+                self._values.append(value)
         elif (prefix, event, value) in self._triggers:
             item = self._triggers[(prefix, event, value)]
             key = self._keys[item]
             self._items[key] = item
             del self._triggers[(prefix, event, value)]
-            self._key = key
+            if item in self._collectors:
+                self._values = []
+            else:
+                self._key = key
+        elif (prefix, event, value) in self._collectors:
+            item = self._collectors[(prefix, event, value)]
+            results[item] = self._values
+            del self._collectors[(prefix, event, value)]
+            self._values = None
 

@@ -34,6 +34,8 @@ from com.sun.star.awt import XContainerWindowEventHandler
 
 from com.sun.star.frame import XDispatchResultListener
 
+from com.sun.star.util import XModifyListener
+
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from com.sun.star.sdbc import XRowSetListener
@@ -126,6 +128,24 @@ class Tab2Handler(unohelper.Base,
         return ('ClearLogger', )
 
 
+class Tab3Handler(unohelper.Base,
+                  XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.format_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ()
+
+
 class RowSetListener(unohelper.Base,
                      XRowSetListener):
     def __init__(self, manager):
@@ -144,4 +164,21 @@ class RowSetListener(unohelper.Base,
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
+
+
+class LoggerListener(unohelper.Base,
+                     XModifyListener):
+    def __init__(self, callback):
+        self._callback = callback
+
+    # XModifyListener
+    def modified(self, event):
+        try:
+            self._callback()
+        except Exception as e:
+            msg = f"Error: {traceback.format_exc()}"
+            print(msg)
+
+    def disposing(self, event):
+        pass
 

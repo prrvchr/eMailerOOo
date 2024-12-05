@@ -176,24 +176,24 @@ class Spooler():
     def _run(self):
         handler = RollerHandler(self._ctx, self._logger.Name)
         self._logger.addRollerHandler(handler)
-        self._logger.logprb(INFO, 'MailSpooler', 'start()', 1001)
+        self._logger.logprb(INFO, 'MailSpooler', 'start', 1001)
         if not self._isInitialized():
             # FIXME: We need to check the configuration
             self._initialize('start')
         if self._isInitialized():
             # FIXME: Configuration has been checked we can continue
             if self._isOffLine():
-                self._logger.logprb(INFO, 'MailSpooler', 'start()', 1002)
+                self._logger.logprb(INFO, 'MailSpooler', 'start', 1002)
             else:
-                self._logger.logprb(INFO, 'MailSpooler', 'start()', 1003)
+                self._logger.logprb(INFO, 'MailSpooler', 'start', 1003)
                 self.DataSource.waitForDataBase()
                 jobs, total = self.DataSource.DataBase.getSpoolerJobs()
                 if total > 0:
-                    self._logger.logprb(INFO, 'MailSpooler', 'start()', 1011, total)
+                    self._logger.logprb(INFO, 'MailSpooler', 'start', 1011, total)
                     count = self._sendMails(jobs)
                     self._logger.logprb(INFO, 'MailSpooler', self._getMethod(), 1012, count, total)
                 else:
-                    self._logger.logprb(INFO, 'MailSpooler', 'start()', 1013)
+                    self._logger.logprb(INFO, 'MailSpooler', 'start', 1013)
         self._logger.logprb(INFO, 'MailSpooler', self._getMethod(), self._getResource(1014))
         self._logger.removeRollerHandler(handler)
         if self._stop.is_set():
@@ -205,24 +205,24 @@ class Spooler():
         count = 0
         mailer = Mailer(self._ctx, self._source, self.DataSource.DataBase, self._logger, True)
         for job in jobs:
-            self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1021, job)
+            self._logger.logprb(INFO, 'MailSpooler', '_sendMails', 1021, job)
             if self._stop.is_set():
-                self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
+                self._logger.logprb(INFO, 'MailSpooler', '_sendMails', 1022, job)
                 break
             try:
                 batch, mail = mailer.getMail(job)
                 if self._stop.is_set():
-                    self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1022, job)
+                    self._logger.logprb(INFO, 'MailSpooler', '_sendMails', 1022, job)
                     break
                 mailer.sendMail(mail)
             except UnoException as e:
-                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1023, job, e.__class__.__name__, e.Message)
+                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails', 1023, job, e.__class__.__name__, e.Message)
                 continue
             except Exception as e:
-                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails()', 1024, job, e.__class__.__name__, traceback.format_exc())
+                self._logger.logprb(SEVERE, 'MailSpooler', '_sendMails', 1024, job, e.__class__.__name__, traceback.format_exc())
                 continue
             self.DataSource.DataBase.updateSpooler(batch, job, mail.ThreadId, mail.MessageId, mail.ForeignId, 1)
-            self._logger.logprb(INFO, 'MailSpooler', '_sendMails()', 1025, job)
+            self._logger.logprb(INFO, 'MailSpooler', '_sendMails', 1025, job)
             count += 1
         mailer.dispose()
         return count
@@ -232,7 +232,7 @@ class Spooler():
         return mode == OFFLINE
 
     def _getMethod(self):
-        return 'terminate()' if self._stop.is_set() else 'close()'
+        return 'terminate' if self._stop.is_set() else 'close'
 
     def _getResource(self, code):
         return code + int(self._stop.is_set())

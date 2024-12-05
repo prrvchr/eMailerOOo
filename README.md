@@ -592,7 +592,8 @@ ___
 
 ### What has been done for version 1.2.7:
 
-- The spooler allows the opening of sent emails either in the local email client (ie: Thunderbird) or in your browser for Google accounts.
+- The spooler allows opening sent emails either in the local email client (ie: Thunderbird) or online in your browser for accounts using an API for sending email (ie: Google and Microsoft).
+- A new tab has been added to the spooler to allow tracking of mail service activity.
 - Connections to Microsoft mail servers, which apparently no longer worked, have been migrated to the Graph API.
 - For servers that no longer use SMTP and IMAP protocols and offer a replacement API (ie: Google API and Microsoft Graph):
     - All HTTP request parameters needed to send emails are stored in the LibreOffice configuration files.
@@ -602,6 +603,7 @@ ___
 - To work, these new features require the OAuth2OOo extension in version 1.3.9 minimum.
 - The command to open an email in Thunderbird can currently only be changed in the LibreOffice configuration (ie: Tools -> Options -> Advanced -> Open Expert Configuration).
 - Non-refresh of scrollbars in multi-column lists (ie: grid) has been fixed and will be available from LibreOffice 24.8.4, see [SortableGridDataModel cannot be notified for changes][106].
+- Opening emails in your browser does not work with a Microsoft account, the url allowing it has not been found yet...
 - Many fixes.
 
 ### What remains to be done for version 1.2.7:

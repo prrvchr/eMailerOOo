@@ -224,45 +224,50 @@ def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True
     return uiname, mimetype
 
 def setParametersArguments(parameters, arguments):
-    print("mailertool.setParametersArguments() 1")
     for name in parameters.getElementNames():
-        print("mailertool.setParametersArguments() 2 name: %s" % name)
         parameter = parameters.getByName(name)
         template = parameter.getByName('Template')
         command = parameter.getByName('Command')
         if not command:
-            print("mailertool.setParametersArguments() 3 name: %s" % name)
             arguments.setTemplate(name, template, parameter.getByName('Parameters'))
         else:
             method = command[0]
             value = arguments[template]
             if method == 'encodeURI':
-                args = ' '.join(command[1:]) if len(command) > 1 else ''
-                safe = args if args else "~@#$&()*!+=:;,?/'"
+                safe = _getArgumentCommand(command, "~@#$&()*!+=:;,?/'")
                 arguments[template] = parse.quote(value, safe=safe)
             elif method == 'encodeURIComponent':
-                args = ' '.join(command[1:]) if len(command) > 1 else ''
-                safe = args if args else "~()*!'"
+                safe = _getArgumentCommand(command, "~()*!'")
                 arguments[template] = parse.quote(value, safe=safe)
             elif method == 'base64URL':
-                print("mailertool.setParametersArguments() 4 name: %s - template: %s" % (name, template))
                 arguments[template] = base64.urlsafe_b64encode(value)
             elif method == 'base64':
-                print("mailertool.setParametersArguments() 5 name: %s" % name)
                 arguments[template] = base64.b64encode(value)
             elif method == 'decode':
-                print("mailertool.setParametersArguments() 6 name: %s - template: %s" % (name, template))
-                encoding = command[1] if len(command) > 1 else 'utf-8'
-                errors = command[2] if len(command) > 2 else 'strict'
+                encoding = _getArgumentCommand(command, 'utf-8')
+                errors = _getArgumentCommand(command, 'strict', 2)
                 arguments[template] = value.decode(encoding=encoding, errors=errors)
             elif method == 'encode':
-                print("mailertool.setParametersArguments() 6 name: %s - template: %s" % (name, template))
-                encoding = command[1] if len(command) > 1 else 'utf-8'
-                errors = command[2] if len(command) > 2 else 'strict'
+                encoding = _getArgumentCommand(command, 'utf-8')
+                errors = _getArgumentCommand(command, 'strict', 2)
                 arguments[template] = value.encode(encoding=encoding, errors=errors)
+            elif method == 'replace':
+                arg1 = _getArgumentCommand(command, '')
+                arg2 = _getArgumentCommand(command, '', 2)
+                arg3 = int(_getArgumentCommand(command, -1, 3))
+                arguments[template] = value.replace(arg1, arg2, arg3)
             elif method == 'strip':
-                args = ' '.join(command[1:]) if len(command) > 1 else ''
-                arguments[template] = value.strip(args)
+                arg1 = _getArgumentCommand(command)
+                arguments[template] = value.strip(arg1)
+            elif method == 'rstrip':
+                arg1 = _getArgumentCommand(command)
+                arguments[template] = value.rstrip(arg1)
+            elif method == 'lstrip':
+                arg1 = _getArgumentCommand(command)
+                arguments[template] = value.lstrip(arg1)
+
+def _getArgumentCommand(command, default=None, index=1):
+    return command[index] if len(command) > index else default
 
 def _getDocumentExtension(document):
     identifier = document.getIdentifier()

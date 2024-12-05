@@ -65,6 +65,7 @@
     <group oor:name="ResponseSet">
       <prop oor:name="Item" oor:type="oor:string-list"/>
       <prop oor:name="Trigger" oor:type="oor:string-list"/>
+      <prop oor:name="Collector" oor:type="oor:string-list"/>
     </group>
     <group oor:name="HostsSet"/>
     <group oor:name="ServiceSet">

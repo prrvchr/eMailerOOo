@@ -41,6 +41,8 @@ from .spoolerhandler import DialogHandler
 from .spoolerhandler import RowSetListener
 from .spoolerhandler import Tab1Handler
 from .spoolerhandler import Tab2Handler
+from .spoolerhandler import Tab3Handler
+from .spoolerhandler import LoggerListener
 
 from ..listener import StreamListener
 
@@ -57,8 +59,8 @@ from ...unotool import getSimpleFile
 from ...unotool import getTempFile
 
 from ...logger import LogController
-from ...logger import LoggerListener
 
+from ...configuration import g_mailservicelog
 from ...configuration import g_spoolerlog
 from ...configuration import g_basename
 
@@ -75,16 +77,18 @@ class SpoolerManager(unohelper.Base):
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
         titles = self._model.getDialogTitles()
-        self._view = SpoolerView(ctx, DialogHandler(self), Tab1Handler(self), Tab2Handler(self), parent, *titles)
+        self._view = SpoolerView(ctx, DialogHandler(self), Tab1Handler(self), Tab2Handler(self), Tab3Handler(self), parent, *titles)
         self._spooler = getMailSpooler(ctx)
         self._spoolerlistener = StreamListener(self)
         self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
         window = self._view.getGridWindow()
         self._model.initSpooler(window, GridListener(self), self.initView)
-        self._loggerlistener = LoggerListener(self)
-        self._logger = LogController(ctx, g_spoolerlog, g_basename, self._loggerlistener)
-        self.updateLogger()
+        self._log1listener = LoggerListener(self.updateLog1)
+        self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._log1listener)
+        self._log2listener = LoggerListener(self.updateLog2)
+        self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._log2listener)
+        self._updateLogger()
 
     @property
     def HandlerEnabled(self):
@@ -136,7 +140,8 @@ class SpoolerManager(unohelper.Base):
     def dispose(self):
         with self._lock:
             self._spooler.removeListener(self._spoolerlistener)
-            self._logger.removeModifyListener(self._loggerlistener)
+            self._log1.removeModifyListener(self._log1listener)
+            self._log2.removeModifyListener(self._log2listener)
             self._model.dispose()
             self._view.dispose()
 
@@ -217,12 +222,19 @@ class SpoolerManager(unohelper.Base):
         self._view.endDialog()
 
     def clearLogger(self):
-        self._logger.clearLogger()
+        self._log1.clearLogger()
 
-    def updateLogger(self):
-        self._view.updateLog(*self._logger.getLogContent(True))
+    def updateLog1(self):
+        self._view.updateLog1(*self._log1.getLogContent(True))
+
+    def updateLog2(self):
+        self._view.updateLog2(*self._log2.getLogContent(False))
 
 # SpoolerManager private methods
+    def _updateLogger(self):
+        self.updateLog1()
+        self.updateLog2()
+
     def _refreshSpoolerState(self):
         state = int(self._spooler.isStarted())
         self._refreshSpoolerView(state)

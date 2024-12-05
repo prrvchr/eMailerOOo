@@ -323,7 +323,8 @@ class SmtpService(unohelper.Base,
             for name in requests.getElementNames():
                 request = requests.getByName(name)
                 parameter = self._server.getRequestParameter(name)
-                setResquestParameter(self._logger, self._cls,request, parameter, message)
+                setResquestParameter(self._logger, self._cls, request, parameter, message)
+                items = getParserItems(self, self._logger, self._cls, name, request)
                 try:
                     response = self._server.execute(parameter)
                     response.raiseForStatus()
@@ -333,15 +334,14 @@ class SmtpService(unohelper.Base,
                         self._logger.logp(SEVERE, self._cls, mtd, msg)
                     raise MailException(msg, self)
                 if response.Ok:
-                    items = CustomParser(*getParserItems(request))
+                    parser = CustomParser(*items)
                     # XXX: It may be possible that there is nothing to parse
-                    if items.hasItems():
-                        results = getResponseResults(items, response)
+                    if parser.hasItems():
+                        results = getResponseResults(parser, response)
                         interface = 'com.sun.star.mail.XMailMessage2'
                         if hasInterface(message, interface):
-                            print("SmtpService._sendHttpMailMessage() Results: %s" % (results, ))
                             for name, value in results.items():
-                                self._logger.logprb(INFO, self._cls, mtd, 273, message.Subject, name, value)
+                                self._logger.logprb(INFO, self._cls, mtd, 273, name, value)
                                 message.setHeader(name, value)
                 response.close()
         else:

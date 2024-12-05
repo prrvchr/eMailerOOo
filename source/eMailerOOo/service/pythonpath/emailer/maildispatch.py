@@ -228,18 +228,18 @@ class MailDispatch(unohelper.Base,
         handler = RollerHandler(self._ctx, logger.Name)
         logger.addRollerHandler(handler)
         if job is None:
-            logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1051)
+            logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1051)
         else:
-            logger.logprb(INFO, 'MailSpooler', '_getMail()', 1052, job)
+            logger.logprb(INFO, 'MailSpooler', '_getMail', 1052, job)
             mailer = Mailer(self._ctx, self, self._getDataSource().DataBase, logger)
             try:
                 batch, mail = mailer.getMail(job)
             except UnoException as e:
-                logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1053, job, e.Message)
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1053, job, e.Message)
             except Exception as e:
-                logger.logprb(SEVERE, 'MailSpooler', '_getMail()', 1054, job, str(e), traceback.format_exc())
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1054, job, str(e), traceback.format_exc())
             else:
-                logger.logprb(INFO, 'MailSpooler', '_getMail()', 1055, job)
+                logger.logprb(INFO, 'MailSpooler', '_getMail', 1055, job)
                 state = SUCCESS
             mailer.dispose()
         logger.removeRollerHandler(handler)

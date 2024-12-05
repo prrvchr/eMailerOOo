@@ -278,7 +278,7 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
 # Queries don't exist!!!
     else:
         logger = getLogger(ctx, g_errorlog, g_basename)
-        logger.logprb(SEVERE, g_basename, 'getSqlQuery()', 101, name)
+        logger.logprb(SEVERE, g_basename, 'getSqlQuery', 101, name)
         query = None
     return query
 

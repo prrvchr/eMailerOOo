@@ -106,7 +106,7 @@ class SpoolerModel(unohelper.Base):
         return self._diposed
 
     def getDialogTitles(self):
-        return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2)
+        return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3)
 
     def getRowClientInfo(self):
         link = False

@@ -92,7 +92,7 @@ class Mailer():
         self._replyto = ''
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
-        self._logger.logprb(INFO, 'Mailer', '__init__()', 1501)
+        self._logger.logprb(INFO, 'Mailer', '__init__', 1501)
 
     @property
     def _merge(self):
@@ -100,7 +100,7 @@ class Mailer():
 
     def dispose(self):
         self._dispose()
-        self._logger.logprb(INFO, 'Mailer', 'dispose()', 1561)
+        self._logger.logprb(INFO, 'Mailer', 'dispose', 1561)
 
     def getMail(self, job):
         recipient = self._database.getRecipient(job)

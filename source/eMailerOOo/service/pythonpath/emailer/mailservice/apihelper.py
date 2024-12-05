@@ -29,6 +29,10 @@
 
 import uno
 
+from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.mail import MailException
+
 from ..unotool import getConfiguration
 
 from ..mailertool import setParametersArguments
@@ -68,7 +72,6 @@ def getHttpRequests(ctx, provider, server):
     return None
 
 def setResquestParameter(logger, cls, request, parameter, message):
-    print("apihelper.setResquestParameter()")
     mtd = 'setResquestParameter'
     arguments = CustomMessage(logger, cls, message)
     setParametersArguments(request.getByName('Parameters'), arguments)
@@ -93,7 +96,7 @@ def getResponseResults(items, response):
     iterator = response.iterContent(g_chunk, False)
     while iterator.hasMoreElements():
         chunk = iterator.nextElement().value
-        print("apihelper.getResponseResults() 1 chunk: %s" % chunk.decode())
+        print("apihelper.getResponseResults() 1 chunk:/n%s" % chunk.decode())
         parser.send(chunk)
         for prefix, event, value in events:
             print("apihelper.getResponseResults() 2 prefix: %s - event: %s - value: %s" % (prefix, event, value))
@@ -102,12 +105,15 @@ def getResponseResults(items, response):
     parser.close()
     return results
 
-def getParserItems(request):
+def getParserItems(source, logger, cls, rname, request):
     keys = {}
     items = {}
     triggers = {}
+    collectors = {}
     responses = request.getByName('Responses')
     if responses:
+        mtd = 'getParserItems'
+        getKey = lambda x: (x[0], x[1], x[2] if len(x) > 2 else None)
         for name in responses.getElementNames():
             response = responses.getByName(name)
             item = response.getByName('Item')
@@ -115,8 +121,24 @@ def getParserItems(request):
                 trigger = response.getByName('Trigger')
                 if not trigger:
                     items[item] = name
-                elif len(trigger) == 3:
+                elif len(trigger) > 1:
                     keys[name] = item
-                    triggers[trigger] = name
-    return keys, items, triggers
+                    triggers[getKey(trigger)] = name
+                    collector = response.getByName('Collector')
+                    if collector:
+                        if len(collector) > 1:
+                            collectors[getKey(collector)] = name
+                        else:
+                            msg = logger.resolveString(453, rname)
+                            logger.logp(SEVERE, cls, mtd, msg)
+                            raise MailException(msg, source)
+                else:
+                    msg = logger.resolveString(452, rname)
+                    logger.logp(SEVERE, cls, mtd, msg)
+                    raise MailException(msg, source)
+            else:
+                msg = logger.resolveString(451, rname)
+                logger.logp(SEVERE, cls, mtd, msg)
+                raise MailException(msg, source)
+    return keys, items, triggers, collectors
 

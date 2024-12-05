@@ -66,7 +66,7 @@ class OptionsManager(unohelper.Base):
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._listener = StreamListener(self)
         self._model.addStreamListener(self._listener)
-        self._logger.logprb(INFO, 'OptionsManager', '__init__()', 151)
+        self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
 
     _restart = False
 
@@ -88,7 +88,7 @@ class OptionsManager(unohelper.Base):
     def loadSetting(self):
         self._view.initView(OptionsManager._restart, *self._model.getViewData())
         self._logmanager.loadSetting()
-        self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 161)
+        self._logger.logprb(INFO, 'OptionsManager', 'loadSetting', 161)
 
     def saveSetting(self):
         option = self._model.saveTimeout(self._view.getTimeout())
@@ -96,7 +96,7 @@ class OptionsManager(unohelper.Base):
         if log:
             OptionsManager._restart = True
             self._view.setRestart(OptionsManager._restart)
-        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 171, option, log)
+        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting', 171, option, log)
 
     def changeTimeout(self, timeout):
         self._model.setTimeout(timeout)

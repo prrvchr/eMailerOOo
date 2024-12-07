@@ -59,7 +59,22 @@
   <prop oor:name="MergerGrid2Orders" oor:op="fuse">
     <value>{}</value>
   </prop>
-  <node oor:name="WebLinks">
+  <node oor:name="Client">
+    <prop oor:name="Command">
+      <value>thunderbird mid:${MessageId}</value>
+    </prop>
+    <node oor:name="Parameters">
+      <node oor:name="Parameter1" oor:op="fuse">
+        <prop oor:name="Name">
+          <value>MessageId</value>
+        </prop>
+        <prop oor:name="Command">
+          <value>strip &lt;&gt;</value>
+        </prop>
+      </node>
+    </node>
+  </node>
+  <node oor:name="Urls">
     <node oor:name="googlemail.com" oor:op="fuse">
       <prop oor:name="Command">
         <value>https://accounts.google.com/ServiceLogin?service=mail&amp;continue=http://mail.google.com/mail/u/0/#all/${ForeignId}</value>
@@ -76,23 +91,6 @@
           </prop>
           <prop oor:name="Command">
             <value>replace = %3D</value>
-          </prop>
-        </node>
-      </node>
-    </node>
-  </node>
-  <node oor:name="Clients">
-    <node oor:name="LocalClient" oor:op="fuse">
-      <prop oor:name="Command">
-        <value>thunderbird mid:${MessageId}</value>
-      </prop>
-      <node oor:name="Parameters">
-        <node oor:name="Parameter1" oor:op="fuse">
-          <prop oor:name="Name">
-            <value>MessageId</value>
-          </prop>
-          <prop oor:name="Command">
-            <value>strip &lt;&gt;</value>
           </prop>
         </node>
       </node>

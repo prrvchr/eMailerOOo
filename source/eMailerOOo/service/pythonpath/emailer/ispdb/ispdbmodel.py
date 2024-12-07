@@ -103,8 +103,7 @@ class IspdbModel(unohelper.Base):
         config = getConfiguration(ctx, g_identifier)
         self._url = config.getByName('IspDBUrl')
         self._timeout = config.getByName('ConnectTimeout')
-        self._clients = config.getByName('WebLinks').getElementNames()
-        self._default = 'Thunderbird'
+        self._clients = config.getByName('Urls').getElementNames()
         self._logger = LogController(ctx, g_mailservicelog)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._resources = {'Step':        'IspdbPage%s.Step',

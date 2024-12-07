@@ -115,7 +115,7 @@ class SpoolerModel(unohelper.Base):
             sender = self.getSelectedColumn('Sender')
             client = self._config.getByName('Senders').getByName(sender).getByName('Client')
             if client:
-                link = self._config.getByName('WebLinks').hasByName(client)
+                link = self._config.getByName('Urls').hasByName(client)
         return sent, link
 
     def getSpoolerState(self, state):
@@ -129,11 +129,17 @@ class SpoolerModel(unohelper.Base):
             client = senders.getByName(sender).getByName('Client')
         return client
 
-    def getWebLinkCommand(self, client, arguments):
-        return self._getCommand(self._config.getByName('WebLinks'), client, arguments)
+    def getUrlCommand(self, client, arguments):
+        cmd = None
+        opt = ''
+        urls = self._config.getByName('Urls')
+        if urls.hasByName(client):
+            url = urls.getByName(client)
+            cmd, opt = self._getCommand(url, arguments)
+        return cmd, opt
 
     def getClientCommand(self, arguments):
-        return self._getCommand(self._config.getByName('Clients'), 'LocalClient', arguments)
+        return self._getCommand(self._config.getByName('Client'), arguments)
 
     def getCommandArguments(self):
         sender = self.getSelectedColumn('Sender')
@@ -142,19 +148,17 @@ class SpoolerModel(unohelper.Base):
         messageid = self.getSelectedColumn('MessageId')
         return {'Sender': sender, 'ThreadId': threadid, 'ForeignId': foreignid, 'MessageId': messageid}
 
-    def _getCommand(self, clients, name, arguments):
+    def _getCommand(self, client, arguments):
         cmd = None
         opt = ''
-        if clients.hasByName(name):
-            client = clients.getByName(name)
-            parameters = client.getByName('Parameters')
-            setParametersArguments(parameters, arguments)
-            command = client.getByName('Command')
-            if command:
-                cmd = Template(command[0]).safe_substitute(arguments)
-                option = ' '.join(command[1:]) if len(command) > 1 else ''
-                if option:
-                    opt = Template(option).safe_substitute(arguments)
+        parameters = client.getByName('Parameters')
+        setParametersArguments(parameters, arguments)
+        command = client.getByName('Command')
+        if command:
+            cmd = Template(command[0]).safe_substitute(arguments)
+            option = ' '.join(command[1:]) if len(command) > 1 else ''
+            if option:
+                opt = Template(option).safe_substitute(arguments)
         return cmd, opt
 
 # SpoolerModel setter methods

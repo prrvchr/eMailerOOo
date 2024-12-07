@@ -51,11 +51,7 @@
       <prop oor:name="Command" oor:type="oor:string-list"/>
       <set oor:name="Parameters" oor:node-type="ParameterSet"/>
     </group>
-    <group oor:name="ClientSet">
-      <prop oor:name="Command" oor:type="oor:string-list"/>
-      <set oor:name="Parameters" oor:node-type="ParameterSet"/>
-    </group>
-    <group oor:name="WebLinkSet">
+    <group oor:name="CommandSet">
       <prop oor:name="Command" oor:type="oor:string-list"/>
       <set oor:name="Parameters" oor:node-type="ParameterSet"/>
     </group>
@@ -96,9 +92,9 @@
     <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
     <prop oor:name="MergerGrid1Orders" oor:type="xs:string"/>
     <prop oor:name="MergerGrid2Orders" oor:type="xs:string"/>
+    <node-ref oor:name="Client" oor:node-type="CommandSet"/>
+    <set oor:name="Urls" oor:node-type="CommandSet"/>
     <set oor:name="Senders" oor:node-type="SenderSet"/>
-    <set oor:name="Clients" oor:node-type="ClientSet"/>
-    <set oor:name="WebLinks" oor:node-type="WebLinkSet"/>
     <set oor:name="Providers" oor:node-type="ProviderSet"/>
   </component>
 </oor:component-schema>

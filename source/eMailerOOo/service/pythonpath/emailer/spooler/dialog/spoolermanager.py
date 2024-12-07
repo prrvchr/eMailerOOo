@@ -180,7 +180,7 @@ class SpoolerManager(unohelper.Base):
         command = None
         client = self._model.getSenderClient(sender)
         if client:
-            command, option = self._model.getWebLinkCommand(client, args)
+            command, option = self._model.getUrlCommand(client, args)
         self._executeCommand(command, option)
 
     def _executeCommand(self, command, option):

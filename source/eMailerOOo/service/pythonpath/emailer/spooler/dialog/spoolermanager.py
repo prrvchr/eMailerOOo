@@ -174,7 +174,6 @@ class SpoolerManager(unohelper.Base):
 
     def _viewClient(self, **args):
         command, option = self._model.getClientCommand(args)
-        print("SpoolerManager._viewLocal() Command: %s" % command)
         self._executeCommand(command, option)
 
     def _viewWeb(self, sender, **args):
@@ -182,7 +181,6 @@ class SpoolerManager(unohelper.Base):
         client = self._model.getSenderClient(sender)
         if client:
             command, option = self._model.getWebLinkCommand(client, args)
-        print("SpoolerManager._viewWeb() Command: %s" % command)
         self._executeCommand(command, option)
 
     def _executeCommand(self, command, option):

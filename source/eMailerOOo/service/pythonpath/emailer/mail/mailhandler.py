@@ -51,7 +51,6 @@ class WindowHandler(unohelper.Base,
         try:
             handled = False
             enabled = self._manager.isHandlerEnabled()
-            print("MailHandler.%s ************************** %s" % (method, enabled))
             if method == 'ChangeSender':
                 selected = event.Source.getSelectedItemPos() != -1
                 self._manager.changeSender(selected)

@@ -139,6 +139,9 @@ class CustomMessage(UserDict):
             return self.data[key]
         return self._getItem(key)
 
+    def __contains__(self, key):
+        return True if key in self._keys or key in self.data else False
+
     def setTemplate(self, name, template, parameters):
         self._templates[name] = (template, parameters)
 

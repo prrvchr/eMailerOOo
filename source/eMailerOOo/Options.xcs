@@ -46,6 +46,7 @@
       <set oor:name="Servers" oor:node-type="ServerSet"/>
     </group>
     <group oor:name="ParameterSet">
+      <prop oor:name="Name" oor:type="xs:string"/>
       <prop oor:name="Template" oor:type="xs:string"/>
       <prop oor:name="Command" oor:type="oor:string-list"/>
       <set oor:name="Parameters" oor:node-type="ParameterSet"/>
@@ -54,7 +55,17 @@
       <prop oor:name="Command" oor:type="oor:string-list"/>
       <set oor:name="Parameters" oor:node-type="ParameterSet"/>
     </group>
+    <group oor:name="WebLinkSet">
+      <prop oor:name="Command" oor:type="oor:string-list"/>
+      <set oor:name="Parameters" oor:node-type="ParameterSet"/>
+    </group>
+    <group oor:name="ResponseSet">
+      <prop oor:name="Item" oor:type="oor:string-list"/>
+      <prop oor:name="Trigger" oor:type="oor:string-list"/>
+      <prop oor:name="Collector" oor:type="oor:string-list"/>
+    </group>
     <group oor:name="RequestSet">
+      <prop oor:name="Name" oor:type="xs:string"/>
       <prop oor:name="Method" oor:type="xs:string"/>
       <prop oor:name="Url" oor:type="xs:string"/>
       <prop oor:name="Data" oor:type="xs:string"/>
@@ -62,19 +73,16 @@
       <set oor:name="Parameters" oor:node-type="ParameterSet"/>
       <set oor:name="Responses" oor:node-type="ResponseSet"/>
     </group>
-    <group oor:name="ResponseSet">
-      <prop oor:name="Item" oor:type="oor:string-list"/>
-      <prop oor:name="Trigger" oor:type="oor:string-list"/>
-      <prop oor:name="Collector" oor:type="oor:string-list"/>
+    <group oor:name="RequestsSet">
+      <node-ref oor:name="Request" oor:node-type="RequestSet"/>
+      <node-ref oor:name="SubRequest" oor:node-type="RequestSet"/>
     </group>
     <group oor:name="HostsSet"/>
-    <group oor:name="ServiceSet">
-      <set oor:name="Requests" oor:node-type="RequestSet"/>
-    </group>
     <group oor:name="ProviderSet">
       <prop oor:name="Url" oor:type="xs:string"/>
       <set oor:name="Hosts" oor:node-type="HostsSet"/>
-      <set oor:name="Services" oor:node-type="ServiceSet"/>
+      <node-ref oor:name="SMTP" oor:node-type="RequestsSet"/>
+      <node-ref oor:name="IMAP" oor:node-type="RequestsSet"/>
     </group>
   </templates>
   <component>
@@ -90,7 +98,7 @@
     <prop oor:name="MergerGrid2Orders" oor:type="xs:string"/>
     <set oor:name="Senders" oor:node-type="SenderSet"/>
     <set oor:name="Clients" oor:node-type="ClientSet"/>
-    <set oor:name="WebLinks" oor:node-type="ClientSet"/>
+    <set oor:name="WebLinks" oor:node-type="WebLinkSet"/>
     <set oor:name="Providers" oor:node-type="ProviderSet"/>
   </component>
 </oor:component-schema>

@@ -49,18 +49,12 @@ from com.sun.star.io import UnknownHostException
 from com.sun.star.mail import MailException
 from com.sun.star.mail import XSmtpService2
 
-from com.sun.star.uno import Exception as UnoException
-
 from .. import smtplib
 
 from .apihelper import getHttpProvider
+from .apihelper import getHttpServer
 from .apihelper import getHttpRequest
-from .apihelper import getHttpRequests
-from .apihelper import getParserItems
-from .apihelper import getResponseResults
-from .apihelper import setResquestParameter
-
-from ..mailerlib import CustomParser
+from .apihelper import executeHTTPRequest
 
 from ..oauth2 import getOAuth2Token
 
@@ -175,7 +169,7 @@ class SmtpService(unohelper.Base,
     def _getHttpServer(self, provider, servername, username):
         mtd = '_getHttpServer'
         self._provider = provider
-        server = getHttpRequest(self._ctx, provider, servername, username)
+        server = getHttpServer(self._ctx, provider, servername, username)
         if server is None:
             msg = self._logger.resolveString(221, username)
             if self._debug:
@@ -318,32 +312,12 @@ class SmtpService(unohelper.Base,
         mtd = '_sendHttpMailMessage'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 271, message.Subject)
-        requests = getHttpRequests(self._ctx, self._provider, SMTP)
-        if requests:
-            for name in requests.getElementNames():
-                request = requests.getByName(name)
-                parameter = self._server.getRequestParameter(name)
-                setResquestParameter(self._logger, self._cls, request, parameter, message)
-                items = getParserItems(self, self._logger, self._cls, name, request)
-                try:
-                    response = self._server.execute(parameter)
-                    response.raiseForStatus()
-                except UnoException as e:
-                    msg = self._logger.resolveString(272, message.Subject, e.Message)
-                    if self._debug:
-                        self._logger.logp(SEVERE, self._cls, mtd, msg)
-                    raise MailException(msg, self)
-                if response.Ok:
-                    parser = CustomParser(*items)
-                    # XXX: It may be possible that there is nothing to parse
-                    if parser.hasItems():
-                        results = getResponseResults(parser, response)
-                        interface = 'com.sun.star.mail.XMailMessage2'
-                        if hasInterface(message, interface):
-                            for name, value in results.items():
-                                self._logger.logprb(INFO, self._cls, mtd, 273, name, value)
-                                message.setHeader(name, value)
-                response.close()
+        request = getHttpRequest(self._ctx, self._provider, SMTP, 'Request')
+        if request:
+            executeHTTPRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, request)
+            subrequest = getHttpRequest(self._ctx, self._provider, SMTP, 'SubRequest')
+            if subrequest:
+                executeHTTPRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, subrequest)
         else:
             self._logger.logprb(SEVERE, self._cls, mtd, 274, message.Subject, self._provider)
             return

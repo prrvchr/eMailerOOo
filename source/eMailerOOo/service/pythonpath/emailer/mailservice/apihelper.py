@@ -29,15 +29,20 @@
 
 import uno
 
+from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail import MailException
 
 from ..unotool import getConfiguration
+from ..unotool import hasInterface
 
 from ..mailertool import setParametersArguments
 
 from ..mailerlib import CustomMessage
+from ..mailerlib import CustomParser
 
 from ..oauth2 import getRequest
 
@@ -55,24 +60,48 @@ def getHttpProvider(providers, servername):
             return provider
     return None
 
-def getHttpRequest(ctx, provider, servername, username):
+def getHttpServer(ctx, provider, servername, username):
     config = getConfiguration(ctx, g_identifier)
     url = config.getByName('Providers').getByName(provider).getByName('Url')
     server = url if url else servername
     return getRequest(ctx, server, username)
 
-def getHttpRequests(ctx, provider, server):
-    config = getConfiguration(ctx, g_identifier)
-    if config.getByName('Providers').getByName(provider).hasByName('Services'):
-        services = config.getByName('Providers').getByName(provider).getByName('Services')
-        if services and services.hasByName(server.value):
-            service = services.getByName(server.value)
-            if service and service.hasByName('Requests'):
-                return service.getByName('Requests')
+def getHttpRequest(ctx, provider, server, request):
+    providers = getConfiguration(ctx, g_identifier).getByName('Providers')
+    if providers.getByName(provider).hasByName(server.value):
+        service = providers.getByName(provider).getByName(server.value)
+        if service.hasByName(request):
+            return service.getByName(request)
     return None
 
-def setResquestParameter(logger, cls, request, parameter, message):
-    mtd = 'setResquestParameter'
+def executeHTTPRequest(source, logger, debug, cls, code, server, message, request):
+    mtd = 'executeHTTPRequest'
+    name = request.getByName('Name')
+    parameter = server.getRequestParameter(name)
+    _setResquestParameter(logger, cls, message, request, parameter)
+    # If the configuration is not compliant then a MailException will be thrown
+    items = _getParserItems(source, logger, cls, name, request)
+    try:
+        response = server.execute(parameter)
+        response.raiseForStatus()
+    except UnoException as e:
+        msg = logger.resolveString(code, message.Subject, e.Message)
+        if debug:
+            logger.logp(SEVERE, cls, mtd, msg)
+        raise MailException(msg, source)
+    if response.Ok:
+        parser = CustomParser(*items)
+        # XXX: It may be possible that there is nothing to parse
+        if parser.hasItems():
+            results = _getResponseResults(parser, response)
+            interface = 'com.sun.star.mail.XMailMessage2'
+            if hasInterface(message, interface):
+                for name, value in results.items():
+                    logger.logprb(INFO, cls, mtd, code + 1, name, value)
+                    message.setHeader(name, value)
+    response.close()
+
+def _setResquestParameter(logger, cls, message, request, parameter):
     arguments = CustomMessage(logger, cls, message)
     setParametersArguments(request.getByName('Parameters'), arguments)
     method = request.getByName('Method')
@@ -89,23 +118,20 @@ def setResquestParameter(logger, cls, request, parameter, message):
         config = arguments.toJson(template)
         parameter.fromJson(config)
 
-def getResponseResults(items, response):
+def _getResponseResults(items, response):
     results = {}
     events = ijson.sendable_list()
     parser = ijson.parse_coro(events)
     iterator = response.iterContent(g_chunk, False)
     while iterator.hasMoreElements():
-        chunk = iterator.nextElement().value
-        print("apihelper.getResponseResults() 1 chunk:/n%s" % chunk.decode())
-        parser.send(chunk)
-        for prefix, event, value in events:
-            print("apihelper.getResponseResults() 2 prefix: %s - event: %s - value: %s" % (prefix, event, value))
-            items.parse(results, prefix, event, value)
+        parser.send(iterator.nextElement().value)
+        for event in events:
+            items.parse(results, *event)
         del events[:]
     parser.close()
     return results
 
-def getParserItems(source, logger, cls, rname, request):
+def _getParserItems(source, logger, cls, rname, request):
     keys = {}
     items = {}
     triggers = {}

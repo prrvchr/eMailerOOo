@@ -64,7 +64,6 @@
       <prop oor:name="Command">
         <value>https://accounts.google.com/ServiceLogin?service=mail&amp;continue=http://mail.google.com/mail/u/0/#all/${ForeignId}</value>
       </prop>
-      <node oor:name="Parameters"/>
     </node>
     <node oor:name="hotmail.com" oor:op="fuse">
       <prop oor:name="Command">
@@ -72,7 +71,7 @@
       </prop>
       <node oor:name="Parameters">
         <node oor:name="Parameter1" oor:op="fuse">
-          <prop oor:name="Template">
+          <prop oor:name="Name">
             <value>ForeignId</value>
           </prop>
           <prop oor:name="Command">
@@ -89,7 +88,7 @@
       </prop>
       <node oor:name="Parameters">
         <node oor:name="Parameter1" oor:op="fuse">
-          <prop oor:name="Template">
+          <prop oor:name="Name">
             <value>MessageId</value>
           </prop>
           <prop oor:name="Command">
@@ -100,91 +99,98 @@
     </node>
   </node>
   <node oor:name="Providers">
+<!-- Google API ***************************************************************************************** -->
     <node oor:name="googlemail.com" oor:op="fuse">
       <node oor:name="Hosts"/>
-      <node oor:name="Services">
-        <node oor:name="SMTP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="sendMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+      <node oor:name="SMTP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>sendMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/send</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Json": {"labelIds": ["SENT"], "threadId": "${ThreadId}", "raw": "${Message}"}}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/send</value>
-              </prop>
-              <prop oor:name="Arguments">
-                <value>{"Json": {"labelIds": ["SENT"], "threadId": "${ThreadId}", "raw": "${Message}"}}</value>
+              <prop oor:name="Command">
+                <value>base64URL</value>
               </prop>
               <node oor:name="Parameters">
-                <node oor:name="Message1" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>base64URL</value>
-                  </prop>
-                </node>
-                <node oor:name="Message2" oor:op="fuse">
-                  <prop oor:name="Template">
+                <node oor:name="Parameter1" oor:op="fuse">
+                  <prop oor:name="Name">
                     <value>Message</value>
                   </prop>
                   <prop oor:name="Command">
                     <value>decode</value>
-                  </prop>
-                </node>
-              </node>
-              <node oor:name="Responses">
-                <node oor:name="ForeignId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>id string</value>
-                  </prop>
-                </node>
-              </node>
-            </node>
-            <node oor:name="getSentMessageId" oor:op="fuse">
-              <prop oor:name="Url">
-                <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/${ForeignId}</value>
-              </prop>
-              <prop oor:name="Arguments">
-                <value>{"Query": {"format": "metadata"}}</value>
-              </prop>
-              <node oor:name="Parameters"/>
-              <node oor:name="Responses">
-                <node oor:name="MessageId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>payload.headers.item.value string</value>
-                  </prop>
-                  <prop oor:name="Trigger">
-                    <value>payload.headers.item.name string Message-Id</value>
                   </prop>
                 </node>
               </node>
             </node>
           </node>
+          <node oor:name="Responses">
+            <node oor:name="ForeignId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>id string</value>
+              </prop>
+            </node>
+          </node>
         </node>
-        <node oor:name="IMAP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="uploadMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+        <node oor:name="SubRequest">
+          <prop oor:name="Name">
+            <value>getMessageHeaders</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/${ForeignId}</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Query": {"format": "metadata"}}</value>
+          </prop>
+          <node oor:name="Responses">
+            <node oor:name="MessageId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>payload.headers.item.value string</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/send</value>
+              <prop oor:name="Trigger">
+                <value>payload.headers.item.name string Message-Id</value>
               </prop>
-              <prop oor:name="Arguments">
-                <value>{"Json": {"labelIds": ["UNREAD","INBOX"], "raw": "${Message}"}}</value>
+            </node>
+          </node>
+        </node>
+      </node>
+      <node oor:name="IMAP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>uploadMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/send</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Json": {"labelIds": ["UNREAD","INBOX"], "raw": "${Message}"}}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>base64URL</value>
               </prop>
               <node oor:name="Parameters">
                 <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>base64URL</value>
-                  </prop>
-                </node>
-                <node oor:name="Parameter2" oor:op="fuse">
-                  <prop oor:name="Template">
+                  <prop oor:name="Name">
                     <value>Message</value>
                   </prop>
                   <prop oor:name="Command">
@@ -192,91 +198,101 @@
                   </prop>
                 </node>
               </node>
-              <node oor:name="Responses">
-                <node oor:name="ForeignId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>id string</value>
-                  </prop>
-                </node>
-              </node>
             </node>
-            <node oor:name="getUploadedMessageId" oor:op="fuse">
-              <prop oor:name="Url">
-                <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/${ForeignId}</value>
+          </node>
+          <node oor:name="Responses">
+            <node oor:name="ForeignId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>id string</value>
               </prop>
-              <prop oor:name="Arguments">
-                <value>{"Query": {"format": "metadata"}}</value>
+            </node>
+          </node>
+        </node>
+        <node oor:name="SubRequest">
+          <prop oor:name="Name">
+            <value>getMessageHeaders</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://gmail.googleapis.com/gmail/v1/users/me/messages/${ForeignId}</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Query": {"format": "metadata"}}</value>
+          </prop>
+          <node oor:name="Responses">
+            <node oor:name="MessageId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>payload.headers.item.value string</value>
               </prop>
-              <node oor:name="Parameters"/>
-              <node oor:name="Responses">
-                <node oor:name="MessageId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>payload.headers.item.value string</value>
-                  </prop>
-                  <prop oor:name="Trigger">
-                    <value>payload.headers.item.name string Message-Id</value>
-                  </prop>
-                </node>
-              </node>
+              <prop oor:name="Trigger">
+                <value>payload.headers.item.name string Message-Id</value>
+              </prop>
             </node>
           </node>
         </node>
       </node>
     </node>
+<!-- Microsoft Graph API ******************************************************************************** -->
     <node oor:name="hotmail.com" oor:op="fuse">
       <prop oor:name="Url">
         <value>graph.microsoft.com/Outlook</value>
       </prop>
       <node oor:name="Hosts"/>
-      <node oor:name="Services">
-        <node oor:name="SMTP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="sendJsonMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+      <node oor:name="SMTP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>sendMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/beta/me/sendMail</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Json": {"message": {"subject": "${Subject}",
+                                         "body": {"contentType": "HTML",
+                                                  "content": "${Body}"},
+                                         "singleValueExtendedProperties": [{"id": "String {00020386-0000-0000-C000-000000000046} Name X-MessageId",
+                                                                            "value": "${MessageId}"}],
+                                         "conversationId": "${ThreadId}",
+                                         "toRecipients": "${Recipients}",
+                                         "attachments": "${Attachments}"}}}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Body</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/beta/me/sendMail</value>
+              <prop oor:name="Command">
+                <value>decode</value>
               </prop>
-              <prop oor:name="Arguments">
-                <value>{"Json": {"message": {"subject": "${Subject}",
-                                             "body": {"contentType": "HTML",
-                                                      "content": "${Body}"},
-                                             "singleValueExtendedProperties": [{"id": "String {00020386-0000-0000-C000-000000000046} Name X-MessageId",
-                                                                                "value": "${MessageId}"}],
-                                             "conversationId": "${ThreadId}",
-                                             "toRecipients": "${Recipients}",
-                                             "attachments": "${Attachments}"}}}</value>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Recipients</value>
+              </prop>
+              <prop oor:name="Template">
+                <value>{"emailAddress": {"address": "${Recipient}"}}</value>
+              </prop>
+            </node>
+            <node oor:name="Parameter3" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Attachments</value>
+              </prop>
+              <prop oor:name="Template">
+                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
               </prop>
               <node oor:name="Parameters">
-                <node oor:name="Body" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Body</value>
+                <node oor:name="Parameter1" oor:op="fuse">
+                  <prop oor:name="Name">
+                    <value>Data</value>
                   </prop>
                   <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-                <node oor:name="Recipients" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>{"emailAddress": {"address": "${Recipient}"}}</value>
-                  </prop>
-                </node>
-                <node oor:name="Attachments" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
+                    <value>base64</value>
                   </prop>
                   <node oor:name="Parameters">
-                    <node oor:name="Data1" oor:op="fuse">
-                      <prop oor:name="Template">
-                        <value>Data</value>
-                      </prop>
-                      <prop oor:name="Command">
-                        <value>base64</value>
-                      </prop>
-                    </node>
-                    <node oor:name="Data2" oor:op="fuse">
-                      <prop oor:name="Template">
+                    <node oor:name="Parameter1" oor:op="fuse">
+                      <prop oor:name="Name">
                         <value>Data</value>
                       </prop>
                       <prop oor:name="Command">
@@ -284,78 +300,88 @@
                       </prop>
                     </node>
                   </node>
-                </node>
-              </node>
-              <node oor:name="Responses"/>
-            </node>
-            <node oor:name="getSentMessageId" oor:op="fuse">
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/v1.0/me/messages?$filter=singleValueExtendedProperties/any(ep: ep/id eq 'String {00020386-0000-0000-C000-000000000046} Name X-MessageId' and ep/value eq '${MessageId}')</value>
-              </prop>
-              <node oor:name="Parameters"/>
-              <node oor:name="Responses">
-                <node oor:name="MessageId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.internetMessageId string</value>
-                  </prop>
-                </node>
-                <node oor:name="ForeignId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.conversationId string</value>
-                  </prop>
                 </node>
               </node>
             </node>
           </node>
         </node>
-        <node oor:name="IMAP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="uploadJsonMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+        <node oor:name="SubRequest">
+          <prop oor:name="Name">
+            <value>getMessageHeaders</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/v1.0/me/messages?$filter=singleValueExtendedProperties/any(ep: ep/id eq 'String {00020386-0000-0000-C000-000000000046} Name X-MessageId' and ep/value eq '${MessageId}')</value>
+          </prop>
+          <node oor:name="Responses">
+            <node oor:name="MessageId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.internetMessageId string</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/beta/me/sendMail</value>
+            </node>
+            <node oor:name="ForeignId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.conversationId string</value>
               </prop>
-              <prop oor:name="Arguments">
-                <value>{"Json": {"message": {"subject": "${Subject}",
-                                             "body": {"contentType": "HTML",
-                                                      "content": "${Body}"},
-                                             "singleValueExtendedProperties": [{"id": "String {00020386-0000-0000-C000-000000000046} Name X-MessageId",
-                                                                                "value": "${MessageId}"}],
-                                             "toRecipients": "${Recipients}",
-                                             "attachments": "${Attachments}"},
-                                 "saveToSentItems": "false"}}</value>
+            </node>
+          </node>
+        </node>
+      </node>
+      <node oor:name="IMAP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>uploadMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/beta/me/sendMail</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Json": {"message": {"subject": "${Subject}",
+                                         "body": {"contentType": "HTML",
+                                                  "content": "${Body}"},
+                                         "singleValueExtendedProperties": [{"id": "String {00020386-0000-0000-C000-000000000046} Name X-MessageId",
+                                                                            "value": "${MessageId}"}],
+                                         "toRecipients": "${Recipients}",
+                                         "attachments": "${Attachments}"},
+                             "saveToSentItems": "false"}}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Body</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>decode</value>
+              </prop>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Recipients</value>
+              </prop>
+              <prop oor:name="Template">
+                <value>{"emailAddress": {"address": "${Recipient}"}}</value>
+              </prop>
+            </node>
+            <node oor:name="Parameter3" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Attachments</value>
+              </prop>
+              <prop oor:name="Template">
+                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
               </prop>
               <node oor:name="Parameters">
-                <node oor:name="Body" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Body</value>
+                <node oor:name="Parameter1" oor:op="fuse">
+                  <prop oor:name="Name">
+                    <value>Data</value>
                   </prop>
                   <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-                <node oor:name="Recipients" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>{"emailAddress": {"address": "${Recipient}"}}</value>
-                  </prop>
-                </node>
-                <node oor:name="Attachments" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
+                    <value>base64</value>
                   </prop>
                   <node oor:name="Parameters">
-                    <node oor:name="Data1" oor:op="fuse">
-                      <prop oor:name="Template">
-                        <value>Data</value>
-                      </prop>
-                      <prop oor:name="Command">
-                        <value>base64</value>
-                      </prop>
-                    </node>
-                    <node oor:name="Data2" oor:op="fuse">
-                      <prop oor:name="Template">
+                    <node oor:name="Parameter1" oor:op="fuse">
+                      <prop oor:name="Name">
                         <value>Data</value>
                       </prop>
                       <prop oor:name="Command">
@@ -365,117 +391,123 @@
                   </node>
                 </node>
               </node>
-              <node oor:name="Responses"/>
             </node>
-            <node oor:name="getUploadedMessageId" oor:op="fuse">
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/v1.0/me/messages?$filter=singleValueExtendedProperties/any(ep: ep/id eq 'String {00020386-0000-0000-C000-000000000046} Name X-MessageId' and ep/value eq '${MessageId}')</value>
+          </node>
+        </node>
+        <node oor:name="SubRequest">
+          <prop oor:name="Name">
+            <value>getMessageHeaders</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/v1.0/me/messages?$filter=singleValueExtendedProperties/any(ep: ep/id eq 'String {00020386-0000-0000-C000-000000000046} Name X-MessageId' and ep/value eq '${MessageId}')</value>
+          </prop>
+          <node oor:name="Responses">
+            <node oor:name="MessageId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.internetMessageId string</value>
               </prop>
-              <node oor:name="Parameters"/>
-              <node oor:name="Responses">
-                <node oor:name="MessageId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.internetMessageId string</value>
-                  </prop>
-                </node>
-                <node oor:name="ForeignId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.conversationId string</value>
-                  </prop>
-                </node>
-              </node>
+            </node>
+            <node oor:name="ForeignId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.conversationId string</value>
+              </prop>
             </node>
           </node>
         </node>
       </node>
     </node>
-<!-- unused part ********************************************************************************************* -->
+<!-- unused part **************************************************************************************** -->
     <node oor:name="hotmail2.com" oor:op="fuse">
       <prop oor:name="Url">
         <value>graph.microsoft.com/Outlook</value>
       </prop>
       <node oor:name="Hosts"/>
-      <node oor:name="Services">
-        <node oor:name="SMTP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="sendMimeMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+      <node oor:name="SMTP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>sendMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/beta/me/sendMail</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Headers": {"Content-Type": "text/plain"}, "Text": "${Message}"}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/beta/me/sendMail</value>
-              </prop>
-              <prop oor:name="Arguments">
-                <value>{"Headers": {"Content-Type": "text/plain"}, "Text": "${Message}"}</value>
+              <prop oor:name="Command">
+                <value>base64</value>
               </prop>
               <node oor:name="Parameters">
                 <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>base64</value>
-                  </prop>
-                </node>
-                <node oor:name="Parameter2" oor:op="fuse">
-                  <prop oor:name="Template">
+                  <prop oor:name="Name">
                     <value>Message</value>
                   </prop>
                   <prop oor:name="Command">
                     <value>decode</value>
-                  </prop>
-                </node>
-              </node>
-              <node oor:name="Responses"/>
-            </node>
-            <node oor:name="getExtendedProperties" oor:op="fuse">
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/v1.0/me/messages?$expand=singleValueExtendedProperties($filter=id eq 'Binary 0x0FFF')</value>
-              </prop>
-              <node oor:name="Parameters"/>
-              <node oor:name="Responses">
-                <node oor:name="MessageId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.internetMessageId string</value>
-                  </prop>
-                </node>
-                <node oor:name="ForeignId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.id string</value>
-                  </prop>
-                </node>
-                <node oor:name="ThreadId" oor:op="fuse">
-                  <prop oor:name="Item">
-                    <value>value.item.conversationId string</value>
                   </prop>
                 </node>
               </node>
             </node>
           </node>
         </node>
-        <node oor:name="IMAP" oor:op="fuse">
-          <node oor:name="Requests">
-            <node oor:name="uploadMimeMessage" oor:op="fuse">
-              <prop oor:name="Method">
-                <value>POST</value>
+        <node oor:name="SubRequest">
+          <prop oor:name="Name">
+            <value>getMessageHeaders</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/v1.0/me/messages?$expand=singleValueExtendedProperties($filter=id eq 'Binary 0x0FFF')</value>
+          </prop>
+          <node oor:name="Responses">
+            <node oor:name="MessageId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.internetMessageId string</value>
               </prop>
-              <prop oor:name="Url">
-                <value>https://graph.microsoft.com/beta/me/sendMail</value>
+            </node>
+            <node oor:name="ForeignId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.id string</value>
               </prop>
-              <prop oor:name="Arguments">
-                <value>{"Headers": {"Content-Type": "text/plain"}, "Text": "${Message}"}</value>
+            </node>
+            <node oor:name="ThreadId" oor:op="fuse">
+              <prop oor:name="Item">
+                <value>value.item.conversationId string</value>
+            </prop>
+            </node>
+          </node>
+        </node>
+      </node>
+      <node oor:name="IMAP">
+        <node oor:name="Request">
+          <prop oor:name="Name">
+            <value>uploadMail</value>
+          </prop>
+          <prop oor:name="Method">
+            <value>POST</value>
+          </prop>
+          <prop oor:name="Url">
+            <value>https://graph.microsoft.com/beta/me/sendMail</value>
+          </prop>
+          <prop oor:name="Arguments">
+            <value>{"Headers": {"Content-Type": "text/plain"}, "Text": "${Message}"}</value>
+          </prop>
+          <node oor:name="Parameters">
+            <node oor:name="Parameter1" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>base64</value>
               </prop>
               <node oor:name="Parameters">
                 <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Template">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>base64</value>
-                  </prop>
-                </node>
-                <node oor:name="Parameter2" oor:op="fuse">
-                  <prop oor:name="Template">
+                  <prop oor:name="Name">
                     <value>Message</value>
                   </prop>
                   <prop oor:name="Command">
@@ -483,7 +515,6 @@
                   </prop>
                 </node>
               </node>
-              <node oor:name="Responses"/>
             </node>
           </node>
         </node>

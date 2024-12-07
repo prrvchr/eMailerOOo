@@ -603,7 +603,7 @@ ___
 - To work, these new features require the OAuth2OOo extension in version 1.3.9 minimum.
 - The command to open an email in Thunderbird can currently only be changed in the LibreOffice configuration (ie: Tools -> Options -> Advanced -> Open Expert Configuration).
 - Non-refresh of scrollbars in multi-column lists (ie: grid) has been fixed and will be available from LibreOffice 24.8.4, see [SortableGridDataModel cannot be notified for changes][106].
-- Opening emails in your browser does not work with a Microsoft account, the url allowing it has not been found yet...
+- Opening emails in your browser does not work with a Microsoft account, the url allowing this has not yet been found and it seems that it would not be possible (ie: popup must be open by the Outlook window)?
 - Many fixes.
 
 ### What remains to be done for version 1.2.7:

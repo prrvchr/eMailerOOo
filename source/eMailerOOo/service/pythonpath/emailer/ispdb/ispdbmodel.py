@@ -170,7 +170,6 @@ class IspdbModel(unohelper.Base):
         Thread(target=self._getServerConfig, args=args).start()
 
     def _getServerConfig(self, resolver, progress, update):
-        print("IspdbModel._getServerConfig()")
         # FIXME: Because we call this thread in the WizardPage.activatePage(),
         # FIXME: if we want to be able to navigate through the Wizard roadmap
         # FIXME: without GUI refreshing problem then we need to pause this thread.
@@ -276,15 +275,18 @@ class IspdbModel(unohelper.Base):
         return hosts
 
     def _setProviderHosts(self, provider, servers):
-        # XXX: If we need to be able to test the connection
-        # XXX: then it is necessary to save the domain used by the user
-        config = getConfiguration(self._ctx, g_identifier, True)
-        providers = config.getByName('Providers')
-        if providers.hasByName(provider):
-            hosts = providers.getByName(provider).getByName('Hosts')
-            self._updateHosts(provider, servers, hosts)
-            if config.hasPendingChanges():
-                config.commitChanges()
+        try:
+            # XXX: If we need to be able to test the connection
+            # XXX: then it is necessary to save the domain used by the user
+            config = getConfiguration(self._ctx, g_identifier, True)
+            providers = config.getByName('Providers')
+            if providers.hasByName(provider):
+                hosts = providers.getByName(provider).getByName('Hosts')
+                self._updateHosts(provider, servers, hosts)
+                if config.hasPendingChanges():
+                    config.commitChanges()
+        except Exception as e:
+            print("IspdbModel._setProviderHosts() Error: %s - %s" % (e, traceback.format_exc()))
 
     def _updateHosts(self, provider, servers, hosts):
         for server in servers:
@@ -406,6 +408,7 @@ class IspdbModel(unohelper.Base):
         try:
             server.connect(context, authenticator)
         except UnoException as e:
+            # Exceptions are already logged in the MailServiceLogger log.
             progress(i + 100)
         else:
             progress(i + 75)
@@ -435,7 +438,6 @@ class IspdbModel(unohelper.Base):
             reset(200)
             mail = self._uploadMessage(transferable, subject, progress)
             threadid = mail.ForeignId if mail.ForeignId else mail.MessageId
-            print("IspdbModel._sendMessage() MessageId: %s - ThreadId: %s" % (mail.MessageId, mail.ThreadId))
         else:
             i = 0
             reset(100)
@@ -451,23 +453,22 @@ class IspdbModel(unohelper.Base):
         try:
             server.connect(context, authenticator)
         except UnoException as e:
-            print("IspdbModel._sendMessage() 1 Error: %s" % e.Message)
+            # Exceptions are already logged in the MailServiceLogger log.
+            print("IspdbModel._sendMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
         else:
             progress(i + 75)
             if server.isConnected():
-                #body = MailTransferable(self._ctx, message, False)
                 body = transferable.getByString(message)
                 mail = getMailMessage(self._ctx, self.Sender, recipient, subject, body)
                 interface = 'com.sun.star.mail.XMailMessage2'
-                if hasInterface(mail, interface) and threadid is not None:
+                # If IMAP is supported then we set the Message.ThreadId
+                if threadid and hasInterface(mail, interface):
                     mail.ThreadId = threadid
-                    print("IspdbModel._sendMessage() 2 ******************")
-                print("IspdbModel._sendMessage() 3: %s - %s" % (type(mail), mail))
                 try:
                     server.sendMailMessage(mail)
-                    print("IspdbModel._sendMessage() 4: %s" % mail.MessageId)
                 except UnoException as e:
-                    print("IspdbModel._sendMessage() 5 Error: %s - %s" % (e.Message, traceback.format_exc()))
+                    # Exceptions are already logged in the MailServiceLogger log.
+                    print("IspdbModel._sendMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
                 else:
                     step = 5
                 server.disconnect()
@@ -484,38 +485,27 @@ class IspdbModel(unohelper.Base):
         server = getMailService(self._ctx, imap)
         progress(20)
         try:
-            print("IspdbModel._uploadMessage() 1")
             server.connect(context, authenticator)
         except UnoException as e:
-            print("IspdbModel._uploadMessage() 1 Error: %s" % e.Message)
-        except Exception as e:
-            print("IspdbModel._uploadMessage() 2 Error: %s" % e)
+            # Exceptions are already logged in the MailServiceLogger log.
+            print("IspdbModel._uploadMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
         else:
             progress(40)
             if server.isConnected():
                 try:
-                    print("IspdbModel._uploadMessage() 2")
                     folder = server.getSentFolder()
                     if server.hasFolder(folder):
-                        print("IspdbModel._uploadMessage() 3")
                         message = self._getThreadMessage()
-                        print("IspdbModel._uploadMessage() 4")
-                        #body = MailTransferable(self._ctx, message, True)
                         body = transferable.getByString(message)
-                        print("IspdbModel._uploadMessage() 5")
                         mail = getMailMessage(self._ctx, self.Sender, self.Email, subject, body)
                         progress(60)
-                        print("IspdbModel._uploadMessage() 6")
                         server.uploadMessage(folder, mail)
-                        print("IspdbModel._uploadMessage() 7")
                 except UnoException as e:
-                    print("IspdbModel._uploadMessage() 2 Error: %s - %s" % (e.Message, traceback.format_exc()))
-                except Exception as e:
-                    print("IspdbModel._uploadMessage() 3 Error: %s - %s" % (e, traceback.format_exc()))
+                    # Exceptions are already logged in the MailServiceLogger log.
+                    print("IspdbModel._uploadMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
                 progress(80)
                 server.disconnect()
         progress(100)
-        print("IspdbModel._uploadMessage() 4 MessageId: %s - ThreadId: %s" % (mail.MessageId, mail.ThreadId))
         return mail
 
     def _getLogLevel(self, handler):

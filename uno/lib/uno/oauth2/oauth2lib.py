@@ -107,3 +107,42 @@ class InteractionRequest(unohelper.Base,
         request.Format = format
         request.Message = message
         return request
+
+
+class CustomParser():
+    def __init__(self, keys, items, triggers, collectors):
+        self._keys = keys
+        self._items = items
+        self._triggers = triggers
+        self._collectors = collectors
+        self._key = None
+        self._values = None
+
+    def hasItems(self):
+        return any((self._items, self._triggers))
+
+    def parse(self, results, prefix, event, value):
+        if (prefix, event) in self._items:
+            if self._values is None:
+                item = self._items[(prefix, event)]
+                results[item] = value
+                if self._key == (prefix, event):
+                    del self._items[(prefix, event)]
+                    self._key = None
+            else:
+                self._values.append(value)
+        elif (prefix, event, value) in self._triggers:
+            item = self._triggers[(prefix, event, value)]
+            key = self._keys[item]
+            self._items[key] = item
+            del self._triggers[(prefix, event, value)]
+            if item in self._collectors:
+                self._values = []
+            else:
+                self._key = key
+        elif (prefix, event, value) in self._collectors:
+            item = self._collectors[(prefix, event, value)]
+            results[item] = self._values
+            del self._collectors[(prefix, event, value)]
+            self._values = None
+

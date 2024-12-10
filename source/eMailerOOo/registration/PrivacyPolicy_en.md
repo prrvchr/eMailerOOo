@@ -54,6 +54,7 @@ ___
 
 - For a Google email account, it is:
     - [https://www.googleapis.com/auth/gmail.send][8]
+    - [https://www.googleapis.com/auth/gmail.metadata][8]
 - For a Microsoft email account, it is:
     - [https://graph.microsoft.com/mail.send][9]
     - [offline_access][10]

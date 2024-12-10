@@ -47,7 +47,7 @@ from ...unotool import getStringResource
 
 from ...dbtool import getValueFromResult
 
-from ...mailertool import setParametersArguments
+from ...oauth2 import setParametersArguments
 
 from ...configuration import g_identifier
 from ...configuration import g_extension

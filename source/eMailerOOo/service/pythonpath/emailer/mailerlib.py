@@ -40,7 +40,7 @@ from com.sun.star.mail import XAuthenticator
 
 from com.sun.star.uno import XCurrentContext
 
-from .mailertool import setParametersArguments
+from .oauth2 import setParametersArguments
 
 from .unotool import getStreamSequence
 
@@ -110,25 +110,13 @@ class CurrentContext(unohelper.Base,
 
 
 class CustomMessage(UserDict):
-    def __init__(self, logger, cls, message):
+    def __init__(self, logger, cls, message, request):
         self._keys = ('MessageId', 'ThreadId', 'ForeignId', 'Subject',
                       'Recipients', 'CcRecipients', 'BccRecipients',
                       'Body', 'Attachments', 'Message')
-        self._body = lambda x, y: (x.getTransferData(y).value if y.DataType.typeName != 'string' else
-                                   x.getTransferData(y).encode())
-        self._recipients =  {'Recipients':    lambda x: x.getRecipients(),
-                             'CcRecipients':  lambda x: x.getCcRecipients(),
-                             'BccRecipients': lambda x: x.getBccRecipients()}
-        getdata =    lambda x, y: (x.Data.getTransferData(y).value if y.DataType.typeName != 'string' else
-                                   x.Data.getTransferData(y).encode())
-        self._attachments = {'Data':          getdata,
-                             'DataFlavor':    lambda x, y: y.MimeType,
-                             'ReadableName':  lambda x, y: x.ReadableName}
         self._datatypes = ('[]byte', 'string')
         self._message = message
-        self._prefix = '${'
-        self._suffix = '}'
-        self._templates = {}
+        self._parameters = request.getByName('Parameters')
         self._logger = logger
         self._cls = cls
         self.data = {}
@@ -142,15 +130,6 @@ class CustomMessage(UserDict):
     def __contains__(self, key):
         return True if key in self._keys or key in self.data else False
 
-    def setTemplate(self, name, template, parameters):
-        self._templates[name] = (template, parameters)
-
-    def toJson(self, template):
-        items = json.loads(template)
-        identifiers = {self._getKey(key): key for key in self._keys}
-        self._setItems(items, identifiers, self.__getitem__)
-        return json.dumps(items)
-
     def _getItem(self, key):
         if key == 'Body':
             value = self._getBody()
@@ -163,16 +142,16 @@ class CustomMessage(UserDict):
         elif key == 'ForeignId':
             value = self._message.ForeignId
         elif key == 'Message':
-            value = self._message.asBytes().value
+            value = self._getMessage()
         elif key == 'Recipients':
-            template, dummy = self._templates[key]
-            value = self._getRecipients('Recipient', template, self._recipients[key])
+            parameters, template = self._getParameters(key)
+            value = self._getRecipients('Recipient', parameters, template, lambda x: x.getRecipients())
         elif key == 'CcRecipients':
-            template, dummy = self._templates[key]
-            value = self._getRecipients('CcRecipient', template, self._recipients[key])
+            parameters, template = self._getParameters(key)
+            value = self._getRecipients('CcRecipient', parameters, template, lambda x: x.getCcRecipients())
         elif key == 'BccRecipients':
-            template, dummy = self._templates[key]
-            value = self._getRecipients('BccRecipient', template, self._recipients[key])
+            parameters, template = self._getParameters(key)
+            value = self._getRecipients('BccRecipient', parameters, template, lambda x: x.getBccRecipients())
         elif key == 'Attachments':
             value = self._getAttachments(key)
         return value
@@ -184,103 +163,66 @@ class CustomMessage(UserDict):
         for typename in self._datatypes:
             flavor.DataType = uno.getTypeByName(typename)
             if self._message.Body.isDataFlavorSupported(flavor):
-                body = self._body(self._message.Body, flavor)
+                if flavor.DataType.typeName == 'string':
+                    body = self._message.Body.getTransferData(flavor).encode()
+                else:
+                    body = self._message.Body.getTransferData(flavor).value
                 self._logger.logprb(INFO, self._cls, mtd, 412, flavor.DataType.typeName)
-                return body
+                arguments = {'Body': body}
+                setParametersArguments(self._parameters, arguments)
+                return arguments['Body']
         self._logger.logprb(SEVERE, self._cls, mtd, 413, flavor.DataType.typeName)
 
-    def _getRecipients(self, identifier, template, getRecipients):
+    def _getMessage(self):
+        arguments = {'Message': self._message.asBytes().value}
+        setParametersArguments(self._parameters, arguments)
+        return arguments['Message']
+
+    def _getRecipients(self, identifier, parameters, template, getRecipients):
         mtd = '_getRecipients'
         recipients = []
         self._logger.logprb(INFO, self._cls, mtd, 421)
-        identifiers = {self._getKey(identifier): identifier}
         for recipient in getRecipients(self._message):
-            items = json.loads(template)
-            self._setItems(items, identifiers, lambda x: recipient)
-            recipients.append(items)
+            arguments = {identifier: recipient}
+            setParametersArguments(parameters, arguments)
+            recipients.append(Template(template).safe_substitute(arguments))
         self._logger.logprb(INFO, self._cls, mtd, 422, len(recipients))
-        return recipients
+        return json.dumps(recipients)
 
     def _getAttachments(self, identifier):
         mtd = '_getAttachments'
         attachments = []
         self._logger.logprb(INFO, self._cls, mtd, 431)
-        identifiers = {self._getKey(key): key for key in self._attachments}
-        template, parameters = self._templates.get(identifier)
+        parameters, template = self._getParameters(identifier)
         for attachment in self._message.getAttachments():
             flavor = attachment.Data.getTransferDataFlavors()[0]
             self._logger.logprb(INFO, self._cls, mtd, 432, attachment.ReadableName, flavor.DataType.typeName)
             for typename in self._datatypes:
                 flavor.DataType = uno.getTypeByName(typename)
                 if attachment.Data.isDataFlavorSupported(flavor):
-                    arguments = {key: data(attachment, flavor) for key, data in self._attachments.items()}
+                    if flavor.DataType.typeName == 'string':
+                        data = attachement.Data.getTransferData(flavor).encode()
+                    else:
+                        data = attachement.Data.getTransferData(flavor).value
+                    arguments = {'Data':         data, 
+                                 'DataFlavor':   flavor.MimeType,
+                                 'ReadableName': attachement.ReadableName}
                     setParametersArguments(parameters, arguments)
-                    items = json.loads(template)
-                    self._setItems(items, identifiers, lambda x: arguments[x])
-                    attachments.append(items)
+                    attachments.append(Template(template).safe_substitute(arguments))
                     self._logger.logprb(INFO, self._cls, mtd, 433, attachment.ReadableName, flavor.DataType.typeName, flavor.MimeType)
                     break
             else:
                 self._logger.logprb(SEVERE, self._cls, mtd, 434, attachment.ReadableName, flavor.DataType.typeName)
         self._logger.logprb(INFO, self._cls, mtd, 435, len(attachments))
-        return attachments
+        return json.dumps(attachments)
 
-    def _setItems(self, items, identifiers, getter):
-        for key, value in items.items():
-            if isinstance(value, dict):
-                self._setItems(value, identifiers, getter)
-            elif isinstance(value, list):
-                self._setItemsList(value, identifiers, getter)
-            elif value in identifiers:
-                items[key] = getter(identifiers[value])
-
-    def _setItemsList(self, values, identifiers, getter):
-        for i, value in enumerate(values):
-            if isinstance(value, dict):
-                self._setItems(value, identifiers, getter)
-            elif isinstance(value, list):
-                self._setItemsList(value, identifiers, getter)
-            elif value in identifiers:
-                values[i] = getter(identifiers[value])
-
-    def _getKey(self, identifier):
-        return  self._prefix + identifier + self._suffix
-
-
-class CustomParser():
-    def __init__(self, keys, items, triggers, collectors):
-        self._keys = keys
-        self._items = items
-        self._triggers = triggers
-        self._collectors = collectors
-        self._key = None
-        self._values = None
-
-    def hasItems(self):
-        return any((self._items, self._triggers))
-
-    def parse(self, results, prefix, event, value):
-        if (prefix, event) in self._items:
-            if self._values is None:
-                item = self._items[(prefix, event)]
-                results[item] = value
-                if self._key == (prefix, event):
-                    del self._items[(prefix, event)]
-                    self._key = None
-            else:
-                self._values.append(value)
-        elif (prefix, event, value) in self._triggers:
-            item = self._triggers[(prefix, event, value)]
-            key = self._keys[item]
-            self._items[key] = item
-            del self._triggers[(prefix, event, value)]
-            if item in self._collectors:
-                self._values = []
-            else:
-                self._key = key
-        elif (prefix, event, value) in self._collectors:
-            item = self._collectors[(prefix, event, value)]
-            results[item] = self._values
-            del self._collectors[(prefix, event, value)]
-            self._values = None
+    def _getParameters(self, key):
+        parameters = template = None
+        for name in self._parameters.getElementNames():
+            parameter = parameters.getByName(name)
+            if parameter.getByName('Name') == key:
+                template = parameter.getByName('Template')
+                parameters = parameter.getByName('Parameters')
+                break
+        return parameters, template
 

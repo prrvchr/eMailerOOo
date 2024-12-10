@@ -39,12 +39,14 @@ from com.sun.star.mail import MailException
 from ..unotool import getConfiguration
 from ..unotool import hasInterface
 
-from ..mailertool import setParametersArguments
-
 from ..mailerlib import CustomMessage
-from ..mailerlib import CustomParser
 
+from ..oauth2 import CustomParser
+
+from ..oauth2 import getParserItems
 from ..oauth2 import getRequest
+from ..oauth2 import getResponseResults
+from ..oauth2 import setResquestParameter
 
 from ..configuration import g_chunk
 from ..configuration import g_identifier
@@ -78,9 +80,8 @@ def executeHTTPRequest(source, logger, debug, cls, code, server, message, reques
     mtd = 'executeHTTPRequest'
     name = request.getByName('Name')
     parameter = server.getRequestParameter(name)
-    _setResquestParameter(logger, cls, message, request, parameter)
-    # If the configuration is not compliant then a MailException will be thrown
-    items = _getParserItems(source, logger, cls, name, request)
+    arguments = CustomMessage(logger, cls, message, request)
+    setResquestParameter(arguments, request, parameter)
     try:
         response = server.execute(parameter)
         response.raiseForStatus()
@@ -90,81 +91,14 @@ def executeHTTPRequest(source, logger, debug, cls, code, server, message, reques
             logger.logp(SEVERE, cls, mtd, msg)
         raise MailException(msg, source)
     if response.Ok:
-        parser = CustomParser(*items)
+        parser = CustomParser(*getParserItems(request))
         # XXX: It may be possible that there is nothing to parse
         if parser.hasItems():
-            results = _getResponseResults(parser, response)
+            results = getResponseResults(parser, response)
             interface = 'com.sun.star.mail.XMailMessage2'
             if hasInterface(message, interface):
                 for name, value in results.items():
                     logger.logprb(INFO, cls, mtd, code + 1, name, value)
                     message.setHeader(name, value)
     response.close()
-
-def _setResquestParameter(logger, cls, message, request, parameter):
-    arguments = CustomMessage(logger, cls, message)
-    setParametersArguments(request.getByName('Parameters'), arguments)
-    method = request.getByName('Method')
-    if method:
-        parameter.Method = method
-    url = request.getByName('Url')
-    if url:
-        parameter.Url = Template(url).safe_substitute(arguments)
-    data = request.getByName('Data')
-    if data and data in arguments:
-        parameter.Data = uno.ByteSequence(arguments[data])
-    template = request.getByName('Arguments')
-    if template:
-        config = arguments.toJson(template)
-        parameter.fromJson(config)
-
-def _getResponseResults(items, response):
-    results = {}
-    events = ijson.sendable_list()
-    parser = ijson.parse_coro(events)
-    iterator = response.iterContent(g_chunk, False)
-    while iterator.hasMoreElements():
-        parser.send(iterator.nextElement().value)
-        for event in events:
-            items.parse(results, *event)
-        del events[:]
-    parser.close()
-    return results
-
-def _getParserItems(source, logger, cls, rname, request):
-    keys = {}
-    items = {}
-    triggers = {}
-    collectors = {}
-    responses = request.getByName('Responses')
-    if responses:
-        mtd = 'getParserItems'
-        getKey = lambda x: (x[0], x[1], x[2] if len(x) > 2 else None)
-        for name in responses.getElementNames():
-            response = responses.getByName(name)
-            item = response.getByName('Item')
-            if item and len(item) == 2:
-                trigger = response.getByName('Trigger')
-                if not trigger:
-                    items[item] = name
-                elif len(trigger) > 1:
-                    keys[name] = item
-                    triggers[getKey(trigger)] = name
-                    collector = response.getByName('Collector')
-                    if collector:
-                        if len(collector) > 1:
-                            collectors[getKey(collector)] = name
-                        else:
-                            msg = logger.resolveString(453, rname)
-                            logger.logp(SEVERE, cls, mtd, msg)
-                            raise MailException(msg, source)
-                else:
-                    msg = logger.resolveString(452, rname)
-                    logger.logp(SEVERE, cls, mtd, msg)
-                    raise MailException(msg, source)
-            else:
-                msg = logger.resolveString(451, rname)
-                logger.logp(SEVERE, cls, mtd, msg)
-                raise MailException(msg, source)
-    return keys, items, triggers, collectors
 

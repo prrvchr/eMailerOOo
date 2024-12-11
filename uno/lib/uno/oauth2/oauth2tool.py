@@ -40,6 +40,7 @@ from string import Formatter
 from string import Template
 from urllib import parse
 import base64
+import json
 import ijson
 
 
@@ -73,7 +74,9 @@ def setResquestParameter(arguments, request, parameter):
         parameter.Data = uno.ByteSequence(arguments[data])
     args = request.getByName('Arguments')
     if args:
-        parameter.fromJson(Template(args).safe_substitute(arguments))
+        items = json.loads(args)
+        setItemsIdentifier(items, arguments)
+        parameter.fromJson(json.dumps(items))
 
 def setParametersArguments(parameters, arguments):
     for name in parameters.getElementNames():
@@ -83,7 +86,7 @@ def setParametersArguments(parameters, arguments):
         command = parameter.getByName('Command')
         if template:
             _setArgumentTemplate(key, arguments, template)
-        if key in arguments and command:
+        if command and key in arguments:
             method = command[0]
             value = arguments[key]
             if method == 'encodeURI':
@@ -154,6 +157,10 @@ def getResponseResults(items, response):
     parser.close()
     return results
 
+def setItemsIdentifier(items, arguments, prefix='${', suffix='}'):
+    identifiers = {prefix + k + suffix: k for k in arguments.keys()}
+    _setItemsIdentifier(items, arguments, identifiers)
+
 def _setArgumentTemplate(key, arguments, template):
     for identifier in Formatter().parse(template):
         if identifier[1] in arguments:
@@ -162,4 +169,22 @@ def _setArgumentTemplate(key, arguments, template):
 
 def _getArgumentCommand(command, default=None, index=1):
     return command[index] if len(command) > index else default
+
+def _setItemsIdentifier(items, arguments, identifiers):
+    for key, value in items.items():
+        if isinstance(value, dict):
+            _setItemsIdentifier(value, arguments, identifiers)
+        elif isinstance(value, list):
+            _setItemsList(value, arguments, identifiers)
+        elif value in identifiers:
+            items[key] = arguments[identifiers[value]]
+
+def _setItemsList(values, arguments, identifiers):
+    for i, value in enumerate(values):
+        if isinstance(value, dict):
+            _setItemsIdentifier(value, arguments, identifiers)
+        elif isinstance(value, list):
+            _setItemsList(value, arguments, identifiers)
+        elif value in identifiers:
+            values[i] = arguments[identifiers[value]]
 

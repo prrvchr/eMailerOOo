@@ -44,6 +44,7 @@ from .oauth2tool import getOAuth2Version
 from .oauth2tool import getParserItems
 from .oauth2tool import getRequest
 from .oauth2tool import getResponseResults
+from .oauth2tool import setItemsIdentifier
 from .oauth2tool import setParametersArguments
 from .oauth2tool import setResquestParameter
 

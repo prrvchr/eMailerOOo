@@ -278,7 +278,7 @@
                 <value>Attachments</value>
               </prop>
               <prop oor:name="Template">
-                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
+                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${MimeType}", "contentBytes": "${Data}"}</value>
               </prop>
               <node oor:name="Parameters">
                 <node oor:name="Parameter1" oor:op="fuse">
@@ -367,7 +367,7 @@
                 <value>Attachments</value>
               </prop>
               <prop oor:name="Template">
-                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${DataFlavor}", "contentBytes": "${Data}"}</value>
+                <value>{"@odata.type": "#microsoft.graph.fileAttachment", "name": "${ReadableName}", "contentType": "${MimeType}", "contentBytes": "${Data}"}</value>
               </prop>
               <node oor:name="Parameters">
                 <node oor:name="Parameter1" oor:op="fuse">

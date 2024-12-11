@@ -122,16 +122,14 @@
               <prop oor:name="Command">
                 <value>base64URL</value>
               </prop>
-              <node oor:name="Parameters">
-                <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Name">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-              </node>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>decode</value>
+              </prop>
             </node>
           </node>
           <node oor:name="Responses">
@@ -186,16 +184,14 @@
               <prop oor:name="Command">
                 <value>base64URL</value>
               </prop>
-              <node oor:name="Parameters">
-                <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Name">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-              </node>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>decode</value>
+              </prop>
             </node>
           </node>
           <node oor:name="Responses">
@@ -288,16 +284,14 @@
                   <prop oor:name="Command">
                     <value>base64</value>
                   </prop>
-                  <node oor:name="Parameters">
-                    <node oor:name="Parameter1" oor:op="fuse">
-                      <prop oor:name="Name">
-                        <value>Data</value>
-                      </prop>
-                      <prop oor:name="Command">
-                        <value>decode</value>
-                      </prop>
-                    </node>
-                  </node>
+                </node>
+                <node oor:name="Parameter2" oor:op="fuse">
+                  <prop oor:name="Name">
+                    <value>Data</value>
+                  </prop>
+                  <prop oor:name="Command">
+                    <value>decode</value>
+                  </prop>
                 </node>
               </node>
             </node>
@@ -377,16 +371,14 @@
                   <prop oor:name="Command">
                     <value>base64</value>
                   </prop>
-                  <node oor:name="Parameters">
-                    <node oor:name="Parameter1" oor:op="fuse">
-                      <prop oor:name="Name">
-                        <value>Data</value>
-                      </prop>
-                      <prop oor:name="Command">
-                        <value>decode</value>
-                      </prop>
-                    </node>
-                  </node>
+                </node>
+                <node oor:name="Parameter2" oor:op="fuse">
+                  <prop oor:name="Name">
+                    <value>Data</value>
+                  </prop>
+                  <prop oor:name="Command">
+                    <value>decode</value>
+                  </prop>
                 </node>
               </node>
             </node>
@@ -442,16 +434,14 @@
               <prop oor:name="Command">
                 <value>base64</value>
               </prop>
-              <node oor:name="Parameters">
-                <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Name">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-              </node>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>decode</value>
+              </prop>
             </node>
           </node>
         </node>
@@ -503,16 +493,14 @@
               <prop oor:name="Command">
                 <value>base64</value>
               </prop>
-              <node oor:name="Parameters">
-                <node oor:name="Parameter1" oor:op="fuse">
-                  <prop oor:name="Name">
-                    <value>Message</value>
-                  </prop>
-                  <prop oor:name="Command">
-                    <value>decode</value>
-                  </prop>
-                </node>
-              </node>
+            </node>
+            <node oor:name="Parameter2" oor:op="fuse">
+              <prop oor:name="Name">
+                <value>Message</value>
+              </prop>
+              <prop oor:name="Command">
+                <value>decode</value>
+              </prop>
             </node>
           </node>
         </node>

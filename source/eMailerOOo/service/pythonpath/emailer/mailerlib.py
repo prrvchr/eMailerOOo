@@ -229,7 +229,7 @@ class CustomMessage(UserDict):
 
     def _getParameters(self, key):
         parameters = template = None
-        for name in self._parameters.getElementNames():
+        for name in sorted(self._parameters.getElementNames()):
             parameter = self._parameters.getByName(name)
             if parameter.getByName('Name') == key:
                 parameters = parameter.getByName('Parameters')

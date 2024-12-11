@@ -89,20 +89,29 @@ class IspdbManager(unohelper.Base):
 
     def updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
+            print("IspdbManager.updateProgress() value: %s" % value)
             message = self._model.getProgressMessage(self._resolver, value + offset)
             self._view.updateProgress(value, message, style)
 
     def updateView(self, title, auto, state, replyto, imap, offline):
         if not self._model.isDisposed():
+            print("IspdbManager.updateView() 1")
             self._wizard.setTitle(title)
+            print("IspdbManager.updateView() 2")
             self._wizard.enablePage(1, True)
+            print("IspdbManager.updateView() 3")
             self._view.commitSearch(auto, state, replyto, imap)
             #if not auto:
             #    self._view.enableIMAP(imap)
+            print("IspdbManager.updateView() 4")
             self._activatePath(imap, offline)
+            print("IspdbManager.updateView() 5")
             self._finish = True
+            print("IspdbManager.updateView() 6")
             self._wizard.updateTravelUI()
+            print("IspdbManager.updateView() 7")
 
     def _activatePath(self, imap, offline):
         path = offline * 2 + imap
+        print("IspdbManager._activatePath() path: %s" % path)
         self._wizard.activatePath(path, True)

@@ -123,12 +123,15 @@ class CustomMessage(UserDict):
         self._logger = logger
         self._cls = cls
 
+    # We need this method for oauth2tool.setItemsIdentifier()
     def keys(self):
         return self._keys + tuple(self.data.keys())
 
+    # We need this method for oauth2tool.setParametersArguments()
     def __contains__(self, key):
         return key in self._keys or key in self.data
 
+    # If the key does not exist in self.data, we give the value
     def __missing__(self, key):
         if key == 'MessageId':
             value = self._message.MessageId
@@ -153,15 +156,15 @@ class CustomMessage(UserDict):
         elif key == 'Body':
             value = self._getBody()
         elif key == 'MimeType':
-            value = self._message.Body.getTransferDataFlavors()[0].MimeType
+            value = self._getMimeType()
         elif key == 'Attachments':
             parameters, template = self._getParameters(key)
             value = self._getAttachments(parameters, template)
         elif key == 'Message':
             value = self._getMessage()
         else:
-            # Key not found we use UserDict to raise KeyError
-            value = self.data[key]
+            # Key not found we raise KeyError
+            raise KeyError(key)
         return value
 
     def _getRecipients(self, identifier, getter, parameters, template):
@@ -179,44 +182,54 @@ class CustomMessage(UserDict):
 
     def _getBody(self):
         mtd = '_getBody'
-        flavor = self._message.Body.getTransferDataFlavors()[0]
-        self._logger.logprb(INFO, self._cls, mtd, 411, flavor.DataType.typeName)
-        for typename in self._datatypes:
-            flavor.DataType = uno.getTypeByName(typename)
-            if self._message.Body.isDataFlavorSupported(flavor):
-                if flavor.DataType.typeName == 'string':
-                    body = self._message.Body.getTransferData(flavor).encode()
-                else:
-                    body = self._message.Body.getTransferData(flavor).value
-                self._logger.logprb(INFO, self._cls, mtd, 412, flavor.DataType.typeName)
-                arguments = {'Body': body}
-                setParametersArguments(self._parameters, arguments)
-                return arguments['Body']
+        # Only first flavor will be used!
+        for flavor in self._message.Body.getTransferDataFlavors():
+            self._logger.logprb(INFO, self._cls, mtd, 411, flavor.DataType.typeName)
+            for typename in self._datatypes:
+                flavor.DataType = uno.getTypeByName(typename)
+                if self._message.Body.isDataFlavorSupported(flavor):
+                    if flavor.DataType.typeName == 'string':
+                        body = self._message.Body.getTransferData(flavor).encode()
+                    else:
+                        body = self._message.Body.getTransferData(flavor).value
+                    self._logger.logprb(INFO, self._cls, mtd, 412, flavor.DataType.typeName)
+                    arguments = {'Body': body}
+                    setParametersArguments(self._parameters, arguments)
+                    return arguments['Body']
         self._logger.logprb(SEVERE, self._cls, mtd, 413, flavor.DataType.typeName)
+
+    def _getMimeType(self):
+        # Only first flavor will be used!
+        for flavor in self._message.Body.getTransferDataFlavors():
+            return flavor.MimeType
 
     def _getAttachments(self, parameters, template):
         mtd = '_getAttachments'
         attachments = []
         self._logger.logprb(INFO, self._cls, mtd, 431)
         for attachment in self._message.getAttachments():
-            flavor = attachment.Data.getTransferDataFlavors()[0]
-            self._logger.logprb(INFO, self._cls, mtd, 432, attachment.ReadableName, flavor.DataType.typeName)
-            for typename in self._datatypes:
-                flavor.DataType = uno.getTypeByName(typename)
-                if attachment.Data.isDataFlavorSupported(flavor):
-                    items = json.loads(template)
-                    if flavor.DataType.typeName == 'string':
-                        data = attachement.Data.getTransferData(flavor).encode()
-                    else:
-                        data = attachement.Data.getTransferData(flavor).value
-                    arguments = {'Data':         data,
-                                 'MimeType':     flavor.MimeType,
-                                 'ReadableName': attachement.ReadableName}
-                    setParametersArguments(parameters, arguments)
-                    setItemsIdentifier(items, arguments)
-                    attachments.append(items)
-                    self._logger.logprb(INFO, self._cls, mtd, 433, attachment.ReadableName, flavor.DataType.typeName, flavor.MimeType)
-                    break
+            # Only first flavor will be used!
+            for flavor in attachment.Data.getTransferDataFlavors():
+                self._logger.logprb(INFO, self._cls, mtd, 432, attachment.ReadableName, flavor.DataType.typeName)
+                for typename in self._datatypes:
+                    flavor.DataType = uno.getTypeByName(typename)
+                    if attachment.Data.isDataFlavorSupported(flavor):
+                        items = json.loads(template)
+                        if flavor.DataType.typeName == 'string':
+                            data = attachment.Data.getTransferData(flavor).encode()
+                        else:
+                            data = attachment.Data.getTransferData(flavor).value
+                        arguments = {'Data':         data,
+                                     'MimeType':     flavor.MimeType,
+                                     'ReadableName': attachment.ReadableName}
+                        setParametersArguments(parameters, arguments)
+                        setItemsIdentifier(items, arguments)
+                        attachments.append(items)
+                        self._logger.logprb(INFO, self._cls, mtd, 433, attachment.ReadableName, flavor.DataType.typeName, flavor.MimeType)
+                        break
+                else:
+                    continue
+                break
             else:
                 self._logger.logprb(SEVERE, self._cls, mtd, 434, attachment.ReadableName, flavor.DataType.typeName)
         self._logger.logprb(INFO, self._cls, mtd, 435, len(attachments))

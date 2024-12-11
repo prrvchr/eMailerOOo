@@ -125,7 +125,8 @@ class CustomMessage(UserDict):
 
     # We need this method for oauth2tool.setItemsIdentifier()
     def keys(self):
-        return self._keys + tuple(self.data.keys())
+        keys = tuple(k for k in self.data.keys() if k not in self._keys)
+        return self._keys + keys
 
     # We need this method for oauth2tool.setParametersArguments()
     def __contains__(self, key):

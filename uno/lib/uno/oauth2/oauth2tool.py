@@ -79,7 +79,7 @@ def setResquestParameter(arguments, request, parameter):
         parameter.fromJson(json.dumps(items))
 
 def setParametersArguments(parameters, arguments):
-    for name in parameters.getElementNames():
+    for name in sorted(parameters.getElementNames()):
         parameter = parameters.getByName(name)
         key = parameter.getByName('Name')
         template = parameter.getByName('Template')

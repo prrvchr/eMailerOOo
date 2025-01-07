@@ -54,9 +54,10 @@ from .. import smtplib
 from .apihelper import getHttpProvider
 from .apihelper import getHttpServer
 from .apihelper import getHttpRequest
-from .apihelper import executeHTTPRequest
+from .apihelper import getOAuth2TokenWithParameter
+from .apihelper import executeHttpRequest
 
-from ..oauth2 import getOAuth2Token
+from ..oauth2 import getOAuth2
 
 from ..unotool import getExceptionMessage
 from ..unotool import hasInterface
@@ -69,7 +70,7 @@ import traceback
 
 class SmtpService(unohelper.Base,
                   XSmtpService2):
-    def __init__(self, ctx, logger, hosts, debug=False):
+    def __init__(self, ctx, logger, hosts, parameters, default, debug=False):
         mtd = '__init__'
         self._cls = 'SmtpService'
         self._ctx = ctx
@@ -83,6 +84,8 @@ class SmtpService(unohelper.Base,
         self._provider = None
         self._url = ''
         self._hosts = hosts
+        self._parameters = parameters
+        self._default = default
         self._logger = logger
         self._debug = debug
         if debug:
@@ -153,31 +156,31 @@ class SmtpService(unohelper.Base,
 
 # Private methods implementation
     def _getServer(self, context, authenticator):
-        servername = context.getValueByName('ServerName')
-        username = authenticator.getUserName()
+        host = context.getValueByName('ServerName')
+        user = authenticator.getUserName()
         password = authenticator.getPassword()
-        provider = getHttpProvider(self._hosts, servername)
+        provider = getHttpProvider(self._hosts, host)
         if provider:
-            server = self._getHttpServer(provider, servername, username)
+            server = self._getHttpServer(provider, host, user)
         else:
-            server = self._getSmtpServer(context, servername, username, password)
+            server = self._getSmtpServer(context, host, user, password)
         return server
 
     def _isSmtpServer(self):
         return self._provider is None
 
-    def _getHttpServer(self, provider, servername, username):
+    def _getHttpServer(self, provider, host, user):
         mtd = '_getHttpServer'
         self._provider = provider
-        server = getHttpServer(self._ctx, provider, servername, username)
+        server = getHttpServer(self._ctx, provider, host, user)
         if server is None:
-            msg = self._logger.resolveString(221, username)
+            msg = self._logger.resolveString(221, user)
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         return server
 
-    def _getSmtpServer(self, context, servername, username, password):
+    def _getSmtpServer(self, context, host, user, password):
         mtd = '_getSmtpServer'
         self._provider = None
         server = None
@@ -197,7 +200,7 @@ class SmtpService(unohelper.Base,
                 server = smtplib.SMTP(timeout=timeout)
             if self._debug:
                 server.set_debuglevel(1)
-            code, reply = server.connect(host=servername, port=port)
+            code, reply = server.connect(host=host, port=port)
         except smtplib.SMTPConnectError as e:
             msg = self._logger.resolveString(234, getExceptionMessage(e))
             if self._debug:
@@ -219,10 +222,10 @@ class SmtpService(unohelper.Base,
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise ConnectException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, self._cls, mtd, 235, servername, port, code, self._getReply(reply))
+            self._logger.logprb(INFO, self._cls, mtd, 235, host, port, code, self._getReply(reply))
         if connection.upper() == 'TLS':
             self._doStartTls(server)
-        self._doAuthentication(context, server, servername, username, password)
+        self._doAuthentication(context, server, host, port, user, password)
         return server
 
     def _doStartTls(self, server):
@@ -244,69 +247,68 @@ class SmtpService(unohelper.Base,
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 243, code, self._getReply(reply))
 
-    def _doAuthentication(self, context, server, servername, username, password):
+    def _doAuthentication(self, context, server, host, port, user, password):
         authentication = context.getValueByName('AuthenticationType')
         if authentication is None:
-            if username:
-                self._doLogin(server, username, password, 'Login')
+            if user:
+                self._doLogin(server, user, password, 'Login')
         elif authentication.upper() == 'LOGIN':
-            self._doLogin(server, username, password, authentication)
+            self._doLogin(server, user, password, authentication)
         elif authentication.upper() == 'OAUTH2':
-            self._doOAuth2(server, servername, username, password, authentication)
+            self._doOAuth2(server, host, port, user, password, authentication)
 
-    def _doLogin(self, server, username, password, authentication):
+    def _doLogin(self, server, user, password, authentication):
         mtd = '_doLogin'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 251, authentication)
         if six.PY2: # fdo#59249 i#105669 Python 2 needs "ascii"
-            username = username.encode('ascii')
+            user = user.encode('ascii')
             password = password.encode('ascii')
         try:
-            code, reply = server.login(username, password)
+            code, reply = server.login(user, password)
         except smtplib.SMTPException as e:
             pwd = '*' * len(password)
-            msg = self._logger.resolveString(252, username, pwd, getExceptionMessage(e))
+            msg = self._logger.resolveString(252, user, pwd, getExceptionMessage(e))
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         print("SmtpService._doLogin() Code: %s - Reply: %s" % (code, self._getReply(reply)))
         if code != 235:
             pwd = '*' * len(password)
-            msg = self._logger.resolveString(252, username, pwd, self._getReply(reply))
+            msg = self._logger.resolveString(252, user, pwd, self._getReply(reply))
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         if self._debug:
             pwd = '*' * len(password)
-            self._logger.logprb(INFO, self._cls, mtd, 253, username, pwd, code, self._getReply(reply))
+            self._logger.logprb(INFO, self._cls, mtd, 253, user, pwd, code, self._getReply(reply))
 
-    def _doOAuth2(self, server, servername, username, password, authentication):
+    def _doOAuth2(self, server, host, port, user, password, authentication):
         mtd = '_doOAuth2'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 261, authentication)
+        oauth2 = getOAuth2(self._ctx, host, user)
+        if not oauth2:
+            msg = self._logger.resolveString(262)
+            if self._debug:
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
+            raise AuthenticationFailedException(msg, self)
         try:
-            token = self._getToken(servername, username, True)
+            token = getOAuth2TokenWithParameter(oauth2, self._getHostParameter(host), port)
             server.ehlo_or_helo_if_needed()
-            code, reply = server.docmd('AUTH', 'XOAUTH2 %s' % token)
+            code, reply = server.docmd('AUTH', token)
         except smtplib.SMTPException as e:
-            msg = self._logger.resolveString(262, getExceptionMessage(e))
+            msg = self._logger.resolveString(263, getExceptionMessage(e))
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         if code != 235:
-            msg = self._logger.resolveString(262, self._getReply(reply))
+            msg = self._logger.resolveString(263, self._getReply(reply))
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
         if self._debug:
-            self._logger.logprb(INFO, self._cls, mtd, 263, code, self._getReply(reply))
-
-    def _getToken(self, url, username, encode=False):
-        token = getOAuth2Token(self._ctx, self, url, username)
-        authstring = 'user=%s\1auth=Bearer %s\1\1' % (username, token)
-        if encode:
-            authstring = base64.b64encode(authstring.encode('ascii')).decode('ascii')
-        return authstring
+            self._logger.logprb(INFO, self._cls, mtd, 264, code, self._getReply(reply))
 
     def _sendHttpMailMessage(self, message):
         mtd = '_sendHttpMailMessage'
@@ -314,10 +316,10 @@ class SmtpService(unohelper.Base,
             self._logger.logprb(INFO, self._cls, mtd, 271, message.Subject)
         request = getHttpRequest(self._ctx, self._provider, SMTP, 'Request')
         if request:
-            executeHTTPRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, request)
+            executeHttpRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, request)
             subrequest = getHttpRequest(self._ctx, self._provider, SMTP, 'SubRequest')
             if subrequest:
-                executeHTTPRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, subrequest)
+                executeHttpRequest(self, self._logger, self._debug, self._cls, 272, self._server, message, subrequest)
         else:
             self._logger.logprb(SEVERE, self._cls, mtd, 274, message.Subject, self._provider)
             return
@@ -377,4 +379,7 @@ class SmtpService(unohelper.Base,
         if isinstance(reply, six.binary_type):
             reply = reply.decode('ascii')
         return reply
+
+    def _getHostParameter(self, host):
+        return self._parameters.get(host, self._default)
 

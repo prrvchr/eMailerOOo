@@ -37,6 +37,7 @@ from com.sun.star.uno import Exception as UnoException
 from com.sun.star.mail import MailException
 
 from ..unotool import getConfiguration
+from ..unotool import getNamedValueSet
 from ..unotool import hasInterface
 
 from ..mailerlib import CustomMessage
@@ -76,8 +77,8 @@ def getHttpRequest(ctx, provider, server, request):
             return service.getByName(request)
     return None
 
-def executeHTTPRequest(source, logger, debug, cls, code, server, message, request):
-    mtd = 'executeHTTPRequest'
+def executeHttpRequest(source, logger, debug, cls, code, server, message, request):
+    mtd = 'executeHttpRequest'
     name = request.getByName('Name')
     parameter = server.getRequestParameter(name)
     arguments = CustomMessage(logger, cls, message, request)
@@ -101,4 +102,7 @@ def executeHTTPRequest(source, logger, debug, cls, code, server, message, reques
                     logger.logprb(INFO, cls, mtd, code + 1, name, value)
                     message.setHeader(name, value)
     response.close()
+
+def getOAuth2TokenWithParameter(oauth2, parameter, port):
+    return oauth2.getTokenWithParameter(parameter, getNamedValueSet({'Port': port}))
 

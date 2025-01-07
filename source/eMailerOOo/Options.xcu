@@ -96,6 +96,119 @@
       </node>
     </node>
   </node>
+  <node oor:name="Parameters">
+    <node oor:name="SMTP" oor:op="fuse">
+      <prop oor:name="Name">
+        <value>Token</value>
+      </prop>
+      <prop oor:name="Template">
+        <value>user=${UserName}\1auth=Bearer ${AccessToken}\1\1</value>
+      </prop>
+      <prop oor:name="Command">
+        <value>encode ascii</value>
+      </prop>
+      <node oor:name="Parameters">
+        <node oor:name="Parameter1" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>base64</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter2" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>decode ascii</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter3" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Template">
+            <value>XOAUTH2 ${Token}</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+    <node oor:name="IMAP" oor:op="fuse">
+      <prop oor:name="Name">
+        <value>Token</value>
+      </prop>
+      <prop oor:name="Template">
+        <value>${AccessToken}</value>
+      </prop>
+    </node>
+    <node oor:name="smtp.mail.yahoo.com" oor:op="fuse">
+      <prop oor:name="Name">
+        <value>Token</value>
+      </prop>
+      <prop oor:name="Template">
+        <value>n,a=${UserName},\1auth=Bearer\n${AccessToken}\1\1</value>
+      </prop>
+      <prop oor:name="Command">
+        <value>encode ascii</value>
+      </prop>
+      <node oor:name="Parameters">
+        <node oor:name="Parameter1" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>base64</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter2" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>decode ascii</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter3" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Template">
+            <value>OAUTHBEARER\n${Token}</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+    <node oor:name="imap.mail.yahoo.com" oor:op="fuse">
+      <prop oor:name="Name">
+        <value>Token</value>
+      </prop>
+      <prop oor:name="Template">
+        <value>n,a=${UserName},\1auth=Bearer\n${AccessToken}\1\1</value>
+      </prop>
+      <prop oor:name="Command">
+        <value>encode ascii</value>
+      </prop>
+      <node oor:name="Parameters">
+        <node oor:name="Parameter1" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>base64</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter2" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>decode ascii</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+  </node>
   <node oor:name="Providers">
 <!-- Google API ***************************************************************************************** -->
     <node oor:name="googlemail.com" oor:op="fuse">

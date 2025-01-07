@@ -173,11 +173,14 @@ class CustomMessage(UserDict):
         recipients = []
         self._logger.logprb(INFO, self._cls, mtd, 421, identifier)
         for recipient in getter(self._message):
-            items = json.loads(template)
-            arguments = {identifier: recipient}
-            setParametersArguments(parameters, arguments)
-            setItemsIdentifier(items, arguments)
-            recipients.append(items)
+            if template:
+                items = json.loads(template)
+                arguments = {identifier: recipient}
+                setParametersArguments(parameters, arguments)
+                setItemsIdentifier(items, arguments)
+                recipients.append(items)
+            else:
+                recipients.append(recipient)
         self._logger.logprb(INFO, self._cls, mtd, 422, identifier, len(recipients))
         return recipients
 

@@ -75,7 +75,9 @@ class MailServiceProvider(unohelper.Base,
         self._ctx = ctx
         self._logger = logger
         self._debug = debug
-        self._hosts = self._getHosts(getConfiguration(ctx, g_identifier).getByName('Providers'))
+        config = getConfiguration(ctx, g_identifier)
+        self._hosts = self._getHosts(config.getByName('Providers'))
+        self._parameters = self._getParameters(config.getByName('Parameters'))
         if debug:
             logger.logprb(INFO, self._cls, mtd, 102)
 
@@ -84,11 +86,11 @@ class MailServiceProvider(unohelper.Base,
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 111, stype.value)
         if stype == SMTP:
-            service = SmtpService(self._ctx, self._logger, self._hosts, self._debug)
+            service = SmtpService(self._ctx, self._logger, self._hosts, self._parameters, self._getDefault(stype), self._debug)
         elif stype == POP3:
             service = Pop3Service(self._ctx)
         elif stype == IMAP:
-            service = ImapService(self._ctx, self._logger, self._hosts, self._debug)
+            service = ImapService(self._ctx, self._logger, self._hosts, self._parameters, self._getDefault(stype), self._debug)
         else:
             e = self._getNoMailServiceProviderException(112, stype.value)
             if self._debug:
@@ -111,6 +113,15 @@ class MailServiceProvider(unohelper.Base,
         for name in providers.getElementNames():
             hosts[name] = providers.getByName(name).getByName('Hosts').getElementNames()
         return hosts
+
+    def _getParameters(self, parameters):
+        hosts = {}
+        for name in parameters.getElementNames():
+            hosts[name] = parameters.getByName(name)
+        return hosts
+
+    def _getDefault(self, stype):
+        return self._parameters[stype.value]
 
     def _getNoMailServiceProviderException(self, code, *args):
         e = NoMailServiceProviderException()

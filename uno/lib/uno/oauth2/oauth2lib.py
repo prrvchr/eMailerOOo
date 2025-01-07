@@ -35,6 +35,8 @@ from com.sun.star.task import XInteractionAbort
 from com.sun.star.auth import XInteractionUserName
 from com.sun.star.auth import OAuth2Request
 
+from .configuration import g_token
+
 
 # Wrapper to make callable OAuth2Service
 class NoOAuth2(object):
@@ -48,7 +50,7 @@ class OAuth2OOo(NoOAuth2):
         self._oauth2 = oauth2
 
     def __call__(self, request):
-        request.headers['Authorization'] = self._oauth2.getToken('Bearer %s')
+        request.headers['Authorization'] = self._oauth2.getToken(g_token)
         return request
 
 

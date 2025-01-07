@@ -33,6 +33,7 @@ from .configuration import g_service
 from .configuration import g_version
 
 from .configuration import g_oauth2
+from .configuration import g_token
 
 from .oauth2lib import CustomParser
 from .oauth2lib import InteractionRequest
@@ -45,6 +46,7 @@ from .oauth2tool import getParserItems
 from .oauth2tool import getRequest
 from .oauth2tool import getResponseResults
 from .oauth2tool import setItemsIdentifier
+from .oauth2tool import setParameterArguments
 from .oauth2tool import setParametersArguments
 from .oauth2tool import setResquestParameter
 

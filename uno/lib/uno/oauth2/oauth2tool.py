@@ -81,44 +81,47 @@ def setResquestParameter(arguments, request, parameter):
 def setParametersArguments(parameters, arguments):
     for name in sorted(parameters.getElementNames()):
         parameter = parameters.getByName(name)
-        key = parameter.getByName('Name')
-        template = parameter.getByName('Template')
-        command = parameter.getByName('Command')
-        if template:
-            _setArgumentTemplate(key, arguments, template)
-        if command and key in arguments:
-            method = command[0]
-            value = arguments[key]
-            if method == 'encodeURI':
-                safe = _getArgumentCommand(command, "~@#$&()*!+=:;,?/'")
-                arguments[key] = parse.quote(value, safe=safe)
-            elif method == 'encodeURIComponent':
-                safe = _getArgumentCommand(command, "~()*!'")
-                arguments[key] = parse.quote(value, safe=safe)
-            elif method == 'base64URL':
-                arguments[key] = base64.urlsafe_b64encode(value)
-            elif method == 'base64':
-                arguments[key] = base64.b64encode(value)
-            elif method == 'decode':
-                encoding = _getArgumentCommand(command, 'utf-8')
-                errors = _getArgumentCommand(command, 'strict', 2)
-                arguments[key] = value.decode(encoding=encoding, errors=errors)
-            elif method == 'encode':
-                encoding = _getArgumentCommand(command, 'utf-8')
-                errors = _getArgumentCommand(command, 'strict', 2)
-                arguments[key] = value.encode(encoding=encoding, errors=errors)
-            elif method == 'replace':
-                arg1 = _getArgumentCommand(command, '')
-                arg2 = _getArgumentCommand(command, '', 2)
-                arg3 = int(_getArgumentCommand(command, -1, 3))
-                arguments[key] = value.replace(arg1, arg2, arg3)
-            elif method == 'strip':
-                arguments[key] = value.strip(_getArgumentCommand(command))
-            elif method == 'rstrip':
-                arguments[key] = value.rstrip(_getArgumentCommand(command))
-            elif method == 'lstrip':
-                arguments[key] = value.lstrip(_getArgumentCommand(command))
-        setParametersArguments(parameter.getByName('Parameters'), arguments)
+        setParameterArguments(parameter, arguments)
+
+def setParameterArguments(parameter, arguments):
+    key = parameter.getByName('Name')
+    template = parameter.getByName('Template')
+    command = parameter.getByName('Command')
+    if template:
+        _setArgumentTemplate(key, arguments, template)
+    if command and key in arguments:
+        method = command[0]
+        value = arguments[key]
+        if method == 'encodeURI':
+            safe = _getArgumentCommand(command, "~@#$&()*!+=:;,?/'")
+            arguments[key] = parse.quote(value, safe=safe)
+        elif method == 'encodeURIComponent':
+            safe = _getArgumentCommand(command, "~()*!'")
+            arguments[key] = parse.quote(value, safe=safe)
+        elif method == 'base64URL':
+            arguments[key] = base64.urlsafe_b64encode(value)
+        elif method == 'base64':
+            arguments[key] = base64.b64encode(value)
+        elif method == 'decode':
+            encoding = _getArgumentCommand(command, 'utf-8')
+            errors = _getArgumentCommand(command, 'strict', 2)
+            arguments[key] = value.decode(encoding=encoding, errors=errors)
+        elif method == 'encode':
+            encoding = _getArgumentCommand(command, 'utf-8')
+            errors = _getArgumentCommand(command, 'strict', 2)
+            arguments[key] = value.encode(encoding=encoding, errors=errors)
+        elif method == 'replace':
+            arg1 = _getArgumentCommand(command, '')
+            arg2 = _getArgumentCommand(command, '', 2)
+            arg3 = int(_getArgumentCommand(command, -1, 3))
+            arguments[key] = value.replace(arg1, arg2, arg3)
+        elif method == 'strip':
+            arguments[key] = value.strip(_getArgumentCommand(command))
+        elif method == 'rstrip':
+            arguments[key] = value.rstrip(_getArgumentCommand(command))
+        elif method == 'lstrip':
+            arguments[key] = value.lstrip(_getArgumentCommand(command))
+    setParametersArguments(parameter.getByName('Parameters'), arguments)
 
 def getParserItems(request):
     keys = {}

@@ -35,4 +35,5 @@ g_version = '1.4.0'
 g_chunk = g_chunk = 320 * 1024
 
 g_oauth2 = g_service
+g_token = 'Bearer ${AccessToken}'
 

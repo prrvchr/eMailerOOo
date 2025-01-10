@@ -96,32 +96,23 @@
       </node>
     </node>
   </node>
-  <node oor:name="Parameters">
-    <node oor:name="SMTP" oor:op="fuse">
-      <prop oor:name="Name">
-        <value>Token</value>
-      </prop>
-      <prop oor:name="Template">
-        <value>user=${UserName}\1auth=Bearer ${AccessToken}\1\1</value>
-      </prop>
-      <prop oor:name="Command">
-        <value>encode ascii</value>
-      </prop>
+  <node oor:name="Tokens">
+    <node oor:name="OAUTHBEARER" oor:op="fuse">
       <node oor:name="Parameters">
         <node oor:name="Parameter1" oor:op="fuse">
           <prop oor:name="Name">
-            <value>Token</value>
+            <value>UserName</value>
           </prop>
           <prop oor:name="Command">
-            <value>base64</value>
+            <value>replace = =3D</value>
           </prop>
         </node>
         <node oor:name="Parameter2" oor:op="fuse">
           <prop oor:name="Name">
-            <value>Token</value>
+            <value>UserName</value>
           </prop>
           <prop oor:name="Command">
-            <value>decode ascii</value>
+            <value>replace , =2C</value>
           </prop>
         </node>
         <node oor:name="Parameter3" oor:op="fuse">
@@ -129,90 +120,62 @@
             <value>Token</value>
           </prop>
           <prop oor:name="Template">
-            <value>XOAUTH2 ${Token}</value>
+            <value>n,a=${UserName},\1auth=Bearer ${AccessToken}\1\1</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+    <node oor:name="XOAUTH2" oor:op="fuse">
+      <node oor:name="Parameters">
+        <node oor:name="Parameter1" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>UserName</value>
+          </prop>
+          <prop oor:name="Command">
+            <value>replace = =3D</value>
+          </prop>
+        </node>
+        <node oor:name="Parameter2" oor:op="fuse">
+          <prop oor:name="Name">
+            <value>Token</value>
+          </prop>
+          <prop oor:name="Template">
+            <value>user=${UserName}\1auth=Bearer ${AccessToken}\1\1</value>
           </prop>
         </node>
       </node>
     </node>
     <node oor:name="IMAP" oor:op="fuse">
-      <prop oor:name="Name">
-        <value>Token</value>
-      </prop>
-      <prop oor:name="Template">
-        <value>${AccessToken}</value>
-      </prop>
-    </node>
-    <node oor:name="smtp.mail.yahoo.com" oor:op="fuse">
-      <prop oor:name="Name">
-        <value>Token</value>
-      </prop>
-      <prop oor:name="Template">
-        <value>n,a=${UserName},\1auth=Bearer\n${AccessToken}\1\1</value>
-      </prop>
-      <prop oor:name="Command">
-        <value>encode ascii</value>
-      </prop>
       <node oor:name="Parameters">
         <node oor:name="Parameter1" oor:op="fuse">
-          <prop oor:name="Name">
-            <value>Token</value>
-          </prop>
-          <prop oor:name="Command">
-            <value>base64</value>
-          </prop>
-        </node>
-        <node oor:name="Parameter2" oor:op="fuse">
-          <prop oor:name="Name">
-            <value>Token</value>
-          </prop>
-          <prop oor:name="Command">
-            <value>decode ascii</value>
-          </prop>
-        </node>
-        <node oor:name="Parameter3" oor:op="fuse">
           <prop oor:name="Name">
             <value>Token</value>
           </prop>
           <prop oor:name="Template">
-            <value>OAUTHBEARER\n${Token}</value>
-          </prop>
-        </node>
-      </node>
-    </node>
-    <node oor:name="imap.mail.yahoo.com" oor:op="fuse">
-      <prop oor:name="Name">
-        <value>Token</value>
-      </prop>
-      <prop oor:name="Template">
-        <value>n,a=${UserName},\1auth=Bearer\n${AccessToken}\1\1</value>
-      </prop>
-      <prop oor:name="Command">
-        <value>encode ascii</value>
-      </prop>
-      <node oor:name="Parameters">
-        <node oor:name="Parameter1" oor:op="fuse">
-          <prop oor:name="Name">
-            <value>Token</value>
-          </prop>
-          <prop oor:name="Command">
-            <value>base64</value>
-          </prop>
-        </node>
-        <node oor:name="Parameter2" oor:op="fuse">
-          <prop oor:name="Name">
-            <value>Token</value>
-          </prop>
-          <prop oor:name="Command">
-            <value>decode ascii</value>
+            <value>${AccessToken}</value>
           </prop>
         </node>
       </node>
     </node>
   </node>
+  <node oor:name="Applications">
+    <node oor:name="aol.com" oor:op="fuse">
+      <prop oor:name="Link">
+        <value>https://login.aol.com/myaccount/security/app-password</value>
+      </prop>
+    </node>
+    <node oor:name="yahoo.com" oor:op="fuse">
+      <prop oor:name="Link">
+        <value>https://login.yahoo.com/myaccount/security/app-password</value>
+      </prop>
+    </node>
+  </node>
   <node oor:name="Providers">
 <!-- Google API ***************************************************************************************** -->
     <node oor:name="googlemail.com" oor:op="fuse">
-      <node oor:name="Hosts"/>
+      <prop oor:name="Url">
+        <value>gmail.googleapis.com</value>
+      </prop>
       <node oor:name="SMTP">
         <node oor:name="Request">
           <prop oor:name="Name">
@@ -343,7 +306,6 @@
       <prop oor:name="Url">
         <value>graph.microsoft.com/Outlook</value>
       </prop>
-      <node oor:name="Hosts"/>
       <node oor:name="SMTP">
         <node oor:name="Request">
           <prop oor:name="Name">
@@ -524,7 +486,6 @@
       <prop oor:name="Url">
         <value>graph.microsoft.com/Outlook</value>
       </prop>
-      <node oor:name="Hosts"/>
       <node oor:name="SMTP">
         <node oor:name="Request">
           <prop oor:name="Name">

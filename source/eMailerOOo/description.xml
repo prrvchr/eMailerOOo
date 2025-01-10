@@ -32,7 +32,7 @@
   <identifier value="io.github.prrvchr.eMailerOOo"/>
   <platform value="all"/>
   <dependencies>
-    <OpenOffice.org-minimal-version value="4.1" d:name="OpenOffice.org 4.1"/>
+    <OpenOffice.org-minimal-version value="LibreOffice 7.0" d:name="LibreOffice 7.0"/>
     <l:LibreOffice-minimal-version value="7.0" d:name="LibreOffice 7.0"/>
   </dependencies>
   <update-information>

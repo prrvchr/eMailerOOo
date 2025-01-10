@@ -137,10 +137,10 @@ def getDocumentFilter(extension, format):
     filter = filters.get(format, None)
     return filter
 
-def getMailService(ctx, service):
-    name = 'com.sun.star.mail.MailServiceProvider'
-    stype = uno.Enum('com.sun.star.mail.MailServiceType', service)
-    return createService(ctx, name).create(stype)
+def getMailService(ctx, stype):
+    service = 'com.sun.star.mail.MailServiceProvider'
+    mailtype = uno.Enum('com.sun.star.mail.MailServiceType', stype)
+    return createService(ctx, service).create(mailtype)
 
 def getMailUser(ctx, sender):
     service = 'com.sun.star.mail.MailUser'

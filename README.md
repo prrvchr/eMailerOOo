@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.2.7][6]
+# version [1.3.0][6]
 
 ## Introduction:
 
@@ -606,7 +606,13 @@ ___
 - Opening emails in your browser does not work with a Microsoft account, the url allowing this has not yet been found and it seems that it would not be possible (ie: popup must be open by the Outlook window)?
 - Many fixes.
 
-### What remains to be done for version 1.2.7:
+### What has been done for version 1.3.0:
+
+- Only providers that have an API or OAuth2 authentication and have an entry in the LibreOffice configuration will offer OAuth2 authentication by default in the connection setup wizard (ie: IspDB Wizard).
+- The `yahoo.com` and `aol.com` email providers have been integrated. To make setup easier, a link to the page for creating an application password has been added to the login setup wizard. If you think links to other providers are missing, please open an issue so I can add them back.
+
+
+### What remains to be done for version 1.3.0:
 
 - Add new languages for internationalization...
 
@@ -617,7 +623,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-127>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-130>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -655,7 +661,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.2.7#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.0#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

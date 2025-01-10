@@ -101,6 +101,7 @@ class IspdbView(unohelper.Base):
         self._getLogin().Model.Enabled = enabled
 
     def enablePassword(self, enabled):
+        self._getAppsLink().Model.Enabled = enabled
         self._getPasswordLabel().Model.Enabled = enabled
         self._getPassword().Model.Enabled = enabled
         self._getConfirmPwdLabel().Model.Enabled = enabled
@@ -145,8 +146,14 @@ class IspdbView(unohelper.Base):
         self._getConnection().selectItemPos(config.get('ConnectionType'), True)
         self._getAuthentication().selectItemPos(config.get('AuthenticationType'), True)
         self._getLogin().Text = config.get('UserName')
+        self._setAppsLink(config.get('AppsLink'))
         self._getPassword().Text = config.get('Password')
         self._getConfirmPwd().Text = config.get('Password')
+
+    def _setAppsLink(self, link):
+        control = self._getAppsLink()
+        control.URL = link
+        control.Visible = bool(link)
 
     def _enableNavigation(self, config):
         self._enablePrevious(config.get('First'))
@@ -182,6 +189,9 @@ class IspdbView(unohelper.Base):
 
     def _getLogin(self):
         return self._window.getControl('TextField2')
+
+    def _getAppsLink(self):
+        return self._window.getControl('Hyperlink1')
 
     def _getPasswordLabel(self):
         return self._window.getControl('Label8')

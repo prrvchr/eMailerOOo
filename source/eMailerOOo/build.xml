@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="eMailerOOo" default="package-oxt" basedir=".">
+<project name="eMailerOOo" default="package-oxt" basedir="." xmlns:if="ant:if" xmlns:unless="ant:unless">
 
     <!--
         ************************************************************
@@ -80,16 +80,14 @@
         <mkdir dir="${idl.out.urd}"/>
         <mkdir dir="${idl.out.rdb}"/>
         <mkdir dir="${dist.dir}"/>
-    </target>
 
-    <target name="check-java" depends="init-env">
+        <!-- check if project is Java -->
         <available file="lib" property="project.isjava"/>
-        <echo message="Check if Project is Java"/>
+        <echo if:set="project.isjava" message="Project is Java"/>
+        <echo unless:set="project.isjava" message="Project is not Java"/>
     </target>
 
-    <target name="init-java" depends="check-java" if="project.isjava">
-
-        <echo message="Project is Java: ${project.isjava}"/>
+    <target name="init-java" depends="init-env" if="project.isjava">
 
         <property name="lib.dir" value="lib"/>
         <property name="project.jar" value="${ant.project.name}.jar"/>
@@ -100,13 +98,11 @@
                 <include name="*.jar"/>
             </fileset>
         </path>
-
         <path id="build.class.path">
             <fileset dir="${basedir}">
                 <include name="${lib.dir}${file.separator}*.jar"/>
             </fileset>
         </path>
-
         <pathconvert property="manifest.class.path" pathsep=" ">
             <path refid="build.class.path"/>
             <mapper>
@@ -117,10 +113,10 @@
             </mapper>
         </pathconvert>
 
-        <echo message="Manifest Class-Path: ${manifest.class.path}"/>
-
         <!-- create a few empty directories -->
         <mkdir dir="${build.classes.dir}"/>
+
+        <echo message="Manifest Class-Path: ${manifest.class.path}"/>
     </target>
 
     <target name="clean" depends="init-env">

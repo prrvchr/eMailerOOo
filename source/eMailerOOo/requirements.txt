@@ -1,5 +1,6 @@
 decorator>=5.1.1
 ijson>=3.3.0
+imapclient>=3.0.1
 packaging>=24.1
 setuptools>=73.0.1
 six>=1.16.0

@@ -61,6 +61,8 @@ class User(unohelper.Base):
             senders.insertByName(sender, senders.createInstance())
             user = senders.getByName(sender)
             user.replaceByName('Client', '')
+            user.replaceByName('Provider', '')
+            user.replaceByName('AppsLink', '')
             user.replaceByName('UseReplyTo', False)
             user.replaceByName('UseIMAP', True)
             user.replaceByName('ReplyToAddress', '')
@@ -98,6 +100,12 @@ class User(unohelper.Base):
 
     def setClient(self, client):
         self._user.replaceByName('Client', client)
+
+    def setProvider(self, provider):
+        self._user.replaceByName('Provider', provider)
+
+    def setAppsLink(self, link):
+        self._user.replaceByName('AppsLink', link)
 
     def setReplyToAddress(self, replyto):
         self._user.replaceByName('ReplyToAddress', replyto)
@@ -156,6 +164,12 @@ class User(unohelper.Base):
     def getUserDomain(self):
         return self._domain
 
+    def getProvider(self):
+        return self._user.getByName('Provider')
+
+    def getAppsLink(self):
+        return self._user.getByName('AppsLink')
+
     def getServers(self):
         servers = {}
         for service in  self._servers.ElementNames:
@@ -180,6 +194,7 @@ class User(unohelper.Base):
         config = {}
         if self._servers.hasByName(service):
             server = self._servers.getByName(service)
+            config['Provider'] = self._user.getByName('Provider')
             config['ServerName'] = server.getByName('ServerName')
             config['Port'] = server.getByName('Port')
             config['ConnectionType'] = server.getByName('ConnectionType')

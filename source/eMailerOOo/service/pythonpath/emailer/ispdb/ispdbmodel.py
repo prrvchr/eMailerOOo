@@ -50,6 +50,7 @@ from ..transferable import Transferable
 from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getConnectionMode
+from ..unotool import getNamedValueSet
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 from ..unotool import getUrl
@@ -93,7 +94,6 @@ class IspdbModel(unohelper.Base):
         self._offline = 0
         self._diposed = False
         self._version = 0
-        self._hosts = {}
         self._listener = None
         secure = {0: 3, 1: 4, 2: 5}
         unsecure = {0: 0, 1: 1, 2: 2}
@@ -103,7 +103,10 @@ class IspdbModel(unohelper.Base):
         config = getConfiguration(ctx, g_identifier)
         self._url = config.getByName('IspDBUrl')
         self._timeout = config.getByName('ConnectTimeout')
+        self._links = self._getAppsLinks(config.getByName('Applications'))
         self._clients = config.getByName('Urls').getElementNames()
+        self._providers = config.getByName('Providers')
+        print("IspdbModel.__init__() Providers: %s" % (self._providers.getElementNames(), ))
         self._logger = LogController(ctx, g_mailservicelog)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._resources = {'Step':        'IspdbPage%s.Step',
@@ -145,8 +148,6 @@ class IspdbModel(unohelper.Base):
         if self._listener is not None:
             self._logger.removeModifyListener(self._listener)
             self._listener = None
-        if self._hosts:
-            self._removeAddedHosts()
 
 # IspdbModel getter methods called by WizardPages 1
     def getSender(self):
@@ -218,20 +219,20 @@ class IspdbModel(unohelper.Base):
         parameter.NoAuth = True
         response = request.execute(parameter)
         if response.Ok:
-            config = self._parseIspdbConfig(user, response)
+            config = self._parseIspdbConfig(user, request, response)
         elif response.StatusCode != NOT_FOUND:
             response.raiseForStatus()
         response.close()
         return config
 
-    def _parseIspdbConfig(self, user, response):
+    def _parseIspdbConfig(self, user, request, response):
         smtps = []
         imaps = []
         config = {}
         provider = None
-        map1 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
-        map2 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
+        map1 = {'none': 0, 'password-cleartext': 1, 'plain': 1,
                 'password-encrypted': 1, 'secure': 1, 'OAuth2': 2}
+        map2 = {'plain': 0, 'SSL': 1, 'STARTTLS': 2}
         map3 = {'%EMAILLOCALPART%': 0, '%EMAILADDRESS%': 1, '%EMAILDOMAIN%': 2}
         parser = ET.XMLPullParser(('end', ))
         iterator = response.iterContent(g_chunk, False)
@@ -243,68 +244,41 @@ class IspdbModel(unohelper.Base):
                     provider = element.get('id')
                     for child in element.findall('outgoingServer'):
                         if child.get('type') == 'smtp':
-                            smtps.append(self._parseServer(child, map1, map2, map3))
+                            smtps.append(self._parseServer(request, provider, child, map1, map2, map3))
                     for child in element.findall('incomingServer'):
                         if child.get('type') == 'imap':
-                            imaps.append(self._parseServer(child, map1, map2, map3))
+                            imaps.append(self._parseServer(request, provider, child, map1, map2, map3))
         config[SMTP.value] = tuple(smtps)
         config[IMAP.value] = tuple(imaps)
         if user.isNew():
             user.enableImap(len(imaps) > 0)
             if provider in self._clients:
                 user.setClient(provider)
+        # XXX: If provider use API and we need to be able to test the connection
+        # XXX: then it is necessary to save the domain used by the user
         if provider:
-            self._setProviderHosts(provider, self._getServerHosts(config))
+            user.setProvider(provider)
+            user.setAppsLink(self._links.get(provider, ''))
         return config
 
-    def _parseServer(self, element, map1, map2, map3):
-        server = {}
-        server['ServerName'] = element.find('hostname').text
-        server['Port'] = int(element.find('port').text)
-        server['ConnectionType'] = map1.get(element.find('socketType').text, 1)
-        server['AuthenticationType'] = map2.get(element.find('authentication').text, 1)
-        server['LoginMode'] = map3.get(element.find('username').text, 1)
+    def _parseServer(self, request, provider, element, map1, map2, map3):
+        hostname = element.find('hostname').text
+        authentication = map1.get(element.find('authentication').text, 1)
+        if authentication == 2 and not self._supportOAuth2(request, provider, hostname):
+            authentication = 1
+        server = {'ServerName':         hostname,
+                  'Port':               int(element.find('port').text),
+                  'AuthenticationType': authentication,
+                  'ConnectionType':     map2.get(element.find('socketType').text, 1),
+                  'LoginMode':          map3.get(element.find('username').text, 1)}
         return server
 
-    def _getServerHosts(self, config):
-        hosts = []
-        for servers in config.values():
-            for server in servers:
-                hosts.append(server.get('ServerName'))
-        return hosts
-
-    def _setProviderHosts(self, provider, servers):
-        try:
-            # XXX: If we need to be able to test the connection
-            # XXX: then it is necessary to save the domain used by the user
-            config = getConfiguration(self._ctx, g_identifier, True)
-            providers = config.getByName('Providers')
-            if providers.hasByName(provider):
-                hosts = providers.getByName(provider).getByName('Hosts')
-                self._updateHosts(provider, servers, hosts)
-                if config.hasPendingChanges():
-                    config.commitChanges()
-        except Exception as e:
-            print("IspdbModel._setProviderHosts() Error: %s - %s" % (e, traceback.format_exc()))
-
-    def _updateHosts(self, provider, servers, hosts):
-        for server in servers:
-            if not hosts.hasByName(server):
-                hosts.insertByName(server, hosts.createInstance())
-                # XXX: We need a copy so we can recover in case the Wizard is canceled
-                self._hosts[server] = provider
-
-    def _removeAddedHosts(self):
-        # XXX: The wizard was canceled, we need to remove the added hosts
-        config = getConfiguration(self._ctx, g_identifier, True)
-        providers = config.getByName('Providers')
-        for host, provider in self._hosts.items():
-            if providers.hasByName(provider):
-                hosts = providers.getByName(provider).getByName('Hosts')
-                if hosts.hasByName(host):
-                    hosts.removeByName(host)
-        if config.hasPendingChanges():
-            config.commitChanges()
+    def _supportOAuth2(self, request, provider, hostname):
+        # FIXME: We support OAuth2 protocol only for providers:
+        # FIXME: - Who have registered their hostname as a ResourceURL
+        # FIXME: - Which uses an API to replace SMTP and/or IMAP servers
+        print("IspdbModel._supportOAuth2() Provider: %s - isREgistered: %s" % (provider, request.isRegisteredUrl(hostname)))
+        return self._providers.hasByName(provider) or request.isRegisteredUrl(hostname)
 
 # IspdbModel setter methods called by WizardPage2
     def enableReplyTo(self, enabled):
@@ -334,6 +308,7 @@ class IspdbModel(unohelper.Base):
         config.update(self._servers.getCurrentServer(service))
         config['UserName'] = self._getUserName(service)
         config['Password'] = self._getPassword(service)
+        config['AppsLink'] = self._servers.User.getAppsLink()
         return config
 
     def isConnectionValid(self, host, port):
@@ -361,7 +336,6 @@ class IspdbModel(unohelper.Base):
 
     def saveConfiguration(self):
         self._servers.User.saveConfig()
-        self._hosts = {}
 
     def getSecurity(self, resolver, i, j):
         level = self._levels.get(i).get(j)
@@ -572,6 +546,14 @@ class IspdbModel(unohelper.Base):
 # IspdbModel private shared methods
     def _getServicesCount(self):
         return len(self._services)
+
+    def _getAppsLinks(self, applications):
+        links = {}
+        for name in applications.getElementNames():
+            apps = applications.getByName(name)
+            links[name] = apps.getByName('Link')
+        print("IspdbModel._getAppsLinks() Links: %s" % (links, ))
+        return links
 
 # IspdbModel StringResource methods
     def getPageStep(self, resolver, pageid):

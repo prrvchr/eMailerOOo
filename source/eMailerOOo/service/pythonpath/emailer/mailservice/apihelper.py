@@ -57,22 +57,22 @@ import ijson
 import traceback
 
 
-def getHttpProvider(providers, servername):
-    for provider in providers:
-        if servername in providers[provider]:
-            return provider
-    return None
+def getHttpProvider(providers, name):
+    provider = url = None
+    # FIXME: If the connection context does not have
+    # FIXME: a Provider value then name can be null.
+    if name and providers.hasByName(name):
+        provider = name
+        url = providers.getByName(name).getByName('Url')
+    return provider, url
 
-def getHttpServer(ctx, provider, servername, username):
-    config = getConfiguration(ctx, g_identifier)
-    url = config.getByName('Providers').getByName(provider).getByName('Url')
+def getHttpServer(ctx, url, servername, username):
     server = url if url else servername
     return getRequest(ctx, server, username)
 
-def getHttpRequest(ctx, provider, server, request):
-    providers = getConfiguration(ctx, g_identifier).getByName('Providers')
-    if providers.getByName(provider).hasByName(server.value):
-        service = providers.getByName(provider).getByName(server.value)
+def getHttpRequest(provider, server, request):
+    if provider.hasByName(server.value):
+        service = provider.getByName(server.value)
         if service.hasByName(request):
             return service.getByName(request)
     return None
@@ -103,6 +103,6 @@ def executeHttpRequest(source, logger, debug, cls, code, server, message, reques
                     message.setHeader(name, value)
     response.close()
 
-def getOAuth2TokenWithParameter(oauth2, parameter, port):
-    return oauth2.getTokenWithParameter(parameter, getNamedValueSet({'Port': port}))
+def getOAuth2TokenWithParameters(oauth2, parameters, port):
+    return oauth2.getTokenWithParameters(parameters, getNamedValueSet({'Port': port}))
 

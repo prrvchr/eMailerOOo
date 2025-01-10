@@ -40,6 +40,8 @@
     </group>
     <group oor:name="SenderSet">
       <prop oor:name="Client" oor:type="xs:string"/>
+      <prop oor:name="Provider" oor:type="xs:string"/>
+      <prop oor:name="AppsLink" oor:type="xs:string"/>
       <prop oor:name="ReplyToAddress" oor:type="xs:string"/>
       <prop oor:name="UseReplyTo" oor:type="xs:boolean"/>
       <prop oor:name="UseIMAP" oor:type="xs:boolean"/>
@@ -76,9 +78,15 @@
     <group oor:name="HostsSet"/>
     <group oor:name="ProviderSet">
       <prop oor:name="Url" oor:type="xs:string"/>
-      <set oor:name="Hosts" oor:node-type="HostsSet"/>
       <node-ref oor:name="SMTP" oor:node-type="RequestsSet"/>
       <node-ref oor:name="IMAP" oor:node-type="RequestsSet"/>
+    </group>
+    <group oor:name="TokenSet">
+      <set oor:name="Parameters" oor:node-type="ParameterSet"/>
+    </group>
+    <group oor:name="ApplicationSet">
+      <prop oor:name="Link" oor:type="xs:string"/>
+      <set oor:name="Parameters" oor:node-type="ParameterSet"/>
     </group>
   </templates>
   <component>
@@ -96,6 +104,7 @@
     <set oor:name="Urls" oor:node-type="CommandSet"/>
     <set oor:name="Senders" oor:node-type="SenderSet"/>
     <set oor:name="Providers" oor:node-type="ProviderSet"/>
-    <set oor:name="Parameters" oor:node-type="ParameterSet"/>
+    <set oor:name="Tokens" oor:node-type="TokenSet"/>
+    <set oor:name="Applications" oor:node-type="ApplicationSet"/>
   </component>
 </oor:component-schema>

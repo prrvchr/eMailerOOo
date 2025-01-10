@@ -608,9 +608,12 @@ ___
 
 ### What has been done for version 1.3.0:
 
-- Only providers that have an API or OAuth2 authentication and have an entry in the LibreOffice configuration will offer OAuth2 authentication by default in the connection setup wizard (ie: IspDB Wizard).
-- The `yahoo.com` and `aol.com` email providers have been integrated. To make setup easier, a link to the page for creating an application password has been added to the login setup wizard. If you think links to other providers are missing, please open an issue so I can add them back.
-
+- Only providers with a third-party API or OAuth2 authentication and have an entry in the LibreOffice configuration will offer OAuth2 authentication by default in the connection setup wizard (ie: IspDB Wizard).
+- The `yahoo.com` and `aol.com` email providers have been integrated. To make setup easier, a link to the page for creating an application password has been added to the connection setup wizard. If you think links to other providers are missing, please open an issue so I can add them back.
+- **LibreOffice 7.0 is the minimum supported version**, an installation with a lower version or under **OpenOffice** whatever its version will produce an error.
+- Updated [Python IMAPClient][78] package to version 3.0.1.
+- Thanks to improvements added to the [Eclipse plugin][107], it is now possible to create the extension file using the command line and the **Apache Ant** archive builder tool, see file [build.xml][108].
+- Many fixes.
 
 ### What remains to be done for version 1.3.0:
 
@@ -723,3 +726,5 @@ ___
 [104]: <https://pypi.org/project/validators/>
 [105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
 [106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>
+[107]: <https://github.com/LibreOffice/loeclipse/pull/123>
+[108]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>

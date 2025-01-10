@@ -50,7 +50,6 @@ from ..transferable import Transferable
 from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getConnectionMode
-from ..unotool import getNamedValueSet
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 from ..unotool import getUrl
@@ -106,7 +105,6 @@ class IspdbModel(unohelper.Base):
         self._links = self._getAppsLinks(config.getByName('Applications'))
         self._clients = config.getByName('Urls').getElementNames()
         self._providers = config.getByName('Providers')
-        print("IspdbModel.__init__() Providers: %s" % (self._providers.getElementNames(), ))
         self._logger = LogController(ctx, g_mailservicelog)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._resources = {'Step':        'IspdbPage%s.Step',
@@ -277,7 +275,6 @@ class IspdbModel(unohelper.Base):
         # FIXME: We support OAuth2 protocol only for providers:
         # FIXME: - Who have registered their hostname as a ResourceURL
         # FIXME: - Which uses an API to replace SMTP and/or IMAP servers
-        print("IspdbModel._supportOAuth2() Provider: %s - isREgistered: %s" % (provider, request.isRegisteredUrl(hostname)))
         return self._providers.hasByName(provider) or request.isRegisteredUrl(hostname)
 
 # IspdbModel setter methods called by WizardPage2
@@ -552,7 +549,6 @@ class IspdbModel(unohelper.Base):
         for name in applications.getElementNames():
             apps = applications.getByName(name)
             links[name] = apps.getByName('Link')
-        print("IspdbModel._getAppsLinks() Links: %s" % (links, ))
         return links
 
 # IspdbModel StringResource methods

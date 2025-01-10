@@ -608,9 +608,12 @@ ___
 
 ### Ce qui a été fait pour la version 1.3.0:
 
-- Seuls les fournisseurs disposant d'une API ou d'une authentification OAuth2 et disposant d'une entrée dans la configuration de LibreOffice proposeront l'authentification OAuth2 par défaut dans l'assistant de configuration de connexion (ie: IspDB Wizard).
+- Seuls les fournisseurs disposant d'une API tierce ou d'une authentification OAuth2 et disposant d'une entrée dans la configuration de LibreOffice proposeront l'authentification OAuth2 par défaut dans l'assistant de configuration de connexion (ie: IspDB Wizard).
 - Les fournisseurs de messagerie `yahoo.com` et `aol.com` ont été intégrés. Afin de faciliter la configuration, un lien vers la page permettant la création d'un mot de passe d'application a été ajouté à l'assistant de configuration de connexion. Si vous pensez que des liens vers d'autres fournisseurs manquent, veuillez ouvrir un dysfonctionnement afin que je puisse les rajouter.
-
+- **LibreOffice 7.0 est la version minimale supportée**, une installation avec une version inférieure ou sous **OpenOffice** quelle que soit sa version produira une erreur.
+- Mise à jour du paquet [Python IMAPClient][78] vers la version 3.0.1.
+- Grâce aux améliorations apportées au [plugin Eclipse][107], il est désormais possible de créer le fichier de l'extension en utilisant la ligne de commande et l'outil de création d'archive **Apache Ant**, voir le fichier [build.xml][108].
+- De nombreuses corrections.
 
 ### Que reste-t-il à faire pour la version 1.3.0:
 
@@ -723,3 +726,5 @@ ___
 [104]: <https://pypi.org/project/validators/>
 [105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
 [106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>
+[107]: <https://github.com/LibreOffice/loeclipse/pull/123>
+[108]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>

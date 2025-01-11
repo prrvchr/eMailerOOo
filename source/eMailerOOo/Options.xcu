@@ -304,7 +304,7 @@
 <!-- Microsoft Graph API ******************************************************************************** -->
     <node oor:name="hotmail.com" oor:op="fuse">
       <prop oor:name="Url">
-        <value>graph.microsoft.com/Outlook</value>
+        <value>graph.microsoft.com/Mail</value>
       </prop>
       <node oor:name="SMTP">
         <node oor:name="Request">

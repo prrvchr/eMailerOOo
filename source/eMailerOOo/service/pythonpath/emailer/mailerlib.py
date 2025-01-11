@@ -40,8 +40,8 @@ from com.sun.star.mail import XAuthenticator
 
 from com.sun.star.uno import XCurrentContext
 
-from .oauth2 import setItemsIdentifier
-from .oauth2 import setParametersArguments
+from .oauth20 import setItemsIdentifier
+from .oauth20 import setParametersArguments
 
 from .unotool import getStreamSequence
 

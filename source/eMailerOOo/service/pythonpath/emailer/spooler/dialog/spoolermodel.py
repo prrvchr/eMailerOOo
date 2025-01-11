@@ -47,7 +47,7 @@ from ...unotool import getStringResource
 
 from ...dbtool import getValueFromResult
 
-from ...oauth2 import setParametersArguments
+from ...oauth20 import setParametersArguments
 
 from ...configuration import g_identifier
 from ...configuration import g_extension

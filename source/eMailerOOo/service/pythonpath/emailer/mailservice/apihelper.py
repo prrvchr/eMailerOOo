@@ -42,12 +42,12 @@ from ..unotool import hasInterface
 
 from ..mailerlib import CustomMessage
 
-from ..oauth2 import CustomParser
+from ..oauth20 import CustomParser
 
-from ..oauth2 import getParserItems
-from ..oauth2 import getRequest
-from ..oauth2 import getResponseResults
-from ..oauth2 import setResquestParameter
+from ..oauth20 import getParserItems
+from ..oauth20 import getRequest
+from ..oauth20 import getResponseResults
+from ..oauth20 import setResquestParameter
 
 from ..configuration import g_chunk
 from ..configuration import g_identifier
@@ -103,6 +103,6 @@ def executeHttpRequest(source, logger, debug, cls, code, server, message, reques
                     message.setHeader(name, value)
     response.close()
 
-def getOAuth2TokenWithParameters(oauth2, parameters, port):
-    return oauth2.getTokenWithParameters(parameters, getNamedValueSet({'Port': port}))
+def getOAuth2TokenWithParameters(request, parameters, port):
+    return request.getTokenWithParameters(parameters, getNamedValueSet({'Port': port}))
 

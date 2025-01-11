@@ -52,7 +52,7 @@ from .apihelper import getHttpRequest
 from .apihelper import getOAuth2TokenWithParameters
 from .apihelper import executeHttpRequest
 
-from ..oauth2 import getOAuth2
+from ..oauth20 import getRequest
 
 from ..unotool import getConfiguration
 from ..unotool import getExceptionMessage
@@ -263,8 +263,8 @@ class ImapService(unohelper.Base,
         mtd = '_doOAuth2'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 361, authentication)
-        oauth2 = getOAuth2(self._ctx, host, user)
-        if not oauth2:
+        request = getRequest(self._ctx, host, user)
+        if not request:
             msg = self._logger.resolveString(362)
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
@@ -277,7 +277,7 @@ class ImapService(unohelper.Base,
             for mechanism in self._supportedmechanism:
                 if mechanism in features:
                     parameters = self._getTokenParameters(mechanism, host)
-                    token = getOAuth2TokenWithParameters(oauth2, parameters, port)
+                    token = getOAuth2TokenWithParameters(request, parameters, port)
                     callable = lambda x: encode_base64(token.encode(), eol='')
                     #callable = lambda x: token
                     try:

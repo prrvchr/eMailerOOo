@@ -48,9 +48,9 @@ from .unotool import getUrl
 
 from .dbtool import getConnectionUrl
 
-from .oauth2 import getOAuth2Version
-from .oauth2 import g_extension as oauth2ext
-from .oauth2 import g_version as oauth2ver
+from .oauth20 import getOAuth2Version
+from .oauth20 import g_extension as oauth2ext
+from .oauth20 import g_version as oauth2ver
 
 from .jdbcdriver import g_extension as jdbcext
 from .jdbcdriver import g_identifier as jdbcid

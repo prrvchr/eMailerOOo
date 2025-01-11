@@ -62,7 +62,7 @@ from ..mailertool import getMessageImage
 from ..logger import LogController
 from ..logger import RollerHandler
 
-from ..oauth2 import g_service
+from ..oauth20 import g_service
 
 from ..configuration import g_identifier
 from ..configuration import g_extension

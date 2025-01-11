@@ -27,41 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from collections import OrderedDict
-import traceback
-
-
-class Books(object):
-    def __init__(self, ctx, metadata, new):
-        self._ctx = ctx
-        print("Books.__init__() 1")
-        self._books = self._getBooks(metadata, new)
-        print("Books.__init__() 2")
-
-    def getBooks(self):
-        return self._books.values()
-
-    def hasBook(self, uri):
-        return uri in self._books
-
-    def getBook(self, uri):
-        return self._books[uri]
-
-    def setBook(self, uri, book):
-        self._books[uri] = book
-
-    # Private methods
-    def _getBooks(self, metadata, new):
-        books = OrderedDict()
-        for kwargs in metadata:
-            book = Book(self._ctx, new, **kwargs)
-            print("AddressBook._getBooks() Url: %s" % book.Uri)
-            books[book.Uri] = book
-        return books
-
 
 class Book(object):
     def __init__(self, ctx, new, **kwargs):

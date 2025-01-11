@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,13 +27,47 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# OAuth2 configuration
-g_extension = 'OAuth2OOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
-g_service = '%s.OAuth2Service' % g_identifier
-g_version = '1.4.0'
-g_chunk = g_chunk = 320 * 1024
+import unohelper
 
-g_oauth2 = g_service
-g_token = 'Bearer ${AccessToken}'
+from com.sun.star.frame import XTerminateListener
+
+from com.sun.star.lang import XEventListener
+
+
+import traceback
+
+
+class EventListener(unohelper.Base,
+                    XEventListener):
+    def __init__(self, datasource):
+        self._datasource = datasource
+
+# XEventListener
+    def disposing(self, event):
+        try:
+            print("EventListener.disposing() ******************")
+            self._datasource.closeConnection(event.Source)
+        except Exception as e:
+            msg = "EventListener Error: %s" % traceback.format_exc()
+            print(msg)
+
+
+class TerminateListener(unohelper.Base,
+                        XTerminateListener):
+    def __init__(self, replicator):
+        self._replicator = replicator
+
+# XTerminateListener
+    def queryTermination(self, event):
+        try:
+            self._replicator.dispose()
+        except Exception as e:
+            msg = "TerminateListener Error: %s" % traceback.format_exc()
+            print(msg)
+
+    def notifyTermination(self, event):
+        pass
+
+    def disposing(self, source):
+        pass
 

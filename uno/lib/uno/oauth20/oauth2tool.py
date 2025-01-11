@@ -27,13 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.uno import Exception as UnoException
+import uno
 
 from ..unotool import createService
 from ..unotool import getExtensionVersion
 
-from .configuration import g_identifier
 from .configuration import g_service
+from .configuration import g_identifier
 from .configuration import g_chunk
 
 from string import Formatter
@@ -43,6 +43,13 @@ import base64
 import json
 import ijson
 
+
+def getRequest(ctx, url=None, name=None):
+    if url and name:
+        request = createService(ctx, g_service, url, name)
+    else:
+        request = createService(ctx, g_service)
+    return request
 
 def getOAuth2(ctx, url='', name=''):
     if url and name:
@@ -54,13 +61,6 @@ def getOAuth2(ctx, url='', name=''):
 def getOAuth2Version(ctx):
     version = getExtensionVersion(ctx, g_identifier)
     return version
-
-def getRequest(ctx, url=None, name=None):
-    if url and name:
-        request = createService(ctx, g_service, url, name)
-    else:
-        request = createService(ctx, g_service)
-    return request
 
 def setResquestParameter(arguments, request, parameter):
     method = request.getByName('Method')
@@ -78,50 +78,11 @@ def setResquestParameter(arguments, request, parameter):
         setItemsIdentifier(items, arguments)
         parameter.fromJson(json.dumps(items))
 
-def setParametersArguments(parameters, arguments):
+def setParametersArguments(parameters, arguments, key=None):
     for name in sorted(parameters.getElementNames()):
         parameter = parameters.getByName(name)
-        setParameterArguments(parameter, arguments)
-
-def setParameterArguments(parameter, arguments):
-    key = parameter.getByName('Name')
-    template = parameter.getByName('Template')
-    command = parameter.getByName('Command')
-    if template:
-        _setArgumentTemplate(key, arguments, template)
-    if command and key in arguments:
-        method = command[0]
-        value = arguments[key]
-        if method == 'encodeURI':
-            safe = _getArgumentCommand(command, "~@#$&()*!+=:;,?/'")
-            arguments[key] = parse.quote(value, safe=safe)
-        elif method == 'encodeURIComponent':
-            safe = _getArgumentCommand(command, "~()*!'")
-            arguments[key] = parse.quote(value, safe=safe)
-        elif method == 'base64URL':
-            arguments[key] = base64.urlsafe_b64encode(value)
-        elif method == 'base64':
-            arguments[key] = base64.b64encode(value)
-        elif method == 'decode':
-            encoding = _getArgumentCommand(command, 'utf-8')
-            errors = _getArgumentCommand(command, 'strict', 2)
-            arguments[key] = value.decode(encoding=encoding, errors=errors)
-        elif method == 'encode':
-            encoding = _getArgumentCommand(command, 'utf-8')
-            errors = _getArgumentCommand(command, 'strict', 2)
-            arguments[key] = value.encode(encoding=encoding, errors=errors)
-        elif method == 'replace':
-            arg1 = _getArgumentCommand(command, '')
-            arg2 = _getArgumentCommand(command, '', 2)
-            arg3 = int(_getArgumentCommand(command, -1, 3))
-            arguments[key] = value.replace(arg1, arg2, arg3)
-        elif method == 'strip':
-            arguments[key] = value.strip(_getArgumentCommand(command))
-        elif method == 'rstrip':
-            arguments[key] = value.rstrip(_getArgumentCommand(command))
-        elif method == 'lstrip':
-            arguments[key] = value.lstrip(_getArgumentCommand(command))
-    setParametersArguments(parameter.getByName('Parameters'), arguments)
+        key = _setParameterArguments(parameter, arguments)
+    return key
 
 def getParserItems(request):
     keys = {}
@@ -163,6 +124,46 @@ def getResponseResults(items, response):
 def setItemsIdentifier(items, arguments, prefix='${', suffix='}'):
     identifiers = {prefix + k + suffix: k for k in arguments.keys()}
     _setItemsIdentifier(items, arguments, identifiers)
+
+def _setParameterArguments(parameter, arguments):
+    key = parameter.getByName('Name')
+    template = parameter.getByName('Template')
+    command = parameter.getByName('Command')
+    if template:
+        _setArgumentTemplate(key, arguments, template)
+    if command and key in arguments:
+        method = command[0]
+        value = arguments[key]
+        if method == 'encodeURI':
+            safe = _getArgumentCommand(command, "~@#$&()*!+=:;,?/'")
+            arguments[key] = parse.quote(value, safe=safe)
+        elif method == 'encodeURIComponent':
+            safe = _getArgumentCommand(command, "~()*!'")
+            arguments[key] = parse.quote(value, safe=safe)
+        elif method == 'base64URL':
+            arguments[key] = base64.urlsafe_b64encode(value)
+        elif method == 'base64':
+            arguments[key] = base64.b64encode(value)
+        elif method == 'decode':
+            encoding = _getArgumentCommand(command, 'utf-8')
+            errors = _getArgumentCommand(command, 'strict', 2)
+            arguments[key] = value.decode(encoding=encoding, errors=errors)
+        elif method == 'encode':
+            encoding = _getArgumentCommand(command, 'utf-8')
+            errors = _getArgumentCommand(command, 'strict', 2)
+            arguments[key] = value.encode(encoding=encoding, errors=errors)
+        elif method == 'replace':
+            arg1 = _getArgumentCommand(command, '')
+            arg2 = _getArgumentCommand(command, '', 2)
+            arg3 = int(_getArgumentCommand(command, -1, 3))
+            arguments[key] = value.replace(arg1, arg2, arg3)
+        elif method == 'strip':
+            arguments[key] = value.strip(_getArgumentCommand(command))
+        elif method == 'rstrip':
+            arguments[key] = value.rstrip(_getArgumentCommand(command))
+        elif method == 'lstrip':
+            arguments[key] = value.lstrip(_getArgumentCommand(command))
+    return setParametersArguments(parameter.getByName('Parameters'), arguments, key)
 
 def _setArgumentTemplate(key, arguments, template):
     for identifier in Formatter().parse(template):

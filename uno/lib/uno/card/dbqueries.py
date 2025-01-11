@@ -37,14 +37,14 @@ from .logger import getLogger
 g_basename = 'dbqueries'
 
 
-def getSqlQuery(ctx, name, format=None):
+def getSqlQuery(ctx, name, template=None):
 
 # Create User and Schema Query
     if name == 'createUserSchema':
-        query = 'CREATE SCHEMA "%(Schema)s" AUTHORIZATION "%(Name)s";' % format
+        query = 'CREATE SCHEMA "%(Schema)s" AUTHORIZATION "%(Name)s";' % template
 
     elif name == 'setUserSchema':
-        query = 'ALTER USER "%(Name)s" SET INITIAL SCHEMA "%(Schema)s";' % format
+        query = 'ALTER USER "%(Name)s" SET INITIAL SCHEMA "%(Schema)s";' % template
 
 # Create Dynamic View Queries
     elif name == 'getUserViewCommand':
@@ -56,7 +56,7 @@ SELECT V.*
   WHERE B."User" = %(User)s
   ORDER BY V."Created";
 '''
-        query = command % format
+        query = command % template
 
     elif name == 'getBookViewCommand':
         command = '''\
@@ -67,7 +67,7 @@ SELECT V.*
   WHERE B."Book" = %(Item)s
   ORDER BY V."Created";
 '''
-        query = command % format
+        query = command % template
 
     elif name == 'getGroupViewCommand':
         command = '''\
@@ -78,7 +78,7 @@ SELECT V.*
   WHERE G."Group" = %(Item)s
   ORDER BY V."Created";
 '''
-        query = command % format
+        query = command % template
 
 # Select Queries
     elif name == 'getViews':
@@ -850,21 +850,21 @@ CREATE PROCEDURE "MergeCardGroups"(IN Book INTEGER,
 
 # Logging Changes Queries
     elif name == 'loggingChanges':
-        if format:
+        if template:
             query = 'SET FILES LOG TRUE'
         else:
             query = 'SET FILES LOG FALSE'
 
 # Saves Changes Queries
     elif name == 'saveChanges':
-        if format:
+        if template:
             query = 'CHECKPOINT DEFRAG'
         else:
             query = 'CHECKPOINT'
 
 # ShutDown Queries
     elif name == 'shutdown':
-        if format:
+        if template:
             query = 'SHUTDOWN COMPACT;'
         else:
             query = 'SHUTDOWN;'

@@ -27,117 +27,263 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
+from com.sun.star.rest.ParameterType import REDIRECT
 
-from .book import Book
+from ..provider import Provider as ProviderMain
 
-from ..cardtool import getSqlException
+from ..dbtool import currentDateTimeInTZ
 
-from ..oauth2 import getRequest
+from ..configuration import g_host
+from ..configuration import g_url
+from ..configuration import g_chunk
+from ..configuration import g_userfields
+from ..configuration import g_groupfields
 
-from ..dbtool import getDateTimeFromString
-
+import json
+import ijson
 import traceback
 
 
-class Provider(object):
-    def __init__(self, ctx):
-        self._ctx = ctx
+class Provider(ProviderMain):
+    def __init__(self, paths, lists, maps, types, tmps, fields):
+        self._paths = paths
+        self._lists = lists
+        self._maps = maps
+        self._types = types
+        self._tmps = tmps
+        self._fields = fields
 
-    # Currently only vCardOOo supports multiple address books
-    def supportAddressBook(self):
-        return False
+    @property
+    def Host(self):
+        return g_host
+    @property
+    def BaseUrl(self):
+        return g_url
 
-    # Currently only vCardOOo does not supports group
-    def supportGroup(self):
-        return True
+# Method called from DataSource.getConnection()
+    def getUserUri(self, name):
+        return name
 
-    def parseDateTime(self, timestamp):
-        datetime = uno.createUnoStruct('com.sun.star.util.DateTime')
-        try:
-            dt = parser.parse(timestamp)
-        except parser.ParserError:
-            pass
-        else:
-            datetime.Year = dt.year
-            datetime.Month = dt.month
-            datetime.Day = dt.day
-            datetime.Hours = dt.hour
-            datetime.Minutes = dt.minute
-            datetime.Seconds = dt.second
-            datetime.NanoSeconds = dt.microsecond * 1000
-            datetime.IsUTC = dt.tzinfo == tz.tzutc()
-        return datetime
-
-    # Method called from User.__init__()
-    # This main method call Request with OAuth2 mode
-    def getRequest(self, url, name):
-        return getRequest(self._ctx, url, name)
-
-    # Need to be implemented method
-    def insertUser(self, source, database, request, scheme, server, name, pwd):
-        raise NotImplementedError
-
-    # Method called from DataSource.getConnection()
     def initAddressbooks(self, source, database, user):
-        raise NotImplementedError
-
-    def initUserBooks(self, source, database, user, books):
-        count = 0
-        modified = False
-        for uri, name, tag, token in books:
-            print("Provider.initUserBooks() 1 Name: %s - Uri: %s - Tag: %s - Token: %s" % (name, uri, tag, token))
-            if user.Books.hasBook(uri):
-                book = user.Books.getBook(uri)
-                if book.hasNameChanged(name):
-                    database.updateAddressbookName(book.Id, name)
-                    book.setName(name)
-                    modified = True
-                    print("Provider.initUserBooks() 2 %s" % (name, ))
-            else:
-                newid = database.insertBook(user.Id, uri, name, tag, token)
-                book = Book(self._ctx, True, Book=newid, Uri=uri, Name=name, Tag=tag, Token=token)
-                user.Books.setBook(uri, book)
-                modified = True
-                print("Provider.initUserBooks() 3 %s - %s - %s" % (book.Id, name, uri))
-            self.initUserGroups(database, user, book)
-            count += 1
-        print("Provider.initUserBooks() 4")
-        if not count:
-            cls, mtd = 'Provider', 'initUserBooks()'
-            raise getSqlException(self._ctx, source, 1006, 1611, cls, mtd, user.Name, user.Server)
-        if modified and self.supportAddressBook():
-            database.initAddressbooks(user)
+        parameter = self._getRequestParameter(user.Request, 'getBooks')
+        response = user.Request.execute(parameter)
+        if not response.Ok:
+            cls, mtd = 'Provider', 'initAddressbooks()'
+            self.raiseForStatus(source, cls, mtd, response, user.Name)
+        iterator = self._parseAllBooks(response)
+        self.initUserBooks(source, database, user, iterator)
 
     def initUserGroups(self, database, user, book):
-        raise NotImplementedError
+        parameter = self._getRequestParameter(user.Request, 'getGroups')
+        response = user.Request.execute(parameter)
+        if not response.Ok:
+            cls, mtd = 'Provider', 'initUserGroups()'
+            self.raiseForStatus(source, cls, mtd, response, user.Name)
+        iterator = self._parseGroups(response)
+        remove, add = database.initGroups(book, iterator)
+        database.initGroupView(user, remove, add)
 
-    def firstPullCard(self, database, user, addressbook, pages, count):
-        raise NotImplementedError
+    # Method called from User.__init__()
+    def insertUser(self, source, database, request, name, pwd):
+        userid = self._getNewUserId(source, request, name, pwd)
+        return database.insertUser(userid, '', name)
+ 
+    # Private method
+    def _getNewUserId(self, source, request, name, pwd):
+        parameter = self._getRequestParameter(request, 'getUser')
+        response = request.execute(parameter)
+        if not response.Ok:
+            cls, mtd = 'Provider', '_getNewUserId()'
+            self.raiseForStatus(source, cls, mtd, response, name)
+        userid = self._parseUser(response)
+        return userid
 
-    def pullCard(self, database, user, addressbook, pages, count):
-        raise NotImplementedError
+    def _parseUser(self, response):
+        userid = None
+        events = ijson.sendable_list()
+        parser = ijson.parse_coro(events)
+        iterator = response.iterContent(g_chunk, False)
+        while iterator.hasMoreElements():
+            parser.send(iterator.nextElement().value)
+            for prefix, event, value in events:
+                if (prefix, event) == ('id', 'string'):
+                    userid = value
+            del events[:]
+        parser.close()
+        response.close()
+        return userid
+
+    def _parseAllBooks(self, response):
+        events = ijson.sendable_list()
+        parser = ijson.parse_coro(events)
+        url = name = tag = None
+        iterator = response.iterContent(g_chunk, False)
+        while iterator.hasMoreElements():
+            parser.send(iterator.nextElement().value)
+            for prefix, event, value in events:
+                if (prefix, event) == ('value.item.id', 'string'):
+                    url = value
+                elif (prefix, event) == ('value.item.displayName', 'string'):
+                    name = value
+                elif (prefix, event) == ('value.item.parentFolderId', 'string'):
+                    tag = value
+                if all((url, name, tag)):
+                    yield  url, name, tag, ''
+                    url = name = tag = None
+            del events[:]
+        parser.close()
+        response.close()
+
+
+
+# Method called from Replicator.run()
+    def firstPullCard(self, database, user, book, page, count):
+        return self._pullCard(database, 'firstPullCard()', user, book, page, count)
+
+    def pullCard(self, database, user, book, page, count):
+        return self._pullCard(database, 'pullCard()', user, book, page, count)
 
     def parseCard(self, database):
-        raise NotImplementedError
+        start = database.getLastUserSync()
+        stop = currentDateTimeInTZ()
+        iterator = self._parseCardValue(database, start, stop)
+        count = database.mergeCardValue(iterator)
+        database.updateUserSync(stop)
 
-    def raiseForStatus(self, source, cls, mtd, response, user):
-        name = response.Parameter.Name
-        url = response.Parameter.Url
-        status = response.StatusCode
-        msg = response.Text
+    # Private method
+    def _pullCard(self, database, mtd, user, book, page, count):
+        args = []
+        parameter = self._getRequestParameter(user.Request, 'getCards', book.Uri)
+        iterator = self._parseCards(user, parameter, mtd, args)
+        count += database.mergeCard(book.Id, iterator)
+        page += parameter.PageCount
+        if not args:
+            if parameter.SyncToken:
+                database.updateAddressbookToken(book.Id, parameter.SyncToken)
+        #self.initGroups(database, user, book)
+        return page, count, args
+
+    def _parseCards(self, user, parameter, mtd, args):
+        map = tmp = False
+        while parameter.hasNextPage():
+            response = user.Request.execute(parameter)
+            if not response.Ok:
+                args += self.getLoggerArgs(response, mtd, parameter, user.Name)
+                break
+            events = ijson.sendable_list()
+            parser = ijson.parse_coro(events)
+            url = tag = data = None
+            iterator = response.iterContent(g_chunk, False)
+            while iterator.hasMoreElements():
+                parser.send(iterator.nextElement().value)
+                for prefix, event, value in events:
+                    if (prefix, event) == ('@odata.nextLink', 'string'):
+                        parameter.setNextPage('', value, REDIRECT)
+                    elif (prefix, event) == ('@odata.deltaLink', 'string'):
+                        parameter.SyncToken = value
+                    elif (prefix, event) == ('value.item', 'start_map'):
+                        cid = etag = tmp = label = None
+                        data = {}
+                        deleted = False
+                    elif (prefix, event) == ('value.item.deleted', 'boolean'):
+                        deleted = value
+                    elif (prefix, event) == ('value.item.id', 'string'):
+                        cid = value
+                    elif (prefix, event) == ('value.item.@odata.etag', 'string'):
+                        etag = value
+                    # FIXME: All the data parsing is done based on the tables: Resources, Properties and Types 
+                    # FIXME: Only properties listed in these tables will be parsed
+                    # FIXME: This is the part for simple property import (use of tables: Resources and Properties)
+                    elif event == 'string' and prefix in self._paths:
+                        data[self._paths.get(prefix)] = value
+                    # FIXME: This is the part for simple list property import (use of tables: Resources and Properties)
+                    elif event == 'start_array' and value is None and prefix + '.item' in self._lists:
+                        data[self._lists.get(prefix + '.item')] = []
+                    elif event == 'string' and prefix in self._lists:
+                        data[self._lists.get(prefix)].append(value)
+                    # FIXME: This is the part for typed property import (use of tables: Resources, Properties and Types)
+                    elif event == 'start_map' and prefix in self._maps:
+                        map = tmp = None
+                        suffix = ''
+                    elif event == 'map_key' and prefix in self._maps and value in self._maps.get(prefix):
+                        suffix = value
+                    elif event == 'string' and map is None and prefix in self._types:
+                        map = self._types.get(prefix).get(value + suffix)
+                    elif event == 'string' and tmp is None and prefix in self._tmps:
+                        tmp = value
+                    elif event == 'end_map' and map and tmp and prefix in self._maps:
+                        data[map] = tmp
+                        map = tmp = False
+                    elif (prefix, event) == ('value.item', 'end_map'):
+                        yield cid, etag, deleted, json.dumps(data)
+                del events[:]
+            parser.close()
+            response.close()
+
+    def _pullGroup(self, database, mtd, user, addressbook, page, count):
+        parameter = self._getRequestParameter(user.Request, 'getGroups', addressbook)
+        response = user.Request.execute(parameter)
+        if not response.Ok:
+            args = self.getLoggerArgs(response, mtd, parameter, user.Name)
+            return page, count, args
+        iterator = self._parseGroups(response)
+        count += database.mergeGroup(addressbook.Id, iterator)
+        page += parameter.PageCount
+        return page, count, []
+
+    def _parseGroups(self, response):
+        events = ijson.sendable_list()
+        parser = ijson.parse_coro(events)
+        iterator = response.iterContent(g_chunk, False)
+        while iterator.hasMoreElements():
+            parser.send(iterator.nextElement().value)
+            for prefix, event, value in events:
+                if (prefix, event) == ('value.item', 'start_map'):
+                    uri = name = None
+                elif (prefix, event) == ('value.item.id', 'string'):
+                    uri = value
+                elif (prefix, event) == ('value.item.displayName', 'string'):
+                    name = value
+                elif (prefix, event) == ('value.item', 'end_map'):
+                    if all((uri, name)):
+                        yield  uri, name
+            del events[:]
+        parser.close()
         response.close()
-        raise getSqlException(self._ctx, source, 1006, 1601, cls, mtd,
-                              name, status, user, url, msg)
 
-    def getLoggerArgs(self, response, mtd, parameter, user):
-        status = response.StatusCode
-        msg = response.Text
-        response.close()
-        return ['Provider', mtd, 201, parameter.Name, status, user, parameter.Url, msg]
+    def _parseCardValue(self, database, start, stop):
+        indexes = database.getColumnIndexes({'categories': -1})
+        for book, card, query, data in database.getChangedCard(start, stop):
+            if query == 'Deleted':
+                continue
+            else:
+                for column, value in json.loads(data).items():
+                    yield book, card, indexes.get(column), value
 
-    # Can be overwritten method
-    def syncGroups(self, database, user, addressbook, pages, count):
-        return pages, count, None
+
+
+    def _getRequestParameter(self, request, method, data=None):
+        parameter = request.getRequestParameter(method)
+        parameter.Url = self.BaseUrl
+
+        if method == 'getUser':
+            parameter.Url += '/me'
+            parameter.setQuery('select', g_userfields)
+
+        elif method == 'getBooks':
+            parameter.Url += '/me/contactFolders'
+
+        elif method == 'getCards':
+            parameter.Url += '/me/contactFolders/%s/contacts' % data
+            parameter.setQuery('select', self._fields)
+
+        elif method == 'getGroups':
+            parameter.Url += '/me/outlook/masterCategories'
+            parameter.setQuery('select', g_groupfields)
+
+        elif method == 'getModifiedCardByToken':
+            parameter.Url += '/me/contactFolders/%s/contacts/delta' % data
+            parameter.setQuery('select', self._fields)
+
+        return parameter
 

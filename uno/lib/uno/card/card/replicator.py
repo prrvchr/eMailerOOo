@@ -27,20 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UnoException
 
-from .unotool import getConfiguration
+from ..unotool import getConfiguration
 
-from .configuration import g_identifier
-from .configuration import g_synclog
+from ..configuration import g_identifier
+from ..configuration import g_synclog
 
-from .logger import getLogger
+from ..logger import getLogger
 g_basename = 'Replicator'
 
 from threading import Thread

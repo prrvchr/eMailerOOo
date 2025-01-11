@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,29 +27,36 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
-from .configuration import g_identifier
-from .configuration import g_service
-from .configuration import g_version
+from .book import Book
 
-from .configuration import g_oauth2
-from .configuration import g_token
+from collections import OrderedDict
 
-from .oauth2lib import CustomParser
-from .oauth2lib import InteractionRequest
-from .oauth2lib import NoOAuth2
-from .oauth2lib import OAuth2OOo
 
-from .oauth2tool import getOAuth2
-from .oauth2tool import getOAuth2Version
-from .oauth2tool import getParserItems
-from .oauth2tool import getRequest
-from .oauth2tool import getResponseResults
-from .oauth2tool import setItemsIdentifier
-from .oauth2tool import setParameterArguments
-from .oauth2tool import setParametersArguments
-from .oauth2tool import setResquestParameter
+class Books(object):
+    def __init__(self, ctx, metadata, new):
+        self._ctx = ctx
+        print("Books.__init__() 1")
+        self._books = self._getBooks(metadata, new)
+        print("Books.__init__() 2")
 
-from .oauth2core import getOAuth2UserName
-from .oauth2core import getOAuth2Token
+    def getBooks(self):
+        return self._books.values()
+
+    def hasBook(self, uri):
+        return uri in self._books
+
+    def getBook(self, uri):
+        return self._books[uri]
+
+    def setBook(self, uri, book):
+        self._books[uri] = book
+
+    # Private methods
+    def _getBooks(self, metadata, new):
+        books = OrderedDict()
+        for kwargs in metadata:
+            book = Book(self._ctx, new, **kwargs)
+            print("AddressBook._getBooks() Url: %s" % book.Uri)
+            books[book.Uri] = book
+        return books
 

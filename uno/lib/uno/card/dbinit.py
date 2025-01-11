@@ -68,7 +68,6 @@ from .dbconfig import g_drvinfos
 from .dbconfig import g_csv
 
 from collections import OrderedDict
-import traceback
 
 
 def getDataBaseConnection(ctx, url, user, pwd, new, infos=None):
@@ -76,7 +75,8 @@ def getDataBaseConnection(ctx, url, user, pwd, new, infos=None):
         infos = getDriverInfos(ctx, url, g_drvinfos)
     return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
-def createDataBase(ctx, connection, odb):
+def createDataBase(ctx, logger, connection, odb):
+    # TODO: Log all database creation
     # XXX Creation order are very important here...
     tables = connection.getTables()
     statement = connection.createStatement()

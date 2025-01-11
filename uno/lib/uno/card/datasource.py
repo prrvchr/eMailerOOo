@@ -27,42 +27,47 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from .provider import Provider
-
-from .replicator import Replicator
-
+from .card import DataBase
+from .card import Provider
 from .card import User
 
-from .listener import EventListener
-from .listener import TerminateListener
+from .card import Replicator
 
-from .cardtool import getSqlException
+from .card import EventListener
+from .card import TerminateListener
 
 from .unotool import getDesktop
 
-from threading import Event
-import traceback
+from .cardtool import getSqlException
 
+
+from threading import Event
 
 class DataSource():
-    def __init__(self, ctx, database):
+    def __init__(self, ctx, logger, url):
         self._ctx = ctx
         self._maps = {}
-        self._users = {}
+        database = DataBase(ctx, logger, url)
+        provider = Provider(ctx, *database.getMetaData('item'))
+        users = {}
+        sync = Event()
+        self._sync = sync
+        self._users = users
         self._database = database
+        self._provider = provider
+        self._replicator = Replicator(ctx, database, provider, users, sync)
         self._listener = EventListener(self)
-        self._provider = Provider(ctx, database)
-        self._sync = Event()
-        self._replicator = Replicator(ctx, database, self._provider, self._users, self._sync)
-        listener = TerminateListener(self._replicator)
-        getDesktop(ctx).addTerminateListener(listener)
+        getDesktop(ctx).addTerminateListener(TerminateListener(self._replicator))
 
     @property
     def DataBase(self):
         return self._database
+
+    def isUptoDate(self):
+        return self._database.isUptoDate()
+
+    def getDataBaseVersion(self):
+        return self._database.Version
 
 # Procedures called by EventListener
     def closeConnection(self, connection):
@@ -72,8 +77,8 @@ class DataSource():
             user.removeSession(self._database.getSessionId(connection))
 
 # Procedures called by Driver
-    def getConnection(self, source, scheme, server, account, password=''):
-        uri = self._provider.getUserUri(server, account)
+    def getConnection(self, source, account, password=''):
+        uri = self._provider.getUserUri(account)
         if uri in self._maps:
             name = self._maps.get(uri)
             user = self._users.get(name)
@@ -82,7 +87,7 @@ class DataSource():
                 raise getSqlException(self._ctx, source, 1002, 1401, cls, mtd, name)
         else:
             user = User(self._ctx, source, self._database,
-                        self._provider, scheme, server, account, password)
+                        self._provider, account, password)
             name = user.getName()
             self._users[name] = user
             self._maps[uri] = name
@@ -101,3 +106,4 @@ class DataSource():
             if user.hasSession():
                 return True
         return False
+

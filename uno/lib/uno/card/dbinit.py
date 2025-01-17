@@ -75,7 +75,7 @@ def getDataBaseConnection(ctx, url, user, pwd, new, infos=None):
         infos = getDriverInfos(ctx, url, g_drvinfos)
     return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
-def createDataBase(ctx, logger, connection, odb):
+def createDataBase(ctx, connection, odb):
     # TODO: Log all database creation
     # XXX Creation order are very important here...
     tables = connection.getTables()

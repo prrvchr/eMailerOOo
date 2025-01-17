@@ -46,6 +46,7 @@ from .jdbcdriver import g_version as g_jdbcver
 from .configuration import g_extension
 from .configuration import g_host
 
+from .dbconfig import g_dotcode
 from .dbconfig import g_folder
 
 from .logger import getLogger
@@ -53,6 +54,14 @@ from .logger import getLogger
 from .configuration import g_basename
 from .configuration import g_defaultlog
 
+
+def getUserId(metadata):
+    return metadata.get('User')
+
+def getUserSchema(metadata):
+    # FIXME: We need to replace the dot for schema name
+    # FIXME: g_dotcode is used in database procedure too...
+    return metadata.get('Name').replace('.', chr(g_dotcode))
 
 def getDataSourceUrl(ctx, logger, source, state, code, cls, mtd):
     oauth2 = getOAuth2Version(ctx)

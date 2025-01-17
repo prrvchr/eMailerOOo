@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging import LogLevel
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -38,42 +37,41 @@ from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbcx.CheckOption import CASCADE
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
-from ..database import DataBase as DataBaseMain
+from .dbtool import Array
+from .dbtool import createUser
+from .dbtool import createViews
+from .dbtool import currentDateTimeInTZ
+from .dbtool import getDataFromResult
+from .dbtool import getDataSourceCall
+from .dbtool import getDataSourceConnection
+from .dbtool import getSequenceFromResult
+from .dbtool import getValueFromResult
 
-from ..dbtool import Array
-from ..dbtool import createUser
-from ..dbtool import createViews
-from ..dbtool import currentDateTimeInTZ
-from ..dbtool import getDataFromResult
-from ..dbtool import getDataSourceCall
-from ..dbtool import getDataSourceConnection
-from ..dbtool import getSequenceFromResult
-from ..dbtool import getValueFromResult
+from .unotool import checkVersion
+from .unotool import getConfiguration
+from .unotool import getSimpleFile
 
-from ..unotool import checkVersion
-from ..unotool import getConfiguration
-from ..unotool import getSimpleFile
+from .configuration import g_identifier
+from .configuration import g_host
 
-from ..configuration import g_identifier
-from ..configuration import g_host
-from ..configuration import g_scheme
+from .dbqueries import getSqlQuery
 
-from ..dbqueries import getSqlQuery
+from .dbconfig import g_catalog
+from .dbconfig import g_schema
+from .dbconfig import g_version
 
-from ..dbconfig import g_catalog
-from ..dbconfig import g_schema
-from ..dbconfig import g_version
-
-from ..dbinit import getDataBaseConnection
-from ..dbinit import createDataBase
+from .dbinit import getDataBaseConnection
+from .dbinit import createDataBase
 
 from collections import OrderedDict
 import json
 import traceback
 
 
-class DataBase(DataBaseMain):
+class DataBase():
     def __init__(self, ctx, logger, url, user='', pwd=''):
+        self._cls = 'DataBase'
+        mtd = '__init__'
         self._ctx = ctx
         self._statement = None
         self._fieldsMap = {}
@@ -84,7 +82,9 @@ class DataBase(DataBaseMain):
         connection = getDataBaseConnection(ctx, url, user, pwd, new)
         self._version = connection.getMetaData().getDriverVersion()
         if new and self.isUptoDate():
-            createDataBase(ctx, logger, connection, odb)
+            logger.logprb(INFO, self._cls, mtd, 1251)
+            createDataBase(ctx, connection, odb)
+            logger.logprb(INFO, self._cls, mtd, 1252)
         connection.close()
 
     @property
@@ -154,13 +154,13 @@ class DataBase(DataBaseMain):
         call.close()
         return session
 
-    def insertUser(self, uri, path, name):
+    def insertUser(self, uri, scheme, server, path, name):
         metadata = None
         books = []
         call = self._getCall('insertUser')
         call.setString(1, uri)
-        call.setString(2, g_scheme)
-        call.setString(3, g_host)
+        call.setString(2, scheme)
+        call.setString(3, server)
         call.setString(4, path)
         call.setString(5, name)
         result = call.executeQuery()
@@ -168,8 +168,8 @@ class DataBase(DataBaseMain):
         if not call.wasNull():
             metadata = {'User': user,
                         'Uri': uri,
-                        'Scheme': g_scheme,
-                        'Server': g_host,
+                        'Scheme': scheme,
+                        'Server': server,
                         'Path': path,
                         'Name': name}
             while result.next():
@@ -203,11 +203,11 @@ class DataBase(DataBaseMain):
     def _getItemOptions(self, catalog, schema, name, *options):
         yield catalog, schema, name, *options
 
-    def selectUser(self, name):
+    def selectUser(self, server, name):
         metadata = None
         books = []
         call = self._getCall('selectUser')
-        call.setString(1, g_host)
+        call.setString(1, server)
         call.setString(2, name)
         result = call.executeQuery()
         user = call.getInt(3)
@@ -215,7 +215,7 @@ class DataBase(DataBaseMain):
             metadata = {'User': user,
                         'Uri': call.getString(4),
                         'Scheme': call.getString(5),
-                        'Server': g_host,
+                        'Server': server,
                         'Path': call.getString(6),
                         'Name': name}
             while result.next():
@@ -239,11 +239,11 @@ class DataBase(DataBaseMain):
             self._initUserView('Book', *args)
         self._updateBookSync(user, stop)
 
-    def initGroups(self, book, iterator):
+    def initGroups(self, user, uri, iterator):
         uris = []
         names = []
         call = self._getCall('initGroups')
-        call.setInt(1, book.Id)
+        call.setInt(1, user.getBook(uri).Id)
         for uri, name in iterator:
             uris.append(uri)
             names.append(name)
@@ -333,10 +333,11 @@ class DataBase(DataBaseMain):
         if views.hasByName(view):
             views.dropByName(view)
 
-    def insertBook(self, user, path, name, tag=None, token=None):
+    def insertBook(self, userid, uri, name, tag=None, token=None):
+        book = None
         call = self._getCall('insertBook')
-        call.setInt(1, user)
-        call.setString(2, path)
+        call.setInt(1, userid)
+        call.setString(2, uri)
         call.setString(3, name)
         if tag is None:
             call.setNull(4, VARCHAR)
@@ -347,7 +348,9 @@ class DataBase(DataBaseMain):
         else:
             call.setString(5, token)
         call.executeUpdate()
-        book = call.getInt(6)
+        bookid = call.getInt(6)
+        if not call.wasNull():
+            book = {'Book': bookid, 'Uri': uri, 'Name': name, 'Tag': tag, 'Token': token}
         call.close()
         return book
 

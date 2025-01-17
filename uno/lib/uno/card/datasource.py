@@ -27,6 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from .card import DataBase
 from .card import Provider
 from .card import User
@@ -45,10 +48,13 @@ from threading import Event
 
 class DataSource():
     def __init__(self, ctx, logger, url):
+        self._cls = 'DataSource'
+        mtd = '__init__'
+        logger.logprb(INFO, self._cls, mtd, 1201)
         self._ctx = ctx
         self._maps = {}
         database = DataBase(ctx, logger, url)
-        provider = Provider(ctx, *database.getMetaData('item'))
+        provider = Provider(ctx, database)
         users = {}
         sync = Event()
         self._sync = sync
@@ -58,6 +64,7 @@ class DataSource():
         self._replicator = Replicator(ctx, database, provider, users, sync)
         self._listener = EventListener(self)
         getDesktop(ctx).addTerminateListener(TerminateListener(self._replicator))
+        logger.logprb(INFO, self._cls, mtd, 1202)
 
     @property
     def DataBase(self):
@@ -77,8 +84,8 @@ class DataSource():
             user.removeSession(self._database.getSessionId(connection))
 
 # Procedures called by Driver
-    def getConnection(self, source, account, password=''):
-        uri = self._provider.getUserUri(account)
+    def getConnection(self, source, logger, url, scheme, server, account, password=''):
+        uri = self._provider.getUserUri(server, account)
         if uri in self._maps:
             name = self._maps.get(uri)
             user = self._users.get(name)
@@ -86,13 +93,13 @@ class DataSource():
                 cls, mtd = 'DataSource', 'getConnection()'
                 raise getSqlException(self._ctx, source, 1002, 1401, cls, mtd, name)
         else:
-            user = User(self._ctx, source, self._database,
-                        self._provider, account, password)
+            user = User(self._ctx, source, logger, self._database,
+                        self._provider, url, scheme, server, account, password)
             name = user.getName()
             self._users[name] = user
             self._maps[uri] = name
         if user.isOnLine():
-            self._provider.initAddressbooks(source, self._database, user)
+            self._provider.initAddressbooks(source, logger, self._database, user)
         connection = self._database.getConnection(name, user.getPassword())
         user.addSession(self._database.getSessionId(connection))
         # User and/or AddressBooks has been initialized and the connection to the database is done...

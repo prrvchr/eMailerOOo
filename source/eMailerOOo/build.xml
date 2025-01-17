@@ -83,6 +83,7 @@
 
         <!-- check if project is Java -->
         <available file="lib" property="project.isjava"/>
+        <echo message="Check if Project is Java"/>
         <echo if:set="project.isjava" message="Project is Java"/>
         <echo unless:set="project.isjava" message="Project is not Java"/>
     </target>
@@ -93,16 +94,22 @@
         <property name="project.jar" value="${ant.project.name}.jar"/>
         <property name="build.jar" value="${build.dir}${file.separator}${project.jar}"/>
 
+        <property name="lib.dir" value="lib"/>
+        <property name="project.jar" value="${ant.project.name}.jar"/>
+        <property name="build.jar" value="${build.dir}${file.separator}${project.jar}"/>
+
         <path id="office.class.path">
             <fileset dir="${office.basis.dir}${file.separator}program${file.separator}classes">
                 <include name="*.jar"/>
             </fileset>
         </path>
+
         <path id="build.class.path">
             <fileset dir="${basedir}">
                 <include name="${lib.dir}${file.separator}*.jar"/>
             </fileset>
         </path>
+
         <pathconvert property="manifest.class.path" pathsep=" ">
             <path refid="build.class.path"/>
             <mapper>
@@ -175,8 +182,7 @@
             destdir="${build.classes.dir}" excludes="**/*Test*">
             <classpath>
                 <pathelement location="${build.classes.dir}"/>
-                <!-- Add external libraries here if you need them -->
-                <!-- <pathelement location="${lib.dir}${file.separator}libraryname.jar"/> -->
+                <path refid="build.class.path"/>
                 <path refid="office.class.path"/>
             </classpath>
         </javac>

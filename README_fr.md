@@ -608,11 +608,13 @@ ___
 
 ### Ce qui a été fait pour la version 1.3.0:
 
+- L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.4.0 et 1.4.6 minimum.
 - Seuls les fournisseurs disposant d'une API tierce ou d'une authentification OAuth2 et disposant d'une entrée dans la configuration de LibreOffice proposeront l'authentification OAuth2 par défaut dans l'assistant de configuration de connexion (ie: IspDB Wizard).
 - Les fournisseurs de messagerie `yahoo.com` et `aol.com` ont été intégrés. Afin de faciliter la configuration, un lien vers la page permettant la création d'un mot de passe d'application a été ajouté à l'assistant de configuration de connexion. Si vous pensez que des liens vers d'autres fournisseurs manquent, veuillez ouvrir un dysfonctionnement afin que je puisse les rajouter.
-- **LibreOffice 7.0 est la version minimale supportée**, une installation avec une version inférieure ou sous **OpenOffice** quelle que soit sa version produira une erreur.
 - Mise à jour du paquet [Python IMAPClient][78] vers la version 3.0.1.
-- Grâce aux améliorations apportées au [plugin Eclipse][107], il est désormais possible de créer le fichier de l'extension en utilisant la ligne de commande et l'outil de création d'archive **Apache Ant**, voir le fichier [build.xml][108].
+- Grâce aux améliorations apportées au [plugin Eclipse][107], il est désormais possible de créer le fichier de l'extension en utilisant la ligne de commande et l'outil de création d'archive [Apache Ant][108], voir le fichier [build.xml][109].
+- L'extension refusera de s'installer sous OpenOffice quelle que soit la version ou LibreOffice autre que 7.x ou supérieur.
+- Ajout des fichiers binaires nécessaires aux bibliothèques Python pour fonctionner sous Linux et LibreOffice 24.8 (ie: Python 3.9).
 - De nombreuses corrections.
 
 ### Que reste-t-il à faire pour la version 1.3.0:
@@ -727,4 +729,5 @@ ___
 [105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
 [106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>
 [107]: <https://github.com/LibreOffice/loeclipse/pull/123>
-[108]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
+[108]: <https://ant.apache.org/>
+[109]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>

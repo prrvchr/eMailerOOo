@@ -259,9 +259,9 @@ class MergerModel(MailModel):
             self._labeler = connection.getObjectNames()
             self._nominator = connection.createTableName()
             composer = connection.createInstance(self._service)
-            queries = self._getQueries(composer)
+            subqueries = self._getSubQueries(composer)
             progress(90)
-            self._setSubQueryTable(composer, queries)
+            queries = self._getQueries(composer, subqueries)
             composer.dispose()
             label = self._getIndexLabel()
             step = 3
@@ -325,58 +325,42 @@ class MergerModel(MailModel):
         url = '%s/%s.odb' % (temp, book)
         return url
 
-    def _getQueries(self, composer):
+    def _getSubQueries(self, composer):
         queries = {}
         names = self._queries.getElementNames()
         for name in names:
-            table = self._getQueryTable(composer, names, name)
+            table = self._getSubQueryTable(composer, names, name)
             if table is not None:
                 queries[name] = uno.createUnoStruct('com.sun.star.beans.StringPair', table, '')
         return queries
 
-    def _getQueryTable(self, composer, queries, query):
+    def _getSubQueryTable(self, composer, queries, query):
         table = None
         composer.setCommand(query, QUERY)
         for name in composer.getTables().getElementNames():
             if name in queries:
                 table = name
+                break
         return table
 
-    def _setSubQueryTable(self, composer, queries):
-        for subquery in queries.values():
-            if self._queries.hasByName(subquery.First):
-                command = self._queries.getByName(subquery.First).Command
-                subquery.Second = self._getSubQueryTable(composer, command)
+    def _getQueries(self, composer, subqueries):
+        queries = {}
+        for name, query in subqueries.items():
+            if self._queries.hasByName(query.First):
+                command = self._queries.getByName(query.First).Command
+                table = self._getQueryTable(composer, command)
+                if table is not None:
+                    query.Second = table
+                    queries[name] = query
+        return queries
 
-    def _getSubQueryTable(self, composer, command):
+    def _getQueryTable(self, composer, command):
         table = None
         composer.setQuery(command)
-        tables = composer.getTables()
-        if tables.getCount() > 0:
-            table = tables.getElementNames()[0]
+        for name in composer.getTables().getElementNames():
+            table = name
+            break
         return table
-
-    def _checkQueries(self, query, subquery):
-        return self._checkQuery(query, subquery) and self._checkSubQuery(subquery)
- 
-    def _checkQuery(self, query, subquery):
-        self._composer.setCommand(query, QUERY)
-        tables = self._composer.getTables()
-        return tables.hasElements() and tables.getByIndex(0).Name == subquery
-
-    def _checkSubQuery(self, subquery):
-        self._subcomposer.setCommand(subquery, QUERY)
-        tables = self._subcomposer.getTables()
-        return tables.hasElements()
-
-    def _getSubQueries(self, queries):
-        subqueries = {}
-        for query in queries:
-            self._composer.setCommand(query, QUERY)
-            tables = self._composer.getTables()
-            if tables.hasElements() and tables.getElementNames()[0] in queries:
-                subqueries[query] = tables.getElementNames()[0]
-        return subqueries
 
     # AddressBook Table methods
     def setAddressBookTable(self, name):
@@ -419,7 +403,13 @@ class MergerModel(MailModel):
         self._query = query
         self._subquery = subquery
         self._identifiers, self._emails = self._getSubQueryInfos()
-        columns = self._subcomposer.getTables().getByName(subquery.Second).getColumns().getElementNames()
+        columns = ()
+        tables = self._subcomposer.getTables()
+        print("MergerModel._getQuery() tables: %s" % (tables.getElementNames(), ))
+        print("MergerModel._getQuery() subquery: %s" % subquery.Second)
+        table = self._subcomposer.getTables().getByName(subquery.Second)
+        if table.getColumns().hasElements():
+            columns = table.getColumns().getElementNames()
         return self._identifiers, self._emails, subquery.Second, columns
 
     def _getSubQueryInfos(self):

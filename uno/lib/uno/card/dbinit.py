@@ -166,7 +166,7 @@ def _getAddressbookColumns(ctx, connection):
     call.close()
 
 def _getProcedures():
-    for name in ('SelectUser', 'InsertUser', 'InsertBook', 'UpdateAddressbookName',
+    for name in ('SelectUser', 'InsertUser', 'InsertBook', 'UpdateBookName',
                  'MergeCard', 'MergeGroup', 'MergeGroupMembers', 'DeleteCard',
                  'UpdateCardSync', 'GetLastCardSync', 'GetLastBookSync',
                  'GetLastGroupSync', 'SelectChangedCards', 'SelectColumns', 'SelectColumnIds',

@@ -54,7 +54,7 @@ class User(object):
         self._password = pwd
         self._sessions = []
         logger.logprb(INFO, self._cls, mtd, 1352, name)
-        metadata, books = database.selectUser(server, name)
+        metadata, args = database.selectUser(server, name)
         new = metadata is None
         if not new:
             logger.logprb(INFO, self._cls, mtd, 1353, name)
@@ -68,13 +68,14 @@ class User(object):
             request = provider.getRequest(url, name)
             if request is None:
                 raise getSqlException(ctx, source, 1002, 1501, self._cls, mtd, name, g_extension)
-            metadata, books = provider.insertUser(source, logger, database, request, scheme, server, name, pwd)
+            metadata, args = provider.insertUser(logger, database, request, scheme, server, name, pwd)
             if metadata is None:
                 raise getSqlException(ctx, source, 1005, 1503, self._cls, mtd, name)
             database.createUser(getUserSchema(metadata), getUserId(metadata), name, '')
-        self.Request = request
+        self._request = request
         self._metadata = metadata
-        self._books = {book.get('Uri'): Book(new, **book) for book in books}
+        books = (Book(new, **kwargs) for kwargs in args)
+        self._books = {book.Uri: book for book in books}
         logger.logprb(INFO, self._cls, mtd, 1355, name)
 
     @property
@@ -102,11 +103,12 @@ class User(object):
     def BaseUrl(self):
         return self.Scheme + self.Server + self.Path
     @property
-    def Books(self):
-        return self._books.values()
+    def Request(self):
+        return self._request
 
     def isOnLine(self):
         return self._isOnLine(self.Server)
+
     def isOffLine(self):
         return self._isOffLine(self.Server)
 
@@ -124,11 +126,16 @@ class User(object):
     def hasBook(self, uri):
         return uri in self._books
 
+    def getBooks(self):
+        return self._books.values()
+
     def getBook(self, uri):
         return self._books[uri]
 
     def setNewBook(self, uri, **kwargs):
-        self._books[uri] = Book(True, **kwargs)
+        book = Book(True, **kwargs)
+        self._books[uri] = book
+        return book
 
     def hasSession(self):
         return len(self._sessions) > 0
@@ -142,9 +149,6 @@ class User(object):
 
     def unquoteUrl(self, url):
         return self.Request.unquoteUrl(url)
-
-    def getBooks(self):
-        return self._books.getBooks()
 
     def _isOffLine(self, server):
         return getConnectionMode(self._ctx, server) != ONLINE

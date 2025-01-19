@@ -47,14 +47,14 @@ from .cardtool import getSqlException
 from threading import Event
 
 class DataSource():
-    def __init__(self, ctx, logger, url):
+    def __init__(self, ctx, source, logger, url):
         self._cls = 'DataSource'
         mtd = '__init__'
         logger.logprb(INFO, self._cls, mtd, 1201)
         self._ctx = ctx
         self._maps = {}
         database = DataBase(ctx, logger, url)
-        provider = Provider(ctx, database)
+        provider = Provider(ctx, source, database)
         users = {}
         sync = Event()
         self._sync = sync
@@ -99,7 +99,7 @@ class DataSource():
             self._users[name] = user
             self._maps[uri] = name
         if user.isOnLine():
-            self._provider.initAddressbooks(source, logger, self._database, user)
+            self._provider.initAddressbooks(logger, self._database, user)
         connection = self._database.getConnection(name, user.getPassword())
         user.addSession(self._database.getSessionId(connection))
         # User and/or AddressBooks has been initialized and the connection to the database is done...
@@ -107,10 +107,4 @@ class DataSource():
         self._sync.set()
         connection.addEventListener(self._listener)
         return connection
-
-    def _hasSession(self):
-        for user in self._users.values():
-            if user.hasSession():
-                return True
-        return False
 

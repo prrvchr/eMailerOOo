@@ -156,14 +156,13 @@ class DataBase():
 
     def insertUser(self, uri, scheme, server, path, name):
         metadata = None
-        books = []
         call = self._getCall('insertUser')
         call.setString(1, uri)
         call.setString(2, scheme)
         call.setString(3, server)
         call.setString(4, path)
         call.setString(5, name)
-        result = call.executeQuery()
+        call.execute()
         user = call.getInt(6)
         if not call.wasNull():
             metadata = {'User': user,
@@ -172,11 +171,8 @@ class DataBase():
                         'Server': server,
                         'Path': path,
                         'Name': name}
-            while result.next():
-                books.append(getDataFromResult(result))
-        result.close()
         call.close()
-        return metadata, books
+        return metadata, ()
 
     def createUser(self, schema, userid, name, password):
         try:
@@ -205,7 +201,7 @@ class DataBase():
 
     def selectUser(self, server, name):
         metadata = None
-        books = []
+        args = []
         call = self._getCall('selectUser')
         call.setString(1, server)
         call.setString(2, name)
@@ -219,10 +215,10 @@ class DataBase():
                         'Path': call.getString(6),
                         'Name': name}
             while result.next():
-                books.append(getDataFromResult(result))
+                args.append(getDataFromResult(result))
         result.close()
         call.close()
-        return metadata, books
+        return metadata, args
 
 # Procedures called by the User
     def getUserFields(self):
@@ -239,11 +235,11 @@ class DataBase():
             self._initUserView('Book', *args)
         self._updateBookSync(user, stop)
 
-    def initGroups(self, user, uri, iterator):
+    def initGroups(self, user, book, iterator):
         uris = []
         names = []
         call = self._getCall('initGroups')
-        call.setInt(1, user.getBook(uri).Id)
+        call.setInt(1, user.getBook(book).Id)
         for uri, name in iterator:
             uris.append(uri)
             names.append(name)
@@ -257,16 +253,18 @@ class DataBase():
         call.close()
         return remove, add
 
-    def insertGroups(self, user, iterator):
+    def insertGroup(self, bookid, uri, name):
+        args = None
         call = self._getCall('insertGroup')
-        call.setInt(1, user.Id)
-        for uri, name in iterator:
-            call.setString(2, uri)
-            call.setString(3, name)
-            call.execute()
-            gid = call.getInt(4)
-            yield {'Query': 'Inserted', 'User': user.Id, 'Group': gid, 'Schema': user.getSchema(), 'Name': name}
+        call.setInt(1, bookid)
+        call.setString(2, uri)
+        call.setString(3, name)
+        call.execute()
+        group = call.getInt(4)
+        if not call.wasNull():
+            args = (group, uri, name)
         call.close()
+        return args
 
     def syncGroups(self, user):
         start = self.getLastSync('GroupSync', user)
@@ -319,7 +317,7 @@ class DataBase():
         if query == 'Deleted' or query == 'Updated':
             self._deleteUserView(g_catalog, schema, oldname)
         if query == 'Inserted' or query == 'Updated':
-            template = {'Catalog': g_catalog, 'Schema': g_schema, 'Item': item}
+            template = {'Catalog': g_catalog, 'Schema': g_schema, 'ItemId': item}
             command = getSqlQuery(self._ctx, 'get%sViewCommand' % view, template)
             self._createUserView(g_catalog, schema, newname, command, CASCADE)
             self._grantPrivileges(g_catalog, schema, newname, user, TABLE, 1)
@@ -332,6 +330,13 @@ class DataBase():
         view = f'{catalog}.{schema}.{name}'
         if views.hasByName(view):
             views.dropByName(view)
+
+    def _renameUserView(self, catalog, schema, newname, oldname):
+        views = self.Connection.getViews()
+        newview = f'{catalog}.{schema}.{newname}'
+        oldview = f'{catalog}.{schema}.{oldname}'
+        if views.hasByName(oldview) and not views.hasByName(newview):
+            views.rename(oldview, newview)
 
     def insertBook(self, userid, uri, name, tag=None, token=None):
         book = None
@@ -354,19 +359,18 @@ class DataBase():
         call.close()
         return book
 
-    def initGroupView(self, user, remove, add):
+    def createGroupView(self, user, group):
         schema = user.getSchema()
-        if remove:
-            for item in remove:
-                self._deleteUserView(g_catalog, schema, item.get('OldName'))
-        if add:
-            for item in add:
-                view = item.get('NewName')
-                item['Catalog'] = g_catalog
-                item['Schema'] = g_schema
-                command = getSqlQuery(self._ctx, 'getGroupViewCommand', item)
-                self._createUserView(g_catalog, schema, view, command, CASCADE)
-                self._grantPrivileges(g_catalog, schema, view, user.Name, TABLE, 1)
+        template = {'Catalog': g_catalog, 'Schema':  g_schema, 'ItemId': group.Id}
+        command = getSqlQuery(self._ctx, 'getGroupViewCommand', template)
+        self._createUserView(g_catalog, schema, group.Name, command, CASCADE)
+        self._grantPrivileges(g_catalog, schema, group.Name, user.Name, TABLE, 1)
+
+    def removeGroupView(self, user, group):
+        self._deleteUserView(g_catalog, user.getSchema(), group.Name)
+
+    def renameGroupView(self, user, group, name):
+        self._renameUserView(g_catalog, user.getSchema(), group.Name, name)
 
     def updateAddressbookName(self, addressbook, name):
         call = self._getCall('updateAddressbookName')

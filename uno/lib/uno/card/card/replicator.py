@@ -64,7 +64,7 @@ class Replicator(Thread):
     def run(self):
         mtd = 'run'
         logger = getLogger(self._ctx, g_synclog, self._cls)
-        timeout = 0
+        timeout = self._config.getByName('ReplicateTimeout')
         try:
             logger.logprb(INFO, self._cls, mtd, 101)
             while not self._canceled:
@@ -72,7 +72,6 @@ class Replicator(Thread):
                 self._sync.wait(timeout)
                 if self._canceled:
                     continue
-                timeout = self._config.getByName('ReplicateTimeout')
                 if self._hasConnectedUser():
                     count = self._syncCard(logger)
                     if count > 0:
@@ -80,9 +79,11 @@ class Replicator(Thread):
                         if self._provider.supportGroup():
                             self._syncGroup(logger)
                     self._database.dispose()
-                    logger.logprb(INFO, self._cls, mtd, 102, timeout // 60)
+                    code = 102
                 else:
-                    logger.logprb(INFO, self._cls, mtd, 103, timeout // 60)
+                    code = 103
+                timeout = self._config.getByName('ReplicateTimeout')
+                logger.logprb(INFO, self._cls, mtd, code, timeout // 60)
             logger.logprb(INFO, self._cls, mtd, 104)
         except UnoException as e:
             logger.logprb(SEVERE, self._cls, mtd, 105, e.Message)

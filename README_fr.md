@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'Utilisation][4] et à notre [Politique de Protection des Données][5].**
 
-# version [1.3.0][6]
+# version [1.3.1][6]
 
 ## Introduction:
 
@@ -617,7 +617,15 @@ ___
 - Ajout des fichiers binaires nécessaires aux bibliothèques Python pour fonctionner sous Linux et LibreOffice 24.8 (ie: Python 3.9).
 - De nombreuses corrections.
 
-### Que reste-t-il à faire pour la version 1.3.0:
+### Ce qui a été fait pour la version 1.3.1:
+
+- Mise à jour du paquet [Python packaging][101] vers la version 24.2.
+- Mise à jour du paquet [Python setuptools][102] vers la version 75.8.0.
+- Mise à jour du paquet [Python six][110] vers la version 1.17.0.
+- Mise à jour du paquet [Python validators][104] vers la version 0.34.0.
+- Support de Python version 3.13.
+
+### Que reste-t-il à faire pour la version 1.3.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -628,7 +636,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-130>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-131>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -666,7 +674,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.0#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.1#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [47]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [48]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
@@ -731,3 +739,4 @@ ___
 [107]: <https://github.com/LibreOffice/loeclipse/pull/123>
 [108]: <https://ant.apache.org/>
 [109]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
+[110]: <https://pypi.org/project/six/>

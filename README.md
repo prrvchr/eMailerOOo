@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.3.0][6]
+# version [1.3.1][6]
 
 ## Introduction:
 
@@ -617,7 +617,15 @@ ___
 - Added binaries needed for Python libraries to work on Linux and LibreOffice 24.8 (ie: Python 3.9).
 - Many fixes.
 
-### What remains to be done for version 1.3.0:
+### What has been done for version 1.3.1:
+
+- Updated the [Python packaging][101] package to version 24.2.
+- Updated the [Python setuptools][102] package to version 75.8.0.
+- Updated the [Python six][110] package to version 1.17.0.
+- Updated the [Python validators][104] package to version 0.34.0.
+- Support for Python version 3.13.
+
+### What remains to be done for version 1.3.1:
 
 - Add new languages for internationalization...
 
@@ -628,7 +636,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-130>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-131>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -666,7 +674,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.0#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.1#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>
@@ -731,3 +739,4 @@ ___
 [107]: <https://github.com/LibreOffice/loeclipse/pull/123>
 [108]: <https://ant.apache.org/>
 [109]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
+[110]: <https://pypi.org/project/six/>

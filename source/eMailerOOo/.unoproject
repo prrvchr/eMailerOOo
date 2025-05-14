@@ -1,0 +1,10 @@
+#UNO project configuration file
+#Thu Jan 16 16:59:32 CET 2025
+project.build=build
+project.idl=/idl
+project.implementation=eMailerOOo
+project.language=Python
+project.ooo=LibreOffice 7.3
+project.prefix=io.github.prrvchr
+project.sdk=7.3.7.2
+project.srcdir=/service

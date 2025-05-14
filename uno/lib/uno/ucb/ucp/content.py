@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -76,15 +76,15 @@ from ..unotool import getProperty
 from ..unotool import getPropertyValueSet
 from ..unotool import hasInterface
 
+from ..helper import getCommandInfo
+from ..helper import getContentEvent
+from ..helper import getContentInfo
+from ..helper import getInteractiveAugmentedIOException
+from ..helper import getMimeType
+
 from .contentlib import CommandInfo
 from .contentlib import Row
 from .contentlib import DynamicResultSet
-
-from .contenthelper import getCommandInfo
-from .contenthelper import getContentEvent
-from .contenthelper import getContentInfo
-from .contenthelper import getInteractiveAugmentedIOException
-from .contenthelper import getMimeType
 
 from .identifier import Identifier
 
@@ -236,12 +236,15 @@ class Content(unohelper.Base,
             self._logger.logprb(SEVERE, 'Content', 'getIdentifier', 652, e, traceback.format_exc())
 
     def getContentType(self):
+        print("Content.getContentType() 1")
         return self._metadata.get('ContentType')
 
     def addContentEventListener(self, listener):
+        print("Content.addContentEventListener() 1")
         self._contentListeners.append(listener)
 
     def removeContentEventListener(self, listener):
+        print("Content.removeContentEventListener() 1")
         if listener in self._contentListeners:
             self._contentListeners.remove(listener)
 

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -63,6 +63,12 @@ def getConnectionMode(ctx, host, port=80):
 
 def getDesktop(ctx):
     return createService(ctx, 'com.sun.star.frame.Desktop')
+
+def getDispatcher(ctx):
+    return createService(ctx, 'com.sun.star.frame.DispatchHelper')
+
+def getToolKit(ctx):
+    return createService(ctx, 'com.sun.star.awt.Toolkit')
 
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
@@ -153,6 +159,10 @@ def getFileSequence(ctx, url, default=None):
         sequence = getStreamSequence(fs.openFileRead(path))
     return len(sequence), sequence
 
+def getPathSubstitution(ctx, path):
+     pathsubstitution = createService(ctx, 'com.sun.star.util.PathSubstitution')
+     return pathsubstitution.substituteVariables(path, True)
+
 def getStreamSequence(stream, chunk=64*1024):
     close = False
     sequence = uno.ByteSequence(b'')
@@ -182,6 +192,9 @@ def getComponentTypes(component):
     except:
         return ()
 
+def getInterfaceNames(component):
+    return (t.typeName for t in getComponentTypes(component))
+
 def getInterfaceTypes(component):
     return getComponentTypes(component)
 
@@ -204,6 +217,16 @@ def getExtensionVersion(ctx, extension):
         if name == extension:
             return version
     return None
+
+def getLibreOfficeInfo(ctx):
+    config = getConfiguration(ctx, '/org.openoffice.Setup/Product')
+    name = config.getByName('ooName')
+    version = config.getByName('ooSetupVersion')
+    return name, version
+
+def getLibreOfficeVersion(ctx):
+    version = getConfiguration(ctx, '/org.openoffice.Setup/Product').getByName('ooSetupVersion')
+    return version
 
 def getResourceLocation(ctx, identifier, path=None):
     service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
@@ -310,27 +333,27 @@ def executeShell(ctx, url, option=''):
     shell = createService(ctx, 'com.sun.star.system.SystemShellExecute')
     shell.execute(url, option, 0)
 
-def executeFrameDispatch(ctx, frame, url, arguments=(), listener=None):
+def executeDispatch(ctx, url, /, **args):
+    frame = getDesktop(ctx).getCurrentFrame()
+    arguments = getPropertyValueSet(args)
+    getDispatcher(ctx).executeDispatch(frame, url, '', 0, arguments)
+
+def executeFrameDispatch(ctx, url, listener=None, /, **args):
     url = getUrl(ctx, url)
+    frame = getDesktop(ctx).getCurrentFrame()
     dispatcher = frame.queryDispatch(url, '', 0)
+    arguments = getPropertyValueSet(args)
     if dispatcher is not None:
         if listener is not None:
             dispatcher.dispatchWithNotification(url, arguments, listener)
         else:
             dispatcher.dispatch(url, arguments)
 
-def executeDispatch(ctx, url, arguments=(), listener=None):
-    frame = getDesktop(ctx).getCurrentFrame()
-    executeFrameDispatch(ctx, frame, url, arguments, listener)
+def createMessageBox(peer, box, button, title, message):
+    return getMessageBox(peer.getToolkit(), peer, box, button, title, message)
 
-def createMessageBox(peer, message, title, box='message', buttons=2):
-    boxtypes = {'message': 'MESSAGEBOX',
-                'info': 'INFOBOX',
-                'warning': 'WARNINGBOX',
-                'error': 'ERRORBOX',
-                'query': 'QUERYBOX'}
-    box = uno.Enum('com.sun.star.awt.MessageBoxType', boxtypes.get(box, 'MESSAGEBOX'))
-    return peer.getToolkit().createMessageBox(peer, box, buttons, title, message)
+def getMessageBox(toolkit, peer, box, button, title, message):
+    return toolkit.createMessageBox(peer, box, button, title, message)
 
 def createService(ctx, name, *args, **kwargs):
     if args:
@@ -341,6 +364,12 @@ def createService(ctx, name, *args, **kwargs):
     else:
         service = ctx.ServiceManager.createInstanceWithContext(name, ctx)
     return service
+
+def getArgumentSet(properties):
+    arguments = {}
+    for property in properties:
+        arguments[property.Name] = property.Value
+    return arguments
 
 def getDefaultPropertyValueSet(args, default):
     properties = []

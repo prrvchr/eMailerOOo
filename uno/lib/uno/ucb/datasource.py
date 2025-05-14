@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -39,7 +39,9 @@ from .oauth20 import getOAuth2UserName
 from .unotool import getUriFactory
 
 from .ucp import User
-from .ucp import getExceptionMessage
+
+from .helper import getExceptionMessage
+from .helper import showWarning
 
 from .provider import Provider
 
@@ -55,7 +57,7 @@ import traceback
 
 
 class DataSource():
-    def __init__(self, ctx, logger, url):
+    def __init__(self, ctx, source, logger, url):
         cls, mtd = 'DataSource', '__init__'
         logger.logprb(INFO, cls, mtd, 301)
         self._ctx = ctx
@@ -64,7 +66,7 @@ class DataSource():
         self._sync = Event()
         self._lock = Lock()
         self._urifactory = getUriFactory(ctx)
-        database = DataBase(ctx, logger, url)
+        database = DataBase(ctx, source, logger, url)
         provider = Provider(ctx, logger)
         self._replicator = Replicator(ctx, url, provider, self._users, self._sync, self._lock)
         self._database = database
@@ -129,7 +131,8 @@ class DataSource():
             if uri.hasAuthority() and uri.getAuthority() != '':
                 name = uri.getAuthority()
             else:
-                msg = self._getExceptionMessage('_getUser', 322, url)
+                title, msg = self._getExceptionMessage(322, url)
+                showWarning(self._ctx, msg, title)
                 raise IllegalIdentifierException(msg, source)
         elif self._default:
             name = self._default
@@ -142,7 +145,8 @@ class DataSource():
             if not user.Request.isAuthorized():
                 # XXX: The user's OAuth2 configuration has been deleted and
                 # XXX: the OAuth2 configuration wizard has been canceled.
-                msg = self._getExceptionMessage('_getUser', 324, name)
+                title, msg = self._getExceptionMessage(324, name)
+                showWarning(self._ctx, msg, title)
                 raise IllegalIdentifierException(msg, source)
         else:
             user = User(self._ctx, source, self._logger, self.DataBase,
@@ -160,9 +164,10 @@ class DataSource():
         except Exception as e:
             print("DataSource._getUserName() ERROR: %s - %s" % (e, traceback.format_exc()))
         if not name:
-            msg = self._getExceptionMessage('_getUserName', 331, url)
+            title, msg = self._getExceptionMessage(331, url)
+            showWarning(self._ctx, msg, title)
             raise IllegalIdentifierException(msg, source)
         return name
 
-    def _getExceptionMessage(self, method, code, *args):
-        return getExceptionMessage(self._ctx, self._logger, 'DataSource', method, code, g_extension, *args)
+    def _getExceptionMessage(self, code, *args):
+        return getExceptionMessage(self._logger, code, g_extension, *args)

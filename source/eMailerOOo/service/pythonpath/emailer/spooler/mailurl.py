@@ -94,7 +94,7 @@ class MailUrl():
             url = '.uno:DataSourceBrowser/InsertColumns'
         if url is not None:
             frame = self._document.CurrentController.Frame
-            executeFrameDispatch(self._ctx, frame, url, *descriptor)
+            executeFrameDispatch(self._ctx, frame, url, None, *descriptor)
 
     def _saveTempDocument(self):
         return saveTempDocument(self._document, self._temp, self._title, self._filter)

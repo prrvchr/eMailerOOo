@@ -789,7 +789,7 @@ class MergerModel(MailModel):
             if result is not None:
                 descriptor = self._getDataDescriptor(result, index)
                 frame = document.CurrentController.Frame
-                executeFrameDispatch(self._ctx, frame, url, *descriptor)
+                executeFrameDispatch(self._ctx, frame, url, None, *descriptor)
 
     def _getDataDescriptor(self, result, row):
         # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,

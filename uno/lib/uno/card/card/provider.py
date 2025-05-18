@@ -32,9 +32,9 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .helper import getSqlException
+from ..helper import getSqlException
 
-from .oauth20 import getRequest
+from ..oauth20 import getRequest
 
 from dateutil import parser
 from dateutil import tz

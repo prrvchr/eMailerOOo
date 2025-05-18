@@ -30,8 +30,10 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .card import DataBase
-from .card import Provider
+from .database import DataBase
+
+from .provider import Provider
+
 from .card import User
 
 from .card import Replicator

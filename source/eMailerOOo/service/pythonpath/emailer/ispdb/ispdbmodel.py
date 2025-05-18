@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -55,9 +55,9 @@ from ..unotool import getStringResource
 from ..unotool import getUrl
 from ..unotool import hasInterface
 
-from ..mailertool import getMailService
-from ..mailertool import getMailMessage
-from ..mailertool import getMessageImage
+from ..helper import getMailService
+from ..helper import getMailMessage
+from ..helper import getMessageImage
 
 from ..logger import LogController
 from ..logger import RollerHandler
@@ -489,6 +489,12 @@ class IspdbModel(unohelper.Base):
         self._logger.Level = level
 
 # IspdbModel getter methods called by SendDialog
+    def getSendMailData(self):
+        title = self._getSendTitle('SendDialog')
+        subject = self._getSendSubject('SendDialog')
+        msg = self._getSendMessage('SendDialog')
+        return self.Email, title, subject, msg
+
     def validSend(self, recipient, subject, message):
         enabled = all((self.isEmailValid(recipient),
                        self.isStringValid(subject),
@@ -577,16 +583,16 @@ class IspdbModel(unohelper.Base):
         resource = self._resources.get('Security') % level
         return resolver.resolveString(resource)
 
-    def getSendTitle(self, name):
+    def _getSendTitle(self, name):
         resource = self._resources.get('SendTitle')
         title = self._getResolver(name).resolveString(resource)
         return title % self.Email
 
-    def getSendSubject(self, name):
+    def _getSendSubject(self, name):
         resource = self._resources.get('SendSubject')
         return self._getResolver(name).resolveString(resource)
 
-    def getSendMessage(self, name):
+    def _getSendMessage(self, name):
         resource = self._resources.get('SendMessage')
         return self._getResolver(name).resolveString(resource)
 

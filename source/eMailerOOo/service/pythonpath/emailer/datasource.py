@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -43,24 +43,31 @@ from .database import DataBase
 
 from .dbtool import Array
 
-from .configuration import g_basename
+from .dbtool import getConnectionUrl
 
-from threading import Thread
+from .helper import checkConfiguration
+
+from .dbconfig import g_folder
+
+from .configuration import g_basename
+from .configuration import g_separator
+
 import traceback
-import time
 
 
 class DataSource(unohelper.Base,
                  XCloseListener):
-    def __init__(self, ctx, database):
+    def __init__(self, ctx, source, logger, warn=False):
         self._ctx = ctx
+        checkConfiguration(ctx, source, logger, warn)
+        url = getConnectionUrl(ctx, g_folder + g_separator + g_basename)
+        self._database = DataBase(ctx, source, logger, url, warn)
         self._dbtypes = (CHAR, VARCHAR, LONGVARCHAR)
-        DataSource.__database = database
 
-    __database = None
     @property
     def DataBase(self):
-        return DataSource.__database
+        return self._database
+
     @property
     def IdentifierQuoteString(self):
         return self.DataBase.IdentifierQuoteString

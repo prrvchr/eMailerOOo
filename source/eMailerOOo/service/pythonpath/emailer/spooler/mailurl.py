@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -31,7 +31,7 @@ from ..unotool import executeFrameDispatch
 from ..unotool import getDocument
 from ..unotool import getTempFile
 
-from ..mailertool import saveTempDocument
+from ..helper import saveTempDocument
 
 import traceback
 
@@ -94,7 +94,7 @@ class MailUrl():
             url = '.uno:DataSourceBrowser/InsertColumns'
         if url is not None:
             frame = self._document.CurrentController.Frame
-            executeFrameDispatch(self._ctx, frame, url, descriptor)
+            executeFrameDispatch(self._ctx, frame, url, *descriptor)
 
     def _saveTempDocument(self):
         return saveTempDocument(self._document, self._temp, self._title, self._filter)

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,36 +27,31 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_identifier
-from .configuration import g_mailservicelog
-from .configuration import g_defaultlog
-
-from .options import OptionsManager
-
-from .logger import getLogger
-
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import getConfiguration
-from .unotool import getCurrentLocale
-from .unotool import getExtensionVersion
-from .unotool import getMimeTypeFactory
-from .unotool import getPropertyValueSet
-from .unotool import getSimpleFile
-from .unotool import getStreamSequence
-from .unotool import hasInterface
-
-from .user import User
-
-from .maildispatch import MailDispatch
-
-from .dispatchlistener import DispatchListener
-
-from .spooler import Spooler
-
 from .mailservice import ImapService
 from .mailservice import Pop3Service
 from .mailservice import SmtpService
 
 from .transferable import Transferable
+
+from .options import OptionsManager
+
+from .dispatch import Dispatch
+
+from .spooler import Spooler
+
+from .user import User
+
+from .unotool import executeDispatch
+from .unotool import getConfiguration
+from .unotool import getCurrentLocale
+from .unotool import getExtensionVersion
+from .unotool import getMimeTypeFactory
+from .unotool import hasInterface
+
+from .logger import getLogger
+
+from .configuration import g_identifier
+from .configuration import g_mailservicelog
+from .configuration import g_defaultlog
+from .configuration import g_spoolerlog
 

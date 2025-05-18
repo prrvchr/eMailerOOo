@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -35,7 +35,7 @@ from ....configuration import g_identifier
 
 
 class SendView(unohelper.Base):
-    def __init__(self, ctx, handler, parent, title, email, subject, msg):
+    def __init__(self, ctx, handler, parent, email, title, subject, msg):
         self._dialog = getDialog(ctx, g_identifier, 'SendDialog', handler, parent)
         self._dialog.setTitle(title)
         self._getRecipient().Text = email

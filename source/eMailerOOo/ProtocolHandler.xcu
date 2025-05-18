@@ -2,7 +2,7 @@
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -30,9 +30,9 @@
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <node oor:name="HandlerSet">
-    <node oor:name="io.github.prrvchr.eMailerOOo.MailDispatcher" oor:op="replace">
+    <node oor:name="io.github.prrvchr.eMailerOOo.Dispatcher" oor:op="replace">
       <prop oor:name="Protocols">
-        <value>smtp:*</value>
+        <value>emailer:*</value>
       </prop>
     </node>
   </node>

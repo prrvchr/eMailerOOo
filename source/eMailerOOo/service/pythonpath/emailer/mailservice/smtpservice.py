@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,11 +49,11 @@ from com.sun.star.io import UnknownHostException
 from com.sun.star.mail import MailException
 from com.sun.star.mail import XSmtpService2
 
-from .apihelper import getHttpProvider
-from .apihelper import getHttpServer
-from .apihelper import getHttpRequest
-from .apihelper import getOAuth2TokenWithParameters
-from .apihelper import executeHttpRequest
+from .helper import getHttpProvider
+from .helper import getHttpServer
+from .helper import getHttpRequest
+from .helper import getOAuth2TokenWithParameters
+from .helper import executeHttpRequest
 
 from ..oauth20 import getRequest
 

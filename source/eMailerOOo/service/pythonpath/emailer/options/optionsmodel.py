@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,7 +29,7 @@
 
 import unohelper
 
-from ..mailertool import getMailSpooler
+from ..helper import getMailSpooler
 
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
@@ -61,10 +61,12 @@ class OptionsModel():
         return self._config.getByName('ConnectTimeout')
 
     def addStreamListener(self, listener):
-        self._spooler.addListener(listener)
+        if self._spooler is not None:
+            self._spooler.addListener(listener)
 
     def removeStreamListener(self, listener):
-        self._spooler.removeListener(listener)
+        if self._spooler is not None:
+            self._spooler.removeListener(listener)
 
     def getViewData(self):
         exist = self.getDataBaseStatus()
@@ -79,12 +81,6 @@ class OptionsModel():
             return True
         return False
 
-    def toogleSpooler(self, state):
-        if state:
-            self._spooler.start()
-        else:
-            self._spooler.terminate()
-
     def getSpoolerStatus(self, started):
         resource = self._resources.get('SpoolerStatus') % started
         return started, self._resolver.resolveString(resource)
@@ -97,6 +93,8 @@ class OptionsModel():
 
     # OptionsModel private methods
     def _getSpoolerStatus(self):
-        started = int(self._spooler.isStarted())
+        started = 0
+        if self._spooler is not None:
+            started = int(self._spooler.isStarted())
         return self.getSpoolerStatus(started)
 

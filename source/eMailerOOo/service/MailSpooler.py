@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,89 +27,51 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
-
-from com.sun.star.lang import XServiceInfo
-
-from com.sun.star.mail import XMailSpooler
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.uno import Exception as UNOException
+
 from emailer import Spooler
 
+from emailer import getLogger
+
 from emailer import g_identifier
+from emailer import g_spoolerlog
 
 from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = f'{g_identifier}.MailSpooler'
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.MailSpooler'
+g_ServiceNames = ('com.sun.star.mail.MailSpooler', )
 
 
-class MailSpooler(unohelper.Base,
-                  XServiceInfo,
-                  XMailSpooler):
-    def __init__(self, ctx):
-        if self._spooler is None:
-            with self._lock:
-                if self._spooler is None:
-                    MailSpooler.__spooler = Spooler(ctx, self)
+class MailSpooler():
+    def __new__(cls, ctx, *args, **kwargs):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    logger = getLogger(ctx, g_spoolerlog)
+                    try:
+                        cls._instance = Spooler(ctx, cls._lock, logger, g_ImplementationName)
+                        logger.logprb(INFO, 'MailSpooler', '__new__', 1001, g_ImplementationName)
+                    except UNOException as e:
+                        if cls._logger is None:
+                            cls._logger = logger
+                        logger.logprb(SEVERE, 'MailSpooler', '__new__', 1002, g_ImplementationName, e.Message)
+                        return None
+        return cls._instance
 
-    __lock = Lock()
-    __spooler = None
-    @property
-    def _lock(self):
-        return MailSpooler.__lock
-    @property
-    def _spooler(self):
-        return MailSpooler.__spooler
+    # XXX: If the spooler fails to load then we keep a reference
+    # XXX: to the logger so we can read the error message later
+    _logger = None
+    _instance = None
+    _lock = Lock()
 
-    # XMailSpooler
-    def start(self):
-        if not self.isStarted():
-            self._spooler.start()
-
-    def terminate(self):
-        if self.isStarted():
-            self._spooler.terminate()
-
-    def isStarted(self):
-        return self._spooler.isStarted()
-
-    def addListener(self, listener):
-        self._spooler.addListener(listener)
-
-    def removeListener(self, listener):
-        self._spooler.removeListener(listener)
-
-    def addJob(self, sender, subject, document, recipients, attachments):
-        return self._spooler.addJob(sender, subject, document, recipients, attachments)
-
-    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
-        return self._spooler.addMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
-
-    def removeJobs(self, jobids):
-        return self._spooler.removeJobs(jobids)
-
-    def getJobState(self, jobid):
-        return self._spooler.getJobState(jobid)
-
-    def getJobIds(self, batchid):
-        return self._spooler.getJobIds(batchid)
-
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
-
-
-g_ImplementationHelper.addImplementation(MailSpooler,
-                                         g_ImplementationName,
-                                        ('com.sun.star.mail.MailSpooler',))
-
+g_ImplementationHelper.addImplementation(MailSpooler,                     # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -54,8 +54,7 @@ from .spooler import Mailer
 
 from .wizard import Wizard
 
-from .mailertool import checkOAuth2
-from .mailertool import getDataSource
+from .datasource import DataSource
 
 from .unotool import createMessageBox
 from .unotool import getPathSettings
@@ -63,6 +62,9 @@ from .unotool import getStringResource
 
 from .logger import getLogger
 from .logger import RollerHandler
+
+from .helper import checkOAuth2
+from .helper import getMailSpooler
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -72,19 +74,21 @@ from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
+from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
 
 import traceback
 
 
-class MailDispatch(unohelper.Base,
-                   XNotifyingDispatch):
-    def __init__(self, ctx, parent):
+class Dispatch(unohelper.Base,
+               XNotifyingDispatch):
+    def __init__(self, ctx, frame):
         self._ctx = ctx
-        self._parent = parent
+        self._frame = frame
         self._listeners = []
 
     _datasource = None
+    _checked = 0
 
 # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
@@ -95,30 +99,11 @@ class MailDispatch(unohelper.Base,
 
     def dispatch(self, url, arguments):
         state = FAILURE
-        result = None
-        if url.Path == 'ispdb':
-            oauth2 = None
-            # FIXME: We need to check the presence of OAuth2OOo extension
-            if not self._isInitialized():
-                oauth2 = checkOAuth2(self._ctx, g_extension)
-            if oauth2 is not None:
-                self._showMsgBox(*oauth2)
-            else:
-                state, result = self._showIspdb(arguments)
+        result = ()
+        if url.Path == 'ShowIspdb':
+            state, result = self._dispatchIspdb(url, arguments)
         else:
-            # FIXME: We need to check the configuration
-            if not self._isInitialized():
-                MailDispatch._datasource = getDataSource(self._ctx, g_extension, self._showMsgBox)
-            # FIXME: Configuration has been checked we can continue
-            if self._isInitialized():
-                if url.Path == 'spooler':
-                    state, result = self._showSpooler()
-                elif url.Path == 'mailer':
-                    state, result = self._showMailer(arguments)
-                elif url.Path == 'merger':
-                    state, result = self._showMerger()
-                elif url.Path == 'mail':
-                    state, result = self._getMail(arguments)
+            state, result = self._dispatch(url, arguments)
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -127,7 +112,52 @@ class MailDispatch(unohelper.Base,
     def removeStatusListener(self, listener, url):
         pass
 
-# MailDispatch private methods
+# Dispatch private methods
+    def _dispatch(self, url, arguments):
+        state = FAILURE
+        result = ()
+        # FIXME: We need to check the configuration
+        if not self._isChecked(3):
+            logger = getLogger(self._ctx, g_defaultlog)
+            try:
+                datasource = DataSource(self._ctx, self, logger, True)
+            except UnoException as e:
+                logger.logprb(SEVERE, 'Dispatch', '_dispatch', 1101, url.Main, e.Message)
+            else:
+                Dispatch._datasource = datasource
+                Dispatch._checked |= 3
+        # FIXME: Configuration has been checked we can continue
+        if self._isChecked(3):
+            if url.Path == 'StartSpooler':
+                state, result = self._startSpooler()
+            elif url.Path == 'StopSpooler':
+                state, result = self._stopSpooler()
+            elif url.Path == 'ShowSpooler':
+                state, result = self._showSpooler()
+            elif url.Path == 'ShowMailer':
+                state, result = self._showMailer(arguments)
+            elif url.Path == 'ShowMerger':
+                state, result = self._showMerger()
+            elif url.Path == 'GetMail':
+                state, result = self._getMail(arguments)
+        return state, result
+
+    def _dispatchIspdb(self, url, arguments):
+        state = FAILURE
+        result = ()
+        # FIXME: We need to check the presence of OAuth2OOo extension
+        if not self._isChecked(1):
+            logger = getLogger(self._ctx, g_defaultlog)
+            try:
+                checkOAuth2(self._ctx, self, logger, True)
+            except UnoException as e:
+                logger.logprb(SEVERE, 'Dispatch', '_dispatchIspdb', 1111, url.Main, e.Message)
+            else:
+                Dispatch._checked |= 1
+        if self._isChecked(1):
+            state, result = self._showIspdb(arguments)
+        return state, result
+
     #Ispdb methods
     def _showIspdb(self, arguments):
         try:
@@ -141,7 +171,8 @@ class MailDispatch(unohelper.Base,
                     sender = argument.Value
                 elif argument.Name == 'ReadOnly':
                     readonly = argument.Value
-            wizard = Wizard(self._ctx, g_ispdb_page, True, self._parent)
+            parent = self._frame.getContainerWindow()
+            wizard = Wizard(self._ctx, g_ispdb_page, True, parent)
             controller = IspdbController(self._ctx, wizard, sender, readonly)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
@@ -158,9 +189,18 @@ class MailDispatch(unohelper.Base,
             print(msg)
 
     #Spooler methods
+    def _startSpooler(self):
+        getMailSpooler(self._ctx).start()
+        return SUCCESS, ()
+
+    def _stopSpooler(self):
+        getMailSpooler(self._ctx).terminate()
+        return SUCCESS, ()
+
     def _showSpooler(self):
         try:
-            manager = SpoolerManager(self._ctx, self._getDataSource(), self._parent)
+            parent = self._frame.getContainerWindow()
+            manager = SpoolerManager(self._ctx, self._getDataSource(), parent)
             if manager.execute() == OK:
                 manager.saveGrid()
             manager.dispose()
@@ -187,7 +227,8 @@ class MailDispatch(unohelper.Base,
             if url is None:
                 model.dispose()
             else:
-                mailer = MailerManager(self._ctx, model, self._parent, url)
+                parent = self._frame.getContainerWindow()
+                mailer = MailerManager(self._ctx, model, parent, url)
                 if mailer.execute() == OK:
                     state = SUCCESS
                     path = model.getPath()
@@ -201,7 +242,8 @@ class MailDispatch(unohelper.Base,
     def _showMerger(self):
         try:
             msg = "Wizard Loading ..."
-            wizard = Wizard(self._ctx, g_merger_page, True, self._parent)
+            parent = self._frame.getContainerWindow()
+            wizard = Wizard(self._ctx, g_merger_page, True, parent)
             controller = MergerController(self._ctx, wizard, self._getDataSource())
             arguments = (g_merger_paths, controller)
             wizard.initialize(arguments)
@@ -228,35 +270,27 @@ class MailDispatch(unohelper.Base,
         handler = RollerHandler(self._ctx, logger.Name)
         logger.addRollerHandler(handler)
         if job is None:
-            logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1051)
+            logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1121)
         else:
-            logger.logprb(INFO, 'MailSpooler', '_getMail', 1052, job)
+            logger.logprb(INFO, 'MailSpooler', '_getMail', 1122, job)
             mailer = Mailer(self._ctx, self, self._getDataSource().DataBase, logger)
             try:
                 batch, mail = mailer.getMail(job)
             except UnoException as e:
-                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1053, job, e.Message)
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1123, job, e.Message)
             except Exception as e:
-                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1054, job, str(e), traceback.format_exc())
+                logger.logprb(SEVERE, 'MailSpooler', '_getMail', 1124, job, str(e), traceback.format_exc())
             else:
-                logger.logprb(INFO, 'MailSpooler', '_getMail', 1055, job)
+                logger.logprb(INFO, 'MailSpooler', '_getMail', 1125, job)
                 state = SUCCESS
             mailer.dispose()
         logger.removeRollerHandler(handler)
         return state, mail
 
     # Private methods
-    def _isInitialized(self):
-        return MailDispatch._datasource is not None
+    def _isChecked(self, state):
+        return Dispatch._checked & state == state
 
     def _getDataSource(self):
-        return MailDispatch._datasource
-
-    def _showMsgBox(self, method, code, *args):
-        resource = getStringResource(self._ctx, g_identifier, g_resource, g_basename)
-        message = resource.resolveString(code).format(*args)
-        title = resource.resolveString(code +1).format(method)
-        msgbox = createMessageBox(self._parent, message, title, 'error', 1)
-        msgbox.execute()
-        msgbox.dispose()
+        return Dispatch._datasource
 

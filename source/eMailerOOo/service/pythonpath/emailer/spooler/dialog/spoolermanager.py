@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -50,10 +50,11 @@ from ...grid import GridListener
 
 from ...dispatchlistener import DispatchListener
 
-from ...mailertool import getMailSpooler
+from ...helper import getMailSpooler
 
-from ...unotool import executeDispatch
+from ...unotool import executeFrameDispatch
 from ...unotool import executeShell
+from ...unotool import getDesktop
 from ...unotool import getPropertyValueSet
 from ...unotool import getSimpleFile
 from ...unotool import getTempFile
@@ -146,10 +147,11 @@ class SpoolerManager(unohelper.Base):
             self._view.dispose()
 
     def addDocument(self):
-        arguments = getPropertyValueSet({'Path': self._model.Path,
-                                         'Close': False})
+        frame = getDesktop(self._ctx).getCurrentFrame()
         listener = DispatchListener(self.documentAdded)
-        executeDispatch(self._ctx, 'smtp:mailer', arguments, listener)
+        properties = getPropertyValueSet({'Path': self._model.Path,
+                                         'Close': False})
+        executeFrameDispatch(self._ctx, frame, 'emailer:ShowMailer', listener, *properties)
 
     def documentAdded(self, path):
         self._model.Path = path
@@ -159,8 +161,8 @@ class SpoolerManager(unohelper.Base):
         self._view.disableButtons()
         job = self._model.getSelectedIdentifier('JobId')
         listener = DispatchListener(self._viewEml)
-        arguments = getPropertyValueSet({'JobId': job})
-        args = (listener, arguments)
+        properties = getPropertyValueSet({'JobId': job})
+        args = (listener, properties)
         Thread(target=self._executeDispatch, args=args).start()
 
     def viewClient(self):
@@ -188,8 +190,9 @@ class SpoolerManager(unohelper.Base):
             executeShell(self._ctx, command, option)
         self._enableButtonView(self._model.hasGridSelectedRows())
 
-    def _executeDispatch(self, listener, arguments):
-        executeDispatch(self._ctx, 'smtp:mail', arguments, listener)
+    def _executeDispatch(self, listener, properties):
+        frame = getDesktop(self._ctx).getCurrentFrame()
+        executeFrameDispatch(self._ctx, frame, 'emailer:GetMail', listener, *properties)
 
     def _viewEml(self, mail):
         url = '%s/Email.eml' % getTempFile(self._ctx).Uri

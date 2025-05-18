@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -60,6 +60,7 @@ import traceback
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = 'com.sun.star.mail.MailServiceProvider'
+g_ServiceNames = ('com.sun.star.mail.MailServiceProvider', )
 
 
 class MailServiceProvider(unohelper.Base,
@@ -120,7 +121,6 @@ class MailServiceProvider(unohelper.Base,
         e.Context = self
         return e
 
-g_ImplementationHelper.addImplementation(MailServiceProvider,
-                                         g_ImplementationName,
-                                        ('com.sun.star.mail.MailServiceProvider', ))
-
+g_ImplementationHelper.addImplementation(MailServiceProvider,             # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services

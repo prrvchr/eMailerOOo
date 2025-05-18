@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -140,10 +140,8 @@ class MergerManager(unohelper.Base,
         self._wizard.updateTravelUI()
 
     def newAddressBook(self):
-        url = '.uno:AutoPilotAddressDataSource'
-        executeDispatch(self._ctx, url)
-        # url = '.uno:AddressBookSource'
-        # Update the list of AddressBooks and keep the selection if possible
+        executeDispatch(self._ctx, '.uno:AutoPilotAddressDataSource')
+         # Update the list of AddressBooks and keep the selection if possible
         addressbook = self._view.getAddressBook()
         addressbooks = self._model.getAvailableAddressBooks()
         self._view.initAddressBook(addressbooks)
@@ -317,8 +315,9 @@ class MergerManager(unohelper.Base,
     def _cancelAction(self):
         query = self._view.getQuery()
         parent = self._view.getWindow().Peer
+        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
         message, title = self._model.getMessageBoxData(query)
-        dialog = createMessageBox(parent, message, title, 'warning')
+        dialog = createMessageBox(parent, box, 1, title, message)
         status = dialog.execute()
         dialog.dispose()
         return status != OK

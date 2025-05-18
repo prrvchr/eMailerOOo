@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -43,8 +43,6 @@ from com.sun.star.uno import Exception as UnoException
 
 from ..transferable import Transferable
 
-from ..mailertool import getDataBaseContext
-
 from ..unotool import createService
 from ..unotool import getInteractionHandler
 from ..unotool import getPropertyValueSet
@@ -54,10 +52,11 @@ from ..unotool import getUriFactory
 
 from ..dbtool import getRowDict
 
-from ..mailertool import getMailUser
-from ..mailertool import getMailMessage
-from ..mailertool import getMailService
-from ..mailertool import getMessageImage
+from ..helper import getDataBaseContext
+from ..helper import getMailMessage
+from ..helper import getMailService
+from ..helper import getMailUser
+from ..helper import getMessageImage
 
 from ..configuration import g_extension
 from ..configuration import g_identifier

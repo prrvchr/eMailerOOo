@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -51,7 +51,7 @@ from ..gridcontrol import GridManager
 
 from ..mail import MailModel
 
-from ..mailertool import getDataBaseContext
+from ..helper import getDataBaseContext
 
 from ..unotool import createService
 from ..unotool import executeFrameDispatch
@@ -553,7 +553,7 @@ class MergerModel(MailModel):
             return self._identifiers
 
     def getMessageBoxData(self, query):
-        return self._getDialogMessage(query), self._getDialogTitle()
+        return self._getExceptionMessage(query), self._getDialogTitle()
 
     def _updateQueries(self, filter):
         if filter:
@@ -789,7 +789,7 @@ class MergerModel(MailModel):
             if result is not None:
                 descriptor = self._getDataDescriptor(result, index)
                 frame = document.CurrentController.Frame
-                executeFrameDispatch(self._ctx, frame, url, descriptor)
+                executeFrameDispatch(self._ctx, frame, url, *descriptor)
 
     def _getDataDescriptor(self, result, row):
         # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
@@ -862,12 +862,12 @@ class MergerModel(MailModel):
         self._saved = True
         if not self._document.hasLocation():
             frame = self._document.CurrentController.Frame
-            url = '.uno:Save'
             listener = DispatchListener(self.saveDocumentFinished)
-            executeFrameDispatch(self._ctx, frame, url, (), listener)
+            executeFrameDispatch(self._ctx, frame, '.uno:Save', listener)
         return self._saved
 
     def saveDocumentFinished(self, saved):
+        print("MergerModel.saveDocumentFinished()")
         self._saved = saved
 
     def getDocument(self, url=None):
@@ -997,7 +997,7 @@ class MergerModel(MailModel):
         resource = self._resources.get('DialogTitle')
         return self._resolver.resolveString(resource)
 
-    def _getDialogMessage(self, query):
+    def _getExceptionMessage(self, query):
         resource = self._resources.get('DialogMessage')
         return self._resolver.resolveString(resource) % query
 

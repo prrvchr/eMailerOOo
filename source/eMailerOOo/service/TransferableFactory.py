@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -45,7 +45,8 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = f'{g_identifier}.TransferableFactory'
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.TransferableFactory'
+g_ServiceNames = ('com.sun.star.datatransfer.TransferableFactory', )
 
 
 class TransferableFactory(unohelper.Base,
@@ -84,8 +85,6 @@ class TransferableFactory(unohelper.Base,
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
-
-g_ImplementationHelper.addImplementation(TransferableFactory,
-                                         g_ImplementationName,
-                                        ('com.sun.star.datatransfer.TransferableFactory',))
-
+g_ImplementationHelper.addImplementation(TransferableFactory,             # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services

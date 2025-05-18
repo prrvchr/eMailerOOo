@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns="http://openoffice.org/2010/uno-components">
+  <component loader="com.sun.star.loader.Python" uri="service/MailServiceProvider.py">
+    <implementation name="com.sun.star.mail.MailServiceProvider">
+      <service name="com.sun.star.mail.MailServiceProvider"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/MailMessage.py">
+    <implementation name="org.openoffice.pyuno.MailMessage2">
+      <service name="com.sun.star.mail.MailMessage"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/MailSpooler.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.MailSpooler">
+      <service name="com.sun.star.mail.MailSpooler"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/MailUser.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.MailUser">
+      <service name="com.sun.star.mail.MailUser"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/TransferableFactory.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.TransferableFactory">
+      <service name="com.sun.star.datatransfer.TransferableFactory"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/OptionsHandler.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.OptionsHandler">
+      <service name="io.github.prrvchr.eMailerOOo.OptionsHandler"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Dispatcher.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.Dispatcher">
+      <service name="io.github.prrvchr.eMailerOOo.Dispatcher"/>
+    </implementation>
+  </component>
+</components>

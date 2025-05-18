@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -28,76 +28,81 @@
 """
 import uno
 
-from com.sun.star.sdbc import SQLException
+from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail import MailSpoolerException
-
-from .database import DataBase
-
-from .datasource import DataSource
 
 from .unotool import checkVersion
 from .unotool import createService
 from .unotool import getExtensionVersion
 from .unotool import getFileSequence
+from .unotool import getMessageBox
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile
-from .unotool import getTypeDetection
+from .unotool import getToolKit
 from .unotool import getUrl
-
-from .dbtool import getConnectionUrl
+from .unotool import hasInterface
 
 from .oauth20 import getOAuth2Version
-from .oauth20 import g_extension as oauth2ext
-from .oauth20 import g_version as oauth2ver
+from .oauth20 import g_extension as g_oauth2ext
+from .oauth20 import g_version as g_oauth2ver
 
-from .jdbcdriver import g_extension as jdbcext
-from .jdbcdriver import g_identifier as jdbcid
-from .jdbcdriver import g_version as jdbcver
+from .jdbcdriver import g_extension as g_jdbcext
+from .jdbcdriver import g_identifier as g_jdbcid
+from .jdbcdriver import g_version as g_jdbcver
 
-from .dbconfig import g_folder
 from .dbconfig import g_version
 
 from .configuration import g_extension
-from .configuration import g_basename
 
 import base64
-from string import Formatter
-from string import Template
-from urllib import parse
-import json
 import traceback
 
 
-def checkOAuth2(ctx, method):
+def checkOAuth2(ctx, source, logger, warn=False):
     oauth2 = getOAuth2Version(ctx)
     if oauth2 is None:
-        return method, 501, oauth2ext, g_extension
-    if not checkVersion(oauth2, oauth2ver):
-        return method, 503, oauth2, oauth2ext, oauth2ver
-    return None
+        title, msg = _getExceptionMessage(logger, 501, g_oauth2ext, g_oauth2ext, g_extension)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
+    if not checkVersion(oauth2, g_oauth2ver):
+        title, msg = _getExceptionMessage(logger, 503, g_oauth2ext, oauth2, g_oauth2ext, g_oauth2ver)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
 
-def getDataSource(ctx, method, callback):
-    oauth2 = checkOAuth2(ctx, method)
-    driver = _checkJdbc(ctx, method)
-    if oauth2 is not None:
-        callback(*oauth2)
-    elif driver is not None:
-        callback(*driver)
-    else:
-        path = g_folder + '/' + g_basename
-        url = getConnectionUrl(ctx, path)
-        try:
-            database = DataBase(ctx, url)
-        except SQLException as e:
-            callback(method, 505, url, e.Message)
-        else:
-            if not database.isUptoDate():
-                callback(method, 507, database.Version, g_version)
-            else:
-                return DataSource(ctx, database)
-    return None
+def checkConfiguration(ctx, source, logger, warn=False):
+    checkOAuth2(ctx, source, logger, warn)
+    driver = getExtensionVersion(ctx, g_jdbcid)
+    if driver is None:
+        title, msg = _getExceptionMessage(logger, 501, g_jdbcext, g_jdbcext, g_extension)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
+    if not checkVersion(driver, g_jdbcver):
+        title, msg = _getExceptionMessage(logger, 503, g_jdbcext, driver, g_jdbcext, g_jdbcver)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
+
+def checkConnection(ctx, source, connection, logger, new, warn=False):
+    version = connection.getMetaData().getDriverVersion()
+    if not checkVersion(version, g_version):
+        connection.close()
+        title, msg = _getExceptionMessage(logger, 511, g_jdbcext, version, g_version)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
+    service = 'com.sun.star.sdb.Connection'
+    interface = 'com.sun.star.sdbcx.XGroupsSupplier'
+    if new and not _checkConnection(connection, service, interface):
+        connection.close()
+        title, msg = _getExceptionMessage(logger, 513, g_jdbcext, service, interface)
+        if warn:
+            _showWarning(ctx, title, msg)
+        raise UnoException(msg, source)
 
 def getDataBaseContext(ctx, source, name, resolver, code, *format):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
@@ -109,11 +114,11 @@ def getDataBaseContext(ctx, source, name, resolver, code, *format):
     # FIXME: ie: vnd.sun.star.pkg://file://path/document.odt/EmbeddedDatabase
     # FIXME: eMailerOOo cannot work with such a datasource
     if not location.startswith('file://'):
-        msg = resolver(code +1, location, *format)
+        msg = resolver(code + 1, location, *format)
         raise MailSpoolerException(msg, source, ())
     # We need to check if the registered datasource has an existing odb file
     if not getSimpleFile(ctx).exists(location):
-        msg = resolver(code +2, location, *format)
+        msg = resolver(code + 2, location, *format)
         raise MailSpoolerException(msg, source, ())
     return dbcontext, location
 
@@ -240,10 +245,26 @@ def _getDocumentExtension(document):
     return extension
 
 def _checkJdbc(ctx, method):
-    driver = getExtensionVersion(ctx, jdbcid)
+    driver = getExtensionVersion(ctx, g_jdbcid)
     if driver is None:
-        return method, 501, jdbcext, g_extension
-    elif not checkVersion(driver, jdbcver):
-        return method, 503, driver, jdbcext, jdbcver
+        return method, 501, g_jdbcext, g_extension
+    elif not checkVersion(driver, g_jdbcver):
+        return method, 503, driver, g_jdbcext, g_jdbcver
     return None
+
+def _getExceptionMessage(logger, code, extension, *args):
+    title = logger.resolveString(code, extension)
+    message = logger.resolveString(code + 1, *args)
+    return title, message
+
+def _showWarning(ctx, title, msg):
+    toolkit = getToolKit(ctx)
+    peer = toolkit.getActiveTopWindow()
+    box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
+    msgbox = getMessageBox(toolkit, peer, box, 1, title, msg)
+    msgbox.execute()
+    msgbox.dispose()
+
+def _checkConnection(connection, service, interface):
+    return connection.supportsService(service) and hasInterface(connection, interface)
 

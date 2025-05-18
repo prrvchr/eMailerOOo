@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -108,23 +108,21 @@ class IspdbManager(unohelper.Base):
 
     def sendMail(self):
         parent = self._wizard.DialogWindow.getPeer()
-        title = self._model.getSendTitle('SendDialog')
-        email = self._model.Email
-        subject = self._model.getSendSubject('SendDialog')
-        msg = self._model.getSendMessage('SendDialog')
-        self._dialog = SendView(self._ctx, DialogHandler(self), parent, title, email, subject, msg)
+        self._dialog = SendView(self._ctx, DialogHandler(self), parent, *self._model.getSendMailData())
         if self._dialog.execute() == OK:
             self._view.setPageStep(1)
-            recipient = self._dialog.getRecipient()
-            subject = self._dialog.getSubject()
-            msg = self._dialog.getMessage()
+            recipient, subject, msg = self._getSendMailData()
             self._model.sendMessage(recipient, subject, msg, self.resetProgress, self.updateProgress, self.setStep)
         self._dialog.dispose()
         self._dialog = None
 
     def updateDialog(self):
+        if self._dialog is not None:
+            enabled = self._model.validSend(*self._getSendMailData())
+            self._dialog.enableButtonSend(enabled)
+
+    def _getSendMailData(self):
         recipient = self._dialog.getRecipient()
         subject = self._dialog.getSubject()
         msg = self._dialog.getMessage()
-        enabled = self._model.validSend(recipient, subject, message)
-        self._dialog.enableButtonSend(enabled)
+        return recipient, subject, msg

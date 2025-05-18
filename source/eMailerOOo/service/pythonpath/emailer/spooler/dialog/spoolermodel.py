@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -79,7 +79,7 @@ class SpoolerModel(unohelper.Base):
                            'GridColumns': 'SpoolerTab1.Grid1.Column.%s'}
 
     @property
-    def DataSource(self):
+    def _dataSource(self):
         return self._datasource
 
     @property
@@ -175,14 +175,14 @@ class SpoolerModel(unohelper.Base):
         self._diposed = True
         if self._grid is not None:
             self._grid.dispose()
-        self.DataSource.dispose()
+        self._dataSource.dispose()
 
     def saveGrid(self):
         self._grid.saveColumnSettings()
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
-        if self.DataSource.deleteJob(jobs):
+        if self._dataSource.deleteJob(jobs):
             self._rowset.execute()
 
     def executeRowSet(self):
@@ -213,8 +213,8 @@ class SpoolerModel(unohelper.Base):
 
 # SpoolerModel private setter methods
     def _initSpooler(self, window, listener, initView):
-        self.DataSource.waitForDataBase()
-        self._rowset.ActiveConnection = self.DataSource.DataBase.Connection
+        self._dataSource.waitForDataBase()
+        self._rowset.ActiveConnection = self._dataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
         resources = (self._resolver, self._resources.get('GridColumns'))
         quote = self._datasource.IdentifierQuoteString

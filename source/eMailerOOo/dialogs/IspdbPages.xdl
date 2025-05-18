@@ -2,7 +2,7 @@
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -24,7 +24,6 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPages" dlg:left="0" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPages.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPages.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
@@ -32,11 +31,11 @@
   <dlg:bulletinboard>
     <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="5" dlg:width="305" dlg:height="1" dlg:help-text="&amp;IspdbPages.FixedLine1.HelpText" dlg:value="&amp;IspdbPages.FixedLine1.Label"/>
     <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="245" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label1.HelpText" dlg:value="&amp;IspdbPages.Label1.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:disabled="true" dlg:left="255" dlg:top="7" dlg:width="14" dlg:height="12" dlg:help-text="&amp;IspdbPages.CommandButton1.HelpText" dlg:value="&amp;IspdbPages.CommandButton1.Label">
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:disabled="true" dlg:left="255" dlg:top="7" dlg:width="14" dlg:height="15" dlg:help-text="&amp;IspdbPages.CommandButton1.HelpText" dlg:value="&amp;IspdbPages.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Previous" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:left="270" dlg:top="6" dlg:width="15" dlg:height="14" dlg:help-text="&amp;IspdbPages.Label2.HelpText" dlg:value="&amp;IspdbPages.Label2.Label" dlg:align="center" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="true" dlg:left="286" dlg:top="7" dlg:width="14" dlg:height="12" dlg:help-text="&amp;IspdbPages.CommandButton2.HelpText" dlg:value="&amp;IspdbPages.CommandButton2.Label">
+    <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:left="270" dlg:top="6" dlg:width="15" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label2.HelpText" dlg:value="&amp;IspdbPages.Label2.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="true" dlg:left="286" dlg:top="7" dlg:width="14" dlg:height="15" dlg:help-text="&amp;IspdbPages.CommandButton2.HelpText" dlg:value="&amp;IspdbPages.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Next" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label3" dlg:tab-index="5" dlg:left="10" dlg:top="25" dlg:width="45" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label3.HelpText" dlg:value="&amp;IspdbPages.Label3.Label" dlg:valign="center"/>

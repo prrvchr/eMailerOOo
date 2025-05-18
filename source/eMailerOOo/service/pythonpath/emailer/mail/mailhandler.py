@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -35,7 +35,8 @@ from com.sun.star.awt.Key import RETURN
 
 from ..dispatchlistener import DispatchListener
 
-from ..unotool import executeDispatch
+from ..unotool import executeFrameDispatch
+from ..unotool import getDesktop
 
 import traceback
 
@@ -56,9 +57,9 @@ class WindowHandler(unohelper.Base,
                 self._manager.changeSender(selected)
                 handled = True
             elif method == 'AddSender':
+                frame = getDesktop(self._ctx).getCurrentFrame()
                 listener = DispatchListener(self._manager.addSender)
-                arguments = ()
-                executeDispatch(self._ctx, 'smtp:ispdb', arguments, listener)
+                executeFrameDispatch(self._ctx, frame, 'emailer:ShowIspdb', listener)
                 handled = True
             elif method == 'RemoveSender':
                 self._manager.removeSender()

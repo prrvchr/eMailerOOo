@@ -2,7 +2,7 @@
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -52,7 +52,7 @@
               <value>com.sun.star.text.TextDocument,com.sun.star.sheet.SpreadsheetDocument</value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>smtp:merger</value>
+              <value>emailer:ShowMerger</value>
             </prop>
           </node>
           <node oor:name="Menu2" oor:op="replace">
@@ -67,7 +67,7 @@
               <value></value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>smtp:mailer</value>
+              <value>emailer:ShowMailer</value>
             </prop>
           </node>
           <node oor:name="Menu3" oor:op="replace">
@@ -82,7 +82,7 @@
               <value></value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>smtp:spooler</value>
+              <value>emailer:ShowSpooler</value>
             </prop>
           </node>
           <node oor:name="Menu4" oor:op="replace">
@@ -97,7 +97,7 @@
               <value></value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>smtp:ispdb</value>
+              <value>emailer:ShowIspdb</value>
             </prop>
           </node>
         </node>

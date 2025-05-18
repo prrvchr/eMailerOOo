@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -35,7 +35,9 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XServiceInfo
 
-from emailer import MailDispatch
+from emailer import Dispatch
+
+from emailer import hasInterface
 
 from emailer import g_identifier
 
@@ -43,28 +45,30 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = f'{g_identifier}.MailDispatcher'
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.Dispatcher'
+g_ServiceNames = ('io.github.prrvchr.eMailerOOo.Dispatcher', )
 
 
-class MailDispatcher(unohelper.Base,
-                     XDispatchProvider,
-                     XInitialization,
-                     XServiceInfo):
+class Dispatcher(unohelper.Base,
+                 XDispatchProvider,
+                 XInitialization,
+                 XServiceInfo):
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
 
 # XInitialization
     def initialize(self, args):
-        if len(args) > 0:
+        service = 'com.sun.star.frame.Frame'
+        interface = 'com.sun.star.lang.XServiceInfo'
+        if len(args) > 0 and hasInterface(args[0], interface) and args[0].supportsService(service):
             self._frame = args[0]
 
 # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
         dispatch = None
-        if url.Path in ('ispdb', 'spooler', 'mailer', 'merger', 'mail'):
-            parent = self._frame.getContainerWindow()
-            dispatch = MailDispatch(self._ctx, parent)
+        if url.Protocol == 'emailer:':
+            dispatch = Dispatch(self._ctx, self._frame)
         return dispatch
 
     def queryDispatches(self, requests):
@@ -83,7 +87,6 @@ class MailDispatcher(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(MailDispatcher,
-                                         g_ImplementationName,
-                                        (g_ImplementationName,))
-
+g_ImplementationHelper.addImplementation(Dispatcher,                      # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services

@@ -1,7 +1,7 @@
 decorator>=5.1.1
 ijson>=3.3.0
 imapclient>=3.0.1
-packaging>=24.2
-setuptools>=75.8.0
+packaging>=25.0
+setuptools>=75.3.2
 six>=1.17.0
 validators>=0.34.0

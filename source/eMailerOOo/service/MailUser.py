@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -38,7 +38,6 @@ from emailer import User
 
 from emailer import executeDispatch
 from emailer import getConfiguration
-from emailer import getPropertyValueSet
 
 from emailer import g_identifier
 
@@ -46,7 +45,8 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = f'{g_identifier}.MailUser'
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.MailUser'
+g_ServiceNames = ('com.sun.star.mail.MailUser', )
 
 
 class MailUser(unohelper.Base,
@@ -58,8 +58,8 @@ class MailUser(unohelper.Base,
         senders = getConfiguration(ctx, g_identifier).getByName('Senders')
         if not senders.hasByName(sender):
             # FIXME: The Sender name must not be able to be changed (ie: ReadOnly)
-            arguments = getPropertyValueSet({'Sender': sender, 'ReadOnly': True})
-            executeDispatch(ctx, 'smtp:ispdb', arguments)
+            arguments = {'Sender': sender, 'ReadOnly': True}
+            executeDispatch(ctx, 'emailer:ShowIspdb', *arguments)
             # The IspDB Wizard has been canceled
             if not senders.hasByName(sender):
                 return None
@@ -93,8 +93,6 @@ class MailUser(unohelper.Base,
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
-
-g_ImplementationHelper.addImplementation(MailUser,
-                                         g_ImplementationName,
-                                        ('com.sun.star.mail.MailUser',))
-
+g_ImplementationHelper.addImplementation(MailUser,                        # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services

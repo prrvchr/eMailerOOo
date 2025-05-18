@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,6 +49,8 @@ from .dbtool import getSequenceFromResult
 from .dbinit import createDataBase
 from .dbinit import getDataBaseConnection
 
+from .helper import checkConnection
+
 from .configuration import g_basename
 
 from .dbconfig import g_version
@@ -59,22 +61,24 @@ import traceback
 
 
 class DataBase(unohelper.Base):
-    def __init__(self, ctx, url, user='', pwd=''):
+    def __init__(self, ctx, source, logger, url, warn, user='', pwd=''):
         self._ctx = ctx
         self._lock = Lock()
-        self._init = self._statement = None
-        self._version = '0.0.0'
+        self._init = None
+        self._statement = None
         self._url = url
         odb = url + '.odb'
-        self._new = not getSimpleFile(ctx).exists(odb)
-        connection = getDataBaseConnection(ctx, url, user, pwd, self._new)
+        new = not getSimpleFile(ctx).exists(odb)
+        connection = getDataBaseConnection(ctx, url, user, pwd, new)
+        checkConnection(ctx, source, connection, logger, new, warn)
         self._version = connection.getMetaData().getDriverVersion()
         self._quote = connection.getMetaData().getIdentifierQuoteString()
-        if self._new and self.isUptoDate():
+        if new:
             self._init = Thread(target=createDataBase, args=(ctx, connection, odb))
             self._init.start()
         else:
             connection.close()
+        self._new = new
 
     @property
     def Version(self):

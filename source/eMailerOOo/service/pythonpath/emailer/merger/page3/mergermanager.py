@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -46,7 +46,7 @@ from .mergerhandler import RecipientHandler
 from ...mail import MailManager
 from ...mail import WindowHandler
 
-from ...mailertool import getMailSpooler
+from ...helper import getMailSpooler
 
 from threading import Condition
 import traceback

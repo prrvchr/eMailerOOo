@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -39,9 +39,9 @@ from ..unotool import getStringResource
 from ..unotool import getUrlTransformer
 from ..unotool import parseUrl
 
-from ..mailertool import getDocumentFilter
-from ..mailertool import getNamedExtension
-from ..mailertool import saveDocumentAs
+from ..helper import getDocumentFilter
+from ..helper import getNamedExtension
+from ..helper import saveDocumentAs
 
 from ..configuration import g_extension
 from ..configuration import g_identifier
@@ -63,7 +63,7 @@ class MailModel(unohelper.Base):
         self._disposed = False
 
     @property
-    def DataSource(self):
+    def _dataSource(self):
         return self._datasource
     @property
     def Path(self):

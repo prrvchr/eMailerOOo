@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -44,7 +44,7 @@ from ..logger import LogManager
 
 from ..spooler import StreamListener
 
-from ..unotool import executeFrameDispatch
+from ..unotool import executeDispatch
 from ..unotool import getDesktop
 
 from ..configuration import g_identifier
@@ -64,6 +64,7 @@ class OptionsManager(unohelper.Base):
         self._view = OptionsView(window)
         self._view.initView(OptionsManager._restart, *self._model.getViewData())
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
+        self._logmanager.initView()
         self._listener = StreamListener(self)
         self._model.addStreamListener(self._listener)
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
@@ -102,19 +103,19 @@ class OptionsManager(unohelper.Base):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        frame = getDesktop(self._ctx).getCurrentFrame()
-        if frame is not None:
-            executeFrameDispatch(self._ctx, frame, 'smtp:ispdb')
-            self._view.updateDataBase(self._model.getDataBaseStatus())
+        executeDispatch(self._ctx, 'emailer:ShowIspdb')
+        self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def toogleSpooler(self, state):
-        self._model.toogleSpooler(state)
+        if state:
+            command = 'emailer:StopSpooler'
+        else:
+            command = 'emailer:StartSpooler'
+        executeDispatch(self._ctx, command)
 
     def showSpooler(self):
-        frame = getDesktop(self._ctx).getCurrentFrame()
-        if frame is not None:
-            executeFrameDispatch(self._ctx, frame, 'smtp:spooler')
-            self._view.updateDataBase(self._model.getDataBaseStatus())
+        executeDispatch(self._ctx, 'emailer:ShowSpooler')
+        self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def showDataBase(self):
         url = self._model.getDataBaseUrl()

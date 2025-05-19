@@ -26,6 +26,7 @@ Rem ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         
 Rem ║                                                                                    ║
 Rem ╚════════════════════════════════════════════════════════════════════════════════════╝
 
+
 Sub Main
 
     Rem Ask the user for the sender&apos;s email address.

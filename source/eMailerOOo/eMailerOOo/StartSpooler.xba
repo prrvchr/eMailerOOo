@@ -25,6 +25,7 @@ Rem ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         
 Rem ║                                                                                    ║
 Rem ╚════════════════════════════════════════════════════════════════════════════════════╝
 
+
 Sub StartSpooler
     Set oDispatch = CreateUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
     Dim args(0) As New com.sun.star.beans.PropertyValue

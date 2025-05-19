@@ -240,7 +240,7 @@ class MergerManager(unohelper.Base,
         emails = self._model.removeEmail(email, count > 1)
         enabled = self._canAddColumn()
         self._view.setEmail(emails)
-        self._view.updateAddEmail(emails, enabled)
+        self._view.updateAddEmail(enabled)
         self._wizard.updateTravelUI()
 
     def upEmail(self):

@@ -57,15 +57,8 @@ The eMailerOOo extension uses the OAuth2OOo extension to work.
 It must therefore meet the [requirement of the OAuth2OOo extension][13].
 
 The eMailerOOo extension uses the jdbcDriverOOo extension to work.  
-It must therefore meet the [requirement of the jdbcDriverOOo extension][14].
-
-**On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
-To ensure that your Python packages are up to date it is recommended to use the **System Info** option in the extension Options accessible by:  
-**Tools -> Options -> Internet -> eMailerOOo -> View log -> System Info**  
-If outdated packages appear, you can update them with the command:  
-`pip install --upgrade <package-name>`
-
-For more information see: [What has been done for version 1.2.0][15].
+It must therefore meet the [requirement of the jdbcDriverOOo extension][14].  
+Additionally, eMailerOOo requires the jdbcDriverOOo extension to be configured to provide `com.sun.star.sdb` as the API level, which is the default configuration.
 
 ___
 
@@ -428,6 +421,38 @@ However, this is only an example of popularization, and all the necessary error 
 
 ___
 
+## How to customize LibreOffice menus:
+
+To allow you to place access to the various features of eMailerOOo wherever you want, it is now possible to create custom menus for commands:
+- `ShowIspdb` to **Configure connection** with the LibreOffice Scope.
+- `ShowMailer` to **Send a document** with the LibreOffice Scope.
+- `ShowMerger` to **Merge a document** with the Writer and Calc Scope.
+- `ShowSpooler` to **Outgoing emails** with the LibreOffice Scope.
+- `StartSpooler` to **Start spooler** with the LibreOffice Scope.
+- `StopSpooler` to **Stop spooler** with the LibreOffice Scope.
+
+In the **Menu** tab of the **Tools -> Customize** window, select **Macros** in **Category** to access the macros under: **My Macros -> eMailerOOo**.  
+You may need to open the applications (Writer and Calc) and add the macros with the **Scope** set to the supported applications.
+
+This only needs to be done once for LibreOffice and each application, and unfortunately I haven't found anything simpler yet.
+
+___
+
+## How to build the extension:
+
+Normally, the extension is created with Eclipse for Java and [LOEclipse][28]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
+To create the eMailerOOo extension with the help of Apache Ant, you need to:
+- Install the [Java SDK][29] version 8 or higher.
+- Install [Apache Ant][30] version 1.10.0 or higher.
+- Install [LibreOffice and its SDK][31] version 7.x or higher.
+- Clone the [eMailerOOo][32] repository on GitHub into a folder.
+- From this folder, move to the directory: `source/eMailerOOo/`
+- In this directory, edit the file: `build.properties` so that the `office.install.dir` and `sdk.dir` properties point to the folders where LibreOffice and its SDK were installed, respectively.
+- Start the archive creation process using the command: `ant`
+- You will find the generated archive in the subfolder: `dist/`
+
+___
+
 ## Has been tested with:
 
 * LibreOffice 7.3.7.2 - Lubuntu 22.04 - Python version 3.10.12 - OpenJDK-11-JRE (amd64)
@@ -625,7 +650,20 @@ ___
 - Updated the [Python validators][104] package to version 0.34.0.
 - Support for Python version 3.13.
 
-### What remains to be done for version 1.3.1:
+### What has been done for version 1.4.0:
+
+- Updated the [Python packaging][60] package to version 25.0.
+- Downgrade the [Python setuptools][61] package to version 75.3.2. to ensure support for Python 3.8.
+- Passive registration deployment that allows for much faster installation of extensions and differentiation of registered UNO services from those provided by a Java or Python implementation. This passive registration is provided by the [LOEclipse][28] extension via [PR#152][67] and [PR#157][68].
+- Modified [LOEclipse][28] to support the new `rdb` file format produced by the `unoidl-write` compilation utility. `idl` files have been updated to support both available compilation tools: idlc and unoidl-write.
+- It is now possible to build the oxt file of the eMailerOOo extension only with the help of Apache Ant and a copy of the GitHub repository. The [How to build the extension][69] section has been added to the documentation.
+- Implemented [PEP 570][70] in [logging][71] to support unique multiple arguments.
+- To ensure the correct creation of the eMailerOOo database, it will be checked that the jdbcDriverOOo extension has `com.sun.star.sdb` as API level.
+- Writing macros to be able to place custom menus wherever you want. To make it easier to create these custom menus, the section [How to customize LibreOffice menus][72] has been added to the documentation.
+- Requires the **jdbcDriverOOo extension at least version 1.5.0**.
+- Requires the **OAuth2OOo extension at least version 1.5.0**.
+
+### What remains to be done for version 1.4.0:
 
 - Add new languages for internationalization...
 

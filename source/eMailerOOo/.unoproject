@@ -1,5 +1,5 @@
 #UNO project configuration file
-#Sun May 18 10:42:12 CEST 2025
+#Sun May 18 23:27:26 CEST 2025
 project.build=build
 project.idl=/idl
 project.implementation=eMailerOOo

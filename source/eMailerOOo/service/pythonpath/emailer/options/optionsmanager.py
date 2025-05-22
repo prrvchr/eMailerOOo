@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.logging.LogLevel import INFO
@@ -39,7 +38,6 @@ from .optionsview import OptionsView
 
 from .optionshandler import OptionsListener
 
-from ..logger import getLogger
 from ..logger import LogManager
 
 from ..spooler import StreamListener
@@ -47,7 +45,6 @@ from ..spooler import StreamListener
 from ..unotool import executeDispatch
 from ..unotool import getDesktop
 
-from ..configuration import g_identifier
 from ..configuration import g_defaultlog
 from ..configuration import g_spoolerlog
 from ..configuration import g_mailservicelog
@@ -56,9 +53,9 @@ import traceback
 
 
 class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, window):
+    def __init__(self, ctx, logger, window):
         self._ctx = ctx
-        self._logger = getLogger(ctx, g_defaultlog)
+        self._logger = logger
         self._model = OptionsModel(ctx)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(window)

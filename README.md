@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.3.1][6]
+# version [1.4.0][6]
 
 ## Introduction:
 
@@ -674,7 +674,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-131>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-140>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -712,7 +712,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.3.1#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.0#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

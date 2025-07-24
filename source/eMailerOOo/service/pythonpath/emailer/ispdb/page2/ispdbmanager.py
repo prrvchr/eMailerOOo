@@ -30,6 +30,7 @@
 import unohelper
 
 from com.sun.star.awt.FontWeight import NORMAL
+from com.sun.star.awt import XCallback
 
 from .ispdbview import IspdbView
 from .ispdbhandler import WindowHandler
@@ -41,15 +42,21 @@ from ...configuration import g_identifier
 import traceback
 
 
-class IspdbManager(unohelper.Base):
+class IspdbManager(unohelper.Base,
+                   XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
-        self._ctx = ctx
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbPage2')
         self._view = IspdbView(ctx, WindowHandler(self), parent)
-        self._finish = False
+        self._finished = False
+
+# XCallback
+    def notify(self, data):
+        self._activatePath(self._view.getIMAP(), self._model.Offline)
+        self._finished = True
+        self._wizard.updateTravelUI()
 
 # XWizardPage
     @property
@@ -60,26 +67,29 @@ class IspdbManager(unohelper.Base):
         return self._view.getWindow()
 
     def activatePage(self):
-        self._finish = False
+        self._finished = False
         self._model.Offline = 0
         self._wizard.activatePath(1, False)
         self._wizard.enablePage(1, False)
         self._view.initSearch(self._model.getPageLabel(self._resolver, self._pageid, self._model.Email))
         self._wizard.updateTravelUI()
-        self._model.getServerConfig(self._resolver, self.updateProgress, self.updateView)
+        self._model.getServerConfig(self)
 
     def commitPage(self, reason):
         if self._view.useReplyTo():
             self._model.setReplyToAddress(self._view.getReplyTo())
-        self._finish = False
         return True
 
     def canAdvance(self):
-        return self._finish and self._model.isEmailValid(self._view.getReplyTo())
+        return self._finished and self._model.isEmailValid(self._view.getReplyTo())
+
+# IspdbManager getter methods
+    def getResolver(self):
+        return self._resolver
 
 # IspdbManager setter methods
-    def enableReplyTo(self, enabled):
-        self._view.setReplyToAddress(enabled, self._model.enableReplyTo(enabled))
+    def enableReplyTo(self, state):
+        self._view.setReplyToAddress(state, self._model.enableReplyTo(state))
 
     def changeReplyTo(self):
         self._wizard.updateTravelUI()
@@ -89,29 +99,15 @@ class IspdbManager(unohelper.Base):
 
     def updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
-            print("IspdbManager.updateProgress() value: %s" % value)
             message = self._model.getProgressMessage(self._resolver, value + offset)
             self._view.updateProgress(value, message, style)
 
-    def updateView(self, title, auto, state, replyto, imap, offline):
+    def updateView(self, title, auto, user):
         if not self._model.isDisposed():
-            print("IspdbManager.updateView() 1")
             self._wizard.setTitle(title)
-            print("IspdbManager.updateView() 2")
             self._wizard.enablePage(1, True)
-            print("IspdbManager.updateView() 3")
-            self._view.commitSearch(auto, state, replyto, imap)
-            #if not auto:
-            #    self._view.enableIMAP(imap)
-            print("IspdbManager.updateView() 4")
-            self._activatePath(imap, offline)
-            print("IspdbManager.updateView() 5")
-            self._finish = True
-            print("IspdbManager.updateView() 6")
-            self._wizard.updateTravelUI()
-            print("IspdbManager.updateView() 7")
+            self._view.commitSearch(auto, user)
 
     def _activatePath(self, imap, offline):
         path = offline * 2 + imap
-        print("IspdbManager._activatePath() path: %s" % path)
         self._wizard.activatePath(path, True)

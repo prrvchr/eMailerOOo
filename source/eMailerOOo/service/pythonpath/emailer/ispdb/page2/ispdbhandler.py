@@ -44,8 +44,7 @@ class WindowHandler(unohelper.Base,
         try:
             handled = False
             if method == 'EnableReplyTo':
-                enabled = bool(event.Source.State)
-                self._manager.enableReplyTo(enabled)
+                self._manager.enableReplyTo(event.Source.State)
                 handled = True
             elif method == 'ChangeReplyTo':
                 self._manager.changeReplyTo()

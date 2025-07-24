@@ -43,7 +43,7 @@
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:textfield>
     <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="160" dlg:top="25" dlg:width="45" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label4.HelpText" dlg:value="&amp;IspdbPages.Label4.Label" dlg:valign="center"/>
-    <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="8" dlg:left="255" dlg:top="25" dlg:width="45" dlg:height="15" dlg:help-text="&amp;IspdbPages.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="1" dlg:value-max="1023">
+    <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="8" dlg:left="255" dlg:top="25" dlg:width="45" dlg:height="15" dlg:help-text="&amp;IspdbPages.NumericField1.HelpText" dlg:decimal-accuracy="0" dlg:value-min="0" dlg:value-max="65535">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:numericfield>
     <dlg:text dlg:id="Label5" dlg:tab-index="9" dlg:left="10" dlg:top="45" dlg:width="65" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label5.HelpText" dlg:value="&amp;IspdbPages.Label5.Label" dlg:valign="center"/>

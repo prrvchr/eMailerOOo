@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'Utilisation][4] et à notre [Politique de Protection des Données][5].**
 
-# version [1.4.0][6]
+# version [1.4.1][6]
 
 ## Introduction:
 
@@ -477,7 +477,7 @@ ___
 
 ### Ce qui a été fait pour la version 0.0.1:
 
-- Ecriture de [IspDB][72] ou l'assistant de Configuration de connexion aux serveurs SMTP permettant:
+- Ecriture de [IspDB][72] ou l'assistant de configuration de connexion aux serveurs SMTP permettant:
     - De trouver les paramètres de connexion à un serveur SMTP à partir d'une adresse courriel. D'ailleur je remercie particulierement Mozilla, pour [Thunderbird autoconfiguration database][73] ou IspDB, qui à rendu ce défi possible...
     - D'afficher l'activité du service UNO `com.sun.star.mail.MailServiceProvider` lors de la connexion au serveur SMTP et l'envoi d'un courriel. 
 
@@ -663,7 +663,14 @@ ___
 - Nécessite l'extension **jdbcDriverOOo en version 1.5.0 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.5.0 minimum**.
 
-### Que reste-t-il à faire pour la version 1.4.0:
+### Ce qui a été fait pour la version 1.4.1:
+
+- Dans l'assistant de connexion, si l'adresse courriel donnée n'est pas trouvée dans Mozilla IspDB ou si vous êtes hors ligne, les noms de serveur peuvent être de simples noms d'hôtes et les ports valides s'étendront jusqu'à 65535. Ceci afin de répondre à [issue#10][111].
+- Les problèmes d'actualisation de la deuxième page de l'assistant de connexion ont été résolus par l'utilisation du service UNO `com.sun.star.awt.AsyncCallback`.
+- Nécessite l'extension **jdbcDriverOOo en version 1.5.4 minimum**.
+- Nécessite l'extension **OAuth2OOo en version 1.5.1 minimum**.
+
+### Que reste-t-il à faire pour la version 1.4.1:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -674,7 +681,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-140>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-141>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -712,7 +719,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.0#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.1#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [47]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [48]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
@@ -778,3 +785,4 @@ ___
 [108]: <https://ant.apache.org/>
 [109]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
 [110]: <https://pypi.org/project/six/>
+[111]: <https://github.com/prrvchr/eMailerOOo/issues/10>

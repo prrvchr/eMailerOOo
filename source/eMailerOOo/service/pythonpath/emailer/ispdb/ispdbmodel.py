@@ -93,7 +93,9 @@ class IspdbModel(unohelper.Base):
         self._offline = 0
         self._diposed = False
         self._version = 0
+        self._check = False
         self._listener = None
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         secure = {0: 3, 1: 4, 2: 5}
         unsecure = {0: 0, 1: 1, 2: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
@@ -167,22 +169,22 @@ class IspdbModel(unohelper.Base):
         self._version += 1
         Thread(target=self._getServerConfig, args=args).start()
 
-    def _getServerConfig(self, resolver, progress, update):
+    def _getServerConfig(self, caller):
         # FIXME: Because we call this thread in the WizardPage.activatePage(),
         # FIXME: if we want to be able to navigate through the Wizard roadmap
         # FIXME: without GUI refreshing problem then we need to pause this thread.
         sleep(0.2)
         auto = False
         config = None
-        progress(10)
+        caller.updateProgress(10)
         url = getUrl(self._ctx, self._url)
-        progress(20)
+        caller.updateProgress(20)
         mode = getConnectionMode(self._ctx, url.Server)
-        progress(30)
+        caller.updateProgress(30)
         user = User(self._ctx, self.Sender)
-        progress(40)
+        caller.updateProgress(40)
         request = createService(self._ctx, g_service)
-        progress(50)
+        caller.updateProgress(50)
         if request is None:
             offset = 1 if user.isNew() else 2
             status = (100, offset, BOLD)
@@ -190,14 +192,14 @@ class IspdbModel(unohelper.Base):
             offset = 3 if user.isNew() else 4
             status = (100, offset, BOLD)
         else:
-            progress(60)
+            caller.updateProgress(60)
             try:
                 config = self._getIspdbConfig(user, request, url.Complete)
             except RequestException as e:
                 offset = 5 if user.isNew() else 6
                 status = (100, offset, BOLD)
             else:
-                progress(80)
+                caller.updateProgress(80)
                 if not user.isNew():
                     status = (100, 7)
                 elif config is None:
@@ -205,10 +207,15 @@ class IspdbModel(unohelper.Base):
                 else:
                     auto = True
                     status = (100, 9)
+        self._check = config is not None
         self._servers = IspdbServer(user, config)
         self._offline = mode
-        progress(*status)
-        update(self.getPageTitle(resolver, 2), auto, user.getReplyToState(), user.ReplyToAddress, user.getImapState(), mode)
+        caller.updateProgress(*status)
+        title = self.getPageTitle(caller.getResolver(), 2)
+        caller.updateView(title, auto, user)
+        # XXX: We cannot change the Wizard path if we are in Thread
+        # XXX: and not using AsyncCallback without refresh issues
+        self._callback.addCallback(caller, None)
 
     def _getIspdbConfig(self, user, request, url):
         config = None
@@ -278,8 +285,8 @@ class IspdbModel(unohelper.Base):
         return self._providers.hasByName(provider) or request.isRegisteredUrl(hostname)
 
 # IspdbModel setter methods called by WizardPage2
-    def enableReplyTo(self, enabled):
-        self._servers.User.enableReplyTo(enabled)
+    def enableReplyTo(self, state):
+        self._servers.User.enableReplyTo(bool(state))
         return self._servers.User.ReplyToAddress
 
     def setReplyToAddress(self, replyto):
@@ -517,14 +524,20 @@ class IspdbModel(unohelper.Base):
         return self._servers.User.getPassword(service)
 
     def _isHostValid(self, host):
-        if validators.domain(host):
-            return True
-        return False
+        valid = False
+        if self._check and validators.domain(host):
+            valid = True
+        elif not self._check and validators.hostname(host):
+            valid = True
+        return valid
 
     def _isPortValid(self, port):
-        if validators.between(port, min_val=1, max_val=1023):
-            return True
-        return False
+        valid = False
+        if self._check and validators.between(port, min_val=0, max_val=1023):
+            valid = True
+        elif not self._check and validators.between(port, min_val=0, max_val=65535):
+            valid = True
+        return valid
 
 # IspdbModel private getter methods called by WizardPage5
     def _getThreadMessage(self):

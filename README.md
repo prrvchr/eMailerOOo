@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.4.1][6]
+# version [1.4.2][6]
 
 ## Introduction:
 
@@ -670,7 +670,12 @@ ___
 - Requires the **jdbcDriverOOo extension at least version 1.5.4**.
 - Requires the **OAuth2OOo extension at least version 1.5.1**.
 
-### What remains to be done for version 1.4.1:
+### What has been done for version 1.4.2:
+
+- Support for LibreOffice 25.2.x and 25.8.x on Windows 64-bit.
+- Requires the **OAuth2OOo extension at least version 1.5.2**.
+
+### What remains to be done for version 1.4.2:
 
 - Add new languages for internationalization...
 
@@ -681,7 +686,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/README_fr>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_en>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_en>
-[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-141>
+[6]: <https://prrvchr.github.io/eMailerOOo/#what-has-been-done-for-version-142>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -719,7 +724,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.1#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.2#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [47]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [48]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

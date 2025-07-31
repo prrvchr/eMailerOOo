@@ -441,7 +441,7 @@ ___
 ## Comment créer l'extension:
 
 Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][28]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
-Pour créer l'extension gDriveOOo avec l'aide d'Apache Ant, vous devez:
+Pour créer l'extension eMailerOOo avec l'aide d'Apache Ant, vous devez:
 - Installer le [SDK Java][29] version 8 ou supérieure.
 - Installer [Apache Ant][30] version 1.10.0 ou supérieure.
 - Installer [LibreOffice et son SDK][31] version 7.x ou supérieure.
@@ -665,7 +665,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.4.1:
 
-- Dans l'assistant de connexion, si l'adresse courriel donnée n'est pas trouvée dans Mozilla IspDB ou si vous êtes hors ligne, les noms de serveur peuvent être de simples noms d'hôtes et les ports valides s'étendront jusqu'à 65535. Ceci afin de répondre à [issue#10][111].
+- Dans l'assistant de connexion, si l'adresse courriel donnée n'est pas trouvée dans Mozilla IspDB ou si vous êtes hors ligne, les noms de serveur peuvent être de simples noms d'hôtes et les ports valides s'étendront jusqu'à 65535. Ceci afin de répondre à l'[issue#10][111].
 - Les problèmes d'actualisation de la deuxième page de l'assistant de connexion ont été résolus par l'utilisation du service UNO `com.sun.star.awt.AsyncCallback`.
 - Nécessite l'extension **jdbcDriverOOo en version 1.5.4 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.5.1 minimum**.

@@ -185,14 +185,12 @@ class MergerView(unohelper.Base):
     def initQuery(self, queries):
         control = self._getQuery()
         control.Model.removeAllItems()
-        for query, subquery in queries.items():
+        for query in queries:
             index = control.Model.ItemCount
-            control.Model.insertItemText(index, query)
-            control.Model.setItemData(index, subquery)
-
-    def setDefaultQuery(self):
-        control = self._getQuery()
-        control.Text = control.Model.getItemText(0)
+            control.Model.insertItemText(index, query.Name)
+            control.Model.setItemData(index, query.Value)
+        if queries:
+            control.Text = control.Model.getItemText(0)
 
     # Query methods
     def enableAddQuery(self, enabled):

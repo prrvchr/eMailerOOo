@@ -116,6 +116,7 @@ class MergerModel(MailModel):
         self._saved = False
         self._lock = Condition()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._resources = {'Step':          'MergerPage%s.Step',
                            'Title':         'MergerPage%s.Title',
@@ -203,7 +204,7 @@ class MergerModel(MailModel):
         Thread(target=self._setAddressBook, args=args).start()
 
     # AddressBook private methods
-    def _setAddressBook(self, book, progress, setAddressBook):
+    def _setAddressBook(self, book, progress, caller):
         sleep(0.2)
         step = 2
         progress(5)
@@ -219,6 +220,7 @@ class MergerModel(MailModel):
         if self._isConnectionNotClosed():
             self._closeConnection()
         progress(20)
+        self._book = book
         try:
             datasource = self._getDataSource(book)
             progress(30)
@@ -241,7 +243,6 @@ class MergerModel(MailModel):
             progress(50)
             # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
             # FIXME: the URL of the odb file rather than the registered name of the datasource
-            self._book = book
             self._addressbook = datasource
             self._statement = connection.createStatement()
             self._composer = connection.createInstance(self._service)
@@ -265,8 +266,10 @@ class MergerModel(MailModel):
             composer.dispose()
             label = self._getIndexLabel()
             step = 3
+        data = {'step': step, 'message': message, 'label': label,
+                'tables': self._getTables(),'queries': queries}
         progress(100)
-        setAddressBook(step, queries, self._getTables(), label, message)
+        self._callback.addCallback(caller, getPropertyValueSet(data))
 
     def _saveQueries(self):
         saved = False
@@ -352,7 +355,7 @@ class MergerModel(MailModel):
                 if table is not None:
                     query.Second = table
                     queries[name] = query
-        return queries
+        return getPropertyValueSet(queries)
 
     def _getQueryTable(self, composer, command):
         table = None
@@ -904,12 +907,12 @@ class MergerModel(MailModel):
         self._setDocumentRecord(document, self._recipient, index +1)
 
 # Private procedures called by WizardPage3
-    def _initPage3(self, listener, initView, initRecipient):
+    def _initPage3(self, listener, caller):
         sleep(0.2)
         self._recipient.addRowSetListener(listener)
-        initView(self._document)
         recipients, message = self.getRecipients()
-        initRecipient(recipients, message)
+        data = {'document': self._document, 'recipients': recipients, 'message': message}
+        self._callback.addCallback(caller, getPropertyValueSet(data))
 
     def _getDocumentName(self):
         url = None

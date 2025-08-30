@@ -70,6 +70,7 @@ class SpoolerModel(unohelper.Base):
         self._rowset = self._getRowSet()
         self._grid = None
         self._identifiers = ('JobId', )
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SpoolerDialog')
@@ -212,7 +213,7 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, window, listener, initView):
+    def _initSpooler(self, window, listener, caller):
         self._dataSource.waitForDataBase()
         self._rowset.ActiveConnection = self._dataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
@@ -220,7 +221,7 @@ class SpoolerModel(unohelper.Base):
         quote = self._datasource.IdentifierQuoteString
         self._grid = GridManager(self._ctx, self._url, window, quote, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener)
-        initView(self._rowset)
+        self._callback.addCallback(caller, self._rowset)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!
         self.executeRowSet()
 

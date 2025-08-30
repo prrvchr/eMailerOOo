@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt import XCallback
+
 from com.sun.star.ui.dialogs import XWizardPage
 
 from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
@@ -46,6 +48,8 @@ from .mergerhandler import RecipientHandler
 from ...mail import MailManager
 from ...mail import WindowHandler
 
+from ...unotool import getArgumentSet
+
 from ...helper import getMailSpooler
 
 from threading import Condition
@@ -53,14 +57,15 @@ import traceback
 
 
 class MergerManager(MailManager,
-                    XWizardPage):
+                    XWizardPage,
+                    XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
         MailManager.__init__(self, ctx, model)
         self._wizard = wizard
         self._pageid = pageid
         self._view = MergerView(ctx, WindowHandler(ctx, self), parent, 2)
         self._view.setSenders(self._model.getSenders())
-        self._model.initPage3(RecipientHandler(self), self.initView, self.initRecipients)
+        self._model.initPage3(RecipientHandler(self), self)
 
 # XWizardPage
     @property
@@ -81,19 +86,11 @@ class MergerManager(MailManager,
     def canAdvance(self):
         return self._canAdvance()
 
+# XCallback
+    def notify(self, data):
+        self._notify(**getArgumentSet(data))
+
 # MergerManager setter methods
-    def initView(self, document):
-        with self._lock:
-            if not self._model.isDisposed():
-                # TODO: Document can be <None> if a lock or password exists !!!
-                # TODO: It would be necessary to test a Handler on the descriptor...
-                self._initView(document)
-            self._closeDocument(document)
-
-    def initRecipients(self, recipients, message):
-        self._view.setRecipients(recipients, message)
-        self._updateUI()
-
     def refreshRecipients(self):
         recipients, message = self._model.getRecipients()
         self._view.setRecipients(recipients, message)
@@ -114,3 +111,13 @@ class MergerManager(MailManager,
 
     def _updateUI(self):
         self._wizard.updateTravelUI()
+
+    def _notify(self, document, recipients, message):
+        with self._lock:
+            if not self._model.isDisposed():
+                # TODO: Document can be <None> if a lock or password exists !!!
+                # TODO: It would be necessary to test a Handler on the descriptor...
+                self._initView(document)
+                self._view.setRecipients(recipients, message)
+                self._updateUI()
+            self._closeDocument(document)

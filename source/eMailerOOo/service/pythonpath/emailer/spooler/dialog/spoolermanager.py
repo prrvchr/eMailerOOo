@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt import XCallback
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -71,7 +73,8 @@ from threading import Thread
 import traceback
 
 
-class SpoolerManager(unohelper.Base):
+class SpoolerManager(unohelper.Base,
+                     XCallback):
     def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
         self._lock = Condition()
@@ -84,7 +87,7 @@ class SpoolerManager(unohelper.Base):
         self._spooler.addListener(self._spoolerlistener)
         self._refreshSpoolerState()
         window = self._view.getGridWindow()
-        self._model.initSpooler(window, GridListener(self), self.initView)
+        self._model.initSpooler(window, GridListener(self), self)
         self._log1listener = LoggerListener(self.updateLog1)
         self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._log1listener)
         self._log2listener = LoggerListener(self.updateLog2)
@@ -94,6 +97,13 @@ class SpoolerManager(unohelper.Base):
     @property
     def HandlerEnabled(self):
         return self._enabled
+
+# XCallback
+    def notify(self, rowset):
+        with self._lock:
+            if not self._model.isDisposed():
+                rowset.addRowSetListener(RowSetListener(self))
+                self._view.initView()
 
 # SpoolerManager getter method
     def execute(self):
@@ -106,12 +116,6 @@ class SpoolerManager(unohelper.Base):
         return self._model.getDialogTitle()
 
 # SpoolerManager setter method
-    def initView(self, rowset):
-        with self._lock:
-            if not self._model.isDisposed():
-                rowset.addRowSetListener(RowSetListener(self))
-                self._view.initView()
-
     def setDataModel(self, rowset):
         with self._lock:
             if not self._model.isDisposed():

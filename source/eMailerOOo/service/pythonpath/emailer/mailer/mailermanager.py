@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.awt import XCallback
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -37,17 +39,24 @@ from .mailermodel import MailerModel
 from .mailerview import MailerView
 from .mailerhandler import DialogHandler
 
+from ..unotool import getArgumentSet
+
 from ..helper import getMailSpooler
 
 import traceback
 
 
-class MailerManager(MailManager):
+class MailerManager(MailManager,
+                    XCallback):
     def __init__(self, ctx, model, parent, url):
         MailManager.__init__(self, ctx, model)
         self._view = MailerView(ctx, DialogHandler(self), WindowHandler(ctx, self), parent, 1)
         self._view.setSenders(self._model.getSenders())
-        self._model.loadDocument(url, self.initView)
+        self._model.loadDocument(url, self)
+
+# XCallback
+    def notify(self, data):
+        self._notify(**getArgumentSet(data))
 
 # MailerManager setter methods
     def addRecipient(self):
@@ -77,15 +86,6 @@ class MailerManager(MailManager):
             self._model.dispose()
             self._view.dispose()
 
-    def initView(self, document, title):
-        with self._lock:
-            if not self._model.isDisposed():
-                # TODO: Document can be <None> if a lock or password exists !!!
-                # TODO: It would be necessary to test a Handler on the descriptor...
-                self._initView(document)
-                self._view.setTitle(title)
-            self._closeDocument(document)
-
     def execute(self):
         return self._view.execute()
 
@@ -102,6 +102,15 @@ class MailerManager(MailManager):
             print(msg)
 
 # MailerManager private setter methods
+    def _notify(self, document, title):
+        with self._lock:
+            if not self._model.isDisposed():
+                # TODO: Document can be <None> if a lock or password exists !!!
+                # TODO: It would be necessary to test a Handler on the descriptor...
+                self._initView(document)
+                self._view.setTitle(title)
+            self._closeDocument(document)
+
     def _closeDocument(self, document):
         document.close(True)
 

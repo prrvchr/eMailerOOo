@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt import XCallback
+
 from com.sun.star.ui.dialogs import XWizardPage
 
 from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
@@ -47,6 +49,7 @@ from .mergerhandler import WindowHandler
 from ...unotool import createMessageBox
 from ...unotool import createService
 from ...unotool import executeDispatch
+from ...unotool import getArgumentSet
 from ...unotool import getStringResource
 
 from ...configuration import g_identifier
@@ -55,7 +58,8 @@ import traceback
 
 
 class MergerManager(unohelper.Base,
-                    XWizardPage):
+                    XWizardPage,
+                    XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
         self._wizard = wizard
@@ -106,6 +110,10 @@ class MergerManager(unohelper.Base,
     def canAdvance(self):
         return self._view.hasEmail() and self._view.hasIdentifier()
 
+# XCallback
+    def notify(self, data):
+        self._notify(**getArgumentSet(data))
+
 # MergerManager setter methods
     # Methods called by MergerHandler
     def changeAddressBook(self, addressbook):
@@ -115,29 +123,11 @@ class MergerManager(unohelper.Base,
             self._view.setPageStep(1)
             message = self._model.getProgressMessage(self._resolver, 0)
             self._view.updateProgress(0, message)
-            self._model.setAddressBook(addressbook, self.progress, self.setAddressBook)
+            self._model.setAddressBook(addressbook, self.progress, self)
 
     def progress(self, value):
         message = self._model.getProgressMessage(self._resolver, value)
         self._view.updateProgress(value, message)
-
-    def setAddressBook(self, step, queries, tables, label, msg):
-        if step == 2:
-            self._view.setMessageText(msg)
-        elif step == 3:
-            self._view.enablePage(True)
-            self._view.setColumnLabel(label)
-            self._view.initTables(tables)
-            self._view.initQuery(queries)
-            if len(queries) > 0:
-                self._view.setDefaultQuery()
-            elif len(tables):
-                # FIXME: We must disable the "ChangeAddressBookTable"
-                # FIXME: handler otherwise it activates twice
-                self._disableHandler()
-                self._view.setDefaultTable()
-        self._view.setPageStep(step)
-        self._wizard.updateTravelUI()
 
     def newAddressBook(self):
         executeDispatch(self._ctx, '.uno:AutoPilotAddressDataSource')
@@ -330,3 +320,19 @@ class MergerManager(unohelper.Base,
         if subquery is not None:
             return self._view.getTable() == subquery.Second
         return False
+
+    def _notify(self, step, message, label, tables, queries):
+        if step == 2:
+            self._view.setMessageText(message)
+        elif step == 3:
+            self._view.enablePage(True)
+            self._view.setColumnLabel(label)
+            self._view.initTables(tables)
+            self._view.initQuery(queries)
+            if not queries and tables:
+                # FIXME: We must disable the "ChangeAddressBookTable"
+                # FIXME: handler otherwise it activates twice
+                self._disableHandler()
+                self._view.setDefaultTable()
+        self._view.setPageStep(step)
+        self._wizard.updateTravelUI()

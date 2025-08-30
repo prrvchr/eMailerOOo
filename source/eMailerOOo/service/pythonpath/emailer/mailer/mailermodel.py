@@ -34,6 +34,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from ..mail import MailModel
 
+from ..unotool import createService
 from ..unotool import getDesktop
 from ..unotool import getDocument
 from ..unotool import getFileUrl
@@ -51,6 +52,7 @@ class MailerModel(MailModel):
         MailModel.__init__(self, ctx, datasource, close)
         self._path = path
         self._url = None
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._resources = {'DialogTitle':   'MailerDialog.Title',
                            'PickerTitle':   'Mail.FilePicker.Title',
                            'PickerFilters': 'Mail.FilePicker.Filters',
@@ -87,7 +89,7 @@ class MailerModel(MailModel):
         return title + url
 
 # SenderModel private setter methods
-    def _loadDocument(self, url, initView):
+    def _loadDocument(self, url, caller):
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
         location = getUrlPresentation(self._ctx, url)
@@ -95,14 +97,8 @@ class MailerModel(MailModel):
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
         title = self._getDocumentTitle(document.URL)
-        initView(document, title)
-
-
-
-
-
-
-
+        data = getPropertyValueSet({'document': document, 'title': title})
+        self._callback.addCallback(caller, data)
 
     def getUrl(self):
         return self._url

@@ -29,19 +29,19 @@
 
 import unohelper
 
+from com.sun.star.lang import XComponent
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.uno import Exception as UNOException
+from com.sun.star.mail import XMailSpooler
 
-from emailer import Spooler
+from emailer import DataSource
 
 from emailer import getLogger
 
-from emailer import g_identifier
 from emailer import g_spoolerlog
 
-from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -50,27 +50,76 @@ g_ImplementationName = 'io.github.prrvchr.eMailerOOo.MailSpooler'
 g_ServiceNames = ('com.sun.star.mail.MailSpooler', )
 
 
-class MailSpooler():
-    def __new__(cls, ctx, *args, **kwargs):
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    logger = getLogger(ctx, g_spoolerlog)
-                    try:
-                        cls._instance = Spooler(ctx, cls._lock, logger, g_ImplementationName)
-                        logger.logprb(INFO, 'MailSpooler', '__new__', 1001, g_ImplementationName)
-                    except UNOException as e:
-                        if cls._logger is None:
-                            cls._logger = logger
-                        logger.logprb(SEVERE, 'MailSpooler', '__new__', 1002, g_ImplementationName, e.Message)
-                        return None
-        return cls._instance
+class MailSpooler(unohelper.Base,
+                  XMailSpooler,
+                  XComponent):
+    def __init__(self, ctx):
+        self._logger = getLogger(ctx, g_spoolerlog)
+        self._datasource = DataSource(ctx, self, self._logger)
+        self._datacall = None
+        print("MailSpooler.__init__() 1")
 
-    # XXX: If the spooler fails to load then we keep a reference
-    # XXX: to the logger so we can read the error message later
-    _logger = None
-    _instance = None
-    _lock = Lock()
+    # XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+    # XMailSpooler
+    def getConnection(self):
+        self._datasource.waitForDataBase()
+        return self._datasource.DataBase.getConnection()
+
+    def addJob(self, sender, subject, document, recipients, attachments):
+        return self._getDataCall().insertJob(sender, subject, document, recipients, attachments)
+
+    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
+        return self._getDataCall().insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
+
+    def removeJobs(self, jobids):
+        return self._getDataCall().deleteJob(jobids)
+
+    def getJobState(self, jobid):
+        return self._getDataCall().getJobState(jobid)
+
+    def getJobIds(self, batchid):
+        return self._getDataCall().getJobIds(batchid)
+
+    def getSpoolerJobs(self, state):
+        return self._getDataCall().getSpoolerJobs(state)
+
+    def setJobState(self, job, state):
+        self._getDataCall().updateJobState(job, state)
+
+    def setJobsState(self, jobs, state):
+        self._getDataCall().updateJobsState(jobs, state)
+
+    def updateJob(self, batch, job, threadid, messageid, foreignid, state):
+        self._getDataCall().updateSpooler(batch, job, threadid, messageid, foreignid, state)
+
+
+    # com.sun.star.lang.XComponent
+    def dispose(self):
+        if self._datacall:
+            self._datacall.dispose()
+            self._datacall = None
+
+    def addEventListener(self, listener):
+        pass
+    def removeEventListener(self, listener):
+        pass
+
+    # method caller internally
+    def _getDataCall(self):
+        print("MailSpooler._getDataCall() 1")
+        if self._datacall is None:
+            self._datasource.waitForDataBase()
+            self._datacall = self._datasource.getDataCall()
+        print("MailSpooler._getDataCall() 2")
+        return self._datacall
+
 
 g_ImplementationHelper.addImplementation(MailSpooler,                     # UNO object class
                                          g_ImplementationName,            # Implementation name

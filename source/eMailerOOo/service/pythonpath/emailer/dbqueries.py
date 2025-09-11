@@ -166,6 +166,26 @@ CREATE PROCEDURE "UpdateSpooler"(IN BATCHID INTEGER,
     UPDATE "Recipients" SET "State"=STATE, "MessageId"=MESSAGEID, "ForeignId"=FOREIGNDID, "Modified"=DEFAULT WHERE "JobId"=JOBID;
   END"""
 
+    elif name == 'createUpdateJobState':
+        query = """\
+CREATE PROCEDURE "UpdateJobState"(IN JOBID INTEGER,
+                                  IN STATE INTEGER)
+  SPECIFIC "UpdateJobState_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Recipients" SET "State"=STATE, "Modified"=DEFAULT WHERE "JobId"=JOBID;
+  END"""
+
+    elif name == 'createUpdateJobsState':
+        query = """\
+CREATE PROCEDURE "UpdateJobsState"(IN JOBIDS INTEGER ARRAY,
+                                   IN STATE INTEGER)
+  SPECIFIC "UpdateJobsState_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Recipients" SET "State"=STATE, "Modified"=DEFAULT WHERE "JobId" IN (UNNEST (JOBIDS));
+  END"""
+
     elif name == 'createGetAttachments':
         query = """\
 CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
@@ -262,6 +282,10 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
         query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateSpooler':
         query = 'CALL "UpdateSpooler"(?,?,?,?,?,?)'
+    elif name == 'updateJobState':
+        query = 'CALL "UpdateJobState"(?,?)'
+    elif name == 'updateJobsState':
+        query = 'CALL "UpdateJobsState"(?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

@@ -42,15 +42,14 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .ispdb import IspdbController
+from .wizard import IspdbController
+from .wizard import MergerController
 
-from .merger import MergerController
+from .dialog import MailerModel
+from .dialog import MailerManager
 
-from .mailer import MailerModel
-from .mailer import MailerManager
-
-from .spooler import SpoolerManager
 from .spooler import Mailer
+from .spooler import SpoolerManager
 
 from .wizard import Wizard
 
@@ -64,7 +63,7 @@ from .logger import getLogger
 from .logger import RollerHandler
 
 from .helper import checkOAuth2
-from .helper import getMailSpooler
+from .helper import getMailSender
 
 from .configuration import g_extension
 from .configuration import g_identifier
@@ -128,10 +127,10 @@ class Dispatch(unohelper.Base,
                 Dispatch._checked |= 3
         # FIXME: Configuration has been checked we can continue
         if self._isChecked(3):
-            if url.Path == 'StartSpooler':
-                state, result = self._startSpooler()
-            elif url.Path == 'StopSpooler':
-                state, result = self._stopSpooler()
+            if url.Path == 'StartSender':
+                state, result = self._startSender()
+            elif url.Path == 'StopSender':
+                state, result = self._stopSender()
             elif url.Path == 'ShowSpooler':
                 state, result = self._showSpooler()
             elif url.Path == 'ShowMailer':
@@ -189,12 +188,12 @@ class Dispatch(unohelper.Base,
             print(msg)
 
     #Spooler methods
-    def _startSpooler(self):
-        getMailSpooler(self._ctx).start()
+    def _startSender(self):
+        getMailSender(self._ctx).start()
         return SUCCESS, ()
 
-    def _stopSpooler(self):
-        getMailSpooler(self._ctx).terminate()
+    def _stopSender(self):
+        getMailSender(self._ctx).terminate()
         return SUCCESS, ()
 
     def _showSpooler(self):
@@ -209,7 +208,7 @@ class Dispatch(unohelper.Base,
             msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
-    #Mailer methods
+    #Mail methods
     def _showMailer(self, arguments):
         try:
             state = FAILURE

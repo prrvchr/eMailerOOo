@@ -31,27 +31,36 @@ from .mailservice import ImapService
 from .mailservice import Pop3Service
 from .mailservice import SmtpService
 
+from .datasource import DataSource
+
 from .transferable import Transferable
 
 from .options import OptionsManager
 
 from .dispatch import Dispatch
 
-from .spooler import Spooler
+from .spooler import Mailer
+
+from .datacall import DataCall
 
 from .user import User
 
 from .unotool import executeDispatch
 from .unotool import getConfiguration
+from .unotool import getConnectionMode
 from .unotool import getCurrentLocale
 from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
+from .unotool import getNamedValueSet
 from .unotool import hasInterface
 
 from .logger import getLogger
+
+from .helper import getMailSpooler
 
 from .configuration import g_identifier
 from .configuration import g_mailservicelog
 from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
+from .configuration import g_dns
 

@@ -60,13 +60,14 @@ class OptionsModel():
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
 
+    def dispose(self, listener):
+        if self._spooler is not None:
+            self._spooler.removeListener(listener)
+            self._spooler.dispose()
+
     def addStreamListener(self, listener):
         if self._spooler is not None:
             self._spooler.addListener(listener)
-
-    def removeStreamListener(self, listener):
-        if self._spooler is not None:
-            self._spooler.removeListener(listener)
 
     def getViewData(self):
         exist = self.getDataBaseStatus()

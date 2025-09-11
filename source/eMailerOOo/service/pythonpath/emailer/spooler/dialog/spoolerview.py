@@ -39,17 +39,18 @@ from ...configuration import g_identifier
 
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, handler, handler1, handler2, handler3, parent, title, title1, title2, title3):
+    def __init__(self, ctx, handler, listener, handler1, parent, title, title1, title2, title3):
         self._dialog = getDialog(ctx, g_identifier, 'SpoolerDialog', handler, parent)
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
-        tab1, tab2, tab3 = self._getTabPages(self._dialog, 'Tab1', title1, title2,  title3, rectangle, 1)
+        self._tab, tab1, tab2, tab3 = self._getTabPages(self._dialog, 'Tab1', title1, title2, title3, rectangle, 1)
         self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'SpoolerTab1')
         self._tab1.setVisible(True)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_identifier, 'SpoolerTab2')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), None, g_identifier, 'SpoolerTab2')
         self._tab2.setVisible(True)
-        self._tab3 = getContainerWindow(ctx, tab3.getPeer(), handler3, g_identifier, 'SpoolerTab3')
+        self._tab3 = getContainerWindow(ctx, tab3.getPeer(), None, g_identifier, 'SpoolerTab3')
         self._tab3.setVisible(True)
         self._dialog.setTitle(title)
+        self._tab.addTabPageContainerListener(listener)
 
 # SpoolerView getter methods
     def execute(self):
@@ -61,11 +62,17 @@ class SpoolerView(unohelper.Base):
     def getGridWindow(self):
         return self._getGridWindow()
 
+    def getActiveTab(self):
+        return self._tab.ActiveTabPageID
+
 # SpoolerView setter methods
     def initView(self):
         self._enableButtonStartSpooler(True)
         self._enableButtonClose(True)
         self._enableButtonAdd(True)
+
+    def activateTab(self, tab):
+        self._setDialogStep(int(tab == 1))
 
     def enableButtons(self, selected, sent, link):
         self._getButtonEmlView().Model.Enabled = selected
@@ -78,12 +85,12 @@ class SpoolerView(unohelper.Base):
         self._getButtonClientView().Model.Enabled = False
         self._getButtonWebView().Model.Enabled = False
 
-    def setSpoolerState(self, text, state):
-        control = self._getButtonStartSpooler().Model
-        control.State = state
-        control.Enabled = True
+    def setSpoolerState(self, text, state, enabled):
+        model = self._getButtonStartSpooler().Model
+        model.State = state
+        model.Enabled = enabled
+        self._getButtonClose().Model.Enabled = enabled
         self._getLabelState().Text = text
-        self._getButtonClearLog().Model.Enabled = not bool(state)
 
     def endDialog(self):
         self._dialog.endDialog(OK)
@@ -93,21 +100,20 @@ class SpoolerView(unohelper.Base):
 
     def updateLog1(self, text, length):
         control = self._getSpoolerLog()
-        selection = uno.createUnoStruct('com.sun.star.awt.Selection')
-        selection.Min = length
-        selection.Max = length
-        control.Text = text
-        control.setSelection(selection)
+        self._updateLog(control, text, length)
 
     def updateLog2(self, text, length):
         control = self._getMailServiceLog()
+        self._updateLog(control, text, length)
+
+# SpoolerView private setter methods
+    def _updateLog(self, control, text, length):
         selection = uno.createUnoStruct('com.sun.star.awt.Selection')
         selection.Min = length
         selection.Max = length
         control.Text = text
         control.setSelection(selection)
 
-# SpoolerView private setter methods
     def _enableButtonStartSpooler(self, enabled):
         self._getButtonStartSpooler().Model.Enabled = enabled
 
@@ -117,12 +123,15 @@ class SpoolerView(unohelper.Base):
     def _enableButtonAdd(self, enabled):
         self._getButtonAdd().Model.Enabled = enabled
 
+    def _setDialogStep(self, step):
+        self._dialog.Model.Step = step
+
 # SpoolerView private control methods
     def _getButtonStartSpooler(self):
         return self._dialog.getControl('CommandButton1')
 
     def _getButtonClose(self):
-        return self._dialog.getControl('CommandButton2')
+        return self._dialog.getControl('CommandButton3')
 
     def _getButtonEmlView(self):
         return self._tab1.getControl('CommandButton1')
@@ -142,9 +151,6 @@ class SpoolerView(unohelper.Base):
     def _getGridWindow(self):
         return self._tab1.getControl('FrameControl1')
 
-    def _getButtonClearLog(self):
-        return self._tab2.getControl('CommandButton1')
-
     def _getLabelState(self):
         return self._dialog.getControl('Label2')
 
@@ -163,7 +169,7 @@ class SpoolerView(unohelper.Base):
         tab2 = self._getTabPage(tab, model, title2, 1)
         tab3 = self._getTabPage(tab, model, title3, 2)
         tab.ActiveTabPageID = id
-        return tab1, tab2, tab3
+        return tab, tab1, tab2, tab3
 
     def _getTabModel(self, page, rectangle):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'

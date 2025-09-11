@@ -28,18 +28,21 @@
 """
 import uno
 
-from com.sun.star.uno import Exception as UnoException
-
 from com.sun.star.mail import MailSpoolerException
+
+from com.sun.star.uno import Exception as UnoException
 
 from .unotool import checkVersion
 from .unotool import createService
+from .unotool import getDocument
 from .unotool import getExtensionVersion
 from .unotool import getFileSequence
+from .unotool import getLastNamedParts
 from .unotool import getMessageBox
 from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile
+from .unotool import getTempFile
 from .unotool import getToolKit
 from .unotool import getUrl
 from .unotool import hasInterface
@@ -127,20 +130,11 @@ def getMessageImage(ctx, url):
     img = base64.b64encode(sequence.value).decode('utf-8')
     return img
 
-def getDocumentFilter(extension, format):
-    ext = extension.lower()
-    if ext in ('odt', 'ott', 'odm', 'doc', 'dot'):
-        filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
-    elif ext in ('ods', 'ots', 'xls', 'xlt'):
-        filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
-    elif ext in ('odg', 'otg'):
-        filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
-    elif ext in ('odp', 'otp', 'ppt', 'pot'):
-        filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
-    else:
-        filters = {}
-    filter = filters.get(format, None)
-    return filter
+def hasExtensionFilter(extension, format):
+    return _getDocumentFilter(extension, format) is not None
+
+def hasDocumentFilter(document, format):
+    return hasExtensionFilter(getDocumentExtension(document), format)
 
 def getMailService(ctx, stype):
     service = 'com.sun.star.mail.MailServiceProvider'
@@ -157,6 +151,11 @@ def getMailSpooler(ctx):
     spooler = createService(ctx, service)
     return spooler
 
+def getMailSender(ctx):
+    service = 'com.sun.star.mail.MailSender'
+    spooler = createService(ctx, service)
+    return spooler
+
 def getMailMessage(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage'
     mail = createService(ctx, service, recipient, sender, subject, body)
@@ -167,20 +166,41 @@ def getTransferable(ctx):
     transferable = createService(ctx, service)
     return transferable
 
-def getNamedExtension(name):
-    part1, dot, part2 = name.rpartition('.')
-    if dot:
-        name, extension = part1, part2
-    else:
-        name, extension = part2, None
-    return name, extension
+def convertDocument(ctx, url, format):
+    if format:
+        document = getDocument(ctx, url)
+        path, fname = getLastNamedParts(document.getLocation(), '/')
+        name, extension = getLastNamedParts(document.Title)
+        if extension is None:
+            extension = getDocumentExtension(document)
+        filter = _getDocumentFilter(extension, format)
+        if filter:
+            url = '%s/%s.%s' % (path, name, format)
+            descriptor = {'Overwrite': True, 'FilterName': filter}
+            document.storeToURL(url, getPropertyValueSet(descriptor))
+        document.close(True)
+    return url
+
+def saveDocumentTo(document, folder, filter, export=None):
+    name, extension = getLastNamedParts(document.Title)
+    temp = '%s/%s' % (folder, name)
+    descriptor = {'Overwrite': True}
+    if filter and hasDocumentFilter(document, filter):
+        temp += '.' + filter
+        descriptor['FilterName'] = getDocumentFilter(document, filter)
+        if export:
+            descriptor['FilterData'] = export.getDescriptor()
+    elif extension:
+        temp += '.' + extension
+    document.storeToURL(temp, getPropertyValueSet(descriptor))
+    return temp
 
 def saveDocumentAs(ctx, document, format):
     url = None
-    name, extension = getNamedExtension(document.Title)
+    name, extension = getLastNamedParts(document.Title)
     if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
+        extension = getDocumentExtension(document)
+    filter = _getDocumentFilter(extension, format)
     if filter is not None:
         temp = getPathSettings(ctx).Temp
         url = '%s/%s.%s' % (temp, name, format)
@@ -193,10 +213,10 @@ def saveDocumentAs(ctx, document, format):
 
 def saveTempDocument(document, url, name, format=None):
     descriptor = {'Overwrite': True}
-    title, extension = getNamedExtension(name)
+    title, extension = getLastNamedParts(name)
     if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
+        extension = getDocumentExtension(document)
+    filter = _getDocumentFilter(extension, format)
     if filter is not None:
         descriptor['FilterName'] = filter
     document.storeToURL(url, getPropertyValueSet(descriptor))
@@ -205,10 +225,10 @@ def saveTempDocument(document, url, name, format=None):
 def saveDocumentTmp(ctx, document, format=None):
     url = None
     descriptor = {'Overwrite': True}
-    name, extension = getNamedExtension(document.Title)
+    name, extension = getLastNamedParts(document.Title)
     if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
+        extension = getDocumentExtension(document)
+    filter = _getDocumentFilter(extension, format)
     if filter is not None:
         descriptor['FilterName'] = filter
     temp = getPathSettings(ctx).Temp
@@ -220,6 +240,17 @@ def saveDocumentTmp(ctx, document, format=None):
     url = getUrl(ctx, url)
     return url
 
+def getTempFolder(ctx, folder):
+    if folder is None:
+        tmp = getTempFile(ctx)
+        folder, name = getLastNamedParts(tmp.Uri, '/')
+    sf = getSimpleFile(ctx)
+    #if sf.exists(folder):
+    #    sf.kill(folder)
+    if not sf.exists(folder):
+        sf.createFolder(folder)
+    return folder
+
 def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True):
     itype, descriptor = detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
     if detection.hasByName(itype):
@@ -230,7 +261,7 @@ def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True
                 mimetype = t.Value
     return uiname, mimetype
 
-def _getDocumentExtension(document):
+def getDocumentExtension(document):
     identifier = document.getIdentifier()
     if identifier == 'com.sun.star.text.TextDocument':
         extension = 'odt'
@@ -243,6 +274,29 @@ def _getDocumentExtension(document):
     else:
         extension = None
     return extension
+
+def getDocumentFilter(document, format):
+    filter = ''
+    extension = getDocumentExtension(document)
+    if extension:
+        filter = _getDocumentFilter(extension, format)
+    return filter
+
+def _getDocumentFilter(extension, format):
+    if extension:
+        extension = extension.lower()
+    if extension in ('odt', 'ott', 'odm', 'doc', 'dot'):
+        filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
+    elif extension in ('ods', 'ots', 'xls', 'xlt'):
+        filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
+    elif extension in ('odg', 'otg'):
+        filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
+    elif extension in ('odp', 'otp', 'ppt', 'pot'):
+        filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
+    else:
+        filters = {}
+    filter = filters.get(format, None)
+    return filter
 
 def _checkJdbc(ctx, method):
     driver = getExtensionVersion(ctx, g_jdbcid)

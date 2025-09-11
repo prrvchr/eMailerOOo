@@ -36,10 +36,10 @@ from com.sun.star.ui.dialogs.WizardButton import FINISH
 from com.sun.star.ui.dialogs.WizardButton import CANCEL
 from com.sun.star.ui.dialogs.WizardButton import HELP
 
-from ..unotool import createWindow
-from ..unotool import getDialog
+from ...unotool import createWindow
+from ...unotool import getDialog
 
-from ..configuration import g_identifier
+from ...configuration import g_identifier
 
 import traceback
 

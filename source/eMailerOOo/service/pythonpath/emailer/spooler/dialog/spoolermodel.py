@@ -37,7 +37,7 @@ from com.sun.star.view.SelectionType import MULTI
 
 from com.sun.star.sdb.CommandType import TABLE
 
-from ...gridcontrol import GridManager
+from ...grid import GridManager
 
 from ...unotool import createService
 from ...unotool import getConfiguration
@@ -69,6 +69,7 @@ class SpoolerModel(unohelper.Base):
         self._datasource = datasource
         self._rowset = self._getRowSet()
         self._grid = None
+        self._status = 1
         self._identifiers = ('JobId', )
         self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._url = getResourceLocation(ctx, g_identifier, 'img')
@@ -119,9 +120,14 @@ class SpoolerModel(unohelper.Base):
                 link = self._config.getByName('Urls').hasByName(client)
         return sent, link
 
-    def getSpoolerState(self, state):
-        resource = self._resources.get('State') % state
-        return self._resolver.resolveString(resource)
+    def setSpoolerStatus(self, status):
+        self._status = status
+        resource = self._resources.get('State') % status
+        label = self._resolver.resolveString(resource)
+        return label, int(status == 2), bool(status)
+
+    def getSpoolerStatus(self):
+        return self._status
 
     def getSenderClient(self, sender):
         client = None
@@ -213,15 +219,16 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, window, listener, caller):
+    def _initSpooler(self, window, listener1, listener2, caller):
         self._dataSource.waitForDataBase()
         self._rowset.ActiveConnection = self._dataSource.DataBase.Connection
         self._rowset.Command = self._getQueryTable()
         resources = (self._resolver, self._resources.get('GridColumns'))
         quote = self._datasource.IdentifierQuoteString
         self._grid = GridManager(self._ctx, self._url, window, quote, 'Spooler', MULTI, resources)
-        self._grid.addSelectionListener(listener)
-        self._callback.addCallback(caller, self._rowset)
+        self._grid.addSelectionListener(listener1)
+        self._rowset.addRowSetListener(listener2)
+        self._callback.addCallback(caller, None)
         # TODO: GridColumn and GridModel needs a RowSet already executed!!!
         self.executeRowSet()
 

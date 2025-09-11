@@ -40,7 +40,7 @@ from .optionshandler import OptionsListener
 
 from ..logger import LogManager
 
-from ..spooler import StreamListener
+from ..listener import StreamListener
 
 from ..unotool import executeDispatch
 from ..unotool import getDesktop
@@ -80,7 +80,7 @@ class OptionsManager(unohelper.Base):
 
     def dispose(self):
         self._logmanager.dispose()
-        self._model.removeStreamListener(self._listener)
+        self._model.dispose(self._listener)
         self._view.dispose()
 
     def loadSetting(self):

@@ -31,6 +31,7 @@ from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import createWindow
+from .unotool import executeDesktopDispatch
 from .unotool import executeDispatch
 from .unotool import executeFrameDispatch
 from .unotool import executeShell
@@ -55,10 +56,12 @@ from .unotool import getFileUrl
 from .unotool import getInteractionHandler
 from .unotool import getInterfaceNames
 from .unotool import getInterfaceTypes
+from .unotool import getLastNamedParts
 from .unotool import getLibreOfficeInfo
 from .unotool import getLibreOfficeVersion
 from .unotool import getMessageBox
 from .unotool import getMimeTypeFactory
+from .unotool import getMri
 from .unotool import getNamedValue
 from .unotool import getNamedValueSet
 from .unotool import getParentWindow

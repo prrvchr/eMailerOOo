@@ -27,20 +27,22 @@
 #ifndef __com_sun_star_mail_XMailSpooler_idl__
 #define __com_sun_star_mail_XMailSpooler_idl__
 
-#include <com/sun/star/io/XActiveDataControl.idl>
+#include <com/sun/star/lang/XServiceInfo.idl>
+#include <com/sun/star/sdbc/XConnection.idl>
 
 module com { module sun { module star { module mail {
 
-interface XMailSpooler : com::sun::star::io::XActiveDataControl
+interface XMailSpooler : com::sun::star::lang::XServiceInfo
 {
 
-    boolean isStarted();
+    com::sun::star::sdbc::XConnection getConnection();
 
     long addJob([in] string Sender,
                 [in] string Subject,
                 [in] string Document,
                 [in] sequence<string> Recipients,
                 [in] sequence<string> Attachments);
+
     long addMergeJob([in] string Sender,
                      [in] string Subject,
                      [in] string Document,
@@ -52,8 +54,25 @@ interface XMailSpooler : com::sun::star::io::XActiveDataControl
                      [in] sequence<string> Attachments);
 
     boolean removeJobs([in] sequence<long> JobIds);
+
     long getJobState([in] long JobId);
+
     sequence<long> getJobIds([in] long BatchId);
+
+    sequence<long> getSpoolerJobs([in] short State);
+
+    void setJobState([in] long JobId,
+                     [in] short State);
+
+    void setJobsState([in] sequence<long> JobIds,
+                      [in] short State);
+
+    void updateJob([in] long BatchId,
+                   [in] long JobId,
+                   [in] string ThreadId,
+                   [in] string MessageId,
+                   [in] string ForeignId,
+                   [in] short State);
 
 };
 

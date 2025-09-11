@@ -39,6 +39,8 @@ from com.sun.star.sdbc.DataType import CHAR
 from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbc.DataType import LONGVARCHAR
 
+from .datacall import DataCall
+
 from .database import DataBase
 
 from .dbtool import Array
@@ -71,6 +73,9 @@ class DataSource(unohelper.Base,
     @property
     def IdentifierQuoteString(self):
         return self.DataBase.IdentifierQuoteString
+
+    def getDataCall(self):
+        return DataCall(self._ctx, self.DataBase.Connection)
 
     def dispose(self):
         self.waitForDataBase()
@@ -126,6 +131,9 @@ class DataSource(unohelper.Base,
         id = self.DataBase.insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
         return id
 
+    def getSpoolerJobs(self, state):
+        return self.DataBase.getSpoolerJobs(state)
+
     def deleteJob(self, job):
         jobs = Array('INTEGER', job)
         return self.DataBase.deleteJob(jobs)
@@ -135,4 +143,7 @@ class DataSource(unohelper.Base,
 
     def getJobIds(self, batch):
         return self.DataBase.getJobIds(batch)
+
+    def updateSpooler(self, batch, job, threadid, messageid, foreignid, state):
+        self.DataBase.updateSpooler(batch, job, threadid, messageid, foreignid, state)
 

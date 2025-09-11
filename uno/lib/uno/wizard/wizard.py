@@ -34,6 +34,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.ui.dialogs import XWizard
 
+from com.sun.star.lang import XComponent
 from com.sun.star.lang import XInitialization
 from com.sun.star.lang import IllegalArgumentException
 
@@ -53,18 +54,19 @@ from .wizardview import WizardView
 from .wizardhandler import DialogHandler
 from .wizardhandler import ItemListener
 
-from ..logger import getLogger
+from ...logger import getLogger
 
-from ..unotool import hasInterface
+from ...unotool import hasInterface
 
-from ..configuration import g_extension
+from ...configuration import g_extension
 
 import traceback
 
 
 class Wizard(unohelper.Base,
              XWizard,
-             XInitialization):
+             XInitialization,
+             XComponent):
     def __init__(self, ctx, auto=-1, resize=False, parent=None):
         self._ctx = ctx
         self._helpUrl = ''
@@ -74,11 +76,37 @@ class Wizard(unohelper.Base,
         self._currentPath = -1
         self._multiPaths = False
         self._controller = None
+        self._listeners = []
+        self._disposed = False
         self._model = WizardModel(ctx)
         title = self._model.getRoadmapTitle()
         self._view = WizardView(ctx, DialogHandler(self), ItemListener(self), parent, title)
         roadmap = self._view.getRoadmapModel()
         self._model.setRoadmapModel(roadmap)
+
+
+# XComponent
+    def dispose(self):
+        self._disposed = True
+        event = self._getEventObject()
+        for listener in self._listeners:
+            listener.disposing(event)
+        self._model.dispose()
+        self.DialogWindow.dispose()
+        print("Wizard.dispose()")
+
+    def addEventListener(self, listener):
+        interface = 'com.sun.star.lang.XEventListener'
+        if hasInterface(listener, interface):
+            if disposed:
+                listener.disposing(self._getEventObject())
+            else:
+                self._listeners.append(listener)
+
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
 
 # XWizard
     # XWizard Attributes
@@ -384,6 +412,9 @@ class Wizard(unohelper.Base,
         self._view.updateButtonFinish(enabled)
 
 # Private Exception getter methods
+    def _getEventObject(self):
+        return uno.createUnoStruct('com.sun.star.lang.EventObject', self)
+
     def _getIllegalArgumentException(self, position, code, method):
         e = IllegalArgumentException()
         e.ArgumentPosition = position

@@ -59,7 +59,7 @@ class MailUser(unohelper.Base,
         if not senders.hasByName(sender):
             # FIXME: The Sender name must not be able to be changed (ie: ReadOnly)
             arguments = {'Sender': sender, 'ReadOnly': True}
-            executeDispatch(ctx, 'emailer:ShowIspdb', *arguments)
+            executeDispatch(ctx, 'emailer:ShowIspdb', **arguments)
             # The IspDB Wizard has been canceled
             if not senders.hasByName(sender):
                 return None

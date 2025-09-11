@@ -31,6 +31,7 @@ import unohelper
 
 from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt.tab import XTabPageContainerListener
 
 from com.sun.star.frame import XDispatchResultListener
 
@@ -57,6 +58,9 @@ class DialogHandler(unohelper.Base,
                 control.Enabled = False
                 self._manager.toogleSpooler(control.State)
                 handled = True
+            elif method == 'ClearLogger':
+                self._manager.clearLogger()
+                handled = True
             elif method == 'Close':
                 self._manager.closeSpooler()
                 handled = True
@@ -67,11 +71,12 @@ class DialogHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('ToogleSpooler',
+                'ClearLogger'
                 'Close')
 
 
-class Tab1Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabHandler(unohelper.Base,
+                 XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -107,43 +112,21 @@ class Tab1Handler(unohelper.Base,
                 'Remove')
 
 
-class Tab2Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabPageListener(unohelper.Base,
+                      XTabPageContainerListener):
     def __init__(self, manager):
         self._manager = manager
 
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
+    # XTabPageContainerListener
+    def tabPageActivated(self, event):
         try:
-            handled = False
-            if method == 'ClearLogger':
-                self._manager.clearLogger()
-                handled = True
-            return handled
+            self._manager.activateTab(event.TabPageID)
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
-    def getSupportedMethodNames(self):
-        return ('ClearLogger', )
-
-
-class Tab3Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        try:
-            handled = False
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ()
+    def disposing(self, source):
+        pass
 
 
 class RowSetListener(unohelper.Base,

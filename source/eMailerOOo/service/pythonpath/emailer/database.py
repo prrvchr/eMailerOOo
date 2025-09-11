@@ -64,7 +64,6 @@ class DataBase(unohelper.Base):
     def __init__(self, ctx, source, logger, url, warn, user='', pwd=''):
         self._ctx = ctx
         self._lock = Lock()
-        self._init = None
         self._statement = None
         self._url = url
         odb = url + '.odb'
@@ -73,12 +72,14 @@ class DataBase(unohelper.Base):
         checkConnection(ctx, source, connection, logger, new, warn)
         self._version = connection.getMetaData().getDriverVersion()
         self._quote = connection.getMetaData().getIdentifierQuoteString()
-        if new:
-            self._init = Thread(target=createDataBase, args=(ctx, connection, odb))
-            self._init.start()
+        if new and DataBase._init is None:
+            DataBase._init = Thread(target=createDataBase, args=(ctx, connection, odb))
+            DataBase._init.start()
         else:
             connection.close()
         self._new = new
+
+    _init = None
 
     @property
     def Version(self):
@@ -118,8 +119,9 @@ class DataBase(unohelper.Base):
         return checkVersion(self._version, g_version)
 
     def wait(self):
-        if self._init is not None:
-            self._init.join()
+        if DataBase._init:
+            DataBase._init.join()
+            DataBase._init = None
 
     def getConnection(self, user='', password=''):
         return getDataBaseConnection(self._ctx, self._url, user, password)
@@ -215,13 +217,13 @@ class DataBase(unohelper.Base):
         return jobs
 
 # Procedures called by the Spooler
-    def getSpoolerJobs(self, state=0):
+    def getSpoolerJobs(self, state):
         call = self._getCall('getSpoolerJobs')
         call.setInt(1, state)
         result = call.executeQuery()
         jobids = getSequenceFromResult(result)
         call.close()
-        return jobids, len(jobids)
+        return jobids
 
     def getRecipient(self, job):
         recipient = None

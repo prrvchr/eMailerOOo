@@ -94,6 +94,9 @@ def getUrlTransformer(ctx):
 def getInteractionHandler(ctx):
     return createService(ctx, 'com.sun.star.task.InteractionHandler')
 
+def getMri(ctx):
+    return createService(ctx, 'mytools.Mri')
+
 def getSequenceInputStream(ctx, sequence):
     service = 'com.sun.star.io.SequenceInputStream'
     return createService(ctx, service, sequence)
@@ -218,6 +221,12 @@ def getExtensionVersion(ctx, extension):
             return version
     return None
 
+def getLastNamedParts(name, sep='.'):
+    part1, sep, part2 = name.rpartition(sep)
+    if not sep:
+        part1, part2 = part2, None
+    return part1, part2
+
 def getLibreOfficeInfo(ctx):
     config = getConfiguration(ctx, '/org.openoffice.Setup/Product')
     name = config.getByName('ooName')
@@ -338,6 +347,11 @@ def executeDispatch(ctx, url, /, **args):
     arguments = getPropertyValueSet(args)
     getDispatcher(ctx).executeDispatch(frame, url, '', 0, arguments)
 
+def executeDesktopDispatch(ctx, url, listener=None, /, **args):
+    frame = getDesktop(ctx).getCurrentFrame()
+    properties = getPropertyValueSet(args)
+    executeFrameDispatch(ctx, frame, url, listener, *properties)
+
 def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):
     url = getUrl(ctx, url)
     dispatcher = frame.queryDispatch(url, '', 0)
@@ -429,7 +443,6 @@ def _getUniqueName(frames, name):
     if count > 0:
         name = '%s - %s' % (name, (count +1))
     return name
-
 
 def getParentWindow(ctx):
     desktop = getDesktop(ctx)

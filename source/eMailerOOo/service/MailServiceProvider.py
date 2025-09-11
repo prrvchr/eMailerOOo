@@ -80,7 +80,6 @@ class MailServiceProvider(unohelper.Base,
         self._debug = debug
         if debug:
             logger.logprb(INFO, self._cls, mtd, 102)
-        print("MailServiceProvider.__init__() 1")
 
     def create(self, stype):
         mtd = 'create'

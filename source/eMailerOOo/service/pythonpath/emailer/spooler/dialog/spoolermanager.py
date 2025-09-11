@@ -32,6 +32,7 @@ import unohelper
 
 from com.sun.star.awt import XCallback
 
+from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -41,18 +42,16 @@ from .spoolerview import SpoolerView
 
 from .spoolerhandler import DialogHandler
 from .spoolerhandler import RowSetListener
-from .spoolerhandler import Tab1Handler
-from .spoolerhandler import Tab2Handler
-from .spoolerhandler import Tab3Handler
+from .spoolerhandler import TabHandler
+from .spoolerhandler import TabPageListener
 from .spoolerhandler import LoggerListener
 
-from ..listener import StreamListener
+from ...grid import GridSelectionListener
 
-from ...grid import GridListener
+from ...listener import DispatchListener
+from ...listener import StreamListener
 
-from ...dispatchlistener import DispatchListener
-
-from ...helper import getMailSpooler
+from ...helper import getMailSender
 
 from ...unotool import executeFrameDispatch
 from ...unotool import executeShell
@@ -78,21 +77,26 @@ class SpoolerManager(unohelper.Base,
     def __init__(self, ctx, datasource, parent):
         self._ctx = ctx
         self._lock = Condition()
+        self._close = False
         self._enabled = True
         self._model = SpoolerModel(ctx, datasource)
+        handler = DialogHandler(self)
+        listener = TabPageListener(self)
         titles = self._model.getDialogTitles()
-        self._view = SpoolerView(ctx, DialogHandler(self), Tab1Handler(self), Tab2Handler(self), Tab3Handler(self), parent, *titles)
-        self._spooler = getMailSpooler(ctx)
-        self._spoolerlistener = StreamListener(self)
-        self._spooler.addListener(self._spoolerlistener)
-        self._refreshSpoolerState()
+        self._view = SpoolerView(ctx, handler, listener, TabHandler(self), parent, *titles)
+        self._sender = getMailSender(ctx)
+        self._senderlistener = StreamListener(self)
         window = self._view.getGridWindow()
-        self._model.initSpooler(window, GridListener(self), self)
-        self._log1listener = LoggerListener(self.updateLog1)
-        self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._log1listener)
-        self._log2listener = LoggerListener(self.updateLog2)
-        self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._log2listener)
-        self._updateLogger()
+        listener1 = GridSelectionListener(self)
+        listener2 = RowSetListener(self)
+        self._model.initSpooler(window, listener1, listener2, self)
+        self._loglistener1 = LoggerListener(self.updateLog1)
+        self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._loglistener1)
+        self._log1.addRollerHandler()
+        self._loglistener2 = LoggerListener(self.updateLog2)
+        self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._loglistener2)
+        self._log2.addRollerHandler()
+        #self._updateLogger()
 
     @property
     def HandlerEnabled(self):
@@ -102,8 +106,12 @@ class SpoolerManager(unohelper.Base,
     def notify(self, rowset):
         with self._lock:
             if not self._model.isDisposed():
-                rowset.addRowSetListener(RowSetListener(self))
                 self._view.initView()
+                self._sender.addListener(self._senderlistener)
+
+# XTabPageContainerListener
+    def activateTab(self, tab):
+        self._view.activateTab(tab)
 
 # SpoolerManager getter method
     def execute(self):
@@ -129,14 +137,20 @@ class SpoolerManager(unohelper.Base,
         self._view.enableButtons(selected, sent, link)
 
     def started(self):
-        self._refreshSpoolerView(1)
+        print("SpoolerManager.started()")
+        self._refreshSpoolerView(2)
 
     def closed(self):
-        self._model.executeRowSet()
-        self._refreshSpoolerView(0)
+        print("SpoolerManager.closed()")
+        if self._close:
+            self._view.endDialog()
+        else:
+            self._model.executeRowSet()
+            self._refreshSpoolerView(1)
 
     def terminated(self):
-        self._model.executeRowSet()
+        print("SpoolerManager.terminated()")
+        #self._model.executeRowSet()
         self._refreshSpoolerView(0)
 
     def saveGrid(self):
@@ -144,9 +158,11 @@ class SpoolerManager(unohelper.Base,
 
     def dispose(self):
         with self._lock:
-            self._spooler.removeListener(self._spoolerlistener)
-            self._log1.removeModifyListener(self._log1listener)
-            self._log2.removeModifyListener(self._log2listener)
+            self._sender.removeListener(self._senderlistener)
+            self._log1.removeModifyListener(self._loglistener1)
+            self._log2.removeModifyListener(self._loglistener2)
+            self._log1.removeRollerHandler()
+            self._log2.removeRollerHandler()
             self._model.dispose()
             self._view.dispose()
 
@@ -154,7 +170,7 @@ class SpoolerManager(unohelper.Base,
         frame = getDesktop(self._ctx).getCurrentFrame()
         listener = DispatchListener(self.documentAdded)
         properties = getPropertyValueSet({'Path': self._model.Path,
-                                         'Close': False})
+                                          'Close': False})
         executeFrameDispatch(self._ctx, frame, 'emailer:ShowMailer', listener, *properties)
 
     def documentAdded(self, path):
@@ -219,31 +235,43 @@ class SpoolerManager(unohelper.Base,
 
     def toogleSpooler(self, state):
         if state:
-            self._spooler.start()
+            self._sender.start()
         else:
-            self._spooler.terminate()
-
-    def closeSpooler(self):
-        self._view.endDialog()
+            self._sender.terminate()
 
     def clearLogger(self):
+        tab = self._view.getActiveTab()
+        if tab == 2:
+            self._log1.clearLogger()
+        elif tab == 3:
+            self._log2.clearLogger()
+
+    def closeSpooler(self):
+        self._view.disableButtons()
+        status = self._model.getSpoolerStatus()
+        if status == 1:
+            self._view.endDialog()
+        else:
+            self._close = True
+            if status == 2:
+                self._sender.terminate()
+
+    def clearLog1(self):
         self._log1.clearLogger()
+
+    def clearLog2(self):
+        self._log2.clearLogger()
 
     def updateLog1(self):
         self._view.updateLog1(*self._log1.getLogContent(True))
 
     def updateLog2(self):
-        self._view.updateLog2(*self._log2.getLogContent(False))
+        self._view.updateLog2(*self._log2.getLogContent(True))
 
 # SpoolerManager private methods
     def _updateLogger(self):
         self.updateLog1()
         self.updateLog2()
 
-    def _refreshSpoolerState(self):
-        state = int(self._spooler.isStarted())
-        self._refreshSpoolerView(state)
-
-    def _refreshSpoolerView(self, state):
-        label = self._model.getSpoolerState(state)
-        self._view.setSpoolerState(label, state)
+    def _refreshSpoolerView(self, status):
+        self._view.setSpoolerState(*self._model.setSpoolerStatus(status))

@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'Utilisation][4] et à notre [Politique de Protection des Données][5].**
 
-# version [1.4.3][6]
+# version [1.5.0][6]
 
 ## Introduction:
 
@@ -675,13 +675,13 @@ ___
 - Support de LibreOffice 25.2.x et 25.8.x sous Windows 64 bits.
 - Nécessite l'extension **OAuth2OOo en version 1.5.2 minimum**.
 
-### Ce qui a été fait pour la version 1.4.3:
+### Ce qui a été fait pour la version 1.5.0:
 
 - Toutes les méthodes exécutées en arrière-plan utilisent désormais le service UNO [com.sun.star.awt.AsyncCallback][112] pour le rappel.
 - Nécessite l'extension **jdbcDriverOOo en version 1.5.7 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.5.3 minimum**.
 
-### Que reste-t-il à faire pour la version 1.4.3:
+### Que reste-t-il à faire pour la version 1.5.0:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -692,7 +692,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-143>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-150>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
@@ -730,7 +730,7 @@ ___
 [42]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
 [43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.3#right>
+[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.5.0#right>
 [46]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
 [47]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
 [48]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>

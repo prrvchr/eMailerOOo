@@ -45,7 +45,7 @@ class MailerView(MailView):
     def getEmail(self):
         return self.getSender(), self.getRecipients()
 
-    def getRecipientFilter(self):
+    def getSelectedRecipients(self):
         return None
 
     def getRecipient(self):

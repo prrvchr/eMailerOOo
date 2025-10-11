@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<script:module xmlns:script="http://openoffice.org/2000/script" script:name="StopSender" script:language="StarBasic">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="StartSender" script:language="StarBasic">
 
 Rem ╔════════════════════════════════════════════════════════════════════════════════════╗
 Rem ║                                                                                    ║
@@ -26,10 +26,10 @@ Rem ║                                                                         
 Rem ╚════════════════════════════════════════════════════════════════════════════════════╝
 
 
-Sub StopSender
+Sub StartSpooler
     Set oDispatch = CreateUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
     Dim args(0) As New com.sun.star.beans.PropertyValue
-    oDispatch.executeDispatch(StarDesktop.ActiveFrame, &quot;emailer:StopSender&quot;, &quot;&quot;, 0, args)
+    oDispatch.executeDispatch(StarDesktop.ActiveFrame, &quot;emailer:StartSpooler&quot;, &quot;&quot;, 0, args)
 End Sub
 
 </script:module>

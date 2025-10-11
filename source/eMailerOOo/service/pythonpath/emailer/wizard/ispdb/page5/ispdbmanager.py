@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.awt import XCallback
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
@@ -40,6 +42,7 @@ from .ispdbhandler import WindowHandler
 from .send import DialogHandler
 from .send import SendView
 
+from ....unotool import getArgumentSet
 from ....unotool import getStringResource
 
 from ....logger import LoggerListener
@@ -49,7 +52,8 @@ from ....configuration import g_identifier
 import traceback
 
 
-class IspdbManager(unohelper.Base):
+class IspdbManager(unohelper.Base,
+                   XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
         self._wizard = wizard
@@ -62,6 +66,10 @@ class IspdbManager(unohelper.Base):
         self._model.addLogListener(LoggerListener(self))
         self.updateLogger()
 
+# XCallback
+    def notify(self, data):
+        self._notify(**getArgumentSet(data))
+
 # XWizardPage
     @property
     def PageId(self):
@@ -73,7 +81,7 @@ class IspdbManager(unohelper.Base):
     def activatePage(self):
         self._connected = False
         self._view.setPageStep(1)
-        self._model.connectServers(self.resetProgress, self.updateProgress, self.setLabel, self.setStep)
+        self._model.connectServers(self)
 
     def commitPage(self, reason):
         if reason == FINISH:
@@ -87,32 +95,12 @@ class IspdbManager(unohelper.Base):
     def updateLogger(self):
         self._view.updateLogger(*self._model.getLogContent())
 
-    def setLabel(self, *format):
-        if not self._model.isDisposed():
-            label = self._model.getPageLabel(self._resolver, self._pageid, *format)
-            self._view.setPageLabel(label)
-
-    def updateProgress(self, value):
-        if not self._model.isDisposed():
-            self._view.updateProgress(value)
-
-    def resetProgress(self, value):
-        if not self._model.isDisposed():
-            self._view.resetProgress(value)
-
-    def setStep(self, step):
-        if not self._model.isDisposed():
-            self._connected = step > 3
-            self._view.setPageStep(step)
-            self._wizard.updateTravelUI()
-
     def sendMail(self):
         parent = self._wizard.DialogWindow.getPeer()
         self._dialog = SendView(self._ctx, DialogHandler(self), parent, *self._model.getSendMailData())
         if self._dialog.execute() == OK:
             self._view.setPageStep(1)
-            recipient, subject, msg = self._getSendMailData()
-            self._model.sendMessage(recipient, subject, msg, self.resetProgress, self.updateProgress, self.setStep)
+            self._model.sendMessage(self, *self._getSendMailData())
         self._dialog.dispose()
         self._dialog = None
 
@@ -121,8 +109,39 @@ class IspdbManager(unohelper.Base):
             enabled = self._model.validSend(*self._getSendMailData())
             self._dialog.enableButtonSend(enabled)
 
+# IspdbManager private methods
     def _getSendMailData(self):
         recipient = self._dialog.getRecipient()
         subject = self._dialog.getSubject()
         msg = self._dialog.getMessage()
         return recipient, subject, msg
+
+    def _notify(self, call, **kwargs):
+        if call == 'reset':
+            self._resetProgress(**kwargs)
+        elif call == 'progress':
+            self._updateProgress(**kwargs)
+        elif call == 'label':
+            self._setLabel(**kwargs)
+        elif call == 'step':
+            self._setStep(**kwargs)
+
+    def _resetProgress(self, value):
+        if not self._model.isDisposed():
+            self._view.resetProgress(value)
+
+    def _updateProgress(self, value):
+        if not self._model.isDisposed():
+            self._view.updateProgress(value)
+
+    def _setLabel(self, service, host, port):
+        if not self._model.isDisposed():
+            label = self._model.getPageLabel(self._resolver, self._pageid, service, host, port)
+            self._view.setPageLabel(label)
+
+    def _setStep(self, value):
+        if not self._model.isDisposed():
+            self._connected = value > 3
+            self._view.setPageStep(value)
+            self._wizard.updateTravelUI()
+

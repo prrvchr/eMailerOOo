@@ -36,11 +36,18 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.mail import XMailSpooler
 
+from com.sun.star.sdb.CommandType import TABLE
+
 from emailer import DataSource
+
+from emailer import createService
+from emailer import getConfiguration
 
 from emailer import getLogger
 
+from emailer import g_fetchsize
 from emailer import g_spoolerlog
+from emailer import g_identifier
 
 import traceback
 
@@ -54,10 +61,15 @@ class MailSpooler(unohelper.Base,
                   XMailSpooler,
                   XComponent):
     def __init__(self, ctx):
+        self._ctx = ctx
         self._logger = getLogger(ctx, g_spoolerlog)
         self._datasource = DataSource(ctx, self, self._logger)
+        self._table = getConfiguration(ctx, g_identifier, False).getByName('SpoolerTable')
         self._datacall = None
+        self._close = False
         print("MailSpooler.__init__() 1")
+
+    _rowset = None
 
     # XServiceInfo
     def supportsService(self, service):
@@ -72,39 +84,85 @@ class MailSpooler(unohelper.Base,
         self._datasource.waitForDataBase()
         return self._datasource.DataBase.getConnection()
 
+    def getContent(self):
+        self._close = True
+        return self._getRowSet()
+
+    def getSendJobs(self):
+        return self._getDataCall().getSendJobs()
+
+    def getJobs(self, jobs):
+        return self._getDataCall().getJobs(jobs)
+
+    def addContentListener(self, listener):
+        if self._hasRowSet():
+            self._getRowSet().addRowSetListener(listener)
+            self._executeRowSet()
+
+    def removeContentListener(self, listener):
+        if self._hasRowSet():
+            self._getRowSet().removeRowSetListener(listener)
+
+    def getRecipientContent(self, job):
+        return self._getDataCall().getJobRecipient(job)
+
+    def getBatchAttachments(self, batch):
+        return self._getDataCall().getAttachments(batch)
+
+    def getBatchContent(self, batch):
+        return self._getDataCall().getBatchMailer(batch)
+
     def addJob(self, sender, subject, document, recipients, attachments):
-        return self._getDataCall().insertJob(sender, subject, document, recipients, attachments)
+        added = self._getDataCall().addJob(sender, subject, document, recipients, attachments)
+        self._executeRowSet()
+        return added
 
-    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
-        return self._getDataCall().insertMergeJob(sender, subject, document, datasource, query, table, recipients, filters, attachments)
+    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients,
+                          filters, predicates, addresses, identifiers, attachments):
+        added = self._getDataCall().addMergeJob(sender, subject, document, datasource, query, table, recipients,
+                                                filters, predicates, addresses, identifiers, attachments)
+        self._executeRowSet()
+        return added
 
-    def removeJobs(self, jobids):
-        return self._getDataCall().deleteJob(jobids)
+    def removeJobs(self, jobs):
+        removed = self._getDataCall().deleteJobs(jobs)
+        self._executeRowSet()
+        return removed
 
-    def getJobState(self, jobid):
-        return self._getDataCall().getJobState(jobid)
+    def getJobState(self, job):
+        return self._getDataCall().getJobState(job)
 
-    def getJobIds(self, batchid):
-        return self._getDataCall().getJobIds(batchid)
+    def getJobIds(self, batch):
+        return self._getDataCall().getJobIds(batch)
 
     def getSpoolerJobs(self, state):
         return self._getDataCall().getSpoolerJobs(state)
 
     def setJobState(self, job, state):
         self._getDataCall().updateJobState(job, state)
+        self._executeRowSet()
 
     def setJobsState(self, jobs, state):
         self._getDataCall().updateJobsState(jobs, state)
+        self._executeRowSet()
 
-    def updateJob(self, batch, job, threadid, messageid, foreignid, state):
-        self._getDataCall().updateSpooler(batch, job, threadid, messageid, foreignid, state)
+    def updateJob(self, batch, job, recipient, threadid, messageid, foreignid, state):
+        self._getDataCall().updateSpooler(batch, job, recipient, threadid, messageid, foreignid, state)
+        self._executeRowSet()
 
+    def resubmitJobs(self, jobs):
+        ids = self._getDataCall().resubmitJobs(jobs)
+        self._executeRowSet()
+        return ids
 
     # com.sun.star.lang.XComponent
     def dispose(self):
         if self._datacall:
             self._datacall.dispose()
             self._datacall = None
+        if self._close and self._hasRowSet():
+            self._getRowSet().close()
+            MailSpooler._rowset = None
 
     def addEventListener(self, listener):
         pass
@@ -119,6 +177,28 @@ class MailSpooler(unohelper.Base,
             self._datacall = self._datasource.getDataCall()
         print("MailSpooler._getDataCall() 2")
         return self._datacall
+
+    def _getRowSet(self):
+        if MailSpooler._rowset is None:
+            table = getConfiguration(self._ctx, g_identifier, False).getByName('SpoolerTable')
+            rowset = createService(self._ctx, 'com.sun.star.sdb.RowSet')
+            rowset.Command = table
+            rowset.CommandType = TABLE
+            rowset.FetchSize = g_fetchsize
+            rowset.ActiveConnection = self.getConnection()
+            MailSpooler._rowset = rowset
+        return MailSpooler._rowset
+
+    def _hasRowSet(self):
+        return MailSpooler._rowset is not None
+
+    def _executeRowSet(self):
+        if MailSpooler._rowset:
+            # FIXME: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
+            rowset = MailSpooler._rowset
+            rowset.ApplyFilter = True
+            rowset.ApplyFilter = False
+            rowset.execute()
 
 
 g_ImplementationHelper.addImplementation(MailSpooler,                     # UNO object class

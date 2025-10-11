@@ -30,13 +30,15 @@
 import uno
 import unohelper
 
+from com.sun.star.lang import XComponent
+
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
 from com.sun.star.ui.dialogs import XWizardController
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from .ispdbmodel import IspdbModel
 
@@ -54,24 +56,27 @@ import traceback
 
 
 class IspdbController(unohelper.Base,
-                      XWizardController):
-    def __init__(self, ctx, wizard, sender, readonly):
+                      XWizardController,
+                      XComponent):
+    def __init__(self, ctx, wizard, sender, readonly, notifier):
         self._ctx = ctx
         self._wizard = wizard
-        self._model = IspdbModel(ctx, sender, readonly)
+        self._model = IspdbModel(ctx, wizard, sender, readonly, notifier)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'IspdbController')
 
     @property
     def Model(self):
         return self._model
 
+# XComponent
     def dispose(self):
         self._model.dispose()
-        interface = 'com.sun.star.lang.XComponent'
-        if hasInterface(self._wizard, interface):
-            self._wizard.dispose()
-        else:
-            self._wizard.DialogWindow.dispose()
+
+    def addEventListener(self, listener):
+        pass
+
+    def removeEventListener(self, listener):
+        pass
 
 
 # XWizardController

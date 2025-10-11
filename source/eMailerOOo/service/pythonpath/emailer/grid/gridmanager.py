@@ -32,6 +32,7 @@ from .grid import GridManager as GridManagerBase
 from .gridmodel import GridModel
 
 from collections import OrderedDict
+import json
 import traceback
 
 
@@ -83,6 +84,12 @@ class GridManager(GridManagerBase):
         self._model.resetRowSetData()
         self._table = None
         self._datasource = None
+
+    def getGridPredicates(self):
+        predicates = []
+        for row in (range(self._model.RowCount)):
+            predicates.append(json.dumps(self.getRowPredicates(row)))
+        return tuple(predicates)
 
 # GridManager private methods
     def _isDataSourceChanged(self, datasource, table):

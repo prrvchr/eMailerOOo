@@ -38,13 +38,12 @@ class MergerView(MailView):
     def getEmail(self):
         return self.getSender(), self.getRecipients(), self._getRecipientsFilter()
 
-    def getRecipientFilter(self):
-        filter = None
-        control = self._getRecipients()
-        index = control.getSelectedItemPos()
-        if index != -1:
-            filter = control.Model.getItemData(index)
-        return filter
+    def getSelectedRecipients(self):
+        selection = []
+        items = self._getRecipients().getSelectedItemsPos()
+        for i in items:
+            selection.append(i + 1)
+        return tuple(selection)
 
 # MergerView setter methods
     def setRecipients(self, recipients, message):

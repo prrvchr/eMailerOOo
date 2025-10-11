@@ -18,7 +18,6 @@
   <component loader="com.sun.star.loader.Python" uri="service/MailSender.py">
     <implementation name="io.github.prrvchr.eMailerOOo.MailSender">
       <service name="com.sun.star.mail.MailSender"/>
-      <service name="com.sun.star.task.AsyncJob"/>
     </implementation>
   </component>
   <component loader="com.sun.star.loader.Python" uri="service/MailUser.py">

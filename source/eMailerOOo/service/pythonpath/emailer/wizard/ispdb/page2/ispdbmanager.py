@@ -36,6 +36,7 @@ from com.sun.star.awt import XCallback
 from .ispdbview import IspdbView
 from .ispdbhandler import WindowHandler
 
+from ....unotool import getArgumentSet
 from ....unotool import getStringResource
 
 from ....configuration import g_identifier
@@ -55,9 +56,7 @@ class IspdbManager(unohelper.Base,
 
 # XCallback
     def notify(self, data):
-        self._activatePath(self._view.getIMAP(), self._model.Offline)
-        self._finished = True
-        self._wizard.updateTravelUI()
+        self._notify(**getArgumentSet(data))
 
 # XWizardPage
     @property
@@ -74,7 +73,7 @@ class IspdbManager(unohelper.Base,
         self._wizard.enablePage(1, False)
         self._view.initSearch(self._model.getPageLabel(self._resolver, self._pageid, self._model.Email))
         self._wizard.updateTravelUI()
-        self._model.getServerConfig(self)
+        self._model.getServerConfig(self, self._resolver)
 
     def commitPage(self, reason):
         if self._view.useReplyTo():
@@ -83,10 +82,6 @@ class IspdbManager(unohelper.Base,
 
     def canAdvance(self):
         return self._finished and self._model.isEmailValid(self._view.getReplyTo())
-
-# IspdbManager getter methods
-    def getResolver(self):
-        return self._resolver
 
 # IspdbManager setter methods
     def enableReplyTo(self, state):
@@ -98,17 +93,32 @@ class IspdbManager(unohelper.Base,
     def enableIMAP(self, imap):
         self._activatePath(imap, self._model.enableIMAP(imap))
 
-    def updateProgress(self, value, offset=0, style=NORMAL):
+# IspdbManager private methods
+    def _notify(self, call, **kwargs):
+        if call == 'progress':
+            self._updateProgress(**kwargs)
+        elif call == 'view':
+            self._updateView(**kwargs)
+        elif call == 'path':
+            self._updatePath()
+
+    def _updateProgress(self, value, offset=0, style=NORMAL):
         if not self._model.isDisposed():
             message = self._model.getProgressMessage(self._resolver, value + offset)
             self._view.updateProgress(value, message, style)
 
-    def updateView(self, title, auto, user):
+    def _updateView(self, title, auto, state, imap, reply):
         if not self._model.isDisposed():
             self._wizard.setTitle(title)
             self._wizard.enablePage(1, True)
-            self._view.commitSearch(auto, user)
+            self._view.commitSearch(auto, state, imap, reply)
+
+    def _updatePath(self):
+        self._activatePath(self._view.getIMAP(), self._model.Offline)
+        self._finished = True
+        self._wizard.updateTravelUI()
 
     def _activatePath(self, imap, offline):
         path = offline * 2 + imap
         self._wizard.activatePath(path, True)
+

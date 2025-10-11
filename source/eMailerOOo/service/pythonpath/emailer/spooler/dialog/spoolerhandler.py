@@ -29,12 +29,11 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt.tab import XTabPageContainerListener
 
-from com.sun.star.frame import XDispatchResultListener
-
+from com.sun.star.util import XCloseListener
 from com.sun.star.util import XModifyListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
@@ -44,12 +43,12 @@ from com.sun.star.sdbc import XRowSetListener
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
-    # XDialogEventHandler
+    # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
@@ -93,6 +92,9 @@ class TabHandler(unohelper.Base,
             elif method == 'WebView':
                 self._manager.viewWeb()
                 handled = True
+            elif method == 'Resubmit':
+                self._manager.resubmitJobs()
+                handled = True
             elif method == 'Add':
                 self._manager.addDocument()
                 handled = True
@@ -108,6 +110,7 @@ class TabHandler(unohelper.Base,
         return ('EmlView',
                 'ClientView',
                 'WebView',
+                'Resubmit',
                 'Add',
                 'Remove')
 
@@ -161,6 +164,22 @@ class LoggerListener(unohelper.Base,
         except Exception as e:
             msg = f"Error: {traceback.format_exc()}"
             print(msg)
+
+    def disposing(self, event):
+        pass
+
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XCloseListener
+    def queryClosing(self, event, ownership):
+        self._manager.queryClosing(event.Source, ownership)
+
+    def notifyClosing(self, event):
+        self._manager.notifyClosing(event.Source)
 
     def disposing(self, event):
         pass

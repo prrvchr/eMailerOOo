@@ -48,23 +48,26 @@ from com.sun.star.sdb.SQLFilterOperator import NOT_SQLNULL
 
 from com.sun.star.sdb.tools.CompositionType import ForDataManipulation
 
+from ...listener import CloseListener
 from ...listener import DispatchListener
 
 from ...grid import GridManager
 
 from ...dialog import MailModel
 
-from ...spooler import Viewer
-
+from ...helper import getConnection
 from ...helper import getDataBaseContext
-from ...helper import getTempFolder
+from ...helper import mergeDocument
 from ...helper import saveDocumentTo
 
+from ...unotool import StatusIndicator
+from ...unotool import TaskEvent
+
 from ...unotool import createService
+from ...unotool import executeDesktopDispatch
 from ...unotool import executeFrameDispatch
-from ...unotool import getDesktop
+from ...unotool import getConfiguration
 from ...unotool import getDocument
-from ...unotool import getInteractionHandler
 from ...unotool import getLastNamedParts
 from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
@@ -74,6 +77,8 @@ from ...unotool import getResourceLocation
 from ...unotool import getUrl
 from ...unotool import getUrlPresentation
 from ...unotool import hasInterface
+from ...unotool import saveTopWindowPosition
+from ...unotool import setProgress
 
 from ...dbtool import getSequenceFromResult
 
@@ -82,6 +87,7 @@ from ...dbqueries import getSqlQuery
 from ...configuration import g_identifier
 from ...configuration import g_extension
 from ...configuration import g_fetchsize
+from ...configuration import g_mergerframe
 
 from threading import Thread
 from threading import Condition
@@ -91,9 +97,12 @@ import traceback
 
 
 class MergerModel(MailModel):
-    def __init__(self, ctx, datasource):
+    def __init__(self, ctx, datasource, document):
         super().__init__(ctx, datasource)
-        self._document = getDesktop(ctx).CurrentComponent
+        self._listener = CloseListener(self)
+        document.addCloseListener(self._listener)
+        self._document = document
+        self._url = document.getLocation()
         self._path = self._getPath()
         self._addressbook = None
         self._book = None
@@ -122,10 +131,12 @@ class MergerModel(MailModel):
         self._similar = False
         self._temp = False
         self._saved = False
+        self._closing = False
+        self._dispatchs = {}
         self._paths = getPathSettings(ctx)
         self._lock = Condition()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
-        self._url = getResourceLocation(ctx, g_identifier, 'img')
+        self._img = getResourceLocation(ctx, g_identifier, 'img')
         self._resources = {'Step':            'MergerPage%s.Step',
                            'Title':           'MergerPage%s.Title',
                            'TabTitle':        'MergerTab%s.Title',
@@ -171,17 +182,30 @@ class MergerModel(MailModel):
         self._addressbook = None
         connection.close()
 
+# XCloseListener
+    def queryClosing(self, document, ownership):
+        if self._listener:
+            document.removeCloseListener(self._listener)
+            self._document = getDocument(self._ctx, self._url, False)
+            self._listener = None
+
 # Procedures called by WizardController
     def dispose(self):
+        self._disposed = True
         if self._isConnectionNotClosed():
             self._closeConnection()
+        if self._listener:
+            self._document.removeCloseListener(self._listener)
         if self._grid1 is not None:
             self._grid1.dispose()
         if self._grid2 is not None:
             self._grid2.dispose()
         super().dispose()
 
-    def saveGrids(self):
+    def saveView(self, position):
+        config = getConfiguration(self._ctx, g_identifier, True)
+        saveTopWindowPosition(config, position, 'MergerPosition')
+        config.dispose()
         if self._grid1 is not None:
             self._grid1.saveColumnSettings()
         if self._grid2 is not None:
@@ -217,13 +241,13 @@ class MergerModel(MailModel):
         Thread(target=self._setAddressBook, args=args).start()
 
     # AddressBook private methods
-    def _setAddressBook(self, book, progress, caller):
+    def _setAddressBook(self, book, parent, caller):
         sleep(0.2)
         step = 2
-        progress(5)
+        self._setProgress(caller, 5)
         queries = label = message = None
         self._tables = {}
-        progress(10)
+        self._setProgress(caller, 10)
         # FIXME: If changes have been made then save them...
         if self._queries is not None:
             self._saveQueries()
@@ -232,40 +256,39 @@ class MergerModel(MailModel):
         # FIXME: to dispose all components who use the connection and close the connection
         if self._isConnectionNotClosed():
             self._closeConnection()
-        progress(20)
+        self._setProgress(caller, 20)
         self._book = book
         try:
             datasource = self._getDataSource(book)
-            progress(30)
-            if datasource.IsPasswordRequired:
-                handler = getInteractionHandler(self._ctx)
-                connection = datasource.getIsolatedConnectionWithCompletion(handler)
-            else:
-                connection = datasource.getIsolatedConnection('', '')
-            progress(40)
+            self._setProgress(caller, 30)
+            connection = getConnection(self._ctx, datasource, parent)
+            self._setProgress(caller, 40)
+            if not connection:
+                msg = self._getErrorMessage(4)
+                raise UnoException(msg, self)
             if self._service not in connection.getAvailableServiceNames():
-                msg = self._getErrorMessage(4, self._service)
+                msg = self._getErrorMessage(5, self._service)
                 raise UnoException(msg, self)
             interface = 'com.sun.star.sdb.tools.XConnectionTools'
             if not hasInterface(connection, interface):
-                msg = self._getErrorMessage(5, interface)
+                msg = self._getErrorMessage(6, interface)
                 raise UnoException(msg, self)
         except UnoException as e:
             message = self._getErrorMessage(0, book, e.Message)
         else:
-            progress(50)
+            self._setProgress(caller, 50)
             # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
             # FIXME: the URL of the odb file rather than the registered name of the datasource
             self._addressbook = datasource
             self._statement = connection.createStatement()
             self._composer = connection.createInstance(self._service)
             self._subcomposer = connection.createInstance(self._service)
-            progress(60)
+            self._setProgress(caller, 60)
             self._tables, self._similar = self._getTablesInfos(connection)
-            progress(70)
+            self._setProgress(caller, 70)
             self._address.ActiveConnection = connection
             self._recipient.ActiveConnection = connection
-            progress(80)
+            self._setProgress(caller, 80)
             self._queries = datasource.getQueryDefinitions()
             # FIXME: SQLite need quoted identifier but don't supports mixed case quoted identifiers.
             #self._quoted = connection.getMetaData().supportsMixedCaseQuotedIdentifiers()
@@ -274,15 +297,18 @@ class MergerModel(MailModel):
             self._nominator = connection.createTableName()
             composer = connection.createInstance(self._service)
             subqueries = self._getSubQueries(composer)
-            progress(90)
+            self._setProgress(caller, 90)
             queries = self._getQueries(composer, subqueries)
             composer.dispose()
             label = self._getIndexLabel()
             step = 3
-        data = {'step': step, 'message': message, 'label': label,
-                'tables': self._getTables(),'queries': queries}
-        progress(100)
+        self._setProgress(caller, 100)
+        data = {'call': 'result', 'step': step, 'message': message, 'label': label,
+                'tables': self._getTables(), 'queries': queries}
         self._callback.addCallback(caller, getNamedValueSet(data))
+
+    def _setProgress(self, caller, value):
+        setProgress(self._callback, caller, value)
 
     def _saveQueries(self):
         saved = False
@@ -709,12 +735,18 @@ class MergerModel(MailModel):
         Thread(target=self._removeAllItem).start()
 
     def setAddressRecord(self, index):
-        row = self._grid1.getUnsortedIndex(index) + 1
-        self._setDocumentRecord(self._document, self._address, row)
+        # XXX: If the document has been previously closed,
+        # XXX: then no more DocumentRecords will be defined.
+        if self._listener is not None:
+            row = self._grid1.getUnsortedIndex(index) + 1
+            self._setDocumentRecord(self._document, self._address, row)
 
     def setRecipientRecord(self, index):
-        row = self._grid2.getUnsortedIndex(index) + 1
-        self._setDocumentRecord(self._document, self._recipient, row)
+        # XXX: If the document has been previously closed,
+        # XXX: then no more DocumentRecords will be defined.
+        if self._listener is not None:
+            row = self._grid2.getUnsortedIndex(index) + 1
+            self._setDocumentRecord(self._document, self._recipient, row)
 
     def addAddressListener(self, listener):
         self._address.addRowSetListener(listener)
@@ -727,8 +759,8 @@ class MergerModel(MailModel):
     def _initPage2(self, window1, window2, caller):
         sleep(0.2)
         self._initRowSet()
-        self._grid1 = GridManager(self._ctx, self._url, window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
-        self._grid2 = GridManager(self._ctx, self._url, window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
+        self._grid1 = GridManager(self._ctx, self._img, window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._img, window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
         data = {'address': self._address, 'recipient': self._recipient, 'table': self._subquery.Second}
         self._callback.addCallback(caller, getNamedValueSet(data))
 
@@ -800,30 +832,10 @@ class MergerModel(MailModel):
             filters.remove(filter)
 
     def _setDocumentRecord(self, document, rowset, index):
-        url = None
-        if document.supportsService('com.sun.star.text.TextDocument'):
-            url = '.uno:DataSourceBrowser/InsertContent'
-        elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
-            url = '.uno:DataSourceBrowser/InsertColumns'
-        if url is not None:
-            result = rowset.createResultSet()
-            if result is not None:
-                descriptor = self._getDataDescriptor(result, index)
-                frame = document.CurrentController.Frame
-                executeFrameDispatch(self._ctx, frame, url, None, *descriptor)
-
-    def _getDataDescriptor(self, result, row):
-        # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
-        # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
-        properties = {'ActiveConnection': self.Connection,
-                      'DataSourceName': self._book,
-                      'Command': self._subquery.Second,
-                      'CommandType': TABLE,
-                      'Cursor': result,
-                      'BookmarkSelection': False,
-                      'Selection': (row, )}
-        descriptor = getPropertyValueSet(properties)
-        return descriptor
+        result = rowset.createResultSet()
+        if result:
+            table = self._subquery.Second
+            mergeDocument(self._ctx, document, self.Connection, result, self._book, table, index)
 
 # Procedures called by WizardPage1 and WizardPage2
     def _initRowSet(self):
@@ -872,23 +884,33 @@ class MergerModel(MailModel):
         Thread(target=self._initPage3, args=args).start()
 
     def getUrl(self):
-        return self._document.URL
+        if self._document:
+            url = self._document.getLocation()
+        else:
+            url = self._url
+        return url
 
     def getDocumentInfo(self):
         url = getUrlPresentation(self._ctx, self.getUrl())
-        return url, self._name, self._query, self._subquery.Second
+        predicates = self._grid2.getGridPredicates()
+        return url, self._name, self._query, self._subquery.Second, predicates, self._emails, self._identifiers
 
     def saveDocument(self):
         self._saved = True
         if not self._document.hasLocation():
             frame = self._document.CurrentController.Frame
-            listener = DispatchListener(self.saveDocumentFinished)
+            listener = DispatchListener(self)
             executeFrameDispatch(self._ctx, frame, '.uno:Save', listener)
         return self._saved
 
+# XDispatchResultListener
+    def dispatchFinished(self, notification):
+        print("MergerModel.dispatchFinished()")
+        if notification.State == SUCCESS:
+            self._saved = notification.Result
+
     def closeDocument(self, document):
-        url = self.getUrl()
-        if document.URL != url:
+        if self._listener is None:
             document.close(True)
 
     def saveDocumentFinished(self, saved):
@@ -910,38 +932,49 @@ class MergerModel(MailModel):
         message = self._getRecipientMessage(len(recipients))
         return recipients, message
 
+    def hasDispatch(self):
+        for event in self._dispatchs.values():
+            if not event.isSet():
+                return True
+        return False
+
+    def getTaskEvent(self, filter):
+        if filter not in self._dispatchs:
+            self._dispatchs[filter] = TaskEvent()
+        event = self._dispatchs[filter]
+        event.clear()
+        return event
+
+    def endDispatch(self, filter):
+        if filter in self._dispatchs:
+            self._dispatchs[filter].set()
+
+    def cancelDispatch(self):
+        for event in self._dispatchs.values():
+            event.set()
+
+    def isClosing(self):
+        return self._closing
+
+    def setClosing(self):
+        self._closing = True
+
     def _getRecipients(self):
         return self._grid2.getGridData(self._emails, '')
 
-    def _viewDocument(self, caller, selection, filter, attachment='', url=None, mark=''):
-        status, result = SUCCESS, None
-        print("MergerModel._viewDocument() url: %s" % url)
-        if url and not self._sf.exists(url):
-            status, result = FAILURE, self._getMsgBoxMessage(1) % attachment
+    def _viewDocument(self, selection, url, merge, filter, notifier, event):
+        # XXX: Breathe
+        sleep(0.2)
+        if merge:
+            connection = self._recipient.ActiveConnection
+            table = self._subquery.Second
+            result = self._recipient.createResultSet()
         else:
-            try:
-                document = self.getDocument(url)
-                if document is None:
-                    status, result = FAILURE, self._getMsgBoxMessage(2) % attachment
-            except Exception as e:
-                status, result = FAILURE, self._getMsgBoxMessage(3) % (attachment, e)
-        if status:
-            folder = self._getTempFolder()
-            export = self._getPdfExport(filter)
-            if self._isMerge(selection, url, mark):
-                print("MergerModel._viewDocument() selection: %s" % selection)
-                connection = self._recipient.ActiveConnection
-                table = self._subquery.Second
-                viewer = Viewer(self._ctx, connection, self._book, table, export)
-                if viewer.hasInvalidFields(document, connection, self._book, table):
-                    status, result = FAILURE, self._getMsgBoxMessage(4) % viewer.getInvalidFields()
-                else:
-                    result = viewer.merge(self._sf, document, folder, filter, selection)
-            else:
-                result = saveDocumentTo(document, folder, filter, export)
-            self.closeDocument(document)
-        data = {'call': 'view', 'status': status, 'result': result}
-        self._callback.addCallback(caller, getNamedValueSet(data))
+            connection = table = result = None
+        kwargs = {'TaskEvent': event, 'Connection': connection, 'ResultSet': result,
+                  'DataSource': self._book, 'Table': table, 'Url': url,
+                  'Merge': merge, 'Filter': filter, 'Selection': selection}
+        executeDesktopDispatch(self._ctx, 'emailer:GetDocument', notifier, **kwargs)
 
     def _isMerge(self, selection, url, mark):
         return selection and self._hasMergeMark(url, mark)
@@ -952,10 +985,9 @@ class MergerModel(MailModel):
 # Private procedures called by WizardPage3
     def _initPage3(self, listener, caller):
         self._grid2.addGridDataListener(listener)
-        recipients = self._getRecipients()
-        message = self._getRecipientMessage(len(recipients))
-        result = self._document, message, getNamedValueSet(recipients)
-        data = {'call': 'init', 'status': SUCCESS, 'result': result}
+        recipients, message = self.getRecipients()
+        data = {'call': 'init', 'document': self._document,
+                'message': message, 'recipients': getNamedValueSet(recipients)}
         self._callback.addCallback(caller, getNamedValueSet(data))
 
     def _getDocumentName(self):

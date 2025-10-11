@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
@@ -25,11 +22,28 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-from .merger import Viewer
+#ifndef __com_sun_star_task_XTaskEvent_idl__
+#define __com_sun_star_task_XTaskEvent_idl__
 
-from .mailer import Mailer
+#include <com/sun/star/uno/XInterface.idl>
 
-from .export import PdfExport
+module com { module sun { module star { module task {
 
+interface XTaskEvent : com::sun::star::uno::XInterface
+{
+
+    boolean isSet();
+
+    void set();
+
+    void clear();
+
+    boolean wait([in] float Timeout);
+
+};
+
+}; }; }; };
+
+#endif

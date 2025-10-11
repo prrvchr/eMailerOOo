@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
 from com.sun.star.mail.MailServiceType import SMTP
 from com.sun.star.mail.MailServiceType import IMAP
 
@@ -36,7 +34,7 @@ import json
 import traceback
 
 
-class IspdbServer(unohelper.Base):
+class IspdbServer():
     def __init__(self, user, config):
         if user.isNew():
             if config is None:

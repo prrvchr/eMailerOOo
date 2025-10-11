@@ -27,8 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ....unotool import getConfiguration
-from ....unotool import getPropertyValueSet
+from ...unotool import getConfiguration
+from ...unotool import getPropertyValueSet
 
 import traceback
 
@@ -37,13 +37,11 @@ class PdfExport():
     def __init__(self, ctx):
         path = 'org.openoffice.Office.Common'
         nodes = ('Filter', 'PDF', 'Export')
-        self._descriptor = self._getDescriptor(ctx, path, nodes)
+        descriptor = self._getDescriptor(ctx, path, nodes)
+        self._descriptor = getPropertyValueSet(descriptor)
 
     def getDescriptor(self):
-        descriptor = None
-        if self._descriptor:
-            descriptor = getPropertyValueSet(self._descriptor)
-        return descriptor
+        return self._descriptor
 
     def _getDescriptor(self, ctx, path, nodes):
         descriptor = None

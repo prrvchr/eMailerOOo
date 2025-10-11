@@ -30,10 +30,15 @@
 import uno
 import unohelper
 
-from com.sun.star.ui.dialogs import XWizardController
+from com.sun.star.lang import XComponent
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.ui.dialogs import XWizardController
+
+from com.sun.star.util import CloseVetoException
+from com.sun.star.util import XCloseable
 
 from .mergermodel import MergerModel
 
@@ -42,7 +47,7 @@ from .page2 import MergerManager as WizardPage2
 from .page3 import MergerManager as WizardPage3
 
 from ...unotool import getStringResource
-from ...unotool import hasInterface
+from ...unotool import getTopWindowPosition
 
 from ...configuration import g_identifier
 
@@ -50,23 +55,44 @@ import traceback
 
 
 class MergerController(unohelper.Base,
-                       XWizardController):
-    def __init__(self, ctx, wizard, datasource):
+                       XWizardController,
+                       XComponent,
+                       XCloseable):
+    def __init__(self, ctx, wizard, datasource, document):
         self._ctx = ctx
+        self._listeners = []
         self._wizard = wizard
-        self._model = MergerModel(ctx, datasource)
+        self._model = MergerModel(ctx, datasource, document)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerController')
 
-    def saveGrids(self):
-        self._model.saveGrids()
+# XCloseable
+    def close(self, ownership):
+        if not ownership:
+            if self._model.isClosing():
+                raise CloseVetoException()
+            self._model.setClosing()
+            self._close()
+            if self._model.hasDispatch():
+                self._model.cancelDispatch()
+                raise CloseVetoException()
 
+    def addCloseListener(self, listener):
+        if listener not in self._listeners:
+            self._listeners.append(listener)
+
+    def removeCloseListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
+# XComponent
     def dispose(self):
-        interface = 'com.sun.star.lang.XComponent'
-        if hasInterface(self._wizard, interface):
-            self._wizard.dispose()
-        else:
-            self._wizard.DialogWindow.dispose()
         self._model.dispose()
+
+    def addEventListener(self, listener):
+        pass
+
+    def removeEventListener(self, listener):
+        pass
 
 # XWizardController
     def createPage(self, parent, pageid):
@@ -97,3 +123,8 @@ class MergerController(unohelper.Base,
 
     def confirmFinish(self):
         return True
+
+    def _close(self):
+        position = getTopWindowPosition(self._wizard.DialogWindow)
+        self._model.saveView(position)
+

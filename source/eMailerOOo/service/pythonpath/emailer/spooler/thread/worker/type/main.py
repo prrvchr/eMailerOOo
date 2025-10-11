@@ -27,7 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .merger import Merger
+from threading import Thread
+import traceback
 
-from .viewer import Viewer
+
+class Main(Thread):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        raise NotImplementedError('Need to be implemented!')
 

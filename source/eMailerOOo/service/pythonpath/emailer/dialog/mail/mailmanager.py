@@ -54,6 +54,7 @@ class MailManager(unohelper.Base,
         self._ctx = ctx
         self._model = model
         self._lock = Condition()
+        self._viewpdf = True
         self._disabled = False
         self._background = {True: 16777215, False: 16711680}
 
@@ -73,6 +74,17 @@ class MailManager(unohelper.Base,
 # XCallback
     def notify(self, data):
         self._notify(**getArgumentSet(data))
+
+# XDispatchResultListener
+    def dispatchFinished(self, notification):
+        state = notification.State
+        result = notification.Result
+        self._dispatchFinished(result.First, state, result.Second)
+
+    def _dispatchFinished(self, call, state, value):
+        if call == 'Sender' and state == SUCCESS:
+            self._view.addSender(value)
+            self._updateUI()
 
 # MailManager setter methods
     def addRecipient(self):
@@ -97,10 +109,6 @@ class MailManager(unohelper.Base,
     def sendDocument(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def addSender(self, sender):
-        self._view.addSender(sender)
-        self._updateUI()
-
     def removeSender(self):
         # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
         self._view.enableRemoveSender(False)
@@ -109,16 +117,25 @@ class MailManager(unohelper.Base,
             self._view.removeSender(position)
             self._updateUI()
 
+    def _getViewOptions(self, filter=None):
+        return (self, )
+
     def viewHtml(self):
-        selection = self._view.getRecipientFilter()
-        self._model.viewDocument(self, selection, 'html')
+        self._view.enableViewHtml(False)
+        selection = self._view.getSelectedRecipients()
+        url = self._model.parseUri()
+        options = self._getViewOptions('html')
+        print("MailManger.viewHtml() url: %s" % url)
+        self._model.viewDocument(selection, url, True, 'html', *options)
 
     def viewPdf(self):
-        selection = self._view.getRecipientFilter()
-        attachment = self._view.getSelectedAttachment()
-        url, mark = self._model.parseUrl(attachment)
+        self._view.enableViewPdf(False)
+        self._viewpdf = False
+        selection = self._view.getSelectedRecipients()
+        url, merge, filter = self._model.parseUriFragment(self._view.getSelectedAttachment())
+        options = self._getViewOptions('pdf')
         print("MailManger.viewPdf() url: %s" % url)
-        self._model.viewDocument(self, selection, 'pdf', attachment, url, mark)
+        self._model.viewDocument(selection, url, merge, 'pdf', *options)
 
     def changeAttachments(self, index, selected, item, positions):
         self._view.enableRemoveAttachments(selected)
@@ -127,7 +144,7 @@ class MailManager(unohelper.Base,
         enabled = selected and max(positions) < index
         self._view.enableMoveAfter(enabled)
         enabled = selected and item.endswith('pdf')
-        self._view.enableViewPdf(enabled)
+        self._view.enableViewPdf(enabled and self._viewpdf)
 
     def moveAttachments(self, offset):
         self._view.enableRemoveAttachments(False)
@@ -177,7 +194,7 @@ class MailManager(unohelper.Base,
         state = self._model.getDocumentUserProperty(document, 'AttachmentAsPdf')
         self._view.setAttachmentAsPdf(int(state))
         # Set the View Document in HTML CommandButton
-        self._view.enableViewHtml()
+        self._view.enableViewHtml(True)
         # Set the View Message Label
         message = self._model.getDocumentMessage(document)
         self._view.setMessage(message)
@@ -212,20 +229,23 @@ class MailManager(unohelper.Base,
     def _updateUI(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def _notify(self, call, status, result):
+    def _notify(self, call, **kwargs):
         with self._lock:
             if call == 'init':
-                self._notifyInit(status, result)
-            elif call == 'view':
-                self._notifyView(status, result)
+                self._notifyInit(**kwargs)
+            elif call == 'html':
+                self._notifyView(**kwargs)
+                self._view.enableViewHtml(True)
+            elif call == 'pdf':
+                self._notifyView(**kwargs)
+                self._viewpdf = True
+                self._view.enableViewPdf(self._view.hasSelectedPdfAttachment())
 
-    def _notifyInit(self, status, result):
+    def _notifyInit(self, **kwargs):
         raise NotImplementedError('Need to be implemented!')
 
     def _notifyView(self, status, result):
-        if status == SUCCESS:
-            executeShell(self._ctx, result)
-        elif status == FAILURE:
+        if status == FAILURE:
             parent = self._view.getWindow().Peer
             title = self._model.getMsgBoxTitle()
             dialog = createMessageBox(parent, WARNINGBOX, 1, title, result)

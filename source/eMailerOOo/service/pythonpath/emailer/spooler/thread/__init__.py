@@ -29,13 +29,7 @@
 
 from .mailer import Mailer
 
-import traceback
+from .sender import Sender
 
-
-class Merger(Mailer):
-
-    def merge(self, sf, url, selection):
-        descriptor, temp = self.getDescriptor(url.Document, url.Folder, url.Filter, selection)
-        self.execute(sf, descriptor, temp)
-        url.setTemp(temp)
+from .viewer import Viewer
 

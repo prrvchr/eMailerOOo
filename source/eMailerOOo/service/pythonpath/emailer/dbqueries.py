@@ -116,6 +116,10 @@ CREATE PROCEDURE "DeleteJobs"(IN JOBIDS INTEGER ARRAY)
     DELETE FROM "Recipients" WHERE "JobId" IN (UNNEST (JOBIDS));
     DELETE FROM "Senders" WHERE "BatchId" IN (SELECT "BatchId" FROM "Senders"
     EXCEPT SELECT "BatchId" FROM "Recipients");
+    DELETE FROM "Addresses" WHERE "BatchId" IN (SELECT "BatchId" FROM "Addresses"
+    EXCEPT SELECT "BatchId" FROM "Recipients");
+    DELETE FROM "Attachments" WHERE "BatchId" IN (SELECT "BatchId" FROM "Attachments"
+    EXCEPT SELECT "BatchId" FROM "Recipients");
   END;"""
 
 # Select Procedure Queries
@@ -155,6 +159,7 @@ CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER)
         query = """\
 CREATE PROCEDURE "UpdateSpooler"(IN BATCHID INTEGER,
                                  IN JOBID INTEGER,
+                                 IN RECIPIENT VARCHAR(320),
                                  IN THREADID VARCHAR(256),
                                  IN MESSAGEID VARCHAR(256),
                                  IN FOREIGNDID VARCHAR(256),
@@ -162,8 +167,8 @@ CREATE PROCEDURE "UpdateSpooler"(IN BATCHID INTEGER,
   SPECIFIC "UpdateSpooler_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Senders" SET "ThreadId"=THREADID WHERE "BatchId"=BATCHID;
-    UPDATE "Recipients" SET "State"=STATE, "MessageId"=MESSAGEID, "ForeignId"=FOREIGNDID, "Modified"=DEFAULT WHERE "JobId"=JOBID;
+    UPDATE "Senders" SET "ThreadId" = THREADID WHERE "BatchId" = BATCHID;
+    UPDATE "Recipients" SET "State" = STATE, "Recipient" = RECIPIENT, "MessageId" = MESSAGEID, "ForeignId" = FOREIGNDID, "Modified" = DEFAULT WHERE "JobId" = JOBID;
   END"""
 
     elif name == 'createUpdateJobState':
@@ -215,18 +220,18 @@ CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
   BEGIN ATOMIC
     DECLARE ID INTEGER DEFAULT 0;
     DECLARE INDEX INTEGER DEFAULT 1;
-    INSERT INTO "Senders" ("Sender","Subject","Document")
-    VALUES (SENDER,SUBJECT,DOCUMENT);
+    INSERT INTO "Senders" ("Sender", "Subject", "Document")
+    VALUES (SENDER, SUBJECT, DOCUMENT);
     SET ID = IDENTITY();
     WHILE INDEX <= CARDINALITY(RECIPIENTS) DO
-      INSERT INTO "Recipients" ("BatchId","Recipient")
-      VALUES (ID,RECIPIENTS[INDEX]);
+      INSERT INTO "Recipients" ("BatchId", "Recipient")
+      VALUES (ID, RECIPIENTS[INDEX]);
       SET INDEX = INDEX + 1;
     END WHILE;
     SET INDEX = 1;
     WHILE INDEX <= CARDINALITY(ATTACHMENTS) DO
-      INSERT INTO "Attachments" ("BatchId","Attachment")
-      VALUES (ID,ATTACHMENTS[INDEX]);
+      INSERT INTO "Attachments" ("BatchId", "Attachment")
+      VALUES (ID, ATTACHMENTS[INDEX]);
       SET INDEX = INDEX + 1;
     END WHILE;
     SET BATCHID = ID;
@@ -243,29 +248,172 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
                                   IN TABLENAME VARCHAR(512),
                                   IN RECIPIENTS VARCHAR(320) ARRAY,
                                   IN FILTERS VARCHAR(256) ARRAY,
+                                  IN PREDICATES VARCHAR(256) ARRAY,
+                                  IN ADDRESSES VARCHAR(128) ARRAY,
+                                  IN IDENTIFIERS VARCHAR(128) ARRAY,
                                   IN ATTACHMENTS VARCHAR(512) ARRAY,
                                   OUT BATCHID INTEGER)
   SPECIFIC "InsertMergeJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE ID INTEGER;
+    DECLARE BATCH INTEGER;
     DECLARE INDEX INTEGER DEFAULT 1;
-    INSERT INTO "Senders" ("Sender","Subject","Document","DataSource","Query","Table")
-    VALUES (SENDER,SUBJECT,DOCUMENT,DATASOURCE,QUERYNAME,TABLENAME);
-    SET ID = IDENTITY();
+    INSERT INTO "Senders" ("Sender", "Subject", "Document", "DataSource", "Query", "Table")
+    VALUES (SENDER, SUBJECT, DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME);
+    SET BATCH = IDENTITY();
     WHILE INDEX <= CARDINALITY(RECIPIENTS) DO
-      INSERT INTO "Recipients" ("BatchId","Recipient","Filter")
-      VALUES (ID,RECIPIENTS[INDEX],FILTERS[INDEX]);
+      INSERT INTO "Recipients" ("BatchId", "Recipient", "Filter", "Predicate")
+      VALUES (BATCH, RECIPIENTS[INDEX], FILTERS[INDEX], PREDICATES[INDEX]);
+      SET INDEX = INDEX + 1;
+    END WHILE;
+    SET INDEX = 1;
+    WHILE INDEX <= CARDINALITY(ADDRESSES) DO
+      INSERT INTO "Addresses" ("BatchId", "Address")
+      VALUES (BATCH, ADDRESSES[INDEX]);
+      SET INDEX = INDEX + 1;
+    END WHILE;
+    SET INDEX = 1;
+    WHILE INDEX <= CARDINALITY(IDENTIFIERS) DO
+      INSERT INTO "Identifiers" ("BatchId", "Identifier")
+      VALUES (BATCH, IDENTIFIERS[INDEX]);
       SET INDEX = INDEX + 1;
     END WHILE;
     SET INDEX = 1;
     WHILE INDEX <= CARDINALITY(ATTACHMENTS) DO
-      INSERT INTO "Attachments" ("BatchId","Attachment")
-      VALUES (ID,ATTACHMENTS[INDEX]);
+      INSERT INTO "Attachments" ("BatchId", "Attachment")
+      VALUES (BATCH, ATTACHMENTS[INDEX]);
       SET INDEX = INDEX + 1;
     END WHILE;
-    SET BATCHID = ID;
+    SET BATCHID = BATCH;
   END;"""
+
+    elif name == 'createResubmitJobs':
+        query = """\
+CREATE PROCEDURE "ResubmitJobs"(IN JOBIDS INTEGER ARRAY,
+                                OUT IDS INTEGER ARRAY)
+  SPECIFIC "ResubmitJobs_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE BATCHIDS INTEGER ARRAY DEFAULT ARRAY[];
+    DECLARE RECIPIENTS VARCHAR(320) ARRAY;
+    DECLARE FILTERS, PREDICATES VARCHAR(256) ARRAY;
+    DECLARE ADDRESSES, IDENTIFIERS VARCHAR(128) ARRAY;
+    DECLARE ATTACHMENTS VARCHAR(512) ARRAY;
+    DECLARE BATCHID INTEGER;
+    DECLARE INDEX INTEGER DEFAULT 1;
+    DECLARE SENDER VARCHAR(320);
+    DECLARE SUBJECT VARCHAR(78);
+    DECLARE DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME VARCHAR(512);
+    DECLARE ISMERGE BOOLEAN;
+    FOR_EACH_BATCH: FOR SELECT DISTINCT "BatchId" AS BATCH FROM "Recipients" WHERE "JobId" IN (UNNEST(JOBIDS)) ORDER BY "BatchId" DO
+      SELECT "Sender", "Subject", "Document", "DataSource", "Query", "Table", "Merge", "Recipients", "Filters", "Predicates"
+      INTO SENDER, SUBJECT, DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME, ISMERGE, RECIPIENTS, FILTERS, PREDICATES
+      FROM TABLE("GetBatchJobs"(JOBIDS)) WHERE "Batch" = BATCH;
+      SELECT ARRAY_AGG("Attachment" ORDER BY "Created") INTO ATTACHMENTS FROM "Attachments" WHERE "BatchId" = BATCH;
+      IF ISMERGE THEN
+        SELECT ARRAY_AGG("Address" ORDER BY "Created") INTO ADDRESSES FROM "Addresses" WHERE "BatchId" = BATCH;
+        SELECT ARRAY_AGG("Identifier" ORDER BY "Created") INTO IDENTIFIERS FROM "Identifiers" WHERE "BatchId" = BATCH;
+        CALL "InsertMergeJob"(SENDER, SUBJECT, DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME,
+                              RECIPIENTS, FILTERS, PREDICATES, ADDRESSES, IDENTIFIERS, ATTACHMENTS, BATCHID);
+      ELSE
+        CALL "InsertJob"(SENDER, SUBJECT, DOCUMENT, RECIPIENTS, ATTACHMENTS, BATCHID);
+      END IF;
+      SET BATCHIDS[INDEX] = BATCHID;
+      SET INDEX = INDEX + 1;
+    END FOR FOR_EACH_BATCH;
+    SET IDS = BATCHIDS;
+  END;"""
+
+    elif name == 'createGetSendJobs':
+        query = """\
+CREATE PROCEDURE "GetSendJobs"()
+  SPECIFIC "GetSendJobs_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT B."Batch", B."Sender", B."Subject", B."Document", B."DataSource", B."Query", B."Table", B."Merge",
+      B."Jobs", B."Recipients", B."Filters", B."Predicates",
+      ARRAY(SELECT "Address" FROM "Addresses" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Addresses",
+      ARRAY(SELECT "Identifier" FROM "Identifiers" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Identifiers",
+      ARRAY(SELECT "Attachment" FROM "Attachments" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Attachments"
+      FROM TABLE("GetBatchState"(0)) AS B
+      ORDER BY B."Batch"
+      FOR READ ONLY;
+    OPEN RSLT;
+  END;"""
+
+    elif name == 'createGetJobs':
+        query = """\
+CREATE PROCEDURE "GetJobs"(IN JOBIDS INTEGER ARRAY)
+  SPECIFIC "GetJobs_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT B."Batch", B."Sender", B."Subject", B."Document", B."DataSource", B."Query", B."Table", B."Merge",
+      B."Jobs", B."Recipients", B."Filters", B."Predicates",
+      ARRAY(SELECT "Address" FROM "Addresses" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Addresses",
+      ARRAY(SELECT "Identifier" FROM "Identifiers" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Identifiers",
+      ARRAY(SELECT "Attachment" FROM "Attachments" WHERE "BatchId" = B."Batch" ORDER BY "Created") AS "Attachments"
+      FROM TABLE("GetBatchJobs"(JOBIDS)) AS B
+      ORDER BY B."Batch"
+      FOR READ ONLY;
+    OPEN RSLT;
+  END;"""
+
+
+    # Internal Function used in Procedure
+    elif name == 'createGetBatchJobs':
+        query = """\
+CREATE FUNCTION "GetBatchJobs"(IN JOBIDS INTEGER ARRAY)
+  RETURNS TABLE
+    ("Batch" INTEGER, "Sender" VARCHAR(320), "Subject" VARCHAR(78), "Document" VARCHAR(512),
+     "DataSource" VARCHAR(512), "Query" VARCHAR(512), "Table" VARCHAR(512), "Merge" BOOLEAN,
+     "Jobs" INTEGER ARRAY, "Recipients" VARCHAR(320) ARRAY, "Filters" VARCHAR(256) ARRAY,
+     "Predicates" VARCHAR(256) ARRAY)
+  SPECIFIC "GetBatchJobs_1"
+  READS SQL DATA
+  BEGIN ATOMIC
+    RETURN TABLE
+      (SELECT S."BatchId" AS "Batch", S."Sender", S."Subject", S."Document", S."DataSource",
+       S."Query", S."Table", CASE WHEN S."Query" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
+       ARRAY_AGG(R."JobId" ORDER BY R."JobId") AS "Jobs",
+       ARRAY_AGG(R."Recipient" ORDER BY R."JobId") AS "Recipients",
+       ARRAY_AGG(R."Filter" ORDER BY R."JobId") AS "Filters",
+       ARRAY_AGG(R."Predicate" ORDER BY R."JobId") AS "Predicates"
+       FROM "Senders" AS S
+       INNER JOIN "Recipients" AS R ON S."BatchId" = R."BatchId"
+       WHERE R."JobId" IN (UNNEST(JOBIDS))
+       GROUP BY S."BatchId", S."Sender", S."Subject", S."Document", S."DataSource", S."Query", S."Table"
+       ORDER BY S."BatchId");
+  END"""
+
+    elif name == 'createGetBatchState':
+        query = """\
+CREATE FUNCTION "GetBatchState"(IN STATE INTEGER)
+  RETURNS TABLE
+    ("Batch" INTEGER, "Sender" VARCHAR(320), "Subject" VARCHAR(78), "Document" VARCHAR(512),
+     "DataSource" VARCHAR(512), "Query" VARCHAR(512), "Table" VARCHAR(512), "Merge" BOOLEAN,
+     "Jobs" INTEGER ARRAY, "Recipients" VARCHAR(320) ARRAY, "Filters" VARCHAR(256) ARRAY,
+     "Predicates" VARCHAR(256) ARRAY)
+  SPECIFIC "GetBatchState_1"
+  READS SQL DATA
+  BEGIN ATOMIC
+    RETURN TABLE
+      (SELECT S."BatchId" AS "Batch", S."Sender", S."Subject", S."Document", S."DataSource",
+       S."Query", S."Table", CASE WHEN S."Query" IS NULL THEN FALSE ELSE TRUE END AS "Merge",
+       ARRAY_AGG(R."JobId" ORDER BY R."JobId") AS "Jobs",
+       ARRAY_AGG(R."Recipient" ORDER BY R."JobId") AS "Recipients",
+       ARRAY_AGG(R."Filter" ORDER BY R."JobId") AS "Filters",
+       ARRAY_AGG(R."Predicate" ORDER BY R."JobId") AS "Predicates"
+       FROM "Senders" AS S
+       INNER JOIN "Recipients" AS R ON S."BatchId" = R."BatchId"
+       WHERE R."State" = STATE
+       GROUP BY S."BatchId", S."Sender", S."Subject", S."Document", S."DataSource", S."Query", S."Table"
+       ORDER BY S."BatchId");
+  END"""
+
 
 # Call Procedure Query
     elif name == 'getRecipient':
@@ -279,13 +427,19 @@ CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
     elif name == 'insertJob':
         query = 'CALL "InsertJob"(?,?,?,?,?,?)'
     elif name == 'insertMergeJob':
-        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateSpooler':
-        query = 'CALL "UpdateSpooler"(?,?,?,?,?,?)'
+        query = 'CALL "UpdateSpooler"(?,?,?,?,?,?,?)'
     elif name == 'updateJobState':
         query = 'CALL "UpdateJobState"(?,?)'
     elif name == 'updateJobsState':
         query = 'CALL "UpdateJobsState"(?,?)'
+    elif name == 'getSendJobs':
+        query = 'CALL "GetSendJobs"()'
+    elif name == 'getJobs':
+        query = 'CALL "GetJobs"(?)'
+    elif name == 'resubmitJobs':
+        query = 'CALL "ResubmitJobs"(?,?)'
 
 # ShutDown Queries
     # Normal ShutDown Queries

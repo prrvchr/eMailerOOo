@@ -112,6 +112,13 @@ class GridManager():
             value = self._getRowValue(identifier, self.getUnsortedIndex(self._view.getSelectedRow()))
         return value
 
+    def getSelectedIdentifiers(self, identifier):
+        values = []
+        if self._view.hasSelectedRows():
+            for row in self._view.getSelectedRows():
+                values.append(self._getRowValue(identifier, self.getUnsortedIndex(row)))
+        return tuple(values)
+
     def getGridData(self, columns, default=None):
         values = {}
         for row in (range(self._model.RowCount)):
@@ -135,6 +142,12 @@ class GridManager():
         for row in self._view.getSelectedRows():
             filters.append(self._getRowStructuredFilter(row))
         return tuple(filters)
+
+    def getRowPredicates(self, row):
+        predicates = []
+        for identifier in self._indexes:
+            predicates.append(self._getRowValue(identifier, row))
+        return tuple(predicates)
 
     def _getColumnValue(self, row, column, value=None):
         if column in self._headers:
@@ -176,7 +189,8 @@ class GridManager():
 
 # GridManager setter methods
     def dispose(self):
-        self.saveColumnSettings()
+        print("GridManager.dispose() 1")
+        #self.saveColumnSettings()
         self.Column.dispose()
         self.Model.dispose()
 

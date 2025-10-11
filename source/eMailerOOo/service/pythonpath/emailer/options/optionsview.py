@@ -45,18 +45,13 @@ class OptionsView(unohelper.Base):
     def dispose(self):
         self._window.dispose()
 
-    def initView(self, restart, exist, timeout, state, status):
+    def initView(self, restart, exist, timeout):
         self.setRestart(restart)
         self.updateDataBase(exist)
         self._getTimeout().Value = timeout
-        self.setSpoolerStatus(state, status)
 
     def updateDataBase(self, exist):
         self._getDataBaseButton().Model.Enabled = exist
-
-    def setSpoolerStatus(self, state, status):
-        self._getSpoolerButton().Model.State = state
-        self._getSpoolerStatus().Text = status
 
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
@@ -65,15 +60,9 @@ class OptionsView(unohelper.Base):
     def _getTimeout(self):
         return self._window.getControl('NumericField1')
 
-    def _getSpoolerStatus(self):
-        return self._window.getControl('Label5')
-
     def _getDataBaseButton(self):
         return self._window.getControl('CommandButton2')
 
-    def _getSpoolerButton(self):
-        return self._window.getControl('CommandButton3')
-
     def _getRestart(self):
-        return self._window.getControl('Label7')
+        return self._window.getControl('Label5')
 

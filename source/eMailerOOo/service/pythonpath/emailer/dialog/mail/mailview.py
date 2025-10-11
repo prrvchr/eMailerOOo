@@ -47,7 +47,7 @@ class MailView(unohelper.Base):
     def getEmail(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def getRecipientFilter(self):
+    def getSelectedRecipients(self):
         raise NotImplementedError('Need to be implemented!')
 
     def getWindow(self):
@@ -75,6 +75,12 @@ class MailView(unohelper.Base):
 
     def getSelectedAttachment(self):
         return self._getAttachments().getSelectedItem()
+
+    def hasSelectedPdfAttachment(self):
+        control = self._getAttachments()
+        position = control.getSelectedItemPos()
+        print("MailView.hasSelectedPdfAttachment() position: %s" % position)
+        return position != -1 and control.getSelectedItem().endswith('pdf')
 
     def getSubject(self):
         return self._getSubject().Text.strip()
@@ -123,8 +129,8 @@ class MailView(unohelper.Base):
     def setSaveSubject(self, state):
         self._getSaveSubject().Model.State = state
 
-    def enableViewHtml(self):
-        self._getViewHtml().Model.Enabled = True
+    def enableViewHtml(self, enabled):
+        self._getViewHtml().Model.Enabled = enabled
 
     def setMessage(self, text):
         self._getMessage().Text = text

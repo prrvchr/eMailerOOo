@@ -29,7 +29,9 @@
 
 from .dialog import SpoolerManager
 
-from .sender import Viewer
-from .sender import Mailer
-from .sender import PdfExport
+from .export import PdfExport
+
+from .thread import Mailer
+from .thread import Sender
+from .thread import Viewer
 

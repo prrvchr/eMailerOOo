@@ -119,9 +119,9 @@ class DataBase(unohelper.Base):
         return checkVersion(self._version, g_version)
 
     def wait(self):
-        if DataBase._init:
+        if DataBase._init and DataBase._init.is_alive():
             DataBase._init.join()
-            DataBase._init = None
+            #DataBase._init = None
 
     def getConnection(self, user='', password=''):
         return getDataBaseConnection(self._ctx, self._url, user, password)
@@ -189,7 +189,7 @@ class DataBase(unohelper.Base):
         call.close()
         return id
 
-    def deleteJob(self, jobs):
+    def deleteJobs(self, jobs):
         call = self._getCall('deleteJobs')
         call.setArray(1, jobs)
         status = call.executeUpdate()

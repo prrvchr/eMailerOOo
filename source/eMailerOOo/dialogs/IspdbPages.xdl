@@ -64,8 +64,8 @@
       </dlg:menupopup>
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeAuthentication" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label7" dlg:tab-index="13" dlg:left="10" dlg:top="85" dlg:width="60" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label7.HelpText" dlg:value="&amp;IspdbPages.Label7.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField2" dlg:tab-index="14" dlg:left="70" dlg:top="85" dlg:width="80" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField2.HelpText" dlg:value="&amp;IspdbPages.TextField2.Text">
+    <dlg:text dlg:id="Label7" dlg:tab-index="13" dlg:left="10" dlg:top="85" dlg:width="45" dlg:height="15" dlg:help-text="&amp;IspdbPages.Label7.HelpText" dlg:value="&amp;IspdbPages.Label7.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="14" dlg:left="60" dlg:top="85" dlg:width="90" dlg:height="15" dlg:help-text="&amp;IspdbPages.TextField2.HelpText" dlg:value="&amp;IspdbPages.TextField2.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeText" script:language="UNO"/>
     </dlg:textfield>
     <dlg:linklabel dlg:id="Hyperlink1" dlg:tab-index="15" dlg:left="160" dlg:top="45" dlg:width="140" dlg:height="15" dlg:value="&amp;IspdbPages.Hyperlink1.Label" dlg:url="" dlg:valign="center" dlg:align="center"/>

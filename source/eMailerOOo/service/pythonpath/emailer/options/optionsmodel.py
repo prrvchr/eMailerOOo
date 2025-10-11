@@ -29,12 +29,9 @@
 
 import unohelper
 
-from ..helper import getMailSpooler
-
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
-from ..unotool import getStringResource
 
 from ..dbconfig  import g_folder
 
@@ -49,9 +46,6 @@ class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._spooler = getMailSpooler(ctx)
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'SpoolerStatus':  'OptionsDialog.Label5.Label.%s'}
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
@@ -60,19 +54,9 @@ class OptionsModel():
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
 
-    def dispose(self, listener):
-        if self._spooler is not None:
-            self._spooler.removeListener(listener)
-            self._spooler.dispose()
-
-    def addStreamListener(self, listener):
-        if self._spooler is not None:
-            self._spooler.addListener(listener)
-
     def getViewData(self):
         exist = self.getDataBaseStatus()
-        state, status = self._getSpoolerStatus()
-        return exist, self._Timeout, state, status
+        return exist, self._Timeout
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:
@@ -82,20 +66,9 @@ class OptionsModel():
             return True
         return False
 
-    def getSpoolerStatus(self, started):
-        resource = self._resources.get('SpoolerStatus') % started
-        return started, self._resolver.resolveString(resource)
-
     def getDataBaseStatus(self):
         return getSimpleFile(self._ctx).exists(self._url)
 
     def getDataBaseUrl(self):
         return self._url
-
-    # OptionsModel private methods
-    def _getSpoolerStatus(self):
-        started = 0
-        if self._spooler is not None:
-            started = int(self._spooler.isStarted())
-        return self.getSpoolerStatus(started)
 

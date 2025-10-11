@@ -29,6 +29,9 @@
 
 #include <com/sun/star/lang/XServiceInfo.idl>
 #include <com/sun/star/sdbc/XConnection.idl>
+#include <com/sun/star/sdbc/XResultSet.idl>
+#include <com/sun/star/sdbc/XRowSetListener.idl>
+#include <com/sun/star/task/XStatusIndicator.idl>
 
 module com { module sun { module star { module mail {
 
@@ -36,6 +39,22 @@ interface XMailSpooler : com::sun::star::lang::XServiceInfo
 {
 
     com::sun::star::sdbc::XConnection getConnection();
+
+    com::sun::star::sdbc::XResultSet getContent();
+
+    com::sun::star::sdbc::XResultSet getSendJobs();
+
+    com::sun::star::sdbc::XResultSet getJobs([in] sequence<long> JobIds);
+
+    void addContentListener([in] com::sun::star::sdbc::XRowSetListener Listener);
+
+    void removeContentListener([in] com::sun::star::sdbc::XRowSetListener Listener);
+
+    com::sun::star::sdbc::XResultSet getRecipientContent([in] long JobId);
+
+    sequence<string> getBatchAttachments([in] long BatchId);
+
+    com::sun::star::sdbc::XResultSet getBatchContent([in] long BatchId);
 
     long addJob([in] string Sender,
                 [in] string Subject,
@@ -51,6 +70,9 @@ interface XMailSpooler : com::sun::star::lang::XServiceInfo
                      [in] string Table,
                      [in] sequence<string> Recipients,
                      [in] sequence<string> Filters,
+                     [in] sequence<string> Predicates,
+                     [in] sequence<string> Addresses,
+                     [in] sequence<string> Identifiers,
                      [in] sequence<string> Attachments);
 
     boolean removeJobs([in] sequence<long> JobIds);
@@ -69,10 +91,13 @@ interface XMailSpooler : com::sun::star::lang::XServiceInfo
 
     void updateJob([in] long BatchId,
                    [in] long JobId,
+                   [in] string Recipient,
                    [in] string ThreadId,
                    [in] string MessageId,
                    [in] string ForeignId,
                    [in] short State);
+
+    sequence<long> resubmitJobs([in] sequence<long> JobIds);
 
 };
 

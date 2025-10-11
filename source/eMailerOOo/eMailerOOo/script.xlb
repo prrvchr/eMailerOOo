@@ -29,7 +29,7 @@
   <library:element library:name="ShowMailer"/>
   <library:element library:name="ShowMerger"/>
   <library:element library:name="ShowSpooler"/>
-  <library:element library:name="StartSender"/>
-  <library:element library:name="StopSender"/>
+  <library:element library:name="StartSpooler"/>
+  <library:element library:name="StopSpooler"/>
   <library:element library:name="SendEmail"/>
 </library:library>

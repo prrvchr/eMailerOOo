@@ -27,15 +27,36 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .mailer import Mailer
+from .type import Main
 
+from threading import Lock
 import traceback
 
 
-class Viewer(Mailer):
+class WatchDog(Main):
+    def __init__(self, parent):
+        super().__init__()
+        self._parent = parent
+        self._jobs = []
+        self._lock = Lock()
+        self.start()
 
-    def merge(self, sf, document, folder, filter, selection):
-        descriptor, temp = self.getDescriptor(document, folder, filter, selection)
-        self.execute(sf, descriptor, temp)
-        return temp
+    def startJob(self, merger, task):
+        started = False
+        if not self._parent.isCanceled():
+            with self._lock:
+                if not self._parent.isCanceled():
+                    job = task.getJob()
+                    if job is not None:
+                        self._jobs.append(job)
+                    merger.start()
+                    started = True
+        return started
+
+    def run(self):
+        if self._parent.wait():
+            with self._lock:
+                if self._parent.isAlive():
+                    for job in self._jobs:
+                        job.cancel()
 

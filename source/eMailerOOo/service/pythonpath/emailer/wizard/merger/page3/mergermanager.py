@@ -30,6 +30,10 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
+
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
 from com.sun.star.lang import XComponent
 
 from com.sun.star.ui.dialogs import XWizardPage
@@ -43,13 +47,21 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .mergerview import MergerView
 
+from ....listener import DispatchListener
+
 from ....grid import GridDataListener
 
 from ....dialog import MailManager
 from ....dialog import WindowHandler
 
+from ....unotool import createMessageBox
+from ....unotool import executeShell
+from ....unotool import findFrame
 from ....unotool import getArgumentSet
+
 from ....helper import getMailSpooler
+
+from ....configuration import g_mergerframe
 
 from threading import Condition
 import traceback
@@ -68,13 +80,38 @@ class MergerManager(MailManager,
         self._listener = GridDataListener(self)
         self._model.initPage3(self._listener, self)
 
+# XDispatchResultListener
+    def _dispatchFinished(self, call, state, value):
+        if self._model.isClosing():
+            frame = findFrame(self._ctx, g_mergerframe)
+            if frame:
+                frame.close(True)
+        elif call == 'Sender':
+            super()._dispatchFinished(call, state, value)
+        else:
+            self._model.endDispatch(call)
+            if state == SUCCESS:
+                executeShell(self._ctx, value)
+            else:
+                parent = self._view.getWindow().Peer
+                title = self._model.getMsgBoxTitle()
+                dialog = createMessageBox(parent, WARNINGBOX, 1, title, value)
+                dialog.execute()
+                dialog.dispose()
+            if call == 'html':
+                self._view.enableViewHtml(True)
+            else:
+                enabled = self._view.hasSelectedPdfAttachment()
+                print("MergerManager._dispatchFinished() enabled: %s" % enabled)
+                self._view.enableViewPdf(enabled)
+
 # XComponent
     def dispose(self):
+        self._model.getGrid2().removeGridDataListener(self._listener)
         event = uno.createUnoStruct('com.sun.star.lang.EventObject', self)
         for listener in self._listeners:
             listener.disposing(event)
         self._view.getWindow().dispose()
-        self._model.getGrid2().removeGridDataListener(self._listener)
         print("MergerManager.dispose() page3")
 
     def addEventListener(self, listener):
@@ -107,25 +144,29 @@ class MergerManager(MailManager,
 # MergerManager setter methods
     # XXX: This method is called by GridDataListener every time the data in Grid2 is changed
     def dataGridChanged(self):
-        recipients, message = self._model.getRecipients()
-        self._view.setRecipients(recipients, message)
-        self._updateUI()
+        if not self._model.isDisposed:
+            recipients, message = self._model.getRecipients()
+            self._view.setRecipients(recipients, message)
+            self._updateUI()
 
     def sendDocument(self):
         if self._model.saveDocument():
             subject, attachments = self._getSavedDocumentProperty()
             sender, recipients, filters = self._view.getEmail()
-            url, datasource, query, table = self._model.getDocumentInfo()
+            url, datasource, query, table, predicates, addresses, identifiers = self._model.getDocumentInfo()
             spooler = getMailSpooler(self._ctx)
-            id = spooler.addMergeJob(sender, subject, url, datasource, query, table, recipients, filters, attachments)
+            id = spooler.addMergeJob(sender, subject, url, datasource, query, table,
+                                     recipients, filters, predicates, addresses, identifiers, attachments)
             spooler.dispose()
 
 # MergerManager private setter methods
+    def _getViewOptions(self, filter=None):
+        return DispatchListener(self), self._model.getTaskEvent(filter)
+
     def _updateUI(self):
         self._wizard.updateTravelUI()
 
-    def _notifyInit(self, status, result):
-        document, message, recipients = result
+    def _notifyInit(self, document, message, recipients):
         if not self._model.isDisposed():
             # TODO: Document can be <None> if a lock or password exists !!!
             # TODO: It would be necessary to test a Handler on the descriptor...

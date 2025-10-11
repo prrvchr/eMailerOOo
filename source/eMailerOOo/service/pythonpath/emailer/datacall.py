@@ -47,9 +47,10 @@ class DataCall():
         self._calls = {}
 
     def dispose(self):
+        print("DataCall.dispose() 1")
         for name, call in self._calls.items():
             call.close()
-            print("DataCall.dispose() call: %s closed!!!" % name)
+            print("DataCall.dispose() 2 call: %s closed!!!" % name)
 
 # Procedures called by the Merger
     def getInnerJoinTable(self, subquery, identifiers, table):
@@ -75,7 +76,7 @@ class DataCall():
     def getViewQuery(self):
         return getSqlQuery(self._ctx, 'getViewQuery')
 
-    def insertJob(self, sender, subject, document, recipients, attachments):
+    def addJob(self, sender, subject, document, recipients, attachments):
         call = self._getCall('insertJob')
         call.setString(1, sender)
         call.setString(2, subject)
@@ -86,7 +87,8 @@ class DataCall():
         id = call.getInt(6)
         return id
 
-    def insertMergeJob(self, sender, subject, document, datasource, query, table, recipients, filters, attachments):
+    def addMergeJob(self, sender, subject, document, datasource, query, table, recipients,
+                          filters, predicates, addresses, identifiers, attachments):
         call = self._getCall('insertMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
@@ -96,14 +98,17 @@ class DataCall():
         call.setString(6, table)
         call.setArray(7, Array('VARCHAR', recipients))
         call.setArray(8, Array('VARCHAR', filters))
-        call.setArray(9, Array('VARCHAR', attachments))
+        call.setArray(9, Array('VARCHAR', predicates))
+        call.setArray(10, Array('VARCHAR', addresses))
+        call.setArray(11, Array('VARCHAR', identifiers))
+        call.setArray(12, Array('VARCHAR', attachments))
         status = call.executeUpdate()
-        id = call.getInt(10)
+        id = call.getInt(13)
         return id
 
-    def deleteJob(self, jobs):
+    def deleteJobs(self, jobs):
         call = self._getCall('deleteJobs')
-        call.setArray(1, Array('INTEGER', job))
+        call.setArray(1, Array('INTEGER', jobs))
         status = call.executeUpdate()
         return True
 
@@ -125,7 +130,29 @@ class DataCall():
             jobs = getResultValue(result)
         return jobs
 
+    def resubmitJobs(self, jobs):
+        ids = ()
+        call = self._getCall('resubmitJobs')
+        call.setArray(1, Array('INTEGER', jobs))
+        call.execute()
+        value = call.getArray(2)
+        if not call.wasNull() and value is not None:
+            ids = value.getArray(None)
+        print("DataCall.resubmitJobs() ids: %s" % (ids, ))
+        return ids
+
 # Procedures called by the Spooler
+    def getSendJobs(self):
+        call = self._getCall('getSendJobs')
+        result = call.executeQuery()
+        return result
+
+    def getJobs(self, jobs):
+        call = self._getCall('getJobs')
+        call.setArray(1, Array('INTEGER', jobs))
+        result = call.executeQuery()
+        return result
+
     def getSpoolerJobs(self, state):
         call = self._getCall('getSpoolerJobs')
         call.setInt(1, state)
@@ -142,6 +169,12 @@ class DataCall():
             recipient = getObjectFromResult(result)
         return recipient
 
+    def getJobRecipient(self, job):
+        call = self._getCall('getRecipient')
+        call.setInt(1, job)
+        rs = call.executeQuery()
+        return rs
+
     def getMailer(self, batch):
         mailer = None
         call = self._getCall('getMailer')
@@ -151,6 +184,12 @@ class DataCall():
             mailer = getDataFromResult(result)
         return mailer
 
+    def getBatchMailer(self, batch):
+        call = self._getCall('getMailer')
+        call.setInt(1, batch)
+        rs = call.executeQuery()
+        return rs
+
     def getAttachments(self, batch):
         attachments = ()
         call = self._getCall('getAttachments')
@@ -159,14 +198,15 @@ class DataCall():
         attachments = getSequenceFromResult(result)
         return attachments
 
-    def updateSpooler(self, batch, job, threadid, messageid, foreignid, state):
+    def updateSpooler(self, batch, job, recipient, threadid, messageid, foreignid, state):
         call = self._getCall('updateSpooler')
         call.setInt(1, batch)
         call.setInt(2, job)
-        call.setString(3, threadid)
-        call.setString(4, messageid)
-        call.setString(5, foreignid)
-        call.setInt(6, state)
+        call.setString(3, recipient)
+        call.setString(4, threadid)
+        call.setString(5, messageid)
+        call.setString(6, foreignid)
+        call.setInt(7, state)
         call.executeUpdate()
 
     def updateJobState(self, job, state):

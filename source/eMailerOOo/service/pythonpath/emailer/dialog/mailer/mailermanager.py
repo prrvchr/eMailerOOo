@@ -99,8 +99,7 @@ class MailerManager(MailManager):
         enabled = self._canAdvance()
         self._view.enableButtonSend(enabled)
 
-    def _notifyInit(self, status, result):
-        document, title = result
+    def _notifyInit(self, document, title):
         if not self._model.isDisposed():
             self._initView(document)
             self._view.setTitle(title)

@@ -35,18 +35,21 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from ...spooler import PdfExport
 
-from ...helper import hasExtensionFilter
-from ...helper import saveDocumentAs
-
 from ...unotool import createService
+from ...unotool import getCallBack
 from ...unotool import getConfiguration
 from ...unotool import getLastNamedParts
 from ...unotool import getSimpleFile
 from ...unotool import getStringResource
 from ...unotool import getTempFile
+from ...unotool import getUriFactory
 from ...unotool import getUrl
 from ...unotool import getUrlTransformer
 from ...unotool import parseUrl
+
+from ...helper import hasExtensionFilter
+from ...helper import parseUri
+from ...helper import parseUriFragment
 
 from ...configuration import g_extension
 from ...configuration import g_identifier
@@ -64,10 +67,11 @@ class MailModel(unohelper.Base):
         self._ctx = ctx
         self._datasource = datasource
         self._sf = getSimpleFile(ctx)
+        self._uf = getUriFactory(ctx)
         self._folder = None
         self._export = None
         self._close = close
-        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
+        self._callback = getCallBack(ctx)
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._disposed = False
@@ -95,6 +99,12 @@ class MailModel(unohelper.Base):
     def getDocument(self, url=None):
         raise NotImplementedError('Need to be implemented!')
 
+    def parseUri(self):
+        return parseUri(self._uf, self.getUrl())
+
+    def parseUriFragment(self, url):
+        return parseUriFragment(self._uf, url)
+
     def viewDocument(self, *args):
         Thread(target=self._viewDocument, args=args).start()
 
@@ -106,9 +116,6 @@ class MailModel(unohelper.Base):
 
     def getDocumentSubject(self, document):
         return document.DocumentProperties.Subject
-
-    def saveDocumentAs(self, document, format):
-        return saveDocumentAs(self._ctx, document, format)
 
     def parseAttachments(self, attachments, merge, pdf):
         urls = []

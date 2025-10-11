@@ -30,31 +30,40 @@
 import uno
 import unohelper
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
 from ...unotool import getContainerWindow
-from ...unotool import getDialog
+from ...unotool import getDialogPosSize
+from ...unotool import getTopWindow
+from ...unotool import getTopWindowPosition
 
 from ...configuration import g_identifier
+from ...configuration import g_spoolerframe
 
+import traceback
 
 class SpoolerView(unohelper.Base):
-    def __init__(self, ctx, handler, listener, handler1, parent, title, title1, title2, title3):
-        self._dialog = getDialog(ctx, g_identifier, 'SpoolerDialog', handler, parent)
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 400, 175)
-        self._tab, tab1, tab2, tab3 = self._getTabPages(self._dialog, 'Tab1', title1, title2, title3, rectangle, 1)
+    def __init__(self, ctx, handler, listener, handler1, listener1, point, titles):
+        rectangle = getDialogPosSize(ctx, g_identifier, 'SpoolerDialog', point)
+        self._frame = getTopWindow(ctx, g_spoolerframe, rectangle)
+        self._frame.setTitle(titles[0])
+        parent = self._frame.getContainerWindow()
+        self._dialog = getContainerWindow(ctx, parent, handler, g_identifier, 'SpoolerDialog')
+        # XXX: setComponent is needed if we want a StatusIndicator at the bottom
+        self._frame.setComponent(self._dialog, None)
+        self._dialog.setVisible(True)
+        self._frame.addCloseListener(listener)
+        self._tab, tab1, tab2, tab3 = self._getTabPages('Tab1', 1, titles)
         self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'SpoolerTab1')
+        self._setModelSize(self._tab.Model, self._tab1.Model)
         self._tab1.setVisible(True)
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), None, g_identifier, 'SpoolerTab2')
         self._tab2.setVisible(True)
         self._tab3 = getContainerWindow(ctx, tab3.getPeer(), None, g_identifier, 'SpoolerTab3')
         self._tab3.setVisible(True)
-        self._dialog.setTitle(title)
-        self._tab.addTabPageContainerListener(listener)
+        self._tab.addTabPageContainerListener(listener1)
 
 # SpoolerView getter methods
-    def execute(self):
-        return self._dialog.execute()
+    def getDialogPosition(self):
+        return getTopWindowPosition(self._frame.getContainerWindow())
 
     def getParent(self):
         return self._dialog.getPeer()
@@ -66,6 +75,9 @@ class SpoolerView(unohelper.Base):
         return self._tab.ActiveTabPageID
 
 # SpoolerView setter methods
+    def close(self):
+        self._frame.close(True)
+
     def initView(self):
         self._enableButtonStartSpooler(True)
         self._enableButtonClose(True)
@@ -78,12 +90,16 @@ class SpoolerView(unohelper.Base):
         self._getButtonEmlView().Model.Enabled = selected
         self._getButtonClientView().Model.Enabled = selected and sent
         self._getButtonWebView().Model.Enabled = selected and sent and link
+        self._getButtonResubmit().Model.Enabled = selected
         self._getButtonRemove().Model.Enabled = selected
 
-    def disableButtons(self):
+    def disableButtons(self, add=False):
         self._getButtonEmlView().Model.Enabled = False
         self._getButtonClientView().Model.Enabled = False
         self._getButtonWebView().Model.Enabled = False
+        self._getButtonResubmit().Model.Enabled = False
+        if add:
+            self._enableButtonAdd(False)
 
     def setSpoolerState(self, text, state, enabled):
         model = self._getButtonStartSpooler().Model
@@ -91,12 +107,6 @@ class SpoolerView(unohelper.Base):
         model.Enabled = enabled
         self._getButtonClose().Model.Enabled = enabled
         self._getLabelState().Text = text
-
-    def endDialog(self):
-        self._dialog.endDialog(OK)
-
-    def dispose(self):
-        self._dialog.dispose()
 
     def updateLog1(self, text, length):
         control = self._getSpoolerLog()
@@ -142,11 +152,14 @@ class SpoolerView(unohelper.Base):
     def _getButtonWebView(self):
         return self._tab1.getControl('CommandButton3')
 
-    def _getButtonAdd(self):
+    def _getButtonResubmit(self):
         return self._tab1.getControl('CommandButton4')
 
-    def _getButtonRemove(self):
+    def _getButtonAdd(self):
         return self._tab1.getControl('CommandButton5')
+
+    def _getButtonRemove(self):
+        return self._tab1.getControl('CommandButton6')
 
     def _getGridWindow(self):
         return self._tab1.getControl('FrameControl1')
@@ -161,28 +174,25 @@ class SpoolerView(unohelper.Base):
         return self._tab3.getControl('TextField1')
 
 # SpoolerView private methods
-    def _getTabPages(self, page, name, title1, title2, title3, rectangle, id):
-        model = self._getTabModel(page, rectangle)
-        page.Model.insertByName(name, model)
-        tab = page.getControl(name)
-        tab1 = self._getTabPage(tab, model, title1, 0)
-        tab2 = self._getTabPage(tab, model, title2, 1)
-        tab3 = self._getTabPage(tab, model, title3, 2)
-        tab.ActiveTabPageID = id
+    def _getTabPages(self, name, tabid, titles):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = self._dialog.Model.createInstance(service)
+        self._dialog.Model.insertByName(name, model)
+        tab = self._dialog.getControl(name)
+        tab1 = self._getTabPage(tab, model, titles[1], 0)
+        tab2 = self._getTabPage(tab, model, titles[2], 1)
+        tab3 = self._getTabPage(tab, model, titles[3], 2)
+        tab.ActiveTabPageID = tabid
         return tab, tab1, tab2, tab3
 
-    def _getTabModel(self, page, rectangle):
-        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
-        model = page.Model.createInstance(service)
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Width = rectangle.Width
-        model.Height = rectangle.Height
-        return model
-
-    def _getTabPage(self, tab, model, title, id):
-        page = model.createTabPage(id +1)
+    def _getTabPage(self, tab, model, title, tabid):
+        page = model.createTabPage(tabid + 1)
         page.Title = title
         index = model.getCount()
         model.insertByIndex(index, page)
-        return tab.getControls()[id]
+        return tab.getControls()[tabid]
+
+    def _setModelSize(self, model, size):
+        model.Width = size.Width
+        model.Height = size.Height
+

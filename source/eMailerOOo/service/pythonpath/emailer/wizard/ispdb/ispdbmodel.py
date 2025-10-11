@@ -28,9 +28,11 @@
 """
 
 import uno
-import unohelper
 
 from com.sun.star.awt.FontWeight import BOLD
+
+from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
@@ -52,12 +54,16 @@ from ...transferable import Transferable
 from ...user import User
 
 from ...unotool import createService
+from ...unotool import findFrame
+from ...unotool import getCallBack
 from ...unotool import getConfiguration
 from ...unotool import getConnectionMode
+from ...unotool import getNamedValueSet
 from ...unotool import getResourceLocation
 from ...unotool import getStringResource
 from ...unotool import getUrl
 from ...unotool import hasInterface
+from ...unotool import setProgress
 
 from ...helper import getMailService
 from ...helper import getMailMessage
@@ -70,6 +76,7 @@ from ...oauth20 import g_service
 from ...configuration import g_identifier
 from ...configuration import g_extension
 from ...configuration import g_mailservicelog
+from ...configuration import g_spoolerframe
 from ...configuration import g_logo
 from ...configuration import g_logourl
 from ...configuration import g_chunk
@@ -82,11 +89,13 @@ import validators
 import traceback
 
 
-class IspdbModel(unohelper.Base):
-    def __init__(self, ctx, sender, readonly):
+class IspdbModel():
+    def __init__(self, ctx, source, sender, readonly, notifier):
         self._ctx = ctx
+        self._source = source
         self._sender = sender
         self._readonly = readonly
+        self._notifier = notifier
         self._servers = None
         self._services = [SMTP.value, IMAP.value]
         self._offline = 0
@@ -94,7 +103,8 @@ class IspdbModel(unohelper.Base):
         self._version = 0
         self._check = False
         self._listener = None
-        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
+        self._handler = False
+        self._callback = getCallBack(ctx)
         secure = {0: 3, 1: 4, 2: 5}
         unsecure = {0: 0, 1: 1, 2: 2}
         self._levels = {0: unsecure, 1: secure, 2: secure}
@@ -144,9 +154,17 @@ class IspdbModel(unohelper.Base):
 # IspdbModel getter methods called by IspdbWizard
     def dispose(self):
         self._diposed = True
-        if self._listener is not None:
+        # XXX If notify is None the SUCCESS dispatch notification is already done
+        if self._notifier:
+            struct = 'com.sun.star.beans.StringPair'
+            result = uno.createUnoStruct(struct, 'Sender', '')
+            struct = 'com.sun.star.frame.DispatchResultEvent'
+            notification = uno.createUnoStruct(struct, self._source, FAILURE, result)
+            self._notifier.dispatchFinished(notification)
+        if self._listener:
             self._logger.removeModifyListener(self._listener)
             self._listener = None
+        if self._handler:
             self._logger.removeRollerHandler()
 
 # IspdbModel getter methods called by WizardPages 1
@@ -169,53 +187,56 @@ class IspdbModel(unohelper.Base):
         self._version += 1
         Thread(target=self._getServerConfig, args=args).start()
 
-    def _getServerConfig(self, caller):
+    def _getServerConfig(self, caller, resolver):
         # FIXME: Because we call this thread in the WizardPage.activatePage(),
         # FIXME: if we want to be able to navigate through the Wizard roadmap
         # FIXME: without GUI refreshing problem then we need to pause this thread.
         sleep(0.2)
         auto = False
         config = None
-        caller.updateProgress(10)
+        self._setProgress(caller, 10)
         url = getUrl(self._ctx, self._url)
-        caller.updateProgress(20)
+        self._setProgress(caller, 20)
         mode = getConnectionMode(self._ctx, url.Server)
-        caller.updateProgress(30)
+        self._setProgress(caller, 30)
         user = User(self._ctx, self.Sender)
-        caller.updateProgress(40)
+        self._setProgress(caller, 40)
         request = createService(self._ctx, g_service)
-        caller.updateProgress(50)
+        self._setProgress(caller, 50)
         if request is None:
             offset = 1 if user.isNew() else 2
-            status = (100, offset, BOLD)
+            data = {'call': 'progress', 'value': 100, 'offset': offset, 'style': BOLD}
         elif mode == OFFLINE:
             offset = 3 if user.isNew() else 4
-            status = (100, offset, BOLD)
+            data = {'call': 'progress', 'value': 100, 'offset': offset, 'style': BOLD}
         else:
-            caller.updateProgress(60)
+            self._setProgress(caller, 60)
             try:
                 config = self._getIspdbConfig(user, request, url.Complete)
             except RequestException as e:
                 offset = 5 if user.isNew() else 6
-                status = (100, offset, BOLD)
+                data = {'call': 'progress', 'value': 100, 'offset': offset, 'style': BOLD}
             else:
-                caller.updateProgress(80)
+                self._setProgress(caller, 80)
                 if not user.isNew():
-                    status = (100, 7)
+                    data = {'call': 'progress', 'value': 100, 'offset': 7}
                 elif config is None:
-                    status = (100, 8)
+                    data = {'call': 'progress', 'value': 100, 'offset': 8}
                 else:
                     auto = True
-                    status = (100, 9)
+                    data = {'call': 'progress', 'value': 100, 'offset': 9}
         self._check = config is not None
         self._servers = IspdbServer(user, config)
         self._offline = mode
-        caller.updateProgress(*status)
-        title = self.getPageTitle(caller.getResolver(), 2)
-        caller.updateView(title, auto, user)
+        self._callback.addCallback(caller, getNamedValueSet(data))
+        title = self.getPageTitle(resolver, 2)
+        data = {'call': 'view', 'title': title, 'auto': auto, 'state': user.getReplyToState(),
+                'imap': user.getImapState(), 'reply': user.ReplyToAddress}
+        self._callback.addCallback(caller, getNamedValueSet(data))
         # XXX: We cannot change the Wizard path if we are in Thread
         # XXX: and not using AsyncCallback without refresh issues
-        self._callback.addCallback(caller, None)
+        data = {'call': 'path', 'value': None}
+        self._callback.addCallback(caller, getNamedValueSet(data))
 
     def _getIspdbConfig(self, user, request, url):
         config = None
@@ -340,6 +361,13 @@ class IspdbModel(unohelper.Base):
 
     def saveConfiguration(self):
         self._servers.User.saveConfig()
+        if self._notifier:
+            struct = 'com.sun.star.beans.StringPair'
+            result = uno.createUnoStruct(struct, 'Sender', self._sender)
+            struct = 'com.sun.star.frame.DispatchResultEvent'
+            notification = uno.createUnoStruct(struct, self._source, SUCCESS, result)
+            self._notifier.dispatchFinished(notification)
+            self._notifier = None
 
     def getSecurity(self, resolver, i, j):
         level = self._levels.get(i).get(j)
@@ -350,7 +378,10 @@ class IspdbModel(unohelper.Base):
     def addLogListener(self, listener):
         self._logger.addModifyListener(listener)
         self._listener = listener
-        self._logger.addRollerHandler()
+        # XXX: We add RollerHandler only if the Spooler is not loaded
+        if findFrame(self._ctx, g_spoolerframe) is None:
+            self._logger.addRollerHandler()
+            self._handler = True
 
     def getLogContent(self):
         return self._logger.getLogContent(True)
@@ -358,42 +389,49 @@ class IspdbModel(unohelper.Base):
     def connectServers(self, *args):
         Thread(target=self._connectServers, args=args).start()
 
-    def _connectServers(self, reset, progress, setlabel, setstep):
+    def _connectServers(self, caller):
         i = 0
         connect = True
         range = 100
         count = 2 if self._servers.User.useIMAP() else 1
-        reset(count * range)
+        data = {'call': 'reset', 'value': count * range}
+        self._callback.addCallback(caller, getNamedValueSet(data))
         for service in self._services:
             if service == SMTP.value or self._servers.User.useIMAP():
-                setlabel(service, self._getHost(service), self._getPort(service))
+                data = {'call': 'label', 'service': service,
+                        'host': self._getHost(service), 'port': self._getPort(service)}
+                self._callback.addCallback(caller, getNamedValueSet(data))
                 context = self._servers.User.getConnectionContext(service)
                 authenticator = self._servers.User.getAuthenticator(service)
-                if not self._connectServer(context, authenticator, service, i * range, progress):
+                if not self._connectServer(caller, context, authenticator, service, i * range):
                     connect = False
                     break
                 i += 1
-        setstep(4 if connect else 2)
+        data = {'call': 'step', 'value': 4 if connect else 2}
+        self._callback.addCallback(caller, getNamedValueSet(data))
 
-    def _connectServer(self, context, authenticator, service, i, progress):
+    def _connectServer(self, caller, context, authenticator, service, i):
         connect = False
-        progress(i + 25)
+        self._setProgress(caller, i + 25)
         server = getMailService(self._ctx, service)
-        progress(i + 50)
+        self._setProgress(caller, i + 50)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
             # Exceptions are already logged in the MailServiceLogger log.
-            progress(i + 100)
+            self._setProgress(caller, i + 100)
         else:
-            progress(i + 75)
+            self._setProgress(caller, i + 75)
             if server.isConnected():
                 server.disconnect()
                 connect = True
-                progress(i + 100)
+                self._setProgress(caller, i + 100)
             else:
-                progress(i + 100)
+                self._setProgress(caller, i + 100)
         return connect
+
+    def _setProgress(self, caller, value):
+        setProgress(self._callback, caller, value)
 
     def _getHost(self, service):
         return self._servers.getServerHost(service)
@@ -404,32 +442,34 @@ class IspdbModel(unohelper.Base):
     def sendMessage(self, *args):
         Thread(target=self._sendMessage, args=args).start()
 
-    def _sendMessage(self, recipient, subject, message, reset, progress, setstep):
+    def _sendMessage(self, caller, recipient, subject, message):
         transferable = Transferable(self._ctx, self._logger)
         if self._servers.User.useIMAP():
             i = 100
-            reset(200)
-            mail = self._uploadMessage(transferable, subject, progress)
+            data = {'call': 'reset', 'value': 200}
+            self._callback.addCallback(caller, getNamedValueSet(data))
+            mail = self._uploadMessage(caller, transferable, subject)
             threadid = mail.ForeignId if mail.ForeignId else mail.MessageId
         else:
             i = 0
-            reset(100)
+            data = {'call': 'reset', 'value': 100}
+            self._callback.addCallback(caller, getNamedValueSet(data))
             threadid = None
-        progress(i + 5)
+        self._setProgress(caller, i + 5)
         smtp = SMTP.value
         context = self._servers.User.getConnectionContext(smtp)
         authenticator = self._servers.User.getAuthenticator(smtp)
         step = 3
-        progress(i + 25)
+        self._setProgress(caller, i + 25)
         server = getMailService(self._ctx, smtp)
-        progress(i + 50)
+        self._setProgress(caller, i + 50)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
             # Exceptions are already logged in the MailServiceLogger log.
             print("IspdbModel._sendMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
         else:
-            progress(i + 75)
+            self._setProgress(caller, i + 75)
             if server.isConnected():
                 body = transferable.getByString(message)
                 mail = getMailMessage(self._ctx, self.Sender, recipient, subject, body)
@@ -445,24 +485,25 @@ class IspdbModel(unohelper.Base):
                 else:
                     step = 5
                 server.disconnect()
-        progress(i + 100)
-        setstep(step)
+        self._setProgress(caller, i + 100)
+        data = {'call': 'step', 'value': step}
+        self._callback.addCallback(caller, getNamedValueSet(data))
 
-    def _uploadMessage(self, transferable, subject, progress):
+    def _uploadMessage(self, caller, transferable, subject):
         mail = None
         imap = IMAP.value
         context = self._servers.User.getConnectionContext(imap)
         authenticator = self._servers.User.getAuthenticator(imap)
-        progress(10)
+        self._setProgress(caller, 10)
         server = getMailService(self._ctx, imap)
-        progress(20)
+        self._setProgress(caller, 20)
         try:
             server.connect(context, authenticator)
         except UnoException as e:
             # Exceptions are already logged in the MailServiceLogger log.
             print("IspdbModel._uploadMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
         else:
-            progress(40)
+            self._setProgress(caller, 40)
             if server.isConnected():
                 try:
                     folder = server.getSentFolder()
@@ -470,14 +511,14 @@ class IspdbModel(unohelper.Base):
                         message = self._getThreadMessage()
                         body = transferable.getByString(message)
                         mail = getMailMessage(self._ctx, self.Sender, self.Email, subject, body)
-                        progress(60)
+                        self._setProgress(caller, 60)
                         server.uploadMessage(folder, mail)
                 except UnoException as e:
                     # Exceptions are already logged in the MailServiceLogger log.
                     print("IspdbModel._uploadMessage() Error: %s - %s" % (e.Message, traceback.format_exc()))
-                progress(80)
+                self._setProgress(caller, 80)
                 server.disconnect()
-        progress(100)
+        self._setProgress(caller, 100)
         return mail
 
 # IspdbModel getter methods called by SendDialog

@@ -84,7 +84,7 @@
     <dlg:button dlg:id="CommandButton7" dlg:tab-index="28" dlg:page="3" dlg:disabled="true" dlg:left="105" dlg:top="182" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.CommandButton7.HelpText" dlg:value="&amp;MergerPage1.CommandButton7.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveEmail" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="29" dlg:page="3" dlg:left="155" dlg:top="125" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label14.HelpText" dlg:value="&amp;MergerPage1.Label14.Label.0" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="29" dlg:page="3" dlg:left="155" dlg:top="125" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label14.HelpText" dlg:value="&amp;MergerPage1.Label14.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label15" dlg:tab-index="30" dlg:page="3" dlg:left="155" dlg:top="135" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label15.HelpText" dlg:value="&amp;MergerPage1.Label15.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox5" dlg:tab-index="31" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="150" dlg:width="90" dlg:height="46" dlg:help-text="&amp;MergerPage1.ListBox5.HelpText" dlg:value="&amp;MergerPage1.ListBox5.Text">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeIdentifier" script:language="UNO"/>

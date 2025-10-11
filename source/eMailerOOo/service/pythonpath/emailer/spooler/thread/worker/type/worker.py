@@ -27,29 +27,16 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
-from com.sun.star.frame import XDispatchResultListener
-
-from com.sun.star.frame.DispatchResultState import SUCCESS
+from .manager import Manager
 
 import traceback
 
 
-class DispatchListener(unohelper.Base,
-                       XDispatchResultListener):
-    def __init__(self, callback):
-        self._callback = callback
+class Worker(Manager):
+    def __init__(self, cancel, progress, input, output):
+        super().__init__(cancel, progress, input)
+        self._output = output
 
-    # XDispatchResultListener
-    def dispatchFinished(self, notification):
-        try:
-            if notification.State == SUCCESS:
-                self._callback(notification.Result)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def disposing(self, source):
-        pass
+    def getOutput(self):
+        return self._output
 

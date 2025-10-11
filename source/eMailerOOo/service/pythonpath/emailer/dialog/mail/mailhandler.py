@@ -35,8 +35,7 @@ from com.sun.star.awt.Key import RETURN
 
 from ...listener import DispatchListener
 
-from ...unotool import executeFrameDispatch
-from ...unotool import getDesktop
+from ...unotool import executeDesktopDispatch
 
 import traceback
 
@@ -57,9 +56,8 @@ class WindowHandler(unohelper.Base,
                 self._manager.changeSender(selected)
                 handled = True
             elif method == 'AddSender':
-                frame = getDesktop(self._ctx).getCurrentFrame()
-                listener = DispatchListener(self._manager.addSender)
-                executeFrameDispatch(self._ctx, frame, 'emailer:ShowIspdb', listener)
+                listener = DispatchListener(self._manager)
+                executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', listener)
                 handled = True
             elif method == 'RemoveSender':
                 self._manager.removeSender()

@@ -75,7 +75,7 @@ class DataSource(unohelper.Base,
         return self.DataBase.IdentifierQuoteString
 
     def getDataCall(self):
-        return DataCall(self._ctx, self.DataBase.Connection)
+        return DataCall(self._ctx, self.DataBase.getConnection())
 
     def dispose(self):
         self.waitForDataBase()
@@ -134,9 +134,9 @@ class DataSource(unohelper.Base,
     def getSpoolerJobs(self, state):
         return self.DataBase.getSpoolerJobs(state)
 
-    def deleteJob(self, job):
+    def deleteJobs(self, job):
         jobs = Array('INTEGER', job)
-        return self.DataBase.deleteJob(jobs)
+        return self.DataBase.deleteJobs(jobs)
 
     def getJobState(self, job):
         return self.DataBase.getJobState(job)

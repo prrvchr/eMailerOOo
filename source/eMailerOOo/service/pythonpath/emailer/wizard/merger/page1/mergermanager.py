@@ -52,6 +52,7 @@ from ....unotool import createMessageBox
 from ....unotool import createService
 from ....unotool import executeDispatch
 from ....unotool import getArgumentSet
+from ....unotool import getDesktop
 from ....unotool import getStringResource
 
 from ....configuration import g_identifier
@@ -65,15 +66,18 @@ class MergerManager(unohelper.Base,
                     XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
+        print ("MergerManager.__init__() 1")
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
         self._listeners = []
         self._disabled = False
+        print ("MergerManager.__init__() 2")
         addressbooks = self._model.getAvailableAddressBooks()
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerPage1')
         self._view = MergerView(ctx, WindowHandler(self), parent, addressbooks)
         addressbook = self._model.getDefaultAddressBook()
+        print ("MergerManager.__init__() 3")
         if addressbook in addressbooks:
             self._view.setPageStep(1)
             # FIXME: We must disable the "ChangeAddressBook"
@@ -82,6 +86,7 @@ class MergerManager(unohelper.Base,
             self._view.selectAddressBook(addressbook)
         else:
             self._view.enableAddressBook(True)
+        print ("MergerManager.__init__() 4")
 
     # FIXME: One shot disabler handler
     def isHandlerEnabled(self):
@@ -142,11 +147,7 @@ class MergerManager(unohelper.Base,
             self._view.setPageStep(1)
             message = self._model.getProgressMessage(self._resolver, 0)
             self._view.updateProgress(0, message)
-            self._model.setAddressBook(addressbook, self.progress, self)
-
-    def progress(self, value):
-        message = self._model.getProgressMessage(self._resolver, value)
-        self._view.updateProgress(value, message)
+            self._model.setAddressBook(addressbook, self._view.getWindow().Peer, self)
 
     def newAddressBook(self):
         executeDispatch(self._ctx, '.uno:AutoPilotAddressDataSource')
@@ -340,7 +341,17 @@ class MergerManager(unohelper.Base,
             return self._view.getTable() == subquery.Second
         return False
 
-    def _notify(self, step, message, label, tables, queries):
+    def _notify(self, call, **kwargs):
+        if call == 'progress':
+            self._notifyProgress(**kwargs)
+        elif call == 'result':
+            self._notifyResult(**kwargs)
+
+    def _notifyProgress(self, value):
+        message = self._model.getProgressMessage(self._resolver, value)
+        self._view.updateProgress(value, message)
+
+    def _notifyResult(self, step, message, label, tables, queries):
         if step == 2:
             self._view.setMessageText(message)
         elif step == 3:
@@ -355,3 +366,4 @@ class MergerManager(unohelper.Base,
                 self._view.setDefaultTable()
         self._view.setPageStep(step)
         self._wizard.updateTravelUI()
+

@@ -40,8 +40,7 @@ from .optionshandler import OptionsListener
 
 from ..logger import LogManager
 
-from ..listener import StreamListener
-
+from ..unotool import createService
 from ..unotool import executeDispatch
 from ..unotool import getDesktop
 
@@ -62,25 +61,12 @@ class OptionsManager(unohelper.Base):
         self._view.initView(OptionsManager._restart, *self._model.getViewData())
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._logmanager.initView()
-        self._listener = StreamListener(self)
-        self._model.addStreamListener(self._listener)
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
 
     _restart = False
 
-    def started(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
-
-    def closed(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
-        self._view.updateDataBase(self._model.getDataBaseStatus())
-
-    def terminated(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
-
     def dispose(self):
         self._logmanager.dispose()
-        self._model.dispose(self._listener)
         self._view.dispose()
 
     def loadSetting(self):
@@ -102,13 +88,6 @@ class OptionsManager(unohelper.Base):
     def showIspdb(self):
         executeDispatch(self._ctx, 'emailer:ShowIspdb')
         self._view.updateDataBase(self._model.getDataBaseStatus())
-
-    def toogleSpooler(self, state):
-        if state:
-            command = 'emailer:StopSpooler'
-        else:
-            command = 'emailer:StartSpooler'
-        executeDispatch(self._ctx, command)
 
     def showSpooler(self):
         executeDispatch(self._ctx, 'emailer:ShowSpooler')

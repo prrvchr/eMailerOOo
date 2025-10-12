@@ -29,6 +29,8 @@
 
 import uno
 
+from com.sun.star.frame.DispatchResultState import FAILURE
+
 from .type import Worker
 
 from .sender import Sender
@@ -41,12 +43,12 @@ import traceback
 
 
 class Composer(Worker):
-    def __init__(self, ctx, cancel, progress, logger, sf, input, output=None, url=None):
+    def __init__(self, ctx, cancel, progress, logger, sf, input, output=None, result=None):
         super().__init__(cancel, progress, input, output)
         self._ctx = ctx
         self._logger = logger
         self._sf = sf
-        self._url = url
+        self._result = result
         self._transferable = Transferable(ctx, logger)
 
     def run(self):
@@ -58,8 +60,14 @@ class Composer(Worker):
             if mail.hasInvalidFields():
                 self._input.task_done()
                 self._taskDone()
-                print("Composer.run() MissingFields Title: %s - DataSource: %s - Fields: %s - Value: %s" % mail.getInvalidFields())
-                continue
+                msg = "MissingFields Title: %s - DataSource: %s - Fields: %s - Value: %s" % mail.getInvalidFields()
+                print("Composer.run() %s" % msg)
+                if self._result:
+                    self._result.State = FAILURE
+                    self._result.Result = msg
+                    break
+                else:
+                    continue
             if self.isCanceled():
                 self._input.task_done()
                 self._taskDone()
@@ -92,9 +100,9 @@ class Composer(Worker):
                         self._output.put(data)
                         sender.addTasks()
                         print("Composer.run() 6 sender.addTask: %s" % job)
-                    elif self._url:
+                    else:
                         print("Composer.run() 7 notify")
-                        stream = self._sf.openFileWrite(self._url)
+                        stream = self._sf.openFileWrite(self._result.Result)
                         stream.writeBytes(uno.ByteSequence(email.asBytes()))
                         stream.flush()
                         stream.closeOutput()

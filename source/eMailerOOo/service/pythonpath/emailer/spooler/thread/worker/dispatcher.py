@@ -60,7 +60,7 @@ class Dispatcher(Master):
         self._export = PdfExport(ctx)
         self._output = Queue()
         self._queue = None
-        self._url = None
+        self._result = None
         self._datasources = {}
         self._wait = 1.0
 
@@ -162,7 +162,7 @@ class Dispatcher(Master):
 
     def _getComposer(self):
         return Composer(self._ctx, self._cancel, self._progress,
-                        self._logger, self._sf, self._output, self._queue, self._url)
+                        self._logger, self._sf, self._output, self._queue, self._result)
 
     def _getMerger(self, mail):
         return Merger(self._ctx, self._cancel, self._progress, mail, self._export, self._output)

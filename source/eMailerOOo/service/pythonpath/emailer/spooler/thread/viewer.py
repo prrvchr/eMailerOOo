@@ -92,7 +92,7 @@ class Viewer(Master):
                 print("Viewer.run() has invalid fields")
                 self._setProgressText("Viewer file: %s as error" % document.Name)
                 self._setProgressValue(-10)
-                msg = "Document: %s - DataSource: %s -Field: %s - Value: %" % document.getInvalidFields()
+                msg = "Document: %s - DataSource: %s -Field: %s - Value: %s" % document.getInvalidFields()
                 status, result.Second = FAILURE, msg
             else:
                 self._setProgressText("Notifying viewing file: %s" % document.Name)

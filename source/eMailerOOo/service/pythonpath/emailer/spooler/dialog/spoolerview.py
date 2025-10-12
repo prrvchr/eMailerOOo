@@ -65,8 +65,8 @@ class SpoolerView(unohelper.Base):
     def getDialogPosition(self):
         return getTopWindowPosition(self._frame.getContainerWindow())
 
-    def getParent(self):
-        return self._dialog.getPeer()
+    def getWindow(self):
+        return self._dialog
 
     def getGridWindow(self):
         return self._getGridWindow()

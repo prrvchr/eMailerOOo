@@ -43,14 +43,14 @@ import traceback
 
 
 class Mailer(Dispatcher):
-    def __init__(self, ctx, cancel, progress, logger, jobs, notify, source):
+    def __init__(self, ctx, cancel, progress, logger, jobs, notifier, source):
         super().__init__(ctx, cancel, progress, logger)
         self._cls = 'Mailer'
         self._jobs = jobs
-        self._notify = notify
-        self._source = source
+        self._notifier = notifier
         folder = getTempFile(self._ctx).Uri
-        self._url = '%s/Email.eml' % folder
+        struct = 'com.sun.star.frame.DispatchResultEvent'
+        self._result = uno.createUnoStruct(struct, source, SUCCESS, '%s/Email.eml' % folder)
         self._res = 1070
         self.start()
 
@@ -68,7 +68,5 @@ class Mailer(Dispatcher):
 
     def _notifyClosed(self, value=100):
         super()._notifyClosed(value)
-        struct = 'com.sun.star.frame.DispatchResultEvent'
-        notification = uno.createUnoStruct(struct, self._source, SUCCESS, self._url)
-        self._notify.dispatchFinished(notification)
+        self._notifier.dispatchFinished(self._result)
 

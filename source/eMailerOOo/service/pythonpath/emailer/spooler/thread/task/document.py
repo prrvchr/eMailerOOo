@@ -54,7 +54,6 @@ class Document(Job):
             self._exists = False
             self._job = None
             export = None
-        self._result = result
         self._export = export
         self._rows = {0: (0,)}
         self._fields = None
@@ -88,8 +87,11 @@ class Document(Job):
         print("Document.close() 1 ")
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
         # XXX: it is imperative to close / dispose all these references.
-        if self._result:
-            self._result.close()
+        if self._job:
+            result = self._job.getPropertyValue('ResultSet')
+            if result:
+                result.close()
+            self._job.dispose()
         print("Document.close() 2")
 
     def getUrl(self, job):

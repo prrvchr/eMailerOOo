@@ -93,7 +93,8 @@ class SpoolerModel(unohelper.Base):
         self._resources = {'Title':       'SpoolerDialog.Title',
                            'State':       'SpoolerDialog.Label2.Label.%s',
                            'TabTitle':    'SpoolerTab%s.Title',
-                           'GridColumns': 'SpoolerTab1.Grid1.Column.%s'}
+                           'GridColumns': 'SpoolerTab1.Grid1.Column.%s',
+                           'MsgBoxTitle': 'SpoolerMsgBox.Title'}
 
     @property
     def _dataSource(self):
@@ -237,6 +238,10 @@ class SpoolerModel(unohelper.Base):
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
         self._spooler.removeJobs(jobs)
+
+    def getMsgBoxTitle(self):
+        resource = self._resources.get('MsgBoxTitle')
+        return self._resolver.resolveString(resource)
 
 # SpoolerModel private getter methods
     def _getRowsJobs(self, rows):

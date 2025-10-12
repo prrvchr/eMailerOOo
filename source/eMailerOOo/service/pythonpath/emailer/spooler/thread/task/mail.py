@@ -141,9 +141,10 @@ class Mail(Batch):
         if self._rowset:
             self._rowset.close()
         if self._job:
-            connection = self._job.getPropertyValue('Connection')
+            connection = self._job.getPropertyValue('ActiveConnection')
             if connection:
                 connection.close()
+            self._job.dispose()
         print("Mail.close() 2")
 
     def getRecipient(self, job):

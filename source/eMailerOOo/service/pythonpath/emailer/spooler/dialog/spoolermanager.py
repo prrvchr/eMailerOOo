@@ -30,6 +30,7 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
 from com.sun.star.awt import XCallback
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
@@ -58,6 +59,7 @@ from ...listener import StreamListener
 
 from ...helper import getMailSender
 
+from ...unotool import createMessageBox
 from ...unotool import executeDesktopDispatch
 from ...unotool import executeFrameDispatch
 from ...unotool import executeShell
@@ -125,6 +127,13 @@ class SpoolerManager(unohelper.Base,
                 self._view.close()
         elif notification.State == SUCCESS:
             executeShell(self._ctx, notification.Result)
+            self._enableButtonView(self._model.hasGridSelectedRows())
+        else:
+            parent = self._view.getWindow().Peer
+            title = self._model.getMsgBoxTitle()
+            dialog = createMessageBox(parent, WARNINGBOX, 1, title, notification.Result)
+            dialog.execute()
+            dialog.dispose()
             self._enableButtonView(self._model.hasGridSelectedRows())
 
 # XCloseListener

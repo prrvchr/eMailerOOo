@@ -27,24 +27,25 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
+from ...unotool import getContainerWindow
+
+from ...configuration import g_identifier
 
 import traceback
 
 
 class OptionsView():
-    def __init__(self, window, offset, restart, url, instrumented, timeout, view, enabled):
-        self._window = window
+    def __init__(self, ctx, window, handler, timeout, view, enabled):
+        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._window.setVisible(True)
         self._getTimeout().Value = timeout
         self._getDatasource().Model.Enabled = enabled
         self._setViewName(view, not enabled)
-        control = self._getWarning()
-        control.URL = url
-        control.Model.PositionY += offset
-        self._getRestart().Model.PositionY += offset
-        self.setWarning(restart, instrumented)
 
 # OptionsView getter methods
+    def getWindow(self):
+        return self._window
+
     def getViewData(self):
         return int(self._getTimeout().Value), self._getViewName().Text
 
@@ -54,14 +55,6 @@ class OptionsView():
 
     def setViewName(self, view):
         self._getViewName().Text = view
-
-    def setWarning(self, restart, instrumented):
-        if restart:
-            self._getWarning().setVisible(False)
-            self._getRestart().setVisible(True)
-        else:
-            self._getRestart().setVisible(False)
-            self._getWarning().setVisible(not instrumented)
 
 # OptionsView private setter methods
     def _setViewName(self, view, disabled):
@@ -82,10 +75,4 @@ class OptionsView():
 
     def _getViewName(self):
         return self._window.getControl('TextField1')
-
-    def _getRestart(self):
-        return self._window.getControl('Label4')
-
-    def _getWarning(self):
-        return self._window.getControl('Hyperlink1')
 

@@ -27,73 +27,56 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging.LogLevel import INFO
+from .optionsmodel import OptionsModel
 
-from ..unotool import getConfiguration
+from .optionsview import OptionsWindow
 
-from ..logger import getLogger
+from .optionshandler import WindowHandler
 
-from ..jdbcdriver import g_services
-
-from ..configuration import g_identifier
-from ..configuration import g_basename
+from ...logger import LogManager
 
 import traceback
 
 
-class OptionModel():
-    def __init__(self, ctx, instrumented):
-        self._rebootkeys = ('ApiLevel', 'CachedRowSet')
-        configkeys = ('ShowSystemTable', )
-        self._keys = self._rebootkeys + configkeys
-        self._config = getConfiguration(ctx, g_identifier, True)
-        self._settings = self._getSettings()
-        self._instrumented = instrumented
+class OptionsManager():
+    def __init__(self, ctx, window, instrumented, options, logger, *loggers):
+        self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
+        self._model = OptionsModel(ctx, instrumented)
+        self._view = OptionsWindow(ctx, window, WindowHandler(self), options)
 
-# OptionModel getter methods
-    def isInstrumented(self):
-        return self._instrumented
+# OptionManager setter methods
+    def initView(self):
+        self._logmanager.initView()
+        self._initView()
 
+    def dispose(self):
+        self._logmanager.dispose()
+        self._view.dispose()
+
+# OptionManager getter methods
     def getConfigApiLevel(self):
-        return self._config.getByName('ApiLevel')
+        return self._model.getConfigApiLevel()
 
-    def getViewData(self):
-        self._settings = self._getSettings()
-        level = self._settings.get('ApiLevel')
-        crs = self._settings.get('CachedRowSet')
-        system = self._settings.get('ShowSystemTable')
-        return level, crs, system, self._isRowSetEnabled(level)
+# OptionManager setter methods
+    def saveSetting(self):
+        saved = self._logmanager.saveSetting()
+        saved |= self._model.saveSetting()
+        return saved
 
-# OptionModel setter methods
+    def loadSetting(self):
+        self._logmanager.loadSetting()
+        self._initView()
+
     def setApiLevel(self, level):
-        self._settings['ApiLevel'] = level
-        return self._instrumented and self._isRowSetEnabled(level)
+        self._view.enableCachedRowSet(self._model.setApiLevel(level))
 
     def setCachedRowSet(self, level):
-        self._settings['CachedRowSet'] = level
+        self._model.setCachedRowSet(level)
 
     def setSystemTable(self, state):
-        self._settings['ShowSystemTable'] = bool(state)
+        self._model.setSystemTable(state)
 
-    def saveSetting(self):
-        reboot = False
-        for key in self._keys:
-            if key != 'CachedRowSet' or self._instrumented:
-                value = self._settings.get(key)
-                if value != self._config.getByName(key):
-                    self._config.replaceByName(key, value)
-                    if key in self._rebootkeys:
-                        reboot = True
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
-        return reboot
+# OptionManager private methods
+    def _initView(self):
+        self._view.initView(*self._model.getViewData())
 
-# OptionModel private methods
-    def _getSettings(self):
-        settings = {}
-        for key in self._keys:
-            settings[key] = self._config.getByName(key)
-        return settings
-
-    def _isRowSetEnabled(self, level):
-        return level != 0

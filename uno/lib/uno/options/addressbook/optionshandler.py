@@ -27,47 +27,29 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .optionsmodel import OptionsModel
-from .optionsview import OptionsView
-from .optionshandler import OptionsListener
+import unohelper
 
-from .options import OptionsManager as Manager
-
-from ..configuration import g_defaultlog
+from com.sun.star.awt import XContainerWindowEventHandler
 
 import traceback
 
 
-class OptionsManager():
-    def __init__(self, ctx, logger, window, options, url=None):
-        self._model = OptionsModel(ctx, logger, url)
-        link, instrumented = self._model.getDriverInfo()
-        self._manager = Manager(ctx, window, instrumented, options, g_defaultlog)
-        self._view = OptionsView(window, OptionsManager._restart, link, instrumented)
-        window.addEventListener(OptionsListener(self))
-        self._manager.initView()
-        self._initView()
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
 
-    _restart = False
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
+        try:
+            handled = False
+            if method == 'ViewData':
+                self._manager.viewData()
+                handled = True
+            return handled
+        except Exception as e:
+            print("ERROR: %s - %s" % (e, traceback.format_exc()))
 
-    def dispose(self):
-        self._manager.dispose()
+    def getSupportedMethodNames(self):
+        return ('ViewData', )
 
-# OptionsManager setter methods
-    def saveSetting(self):
-        if self._manager.saveSetting():
-            OptionsManager._restart = True
-            self._view.setWarning(True, self._model.isInstrumented())
-
-    def loadSetting(self):
-        self._manager.loadSetting()
-        self._initView()
-
-# OptionsManager private getter methods
-    def _getConfigApiLevel(self):
-        return self._manager.getConfigApiLevel()
-
-# OptionsManager private setter methods
-    def _initView(self):
-        version = self._model.getDriverVersion(self._getConfigApiLevel())
-        self._view.setDriverVersion(version)

@@ -27,47 +27,43 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .optionsmodel import OptionsModel
-from .optionsview import OptionsView
-from .optionshandler import OptionsListener
+from ...unotool import getContainerWindow
 
-from .options import OptionsManager as Manager
-
-from ..configuration import g_defaultlog
+from ...configuration import g_identifier
 
 import traceback
 
 
-class OptionsManager():
-    def __init__(self, ctx, logger, window, options, url=None):
-        self._model = OptionsModel(ctx, logger, url)
-        link, instrumented = self._model.getDriverInfo()
-        self._manager = Manager(ctx, window, instrumented, options, g_defaultlog)
-        self._view = OptionsView(window, OptionsManager._restart, link, instrumented)
-        window.addEventListener(OptionsListener(self))
-        self._manager.initView()
-        self._initView()
+class OptionsWindow():
+    def __init__(self, ctx, window, handler, options):
+        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._window.setVisible(True)
+        self.enableCachedRowSet(False, options)
 
-    _restart = False
-
+# OptionWindow setter methods
     def dispose(self):
-        self._manager.dispose()
+        self._window.dispose()
 
-# OptionsManager setter methods
-    def saveSetting(self):
-        if self._manager.saveSetting():
-            OptionsManager._restart = True
-            self._view.setWarning(True, self._model.isInstrumented())
+    def initView(self, instrumented, level, crs, system, enabled):
+        self._getApiLevel(level).State = 1
+        if instrumented:
+            self._getCachedRowSet(crs).State = 1
+        else:
+            self._getCachedRowSet(0).State = 1
+        self.enableCachedRowSet(instrumented and enabled)
+        self._getSytemTable().State = int(system)
 
-    def loadSetting(self):
-        self._manager.loadSetting()
-        self._initView()
+    def enableCachedRowSet(self, enabled, options=(0, 1, 2)):
+        for index in options:
+            self._getCachedRowSet(index).Model.Enabled = enabled
 
-# OptionsManager private getter methods
-    def _getConfigApiLevel(self):
-        return self._manager.getConfigApiLevel()
+# OptionWindow private control methods
+    def _getApiLevel(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 1))
 
-# OptionsManager private setter methods
-    def _initView(self):
-        version = self._model.getDriverVersion(self._getConfigApiLevel())
-        self._view.setDriverVersion(version)
+    def _getCachedRowSet(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 4))
+
+    def _getSytemTable(self):
+        return self._window.getControl('CheckBox1')
+

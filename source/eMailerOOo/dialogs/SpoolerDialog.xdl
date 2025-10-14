@@ -24,6 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="SpoolerDialog" dlg:page="1" dlg:left="0" dlg:top="0" dlg:width="400" dlg:height="200" dlg:help-text="&amp;SpoolerDialog.HelpText" dlg:closeable="false" dlg:moveable="true" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
@@ -42,3 +43,4 @@
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
+

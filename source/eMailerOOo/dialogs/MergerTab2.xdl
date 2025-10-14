@@ -24,6 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MergerTab2" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="180" dlg:help-text="&amp;MergerTab2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MergerTab2.Title" dlg:withtitlebar="false">
   <dlg:bulletinboard>
     <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="5" dlg:width="145" dlg:height="15" dlg:help-text="&amp;MergerTab2.Label1.HelpText" dlg:value="&amp;MergerTab2.Label1.Label" dlg:valign="center"/>
@@ -38,3 +39,4 @@
     </dlg:titledbox>
   </dlg:bulletinboard>
 </dlg:window>
+

@@ -24,10 +24,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<oor:component-data oor:name="ProtocolHandler" oor:package="org.openoffice.Office"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
+<oor:component-data
+  xmlns:install="http://openoffice.org/2004/installation"
   xmlns:oor="http://openoffice.org/2001/registry"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office"
+  oor:name="ProtocolHandler">
   <node oor:name="HandlerSet">
     <node oor:name="io.github.prrvchr.eMailerOOo.Dispatcher" oor:op="replace">
       <prop oor:name="Protocols">
@@ -36,3 +39,4 @@
     </node>
   </node>
 </oor:component-data>
+

@@ -24,11 +24,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<oor:component-schema oor:name="eMailerOOo" oor:package="io.github.prrvchr"
-  xml:lang="en-US"
+<!DOCTYPE oor:component-schema SYSTEM "component-schema.dtd">
+<oor:component-schema
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  oor:package="io.github.prrvchr"
+  oor:name="eMailerOOo"
+  xml:lang="en-US">
   <templates>
     <group oor:name="ServerSet">
       <prop oor:name="ServerName" oor:type="xs:string"/>
@@ -110,3 +112,4 @@
     <set oor:name="Applications" oor:node-type="ApplicationSet"/>
   </component>
 </oor:component-schema>
+

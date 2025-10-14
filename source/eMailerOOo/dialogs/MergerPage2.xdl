@@ -24,4 +24,6 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MergerPage2" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MergerPage2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MergerPage2.Title" dlg:withtitlebar="false"/>
+

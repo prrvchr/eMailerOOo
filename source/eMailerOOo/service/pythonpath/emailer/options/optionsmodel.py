@@ -29,9 +29,12 @@
 
 import unohelper
 
+from ..jdbcdriver import isInstrumented
+
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
+from ..unotool import getStringResource
 
 from ..dbconfig  import g_folder
 
@@ -49,14 +52,20 @@ class OptionsModel():
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
+        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
+        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
 
     @property
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
 
+    def isInstrumented(self):
+        return self._instrumented
+
     def getViewData(self):
         exist = self.getDataBaseStatus()
-        return exist, self._Timeout
+        return self._link, self._instrumented, exist, self._Timeout
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:

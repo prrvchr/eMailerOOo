@@ -46,5 +46,6 @@
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSpooler" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:left="10" dlg:top="185" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false"/>
+    <dlg:linklabel dlg:style-id="0" dlg:id="Hyperlink1" dlg:tab-index="11" dlg:left="10" dlg:top="185" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Hyperlink1.HelpText" dlg:value="&amp;OptionsDialog.Hyperlink1.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

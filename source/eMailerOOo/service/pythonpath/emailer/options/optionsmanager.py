@@ -79,7 +79,7 @@ class OptionsManager(unohelper.Base):
         log = self._logmanager.saveSetting()
         if log:
             OptionsManager._restart = True
-            self._view.setRestart(OptionsManager._restart)
+            self._view.setWarning(True, self._model.isInstrumented())
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting', 171, option, log)
 
     def changeTimeout(self, timeout):

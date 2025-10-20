@@ -86,9 +86,7 @@ class MergerManager(MailManager,
             frame = findFrame(self._ctx, g_mergerframe)
             if frame:
                 frame.close(True)
-        elif call == 'Sender':
-            super()._dispatchFinished(call, state, value)
-        else:
+        elif call != 'Sender':
             self._model.endDispatch(call)
             if state == SUCCESS:
                 executeShell(self._ctx, value)
@@ -98,12 +96,12 @@ class MergerManager(MailManager,
                 dialog = createMessageBox(parent, WARNINGBOX, 1, title, value)
                 dialog.execute()
                 dialog.dispose()
-            if call == 'html':
-                self._view.enableViewHtml(True)
-            else:
-                enabled = self._view.hasSelectedPdfAttachment()
-                print("MergerManager._dispatchFinished() enabled: %s" % enabled)
-                self._view.enableViewPdf(enabled)
+            self._viewpdf = True
+            self._view.enableViewHtml(True)
+            self._view.enableViewPdf(self._view.hasSelectedPdfAttachment())
+        elif state == SUCCESS:
+            self._view.addSender(value)
+            self._updateUI()
 
 # XComponent
     def dispose(self):

@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
@@ -23,7 +25,35 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage3" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage3.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage3.Title" dlg:withtitlebar="false"/>
+"""
+
+from .type import Worker
+
+import traceback
+
+
+class Executor(Worker):
+    def __init__(self, logger, resource, cancel, progress, input, output=None):
+        super().__init__(cancel, progress, input, output)
+        self._logger = logger
+        self._resource = resource
+
+    def run(self):
+        task = self._input
+        if task.Merge:
+            msg = self._logger.resolveString(self._resource + 11, task.Name, task.JobCount)
+        else:
+            msg = self._logger.resolveString(self._resource + 12, task.Name, task.JobCount)
+        self._setProgress(msg, -10)
+        task.execute(self._cancel)
+        if task.Merge:
+            msg = self._logger.resolveString(self._resource + 13, task.Name)
+        else:
+            msg = self._logger.resolveString(self._resource + 14, task.Name)
+        self._setProgress(msg, -10)
+
+        if self._output:
+            msg = self._logger.resolveString(self._resource + 15)
+            self._setProgress(msg, -10)
+            self._output.put(task)
 

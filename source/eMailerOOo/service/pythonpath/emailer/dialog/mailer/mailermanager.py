@@ -49,6 +49,12 @@ class MailerManager(MailManager):
         self._view.setSenders(self._model.getSenders())
         self._model.loadDocument(url, self)
 
+# XDispatchResultListener
+    def _dispatchFinished(self, call, state, value):
+        if call == 'Sender' and state == SUCCESS:
+            self._view.addSender(value)
+            self._updateUI()
+
 # MailerManager setter methods
     def addRecipient(self):
         email = self._view.getRecipient()

@@ -27,8 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
 from com.sun.star.mail.MailServiceType import IMAP
 from com.sun.star.mail.MailServiceType import SMTP
+
+from com.sun.star.uno import Exception as UnoException
 
 from .type import Manager
 
@@ -51,25 +56,31 @@ import traceback
 
 
 class Sender(Manager):
-    def __init__(self, ctx, cancel, progress, logger, input):
+    def __init__(self, ctx, logger, resource, cancel, progress, input):
         super().__init__(cancel, progress, input)
         self._ctx = ctx
+        self._cls = 'Sender'
         self._logger = logger
+        self._resource = resource
         self._transferable = Transferable(ctx, self._logger)
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
 
     def run(self):
+        mtd = 'run'
         spooler = getMailSpooler(self._ctx)
         server = user = batchid = threadid = None
+        total = 0
         while self._hasTasks():
-            print("Sender.run() 1 waiting for input")
-            tasks = self._input.get()
+            job, mail, email = self._input.get()
             if self.isCanceled():
+                msg = self._logger.resolveString(self._resource + 31)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
                 break
-            job, mail, email = tasks
-            self._setProgressValue(-10)
-            self._setProgressText("Sender.run() 2 email to: %s" % email.SenderAddress)
+            recipient = mail.getRecipient(job)
+            msg = self._logger.resolveString(self._resource + 32, job, recipient)
+            self._logger.logp(INFO, self._cls, mtd, msg)
+            self._setProgress(msg, -10)
             if mail.BatchId != batchid:
                 user = getMailUser(self._ctx, mail.Sender)
                 if user is None:
@@ -77,8 +88,9 @@ class Sender(Manager):
                     spooler.setJobState(job, 2)
                     self._input.task_done()
                     self._taskDone()
-                    # TODO: IspDB Wizard has been canceled we need to log some info
-                    continue
+                    msg = self._logger.resolveString(self._resource + 33, mail.Sender)
+                    self._logger.logp(SEVERE, self._cls, mtd, msg)
+                    break
                 batchid = mail.BatchId
                 if server:
                     server.disconnect()
@@ -91,22 +103,30 @@ class Sender(Manager):
                 email.ThreadId = threadid
             if user.useReplyTo():
                 email.ReplyToAddress = user.getReplyToAddress()
-            self._setProgressValue(-10)
-            server.sendMailMessage(email)
-            spooler.updateJob(mail.BatchId, job, mail.getRecipient(job),
-                              email.ThreadId, email.MessageId, email.ForeignId, 1)
-            self._setProgressValue(-10)
+            try:
+                server.sendMailMessage(email)
+            except UnoException as e:
+                spooler.setJobState(job, 2)
+                msg = self._logger.resolveString(self._resource + 34, e.Message, job, recipient)
+                level = SEVERE
+            else:
+                spooler.updateJob(mail.BatchId, job, recipient, email.ThreadId, email.MessageId, email.ForeignId, 1)
+                msg = self._logger.resolveString(self._resource + 35, job, recipient)
+                level = INFO
+            self._logger.logp(level, self._cls, mtd, msg)
+            self._setProgress(msg, -20)
             self._input.task_done()
             self._taskDone()
+            total += 1
             if self.isCanceled():
+                msg = self._logger.resolveString(self._resource + 31)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
                 break
         if server:
             server.disconnect()
         spooler.dispose()
-        if self.isCanceled():
-            print("Sender.run() aborted thread end")
-        else:
-            print("Sender.run() normal thread end")
+        msg = self._logger.resolveString(self._resource + 36, total)
+        self._logger.logp(INFO, self._cls, mtd, msg)
 
     def _createThread(self, user, mail):
         threadid = None

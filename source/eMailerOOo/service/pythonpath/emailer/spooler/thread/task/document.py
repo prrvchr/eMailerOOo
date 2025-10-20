@@ -43,18 +43,17 @@ import traceback
 class Document(Job):
     def __init__(self, ctx, cancel, sf, connection, result, datasource, table, url, merge, filter, selection):
         super().__init__(sf, url, getTempFile(ctx).Uri, merge, filter)
-        if sf.exists(url):
-            self._exists = True
+        self._ctx = ctx
+        self._exists = sf.exists(url)
+        if self._exists:
             if filter == 'pdf':
                 export = PdfExport(ctx)
             else:
                 export = None
+            self._export = export
             self._job = getJob(ctx, connection, datasource, table, result, export, selection)
         else:
-            self._exists = False
-            self._job = None
-            export = None
-        self._export = export
+            self._export = self._job = None
         self._rows = {0: (0,)}
         self._fields = None
 
@@ -74,13 +73,13 @@ class Document(Job):
     def getJob(self):
         return self._job
 
-    def execute(self, cancel, progress):
+    def execute(self, cancel):
         if not cancel.isSet():
             if self._job:
                 print("Document.execute() 1")
                 self._fields = executeMerge(self._job, self)
                 print("Document.execute() 2")
-            else:
+            elif self._filter:
                 executeExport(self._ctx, self, self._export)
 
     def close(self):

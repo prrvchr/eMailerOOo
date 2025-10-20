@@ -125,16 +125,17 @@ class SpoolerManager(unohelper.Base,
             if not self._model.hasDispatch():
                 self._close()
                 self._view.close()
-        elif notification.State == SUCCESS:
-            executeShell(self._ctx, notification.Result)
-            self._enableButtonView(self._model.hasGridSelectedRows())
         else:
-            parent = self._view.getWindow().Peer
-            title = self._model.getMsgBoxTitle()
-            dialog = createMessageBox(parent, WARNINGBOX, 1, title, notification.Result)
-            dialog.execute()
-            dialog.dispose()
-            self._enableButtonView(self._model.hasGridSelectedRows())
+            if notification.State == SUCCESS:
+                executeShell(self._ctx, notification.Result)
+            else:
+                parent = self._view.getWindow().Peer
+                title = self._model.getMsgBoxTitle()
+                dialog = createMessageBox(parent, WARNINGBOX, 1, title, notification.Result)
+                dialog.execute()
+                dialog.dispose()
+            self._enableButtons(self._model.hasGridSelectedRows())
+            self._view.enableStartSpooler(True)
 
 # XCloseListener
     def queryClosing(self, source, ownership):
@@ -142,7 +143,7 @@ class SpoolerManager(unohelper.Base,
             if self._closing:
                 raise CloseVetoException()
             self._closing = True
-            self._view.disableButtons(True)
+            self._view.disableButtons()
             if self._model.hasDispatch():
                 if self._model.isSenderStarted():
                     self._sender.terminate()
@@ -159,9 +160,12 @@ class SpoolerManager(unohelper.Base,
 
     def closed(self):
         self._refreshSpoolerView(1)
-        if self._closing and not self._model.hasDispatch():
-            self._close()
-            self._view.close()
+        if self._closing:
+            if not self._model.hasDispatch():
+                self._close()
+                self._view.close()
+        else:
+            self._enableButtons(self._model.hasGridSelectedRows())
 
     def terminated(self):
         self._refreshSpoolerView(0)
@@ -185,9 +189,10 @@ class SpoolerManager(unohelper.Base,
 
     def changeGridSelection(self, index, grid):
         selected = index != -1
-        sent = link = False
         if selected:
             sent, link = self._model.getRowClientInfo()
+        else:
+            sent = link = False
         self._view.enableButtons(selected, sent, link)
 
     def saveGrid(self):
@@ -198,14 +203,17 @@ class SpoolerManager(unohelper.Base,
 
     def viewEml(self):
         self._view.disableButtons()
+        self._view.enableStartSpooler(False)
         self._model.startDispatch(DispatchListener(self))
 
     def viewClient(self):
         self._view.disableButtons()
+        self._view.enableStartSpooler(False)
         self._viewClient(**self._model.getCommandArguments())
 
     def viewWeb(self):
         self._view.disableButtons()
+        self._view.enableStartSpooler(False)
         sender = self._model.getSelectedColumn('Sender')
         self._viewWeb(sender, **self._model.getCommandArguments())
 
@@ -226,11 +234,14 @@ class SpoolerManager(unohelper.Base,
     def _executeCommand(self, command, option):
         if command:
             executeShell(self._ctx, command, option)
-        self._enableButtonView(self._model.hasGridSelectedRows())
+        self._enableButtons(self._model.hasGridSelectedRows())
+        self._view.enableStartSpooler(True)
 
-    def _enableButtonView(self, selected):
+    def _enableButtons(self, selected):
         if selected:
             sent, link = self._model.getRowClientInfo()
+        else:
+            sent = link = False
         self._view.enableButtons(selected, sent, link)
 
     def removeDocument(self):
@@ -240,6 +251,7 @@ class SpoolerManager(unohelper.Base,
 
     def toogleSpooler(self, state):
         if state:
+            self._view.disableButtons()
             self._sender.start()
         else:
             self._sender.terminate()
@@ -252,7 +264,7 @@ class SpoolerManager(unohelper.Base,
             self._log2.clearLogger()
 
     def closeSpooler(self):
-        self._view.disableButtons(True)
+        self._view.disableButtons()
         if not self._model.hasDispatch():
             self._close()
             self._view.close()

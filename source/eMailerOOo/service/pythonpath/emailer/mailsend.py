@@ -78,8 +78,9 @@ class MailSend(unohelper.Base,
         self._logger = getLogger(ctx, g_spoolerlog)
         self._listeners = []
         self._cancel = TaskEvent()
-        self._logger.logprb(INFO, self._cls, '__init__', 1011)
+        self._logger.logprb(INFO, self._cls, '__init__', 601)
         self._thread = None
+
 
     # com.sun.star.io.XActiveDataControl
     def addListener(self, listener):
@@ -99,7 +100,6 @@ class MailSend(unohelper.Base,
 
     def start(self):
         with self._lock:
-            print("MailSender.start() 1")
             if self._hasNoThread():
                 progress = StatusIndicator(self._ctx, g_spoolerframe)
                 self._cancel.clear()
@@ -108,25 +108,19 @@ class MailSend(unohelper.Base,
 
     def terminate(self):
         with self._lock:
-            print("MailSender.terminate() 1")
             if self._hasThread():
                 self._notifyTerminated()
                 self._cancel.set()
             else:
                 self._notifyClosed()
-            print("MailSender.terminate() 2")
 
 
     # XComponent
     def dispose(self):
         try:
-            print("MailSender.dispose() 1")
             if self._hasThread():
-                #self._notifyTerminated()
                 self._cancel.set()
-                print("MailSender.dispose() 2")
                 self._thread.join()
-                print("MailSender.dispose() 3")
         except:
             print("MailSend.dispose() ERROR: %s" % traceback.format_exc())
 
@@ -146,6 +140,7 @@ class MailSend(unohelper.Base,
 
     def getSupportedServiceNames(self):
         return self._services
+
 
     # Private getter methods
     def _isCanceled(self):

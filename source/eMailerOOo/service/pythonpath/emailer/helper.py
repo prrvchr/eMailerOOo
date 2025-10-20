@@ -174,31 +174,10 @@ def getFilteredRowSet(rowset, filter):
     rowset.execute()
     return rowset
 
-def getResultSet(rowset, filter):
-    rowset.ApplyFilter = False
-    rowset.Filter = filter
-    rowset.ApplyFilter = True
-    rowset.execute()
-    return rowset.createResultSet()
-
-def getDataDescriptor(connection, result, datasource, table, row):
-    # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
-    # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
-    properties = {'ActiveConnection': connection,
-                  'DataSourceName': datasource,
-                  'Command': table,
-                  'CommandType': TABLE,
-                  'Cursor': result,
-                  'BookmarkSelection': False,
-                  'Selection': (row, )}
-    descriptor = getPropertyValueSet(properties)
-    return descriptor
-
 def parseUri(factory, url):
     uri = factory.parse(url)
     if uri.hasFragment():
         uri.clearFragment()
-    print("helper.getUrlMark() url: %s" % uri.getUriReference())
     return uri.getUriReference()
 
 def parseUriFragment(factory, url, ismerge=True):
@@ -212,7 +191,6 @@ def parseUriFragment(factory, url, ismerge=True):
         if fragment.endswith('pdf'):
             filter = 'pdf'
         uri.clearFragment()
-    print("helper.getUrlMark() url: %s" % uri.getUriReference())
     return uri.getUriReference(), merge, filter
 
 def mergeDocument(ctx, document, connection, result, datasource, table, row):
@@ -222,7 +200,7 @@ def mergeDocument(ctx, document, connection, result, datasource, table, row):
     elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
         url = '.uno:DataSourceBrowser/InsertColumns'
     if url:
-        descriptor = getDataDescriptor(connection, result, datasource, table, row)
+        descriptor = _getDataDescriptor(connection, result, datasource, table, row)
         frame = document.CurrentController.Frame
         executeFrameDispatch(ctx, frame, url, None, *descriptor)
 
@@ -355,7 +333,6 @@ def getJob(ctx, connection, datasource, table, result, export, selection=None):
     if export:
         any = uno.Any('[]com.sun.star.beans.PropertyValue', export.getDescriptor())
         uno.invoke(job, 'setPropertyValue', ('SaveFilterData', any))
-    print("helper.getJob() 1")
     return job
 
 def executeMerge(job, task):
@@ -363,9 +340,7 @@ def executeMerge(job, task):
     fields = _getInvalidFields(job)
     if fields is None:
         job.getPropertyValue('ResultSet').beforeFirst()
-        print("helper.executeMerge() 1")
         job.execute(_getDescriptor(task))
-        print("helper.executeMerge() 2")
     return fields
 
 def executeExport(ctx, task, export):
@@ -421,7 +396,7 @@ def _getMissingFields(field, title, datasource, table, columns):
     elif _checkProperties(field, properties, 'DataColumnName', columns):
         name = 'DataColumnName'
     if name:
-        fields = (title, datasource, name, field.getPropertyValue(name))
+        fields = (title, field.getPropertyValue(name), name, datasource)
     return fields
 
 def _checkProperty(field, properties, name, value):
@@ -443,4 +418,17 @@ def _getDescriptor(task):
     task.Url = task.Folder + '/' + name + '%s' + suffix
     task.Name = name + suffix
     return getNamedValueSet(descriptor)
+
+def _getDataDescriptor(connection, result, datasource, table, row):
+    # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
+    # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
+    properties = {'ActiveConnection': connection,
+                  'DataSourceName': datasource,
+                  'Command': table,
+                  'CommandType': TABLE,
+                  'Cursor': result,
+                  'BookmarkSelection': False,
+                  'Selection': (row, )}
+    descriptor = getPropertyValueSet(properties)
+    return descriptor
 

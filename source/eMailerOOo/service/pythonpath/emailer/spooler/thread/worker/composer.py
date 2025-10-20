@@ -31,6 +31,11 @@ import uno
 
 from com.sun.star.frame.DispatchResultState import FAILURE
 
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.uno import Exception as UnoException
+
 from .type import Worker
 
 from .sender import Sender
@@ -43,26 +48,29 @@ import traceback
 
 
 class Composer(Worker):
-    def __init__(self, ctx, cancel, progress, logger, sf, input, output=None, result=None):
+    def __init__(self, ctx, cls, logger, resource, cancel, progress, sf, input, output=None, result=None):
         super().__init__(cancel, progress, input, output)
         self._ctx = ctx
+        self._cls = cls
         self._logger = logger
+        self._resource = resource
         self._sf = sf
         self._result = result
         self._transferable = Transferable(ctx, logger)
 
     def run(self):
+        mtd = 'run'
         sender = self._getSender()
         while self._hasTasks():
-            print("Composer.run() 1 waiting for input")
             mail = self._input.get()
             mail.close()
             if mail.hasInvalidFields():
                 self._input.task_done()
                 self._taskDone()
-                msg = "MissingFields Title: %s - DataSource: %s - Fields: %s - Value: %s" % mail.getInvalidFields()
-                print("Composer.run() %s" % msg)
+                msg = self._logger.resolveString(self._resource + 21, *mail.getInvalidFields())
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
                 if self._result:
+                    msg = self._logger.resolveString(self._resource + 22, mail.Url)
                     self._result.State = FAILURE
                     self._result.Result = msg
                     break
@@ -73,35 +81,32 @@ class Composer(Worker):
                 self._taskDone()
                 continue
             self._setProgressValue(-10)
-            # We are sure that a task has at least one entry
-            print("Composer.run() 2 process mail batchid: %s" % mail.BatchId)
             for job in mail.Jobs:
-                print("Composer.run() 3 process mail jobid: %s" % job)
                 if self.isCanceled():
                     continue
                 self._setProgressValue(-10)
                 recipient = mail.getRecipient(job)
                 subject = mail.getSubject(job)
                 url = mail.getUrl(job)
-                print("Composer.run() 4 job: %s - url: %s" % (job, url))
-                body = self._transferable.getByUrl(url)
-                email = getMailMessage(self._ctx, mail.Sender, recipient, subject, body)
-                if email:
+                try:
+                    body = self._transferable.getByUrl(url)
+                    email = getMailMessage(self._ctx, mail.Sender, recipient, subject, body)
                     for task in mail.Attachments:
                         # XXX: the following tasks are the attachments if they exist
                         attachment = uno.createUnoStruct('com.sun.star.mail.MailAttachment')
                         url = task.getUrl(job)
-                        print("Composer.run() 5 job: %s - url: %s" % (job, url))
                         attachment.Data = self._transferable.getByUrl(url)
                         attachment.ReadableName = task.Name
                         email.addAttachment(attachment)
+                except UnoException as e:
+                    msg = self._logger.resolveString(self._resource + 23, e.Message, job, recipient)
+                    self._logger.logp(SEVERE, self._cls, mtd, msg)
+                else:
                     if sender:
                         data = job, mail, email
                         self._output.put(data)
                         sender.addTasks()
-                        print("Composer.run() 6 sender.addTask: %s" % job)
                     else:
-                        print("Composer.run() 7 notify")
                         stream = self._sf.openFileWrite(self._result.Result)
                         stream.writeBytes(uno.ByteSequence(email.asBytes()))
                         stream.flush()
@@ -109,20 +114,17 @@ class Composer(Worker):
                 self._setProgressValue(-10)
             self._input.task_done()
             self._taskDone()
-        
-        
+
         if self.isCanceled():
-            print("Composer.run() aborted thread end")
-        else:
-            if sender:
-                print("Composer.run() start Sender for %s tasks" % sender._tasks)
-                sender.start()
-                sender.join()
-            print("Composer.run() normal thread end")
+            msg = self._logger.resolveString(self._resource + 24)
+            self._logger.logp(SEVERE, self._cls, mtd, msg)
+        elif sender:
+            sender.start()
+            sender.join()
 
     def _getSender(self):
         sender = None
         if self._output:
-            sender = Sender(self._ctx, self._cancel, self._progress, self._logger, self._output)
+            sender = Sender(self._ctx, self._logger, self._resource, self._cancel, self._progress, self._output)
         return sender
 

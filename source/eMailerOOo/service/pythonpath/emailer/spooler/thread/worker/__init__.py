@@ -33,7 +33,7 @@ from .composer import Composer
 
 from .dispatcher import Dispatcher
 
-from .merger import Merger
+from .executor import Executor
 
 from .sender import Sender
 

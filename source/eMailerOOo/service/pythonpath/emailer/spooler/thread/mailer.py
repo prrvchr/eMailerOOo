@@ -51,7 +51,7 @@ class Mailer(Dispatcher):
         folder = getTempFile(self._ctx).Uri
         struct = 'com.sun.star.frame.DispatchResultEvent'
         self._result = uno.createUnoStruct(struct, source, SUCCESS, '%s/Email.eml' % folder)
-        self._res = 1070
+        self._resource = 800
         self.start()
 
     # Private getter methods

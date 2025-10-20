@@ -82,9 +82,7 @@ class MailManager(unohelper.Base,
         self._dispatchFinished(result.First, state, result.Second)
 
     def _dispatchFinished(self, call, state, value):
-        if call == 'Sender' and state == SUCCESS:
-            self._view.addSender(value)
-            self._updateUI()
+        raise NotImplementedError('Need to be implemented!')
 
 # MailManager setter methods
     def addRecipient(self):
@@ -122,6 +120,8 @@ class MailManager(unohelper.Base,
 
     def viewHtml(self):
         self._view.enableViewHtml(False)
+        self._view.enableViewPdf(False)
+        self._viewpdf = False
         selection = self._view.getSelectedRecipients()
         url = self._model.parseUri()
         options = self._getViewOptions('html')
@@ -129,6 +129,7 @@ class MailManager(unohelper.Base,
         self._model.viewDocument(selection, url, True, 'html', *options)
 
     def viewPdf(self):
+        self._view.enableViewHtml(False)
         self._view.enableViewPdf(False)
         self._viewpdf = False
         selection = self._view.getSelectedRecipients()
@@ -233,12 +234,10 @@ class MailManager(unohelper.Base,
         with self._lock:
             if call == 'init':
                 self._notifyInit(**kwargs)
-            elif call == 'html':
-                self._notifyView(**kwargs)
-                self._view.enableViewHtml(True)
-            elif call == 'pdf':
+            else:
                 self._notifyView(**kwargs)
                 self._viewpdf = True
+                self._view.enableViewHtml(True)
                 self._view.enableViewPdf(self._view.hasSelectedPdfAttachment())
 
     def _notifyInit(self, **kwargs):

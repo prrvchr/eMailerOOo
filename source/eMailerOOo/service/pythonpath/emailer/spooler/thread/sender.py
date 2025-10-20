@@ -52,7 +52,7 @@ class Sender(Dispatcher):
         self._cls = 'Sender'
         self._listeners = listeners
         self._queue = Queue()
-        self._res = 1050
+        self._resource = 700
         self._jobs = []
         self.start()
 

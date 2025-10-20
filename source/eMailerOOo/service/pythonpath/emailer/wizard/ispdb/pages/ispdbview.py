@@ -40,15 +40,12 @@ import traceback
 
 
 class IspdbView(unohelper.Base):
-    def __init__(self, ctx, handler, parent, pageid):
-        idl = 'IspdbPage%s' % pageid
-        self._dialog = getContainerWindow(ctx, parent, None, g_identifier, idl)
-        self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_identifier, 'IspdbPages')
-        self._window.setVisible(True)
+    def __init__(self, ctx, handler, parent):
+        self._window = getContainerWindow(ctx, parent, handler, g_identifier, 'IspdbPages')
 
 # IspdbView getter methods
     def getWindow(self):
-        return self._dialog
+        return self._window
 
     def getAuthentication(self):
         return self._getAuthentication().getSelectedItemPos()

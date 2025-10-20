@@ -34,29 +34,31 @@ import traceback
 
 
 class WatchDog(Main):
-    def __init__(self, parent):
+    def __init__(self, composer):
         super().__init__()
-        self._parent = parent
+        self._composer = composer
         self._jobs = []
         self._lock = Lock()
         self.start()
 
-    def startJob(self, merger, task):
+    def startExecutor(self, executor, task):
         started = False
-        if not self._parent.isCanceled():
+        if not self._composer.isCanceled():
             with self._lock:
-                if not self._parent.isCanceled():
+                if not self._composer.isCanceled():
                     job = task.getJob()
                     if job is not None:
                         self._jobs.append(job)
-                    merger.start()
+                    executor.start()
                     started = True
         return started
 
     def run(self):
-        if self._parent.wait():
+        # XXX: If the task is canceled then the watchdog
+        # XXX: is responsible for canceling the launched jobs
+        if self._composer.wait():
             with self._lock:
-                if self._parent.isAlive():
+                if self._composer.isAlive():
                     for job in self._jobs:
                         job.cancel()
 

@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.uno import Exception as UnoException
+
 from .batch import Batch
 
 from .attachment import Attachment
@@ -53,15 +55,16 @@ import traceback
 class Mail(Batch):
     def __init__(self, ctx, cancel, resolver, sf, uf, export, batch, filter='html'):
         super().__init__(sf, batch, batch.Document, getTempFile(ctx).Uri, batch.Merge, filter)
+        self._ctx = ctx
         folder, name = getLastNamedParts(batch.Document, '/')
         self._title = name
-        if sf.exists(batch.Document):
-            self._exists = True
-            self._job, self._datasource, self._rowset, self._rows = self._getJob(ctx, resolver, batch, export)
+        self._exists = sf.exists(batch.Document)
+        if self._exists:
+            self._job, self._ds, self._rs, self._rows, self._error = self._getJob(ctx, resolver, batch, export)
+            self._attachments, self._missings = self._parseAttachments(cancel, sf, uf, batch)
         else:
-            self._exists = False
-            self._job = self._datasource = self._rowset = self._rows = None
-        self._attachments, self._missings = self._parseAttachments(cancel, sf, uf, batch)
+            self._job = self._ds = self._rs = self._rows = self._error = None
+            self._attachments = self._missings = ()
         self._export = export
         self._fields = None
 
@@ -101,14 +104,20 @@ class Mail(Batch):
     def JobCount(self):
         return len(self._batch.Jobs)
 
+    def hasError(self):
+        return self.hasException() or self._hasMissingFile()
+
+    def hasException(self):
+        return self._error is not None
+
+    def getException(self):
+        return self._error
+
     def hasFile(self):
         return self._exists
 
-    def hasAttachments(self):
-        return len(self._missings) == 0
-
     def getMissingAttachments(self):
-        return ', '.join(self._missings)
+        return '>, <'.join(self._missings)
 
     def hasInvalidFields(self):
         return self._fields is not None
@@ -119,33 +128,29 @@ class Mail(Batch):
     def getJob(self):
         return self._job
 
-    def execute(self, cancel, progress):
+    def execute(self, cancel):
         if not cancel.isSet():
             if self._job:
-                print("Mail.execute() 1")
                 self._fields = executeMerge(self._job, self)
-                print("Mail.execute() 2")
-            else:
+            elif self._filter:
                 executeExport(self._ctx, self, self._export)
             if not self.hasInvalidFields() and not cancel.isSet():
-                self._fields = self._proccessAttachments(cancel, progress)
+                self._fields = self._proccessAttachments(cancel)
 
     def close(self):
-        print("Mail.close() 1 BatchId: %s" % self.BatchId)
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
         # XXX: it is imperative to close / dispose all these references.
         if self._job:
             result = self._job.getPropertyValue('ResultSet')
             if result:
                 result.close()
-        if self._rowset:
-            self._rowset.close()
+        if self._rs:
+            self._rs.close()
         if self._job:
             connection = self._job.getPropertyValue('ActiveConnection')
             if connection:
                 connection.close()
             self._job.dispose()
-        print("Mail.close() 2")
 
     def getRecipient(self, job):
         if self._merge:
@@ -163,26 +168,31 @@ class Mail(Batch):
         return subject
 
     def getDataSource(self):
-        return self._datasource
+        return self._ds
 
     def hasDataSource(self):
-        return self._datasource is not None
+        return self._ds is not None
 
 # Private methods
+    def _hasMissingFile(self):
+        return not self._exists or len(self._missings)
+
     def _getJob(self, ctx, resolver, batch, export):
         rows = {}
-        job = datasource = rowset = None
+        job = ds = rs = error = None
         if batch.Merge:
-            datasource = getDataSource(ctx, batch.DataSource, resolver, 1531)
-            if datasource:
-                connection = getConnection(ctx, datasource)
-                if connection:
-                    rs = getRowSet(ctx, connection, batch.DataSource, batch.Table)
-                    rowset = getFilteredRowSet(rs, self._getFilters(batch.Filters))
-                    result = rowset.createResultSet()
-                    rows = self._getJobRows(batch, result)
-                    job = getJob(ctx, connection, batch.DataSource, batch.Table, result, export)
-        return job, datasource, rowset, rows
+            try:
+                ds = getDataSource(ctx, batch.DataSource, resolver, 1531)
+                connection = getConnection(ctx, ds)
+            except UnoException as e:
+                error = e.Message
+            else:
+                rowset = getRowSet(ctx, connection, batch.DataSource, batch.Table)
+                rs = getFilteredRowSet(rowset, self._getFilters(batch.Filters))
+                result = rs.createResultSet()
+                rows = self._getJobRows(batch, result)
+                job = getJob(ctx, connection, batch.DataSource, batch.Table, result, export)
+        return job, ds, rs, rows, error
 
     def _getFilters(self, filters):
         return ' OR '.join(filters)
@@ -206,7 +216,6 @@ class Mail(Batch):
         indexes = self._getIdentifierIndexes(batch, metadata, count)
         identifier = 0
         while result.next():
-            print("Job._getJobIdentifiers() identifier: %s" % identifier)
             predicate = self._getRowPredicate(result, metadata, indexes)
             if predicate in batch.Predicates:
                 index = batch.Predicates.index(predicate)
@@ -266,15 +275,13 @@ class Mail(Batch):
                 missings.append(url)
         return attachments, missings
 
-    def _proccessAttachments(self, cancel, progress):
+    def _proccessAttachments(self, cancel):
         fields = None
         for attachment in self.Attachments:
             if cancel.isSet():
                 break
             if self._job and attachment.Merge:
-                print("Mail._proccessAttachments() 1")
                 fields = executeMerge(self._job, attachment)
-                print("Mail._proccessAttachments() 2")
                 if fields is not None:
                     break
             elif attachment.Filter:

@@ -79,9 +79,9 @@ class SpoolerView(unohelper.Base):
         self._frame.close(True)
 
     def initView(self):
-        self._enableButtonStartSpooler(True)
-        self._enableButtonClose(True)
-        self._enableButtonAdd(True)
+        self.enableStartSpooler(True)
+        self._getButtonClose().Model.Enabled = True
+        self._getButtonAdd().Model.Enabled = True
 
     def activateTab(self, tab):
         self._setDialogStep(int(tab == 1))
@@ -91,15 +91,19 @@ class SpoolerView(unohelper.Base):
         self._getButtonClientView().Model.Enabled = selected and sent
         self._getButtonWebView().Model.Enabled = selected and sent and link
         self._getButtonResubmit().Model.Enabled = selected
+        self._getButtonAdd().Model.Enabled = True
         self._getButtonRemove().Model.Enabled = selected
 
-    def disableButtons(self, add=False):
+    def disableButtons(self):
         self._getButtonEmlView().Model.Enabled = False
         self._getButtonClientView().Model.Enabled = False
         self._getButtonWebView().Model.Enabled = False
         self._getButtonResubmit().Model.Enabled = False
-        if add:
-            self._enableButtonAdd(False)
+        self._getButtonAdd().Model.Enabled = False
+        self._getButtonRemove().Model.Enabled = False
+
+    def enableStartSpooler(self, enabled):
+        self._getButtonStartSpooler().Model.Enabled = enabled
 
     def setSpoolerState(self, text, state, enabled):
         model = self._getButtonStartSpooler().Model
@@ -123,15 +127,6 @@ class SpoolerView(unohelper.Base):
         selection.Max = length
         control.Text = text
         control.setSelection(selection)
-
-    def _enableButtonStartSpooler(self, enabled):
-        self._getButtonStartSpooler().Model.Enabled = enabled
-
-    def _enableButtonClose(self, enabled):
-        self._getButtonClose().Model.Enabled = enabled
-
-    def _enableButtonAdd(self, enabled):
-        self._getButtonAdd().Model.Enabled = enabled
 
     def _setDialogStep(self, step):
         self._dialog.Model.Step = step

@@ -33,16 +33,20 @@ from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from .worker import Master
-from .worker import Merger
+from .worker import Executor
 from .worker import WatchDog
 
 from .task import Document
 
 from ..export import PdfExport
 
-from ...unotool import executeShell
+from ...logger import getLogger
+
 from ...unotool import getSimpleFile
 
+from ...configuration import g_spoolerlog
+
+from time import sleep
 import traceback
 
 
@@ -51,7 +55,6 @@ class Viewer(Master):
                  table, selection, url, merge, filter, notifier, source):
         super().__init__(cancel, progress)
         self._ctx = ctx
-        self._cls = 'Viewer'
         sf = getSimpleFile(ctx)
         self._document = Document(ctx, cancel, sf, connection, result, datasource, table, selection, url, merge, filter)
         self._sf = sf
@@ -61,44 +64,49 @@ class Viewer(Master):
             self._export = PdfExport(ctx)
         else:
             self._export = None
+        self._logger = getLogger(ctx, g_spoolerlog)
+        self._resource = 900
+        self._wait = 1.0
         self.start()
 
     def run(self):
-        mtd = 'run'
         document = self._document
         result = uno.createUnoStruct('com.sun.star.beans.StringPair')
         result.First = document.Filter
-        msg = "View document: %s" % document.Name
-        self._startProgress(msg, self._getProgressRange())
-        self._setProgressValue(-10)
+        progress = self._getProgressRange()
+        msg = self._logger.resolveString(self._resource + 1)
+        self._startProgress(msg, progress)
         if not document.hasFile():
             document.close()
-            self._setProgressText("Viewer file: %s don't exists" % document.Name)
-            self._setProgressValue(-10)
-            status, result.Second = FAILURE, "Document: %s don't exists" % document.Url
+            msg = self._logger.resolveString(self._resource + 2, document.Url)
+            self._setProgress(msg, progress)
+            msg = self._logger.resolveString(self._resource + 3, document.Url)
+            sleep(self._wait)
+            status, result.Second = FAILURE, msg
         else:
-            merger = Merger(self._ctx, self._cancel, self._progress, document, self._export)
-            watchdog = WatchDog(merger)
-            if watchdog.startJob(merger, document):
-                merger.join()
+            executor = Executor(self._logger, self._resource, self._cancel, self._progress, document)
+            watchdog = WatchDog(executor)
+            if watchdog.startExecutor(executor, document):
+                executor.join()
+            else:
+                msg = self._logger.resolveString(self._resource + 21)
+                self._setProgress(msg, -20)
             document.close()
             if self.isCanceled():
-                print("Viewer.run() viewer canceled")
-                self._setProgressText("Viewer file: %s as been canceled" % document.Name)
-                self._setProgressValue(-10)
-                msg = "Viewer file: %s as been canceled" % document.Name
+                msg = self._logger.resolveString(self._resource + 21)
+                self._setProgress(msg, progress)
                 status, result.Second = FAILURE, msg
             elif document.hasInvalidFields():
-                print("Viewer.run() has invalid fields")
-                self._setProgressText("Viewer file: %s as error" % document.Name)
-                self._setProgressValue(-10)
-                msg = "Document: %s - DataSource: %s -Field: %s - Value: %s" % document.getInvalidFields()
+                msg = self._logger.resolveString(self._resource + 22)
+                self._setProgress(msg, progress)
+                msg = self._logger.resolveString(self._resource + 23, *document.getInvalidFields())
+                sleep(self._wait)
                 status, result.Second = FAILURE, msg
             else:
-                self._setProgressText("Notifying viewing file: %s" % document.Name)
-                self._setProgressValue(-10)
+                msg = self._logger.resolveString(self._resource + 24)
+                self._setProgress(msg, progress)
+                sleep(self._wait)
                 status, result.Second = SUCCESS, document.getUrl(0)
-        print("Viewer.run() notifier")
         self._endProgress()
         struct = 'com.sun.star.frame.DispatchResultEvent'
         notification = uno.createUnoStruct(struct, self._source, status, result)
@@ -107,6 +115,6 @@ class Viewer(Master):
 
     # Private getter methods
     def _getProgressRange(self):
-        # XXX: Viewer + Merger
+        # XXX: Viewer + Executor
         return 20 + 20
 

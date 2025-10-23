@@ -97,8 +97,8 @@ import traceback
 
 
 class MergerModel(MailModel):
-    def __init__(self, ctx, datasource, document):
-        super().__init__(ctx, datasource)
+    def __init__(self, ctx, document):
+        super().__init__(ctx)
         self._listener = CloseListener(self)
         document.addCloseListener(self._listener)
         self._document = document
@@ -112,7 +112,6 @@ class MergerModel(MailModel):
         self._recipient = self._getRowSet(QUERY)
         self._grid1 = None
         self._grid2 = None
-        self._quote = datasource.IdentifierQuoteString
         self._composer = None
         self._subcomposer = None
         self._name = None
@@ -759,8 +758,8 @@ class MergerModel(MailModel):
     def _initPage2(self, window1, window2, caller):
         sleep(0.2)
         self._initRowSet()
-        self._grid1 = GridManager(self._ctx, self._img, window1, self._quote, 'MergerGrid1', MULTI, None, 8, True)
-        self._grid2 = GridManager(self._ctx, self._img, window2, self._quote, 'MergerGrid2', MULTI, None, 8, True)
+        self._grid1 = GridManager(self._ctx, self._img, window1, 'MergerGrid1', MULTI, None, 8, True)
+        self._grid2 = GridManager(self._ctx, self._img, window2, 'MergerGrid2', MULTI, None, 8, True)
         data = {'address': self._address, 'recipient': self._recipient, 'table': self._subquery.Second}
         self._callback.addCallback(caller, getNamedValueSet(data))
 
@@ -817,8 +816,18 @@ class MergerModel(MailModel):
             table = self._getQuotedTableName(table)
             subquery = self._getQuotedIdentifier(self._subquery.First)
             identifiers = self._getQuotedIdentifiers(self._identifiers)
-            query = self._datasource.DataBase.getInnerJoinTable(subquery, identifiers, table)
+            query = self._getInnerJoinTable(subquery, identifiers, table)
         return query
+
+    def _getInnerJoinTable(self, subquery, identifiers, table):
+         return subquery + self._getInnerJoinPart(identifiers, table)
+
+    def _getInnerJoinPart(self, identifiers, table):
+        query = ' INNER JOIN %s ON ' % table
+        conditions = []
+        for identifier in identifiers:
+            conditions.append('%s = %s.%s' % (identifier, table, identifier))
+        return query + ' AND '.join(conditions)
 
     def _getComposerFilter(self, composer):
         filters = composer.getStructuredFilter()
@@ -960,7 +969,7 @@ class MergerModel(MailModel):
         self._closing = True
 
     def _getRecipients(self):
-        return self._grid2.getGridData(self._emails, '')
+        return self._grid2.getGridData(self._emails, self._quote, '')
 
     def _viewDocument(self, selection, url, merge, filter, notifier, event):
         # XXX: Breathe

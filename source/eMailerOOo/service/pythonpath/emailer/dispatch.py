@@ -245,15 +245,12 @@ class Dispatch(unohelper.Base,
         try:
             state = FAILURE
             path = None
-            close = True
             for argument in arguments:
                 if argument.Name == 'Path':
                     path = argument.Value
-                elif argument.Name == 'Close':
-                    close = argument.Value
             if path is None:
                 path = getPathSettings(self._ctx).Work
-            model = MailerModel(self._ctx, self._getDataSource(), path, close)
+            model = MailerModel(self._ctx, path)
             url = model.getDocumentUrl()
             if url is None:
                 model.dispose()
@@ -288,7 +285,7 @@ class Dispatch(unohelper.Base,
                     print("Dispatch._showMerger() 4 Point X: %s - Y: %s" % (point.X, point.Y))
                     print("Dispatch._showMerger() 5 document.URL: %s" % document.URL)
                     wizard = Wizard(self._ctx, g_merger_page, True, None, g_mergerframe, point)
-                    controller = MergerController(self._ctx, wizard, self._getDataSource(), document)
+                    controller = MergerController(self._ctx, wizard, document)
                     arguments = (g_merger_paths, controller)
                     wizard.initialize(arguments)
                     msg += " Done ..."

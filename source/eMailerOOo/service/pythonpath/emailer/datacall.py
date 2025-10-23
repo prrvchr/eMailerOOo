@@ -52,32 +52,9 @@ class DataCall():
             call.close()
             print("DataCall.dispose() 2 call: %s closed!!!" % name)
 
-# Procedures called by the Merger
-    def getInnerJoinTable(self, subquery, identifiers, table):
-         return subquery + self._getInnerJoinPart(identifiers, table)
-
-    def _getInnerJoinPart(self, identifiers, table):
-        query = ' INNER JOIN %s ON ' % table
-        conditions = []
-        for identifier in identifiers:
-            conditions.append('%s = %s.%s' % (identifier, table, identifier))
-        return query + ' AND '.join(conditions)
-
-    def getRecipientColumns(self, emails):
-        columns = ', '.join(emails)
-        if len(emails) > 1:
-            columns = 'COALESCE(%s)' % columns
-        return columns
-
 # Procedures called by the Spooler
-    def getSpoolerViewQuery(self):
-        return getSqlQuery(self._ctx, 'getSpoolerViewQuery')
-
-    def getViewQuery(self):
-        return getSqlQuery(self._ctx, 'getViewQuery')
-
     def addJob(self, sender, subject, document, recipients, attachments):
-        call = self._getCall('insertJob')
+        call = self._getCall('addJob')
         call.setString(1, sender)
         call.setString(2, subject)
         call.setString(3, document)
@@ -89,7 +66,7 @@ class DataCall():
 
     def addMergeJob(self, sender, subject, document, datasource, query, table, recipients,
                           filters, predicates, addresses, identifiers, attachments):
-        call = self._getCall('insertMergeJob')
+        call = self._getCall('addMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
         call.setString(3, document)
@@ -141,7 +118,6 @@ class DataCall():
         print("DataCall.resubmitJobs() ids: %s" % (ids, ))
         return ids
 
-# Procedures called by the Spooler
     def getSendJobs(self):
         call = self._getCall('getSendJobs')
         result = call.executeQuery()
@@ -159,36 +135,6 @@ class DataCall():
         result = call.executeQuery()
         jobids = getSequenceFromResult(result)
         return jobids
-
-    def getRecipient(self, job):
-        recipient = None
-        call = self._getCall('getRecipient')
-        call.setInt(1, job)
-        result = call.executeQuery()
-        if result.next():
-            recipient = getObjectFromResult(result)
-        return recipient
-
-    def getJobRecipient(self, job):
-        call = self._getCall('getRecipient')
-        call.setInt(1, job)
-        rs = call.executeQuery()
-        return rs
-
-    def getMailer(self, batch):
-        mailer = None
-        call = self._getCall('getMailer')
-        call.setInt(1, batch)
-        result = call.executeQuery()
-        if result.next():
-            mailer = getDataFromResult(result)
-        return mailer
-
-    def getBatchMailer(self, batch):
-        call = self._getCall('getMailer')
-        call.setInt(1, batch)
-        rs = call.executeQuery()
-        return rs
 
     def getAttachments(self, batch):
         attachments = ()

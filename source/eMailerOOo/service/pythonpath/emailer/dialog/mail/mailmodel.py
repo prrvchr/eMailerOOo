@@ -63,31 +63,23 @@ import traceback
 
 
 class MailModel(unohelper.Base):
-    def __init__(self, ctx, datasource, close=True):
+    def __init__(self, ctx):
         self._ctx = ctx
-        self._datasource = datasource
         self._sf = getSimpleFile(ctx)
         self._uf = getUriFactory(ctx)
         self._folder = None
         self._export = None
-        self._close = close
         self._callback = getCallBack(ctx)
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._disposed = False
 
     @property
-    def _dataSource(self):
-        return self._datasource
-    @property
     def Path(self):
         return self._path
     @Path.setter
     def Path(self, path):
         self._path = path
-    @property
-    def IdentifierQuoteString(self):
-        return self._datasource.IdentifierQuoteString
 
 # MailModel getter methods
     def isDisposed(self):
@@ -155,8 +147,6 @@ class MailModel(unohelper.Base):
 
     def dispose(self):
         self._disposed = True
-        if self._close:
-            self._datasource.dispose()
         if self._folder and self._sf.exists(self._folder):
             self._sf.kill(self._folder)
 

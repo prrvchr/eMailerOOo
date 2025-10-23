@@ -103,14 +103,8 @@ class MailSpooler(unohelper.Base,
         if self._hasRowSet():
             self._getRowSet().removeRowSetListener(listener)
 
-    def getRecipientContent(self, job):
-        return self._getDataCall().getJobRecipient(job)
-
     def getBatchAttachments(self, batch):
         return self._getDataCall().getAttachments(batch)
-
-    def getBatchContent(self, batch):
-        return self._getDataCall().getBatchMailer(batch)
 
     def addJob(self, sender, subject, document, recipients, attachments):
         added = self._getDataCall().addJob(sender, subject, document, recipients, attachments)

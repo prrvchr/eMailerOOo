@@ -50,11 +50,7 @@ interface XMailSpooler : com::sun::star::lang::XServiceInfo
 
     void removeContentListener([in] com::sun::star::sdbc::XRowSetListener Listener);
 
-    com::sun::star::sdbc::XResultSet getRecipientContent([in] long JobId);
-
     sequence<string> getBatchAttachments([in] long BatchId);
-
-    com::sun::star::sdbc::XResultSet getBatchContent([in] long BatchId);
 
     long addJob([in] string Sender,
                 [in] string Subject,

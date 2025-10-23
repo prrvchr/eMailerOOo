@@ -58,11 +58,11 @@ class MergerController(unohelper.Base,
                        XWizardController,
                        XComponent,
                        XCloseable):
-    def __init__(self, ctx, wizard, datasource, document):
+    def __init__(self, ctx, wizard, document):
         self._ctx = ctx
         self._listeners = []
         self._wizard = wizard
-        self._model = MergerModel(ctx, datasource, document)
+        self._model = MergerModel(ctx, document)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerController')
 
 # XCloseable

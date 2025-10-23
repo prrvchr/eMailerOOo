@@ -54,8 +54,8 @@ import traceback
 
 
 class MailerModel(MailModel):
-    def __init__(self, ctx, datasource, path, close):
-        super().__init__(ctx, datasource, close)
+    def __init__(self, ctx, path):
+        super().__init__(ctx)
         self._path = path
         self._url = None
         self._resources = {'DialogTitle':     'MailerDialog.Title',

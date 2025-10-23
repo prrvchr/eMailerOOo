@@ -73,13 +73,6 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getRecipientQuery':
         query = 'SELECT %s AS "Recipient" FROM %s ORDER BY %s;' % format
 
-    # Spooler Select Queries
-    elif name == 'getViewQuery':
-        query = 'SELECT * FROM "Spooler";'
-
-    elif name == 'getSpoolerViewQuery':
-        query = 'SELECT * FROM "View";'
-
     # MailSpooler Select Queries
     elif name == 'getSpoolerJobs':
         query = 'SELECT "JobId" FROM "Spooler" WHERE "State" = ? ORDER BY "JobId";'
@@ -124,37 +117,6 @@ CREATE PROCEDURE "DeleteJobs"(IN JOBIDS INTEGER ARRAY)
 
 # Select Procedure Queries
     # MailSpooler Select Procedure Queries
-    elif name == 'createGetRecipient':
-        query = """\
-CREATE PROCEDURE "GetRecipient"(IN JOBID INTEGER)
-  SPECIFIC "GetRecipient_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Recipient", "Filter", "BatchId" From "Recipients"
-      WHERE "JobId"=JOBID
-      FOR READ ONLY;
-    OPEN RSLT;
-  END;"""
-
-    elif name == 'createGetMailer':
-        query = """\
-CREATE PROCEDURE "GetMailer"(IN BATCHID INTEGER)
-  SPECIFIC "GetMailer_1"
-  READS SQL DATA
-  DYNAMIC RESULT SETS 1
-  BEGIN ATOMIC
-    DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT "Sender", "Subject", "Document",
-      "DataSource", "Query", "Table", "ThreadId",
-      CASE WHEN "DataSource" IS NULL OR "Query" IS NULL OR "Table" IS NULL THEN FALSE ELSE TRUE END AS "Merge"
-      FROM "Senders"
-      WHERE "BatchId"=BATCHID
-      FOR READ ONLY;
-    OPEN RSLT;
-  END;"""
-
     elif name == 'createUpdateSpooler':
         query = """\
 CREATE PROCEDURE "UpdateSpooler"(IN BATCHID INTEGER,
@@ -207,15 +169,15 @@ CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
 
 # Insert Procedure Queries
     # MailSpooler Insert Procedure Queries
-    elif name == 'createInsertJob':
+    elif name == 'createAddJob':
         query = """\
-CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
-                             IN SUBJECT VARCHAR(78),
-                             IN DOCUMENT VARCHAR(512),
-                             IN RECIPIENTS VARCHAR(320) ARRAY,
-                             IN ATTACHMENTS VARCHAR(512) ARRAY,
-                             OUT BATCHID INTEGER)
-  SPECIFIC "InsertJob_1"
+CREATE PROCEDURE "AddJob"(IN SENDER VARCHAR(320),
+                          IN SUBJECT VARCHAR(78),
+                          IN DOCUMENT VARCHAR(512),
+                          IN RECIPIENTS VARCHAR(320) ARRAY,
+                          IN ATTACHMENTS VARCHAR(512) ARRAY,
+                          OUT BATCHID INTEGER)
+  SPECIFIC "AddJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
     DECLARE ID INTEGER DEFAULT 0;
@@ -238,22 +200,22 @@ CREATE PROCEDURE "InsertJob"(IN SENDER VARCHAR(320),
   END;"""
 
     # MailSpooler Insert Procedure Queries
-    elif name == 'createInsertMergeJob':
+    elif name == 'createAddMergeJob':
         query = """\
-CREATE PROCEDURE "InsertMergeJob"(IN SENDER VARCHAR(320),
-                                  IN SUBJECT VARCHAR(78),
-                                  IN DOCUMENT VARCHAR(512),
-                                  IN DATASOURCE VARCHAR(512),
-                                  IN QUERYNAME VARCHAR(512),
-                                  IN TABLENAME VARCHAR(512),
-                                  IN RECIPIENTS VARCHAR(320) ARRAY,
-                                  IN FILTERS VARCHAR(256) ARRAY,
-                                  IN PREDICATES VARCHAR(256) ARRAY,
-                                  IN ADDRESSES VARCHAR(128) ARRAY,
-                                  IN IDENTIFIERS VARCHAR(128) ARRAY,
-                                  IN ATTACHMENTS VARCHAR(512) ARRAY,
-                                  OUT BATCHID INTEGER)
-  SPECIFIC "InsertMergeJob_1"
+CREATE PROCEDURE "AddMergeJob"(IN SENDER VARCHAR(320),
+                               IN SUBJECT VARCHAR(78),
+                               IN DOCUMENT VARCHAR(512),
+                               IN DATASOURCE VARCHAR(512),
+                               IN QUERYNAME VARCHAR(512),
+                               IN TABLENAME VARCHAR(512),
+                               IN RECIPIENTS VARCHAR(320) ARRAY,
+                               IN FILTERS VARCHAR(256) ARRAY,
+                               IN PREDICATES VARCHAR(256) ARRAY,
+                               IN ADDRESSES VARCHAR(128) ARRAY,
+                               IN IDENTIFIERS VARCHAR(128) ARRAY,
+                               IN ATTACHMENTS VARCHAR(512) ARRAY,
+                               OUT BATCHID INTEGER)
+  SPECIFIC "AddMergeJob_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
     DECLARE BATCH INTEGER;
@@ -313,10 +275,10 @@ CREATE PROCEDURE "ResubmitJobs"(IN JOBIDS INTEGER ARRAY,
       IF ISMERGE THEN
         SELECT ARRAY_AGG("Address" ORDER BY "Created") INTO ADDRESSES FROM "Addresses" WHERE "BatchId" = BATCH;
         SELECT ARRAY_AGG("Identifier" ORDER BY "Created") INTO IDENTIFIERS FROM "Identifiers" WHERE "BatchId" = BATCH;
-        CALL "InsertMergeJob"(SENDER, SUBJECT, DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME,
-                              RECIPIENTS, FILTERS, PREDICATES, ADDRESSES, IDENTIFIERS, ATTACHMENTS, BATCHID);
+        CALL "AddMergeJob"(SENDER, SUBJECT, DOCUMENT, DATASOURCE, QUERYNAME, TABLENAME,
+                           RECIPIENTS, FILTERS, PREDICATES, ADDRESSES, IDENTIFIERS, ATTACHMENTS, BATCHID);
       ELSE
-        CALL "InsertJob"(SENDER, SUBJECT, DOCUMENT, RECIPIENTS, ATTACHMENTS, BATCHID);
+        CALL "AddJob"(SENDER, SUBJECT, DOCUMENT, RECIPIENTS, ATTACHMENTS, BATCHID);
       END IF;
       SET BATCHIDS[INDEX] = BATCHID;
       SET INDEX = INDEX + 1;
@@ -416,18 +378,14 @@ CREATE FUNCTION "GetBatchState"(IN STATE INTEGER)
 
 
 # Call Procedure Query
-    elif name == 'getRecipient':
-        query = 'CALL "GetRecipient"(?)'
-    elif name == 'getMailer':
-        query = 'CALL "GetMailer"(?)'
     elif name == 'getAttachments':
         query = 'CALL "GetAttachments"(?)'
     elif name == 'deleteJobs':
         query = 'CALL "DeleteJobs"(?)'
-    elif name == 'insertJob':
-        query = 'CALL "InsertJob"(?,?,?,?,?,?)'
-    elif name == 'insertMergeJob':
-        query = 'CALL "InsertMergeJob"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    elif name == 'addJob':
+        query = 'CALL "AddJob"(?,?,?,?,?,?)'
+    elif name == 'addMergeJob':
+        query = 'CALL "AddMergeJob"(?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'updateSpooler':
         query = 'CALL "UpdateSpooler"(?,?,?,?,?,?,?)'
     elif name == 'updateJobState':

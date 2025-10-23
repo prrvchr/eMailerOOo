@@ -221,7 +221,7 @@ class SpoolerModel(unohelper.Base):
 
     def addDocument(self):
         listener = DispatchListener(self)
-        kwargs = {'Path': self._path, 'Close': False}
+        kwargs = {'Path': self._path}
         executeDesktopDispatch(self._ctx, 'emailer:ShowMailer', listener, **kwargs)
 
     def save(self, position):
@@ -262,8 +262,7 @@ class SpoolerModel(unohelper.Base):
         self._rowset = self._spooler.getContent()
         print("SpoolerModel._initSpooler() 2 finish waiting for database")
         resources = (self._resolver, self._resources.get('GridColumns'))
-        quote = self._datasource.IdentifierQuoteString
-        self._grid = GridManager(self._ctx, self._url, window, quote, 'Spooler', MULTI, resources)
+        self._grid = GridManager(self._ctx, self._url, window, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener1)
         print("SpoolerModel._initSpooler() 3")
         self._spooler.addContentListener(listener2)

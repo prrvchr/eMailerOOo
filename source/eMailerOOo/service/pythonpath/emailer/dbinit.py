@@ -102,10 +102,8 @@ def _getViews(ctx, catalog, schema, view, *option):
     yield catalog, schema, view, getSqlQuery(ctx, 'get%sViewCommand' % view, format), *option
 
 def _getProcedures():
-    for name in ('GetBatchJobs', 'GetBatchState',
-                 'InsertJob', 'InsertMergeJob', 'DeleteJobs',
-                 'GetRecipient', 'GetMailer', 'GetAttachments',
-                 'UpdateSpooler', 'UpdateJobsState', 'UpdateJobState',
-                 'ResubmitJobs', 'GetSendJobs', 'GetJobs'):
+    for name in ('GetBatchJobs', 'GetBatchState', 'AddJob', 'AddMergeJob',
+                 'DeleteJobs', 'GetAttachments', 'UpdateSpooler', 'UpdateJobsState',
+                 'UpdateJobState', 'ResubmitJobs', 'GetSendJobs', 'GetJobs'):
         yield name
 

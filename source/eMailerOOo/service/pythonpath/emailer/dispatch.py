@@ -183,7 +183,7 @@ class Dispatch(unohelper.Base,
                 elif argument.Name == 'ReadOnly':
                     readonly = argument.Value
             if parent is None:
-                parent = self._frame.getContainerWindow()
+                parent = self._frame.getContainerWindow().getToolkit().getActiveTopWindow()
             wizard = Wizard(self._ctx, g_ispdb_page, True, parent)
             controller = IspdbController(self._ctx, wizard, sender, readonly, notifier)
             arguments = (g_ispdb_paths, controller)

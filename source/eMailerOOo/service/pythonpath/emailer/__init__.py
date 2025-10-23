@@ -49,7 +49,7 @@ from .unotool import getConfiguration
 from .unotool import getCurrentLocale
 from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
-from .unotool import hasInterface
+from .unotool import hasFrameInterface
 
 from .logger import getLogger
 

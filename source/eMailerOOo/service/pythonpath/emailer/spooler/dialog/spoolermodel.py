@@ -47,7 +47,6 @@ from ...unotool import TaskEvent
 
 from ...unotool import createService
 from ...unotool import executeDesktopDispatch
-from ...unotool import getCallBack
 from ...unotool import getConfiguration
 from ...unotool import getPathSettings
 from ...unotool import getResourceLocation
@@ -76,6 +75,7 @@ import traceback
 
 class SpoolerModel(unohelper.Base):
     def __init__(self, ctx, datasource):
+        print("SpoolerModel.__init__() 1")
         self._ctx = ctx
         self._diposed = False
         self._path = getPathSettings(ctx).Work
@@ -86,7 +86,6 @@ class SpoolerModel(unohelper.Base):
         self._status = 1
         self._dispatch = TaskEvent(True)
         self._identifiers = ('JobId', )
-        self._callback = getCallBack(ctx)
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SpoolerDialog')
@@ -95,6 +94,7 @@ class SpoolerModel(unohelper.Base):
                            'TabTitle':    'SpoolerTab%s.Title',
                            'GridColumns': 'SpoolerTab1.Grid1.Column.%s',
                            'MsgBoxTitle': 'SpoolerMsgBox.Title'}
+        print("SpoolerModel.__init__() 2")
 
     @property
     def _dataSource(self):
@@ -257,17 +257,17 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, window, listener1, listener2, caller):
-        print("SpoolerModel._initSpooler() wait for database")
+    def _initSpooler(self, window, listener1, listener2):
+        print("SpoolerModel._initSpooler() 1 wait for database")
         self._rowset = self._spooler.getContent()
-        print("SpoolerModel._initSpooler() finish waiting for database")
+        print("SpoolerModel._initSpooler() 2 finish waiting for database")
         resources = (self._resolver, self._resources.get('GridColumns'))
         quote = self._datasource.IdentifierQuoteString
         self._grid = GridManager(self._ctx, self._url, window, quote, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener1)
-        self._callback.addCallback(caller, None)
-        # TODO: GridColumn and GridModel needs a RowSet already executed!!!
+        print("SpoolerModel._initSpooler() 3")
         self._spooler.addContentListener(listener2)
+        print("SpoolerModel._initSpooler() 4")
 
     def _getDialogTitle(self):
         resource = self._resources.get('Title')

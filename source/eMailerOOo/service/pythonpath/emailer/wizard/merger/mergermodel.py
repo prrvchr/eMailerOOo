@@ -90,7 +90,7 @@ from ...configuration import g_fetchsize
 from ...configuration import g_mergerframe
 
 from threading import Thread
-from threading import Condition
+from threading import Lock
 from time import sleep
 import string
 import traceback
@@ -134,7 +134,7 @@ class MergerModel(MailModel):
         self._closing = False
         self._dispatchs = {}
         self._paths = getPathSettings(ctx)
-        self._lock = Condition()
+        self._lock = Lock()
         self._service = 'com.sun.star.sdb.SingleSelectQueryComposer'
         self._img = getResourceLocation(ctx, g_identifier, 'img')
         self._resources = {'Step':            'MergerPage%s.Step',

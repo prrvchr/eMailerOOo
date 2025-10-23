@@ -37,7 +37,7 @@ from com.sun.star.lang import XServiceInfo
 
 from emailer import Dispatch
 
-from emailer import hasInterface
+from emailer import hasFrameInterface
 
 from emailer import g_identifier
 
@@ -59,10 +59,11 @@ class Dispatcher(unohelper.Base,
 
 # XInitialization
     def initialize(self, args):
-        service = 'com.sun.star.frame.Frame'
-        interface = 'com.sun.star.lang.XServiceInfo'
-        if len(args) > 0 and hasInterface(args[0], interface) and args[0].supportsService(service):
+        print("Dispatcher.initialize() 1")
+        if len(args) > 0 and hasFrameInterface(args[0]):
+            print("Dispatcher.initialize() 2")
             self._frame = args[0]
+        print("Dispatcher.initialize() 3")
 
 # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
@@ -90,3 +91,4 @@ class Dispatcher(unohelper.Base,
 g_ImplementationHelper.addImplementation(Dispatcher,                      # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
+

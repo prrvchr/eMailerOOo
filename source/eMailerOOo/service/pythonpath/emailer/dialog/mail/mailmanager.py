@@ -44,7 +44,7 @@ from ...unotool import executeShell
 from ...unotool import getArgumentSet
 from ...unotool import getFileUrl
 
-from threading import Condition
+from threading import Lock
 import traceback
 
 
@@ -53,7 +53,7 @@ class MailManager(unohelper.Base,
     def __init__(self, ctx, model):
         self._ctx = ctx
         self._model = model
-        self._lock = Condition()
+        self._lock = Lock()
         self._viewpdf = True
         self._disabled = False
         self._background = {True: 16777215, False: 16711680}
@@ -61,6 +61,10 @@ class MailManager(unohelper.Base,
     @property
     def Model(self):
         return self._model
+
+    @property
+    def View(self):
+        return self._view
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):

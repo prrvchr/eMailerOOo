@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -38,10 +40,11 @@ from .optionsview import OptionsView
 
 from .optionshandler import OptionsListener
 
+from ..listener import DispatchListener
+
 from ..logger import LogManager
 
-from ..unotool import createService
-from ..unotool import executeDispatch
+from ..unotool import executeDesktopDispatch
 from ..unotool import getDesktop
 
 from ..configuration import g_defaultlog
@@ -86,12 +89,20 @@ class OptionsManager(unohelper.Base):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        executeDispatch(self._ctx, 'emailer:ShowIspdb')
-        self._view.updateDataBase(self._model.getDataBaseStatus())
+        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
+        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
+        kwargs = {'ParentWindow': self._view.getWindow()}
+        executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', None, **kwargs)
 
     def showSpooler(self):
-        executeDispatch(self._ctx, 'emailer:ShowSpooler')
-        self._view.updateDataBase(self._model.getDataBaseStatus())
+        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
+        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
+        executeDesktopDispatch(self._ctx, 'emailer:ShowSpooler', DispatchListener(self))
+
+# XDispatchResultListener
+    def dispatchFinished(self, notification):
+        if notification.State == SUCCESS:
+            self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def showDataBase(self):
         url = self._model.getDataBaseUrl()

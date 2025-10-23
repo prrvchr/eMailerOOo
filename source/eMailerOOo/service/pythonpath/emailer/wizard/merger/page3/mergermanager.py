@@ -63,7 +63,6 @@ from ....helper import getMailSpooler
 
 from ....configuration import g_mergerframe
 
-from threading import Condition
 import traceback
 
 

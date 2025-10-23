@@ -57,7 +57,8 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'AddSender':
                 listener = DispatchListener(self._manager)
-                executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', listener)
+                kwargs = {'ParentWindow': self._manager.View.getWindow()}
+                executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', listener, **kwargs)
                 handled = True
             elif method == 'RemoveSender':
                 self._manager.removeSender()

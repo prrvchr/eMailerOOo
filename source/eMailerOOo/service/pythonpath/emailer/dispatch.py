@@ -63,6 +63,7 @@ from .unotool import StatusIndicator
 
 from .unotool import createMessageBox
 from .unotool import getConfiguration
+from .unotool import getDesktop
 from .unotool import getPathSettings
 from .unotool import getStringResource
 
@@ -155,7 +156,7 @@ class Dispatch(unohelper.Base,
             elif url.Path == 'StopSpooler':
                 state, result = self._stopSpooler()
             elif url.Path == 'ShowSpooler':
-                self._showSpooler()
+                self._showSpooler(notifier)
             elif url.Path == 'ShowMailer':
                 self._notifyDispatch(notifier, *self._showMailer(arguments))
             elif url.Path == 'ShowMerger':
@@ -168,16 +169,21 @@ class Dispatch(unohelper.Base,
     #Ispdb methods
     def _showIspdb(self, arguments, notifier):
         try:
+            print("Dispatch._showIspdb() 1")
             email = None
             msg = "Wizard Loading ..."
             sender = ''
+            parent = None
             readonly = False
             for argument in arguments:
                 if argument.Name == 'Sender':
                     sender = argument.Value
+                elif argument.Name == 'ParentWindow':
+                    parent = argument.Value
                 elif argument.Name == 'ReadOnly':
                     readonly = argument.Value
-            parent = self._frame.getContainerWindow()
+            if parent is None:
+                parent = self._frame.getContainerWindow()
             wizard = Wizard(self._ctx, g_ispdb_page, True, parent)
             controller = IspdbController(self._ctx, wizard, sender, readonly, notifier)
             arguments = (g_ispdb_paths, controller)
@@ -194,7 +200,7 @@ class Dispatch(unohelper.Base,
     #Spooler methods
     def _startSpooler(self):
         try:
-            frame = self._frame.getCreator().findFrame(g_spoolerframe, GLOBAL)
+            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
             if frame:
                 frame.getContainerWindow().toFront()
             else:
@@ -207,7 +213,7 @@ class Dispatch(unohelper.Base,
 
     def _stopSpooler(self):
         try:
-            frame = self._frame.getCreator().findFrame(g_spoolerframe, GLOBAL)
+            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
             if frame:
                 frame.getContainerWindow().toFront()
                 getMailSender(self._ctx).terminate()
@@ -219,13 +225,17 @@ class Dispatch(unohelper.Base,
             msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
 
-    def _showSpooler(self):
+    def _showSpooler(self, notifier):
         try:
-            frame = self._frame.getCreator().findFrame(g_spoolerframe, GLOBAL)
+            print("Dispatch._showSpooler() 1")
+            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
+            print("Dispatch._showSpooler() 2")
             if frame:
+                print("Dispatch._showSpooler() 3")
                 frame.getContainerWindow().toFront()
             else:
-                manager = SpoolerManager(self._ctx, self._getDataSource())
+                print("Dispatch._showSpooler() 4")
+                manager = SpoolerManager(self._ctx, self._getDataSource(), notifier)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.format_exc())
             print(msg)
@@ -262,7 +272,7 @@ class Dispatch(unohelper.Base,
     #Merger methods
     def _showMerger(self):
         try:
-            frame = self._frame.getCreator().findFrame(g_mergerframe, GLOBAL)
+            frame = getDesktop(self._ctx).findFrame(g_mergerframe, GLOBAL)
             if frame:
                 frame.getContainerWindow().toFront()
             else:

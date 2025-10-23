@@ -85,7 +85,6 @@ class Sender(Manager):
                 user = getMailUser(self._ctx, mail.Sender)
                 if user is None:
                     self._setProgressValue(-20)
-                    spooler.setJobState(job, 2)
                     self._input.task_done()
                     self._taskDone()
                     msg = self._logger.resolveString(self._resource + 33, mail.Sender)
@@ -110,6 +109,7 @@ class Sender(Manager):
                 msg = self._logger.resolveString(self._resource + 34, e.Message, job, recipient)
                 level = SEVERE
             else:
+                total += 1
                 spooler.updateJob(mail.BatchId, job, recipient, email.ThreadId, email.MessageId, email.ForeignId, 1)
                 msg = self._logger.resolveString(self._resource + 35, job, recipient)
                 level = INFO
@@ -117,7 +117,6 @@ class Sender(Manager):
             self._setProgress(msg, -20)
             self._input.task_done()
             self._taskDone()
-            total += 1
             if self.isCanceled():
                 msg = self._logger.resolveString(self._resource + 31)
                 self._logger.logp(SEVERE, self._cls, mtd, msg)

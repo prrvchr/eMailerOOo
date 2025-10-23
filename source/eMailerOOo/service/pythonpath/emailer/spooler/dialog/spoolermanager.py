@@ -31,7 +31,6 @@ import uno
 import unohelper
 
 from com.sun.star.awt.MessageBoxType import WARNINGBOX
-from com.sun.star.awt import XCallback
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
@@ -75,17 +74,19 @@ from ...configuration import g_spoolerlog
 from ...configuration import g_basename
 
 from time import sleep
-from threading import Condition
+from threading import Lock
 import traceback
 
 
-class SpoolerManager(unohelper.Base,
-                     XCallback):
-    def __init__(self, ctx, datasource):
+class SpoolerManager(unohelper.Base):
+    def __init__(self, ctx, datasource, notifier):
+        print("SpoolerManager.__init__() 1")
         self._ctx = ctx
-        self._lock = Condition()
+        self._notifier = notifier
+        self._lock = Lock()
         self._closing = False
         self._enabled = True
+        self._initialize = True
         self._model = SpoolerModel(ctx, datasource)
         handler = WindowHandler(self)
         listener = CloseListener(self)
@@ -97,7 +98,7 @@ class SpoolerManager(unohelper.Base,
         self._sender = getMailSender(ctx)
         self._senderlistener = StreamListener(self)
         window = self._view.getGridWindow()
-        self._model.initSpooler(window, GridSelectionListener(self), RowSetListener(self), self)
+        self._model.initSpooler(window, GridSelectionListener(self), RowSetListener(self))
         self._loglistener1 = LoggerListener(self.updateLog1)
         self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._loglistener1)
         self._log1.addRollerHandler()
@@ -106,6 +107,7 @@ class SpoolerManager(unohelper.Base,
         self._log2.addRollerHandler()
         self._closelistener = listener
         #self._updateLogger()
+        print("SpoolerManager.__init__() 2")
 
     @property
     def HandlerEnabled(self):
@@ -113,6 +115,7 @@ class SpoolerManager(unohelper.Base,
 
 # XCallback
     def notify(self, rowset):
+        print("SpoolerManager.notify() 1")
         with self._lock:
             if not self._model.isDisposed():
                 self._view.initView()
@@ -120,6 +123,7 @@ class SpoolerManager(unohelper.Base,
 
 # XDispatchResultListener
     def dispatchFinished(self, notification):
+        print("SpoolerManager.dispatchFinished() 1")
         self._model.endDispatch()
         if self._closing:
             if not self._model.hasDispatch():
@@ -156,9 +160,11 @@ class SpoolerManager(unohelper.Base,
 
 # XStreamListener
     def started(self):
+        print("SpoolerManager.started() 1")
         self._refreshSpoolerView(2)
 
     def closed(self):
+        print("SpoolerManager.closed() 1")
         self._refreshSpoolerView(1)
         if self._closing:
             if not self._model.hasDispatch():
@@ -166,8 +172,10 @@ class SpoolerManager(unohelper.Base,
                 self._view.close()
         else:
             self._enableButtons(self._model.hasGridSelectedRows())
+        print("SpoolerManager.closed() 2")
 
     def terminated(self):
+        print("SpoolerManager.terminated() 1")
         self._refreshSpoolerView(0)
 
 # XTabPageContainerListener
@@ -183,9 +191,13 @@ class SpoolerManager(unohelper.Base,
 
 # SpoolerManager setter method
     def setDataModel(self, rowset):
+        print("SpoolerManager.setDataModel() 1")
         with self._lock:
             if not self._model.isDisposed():
                 self._model.setGridData(rowset)
+                if self._initialize:
+                    self._initView()
+        print("SpoolerManager.setDataModel() 2")
 
     def changeGridSelection(self, index, grid):
         selected = index != -1
@@ -305,3 +317,13 @@ class SpoolerManager(unohelper.Base,
 
     def _refreshSpoolerView(self, status):
         self._view.setSpoolerState(*self._model.setSpoolerStatus(status))
+
+    def _initView(self):
+        self._initialize = False
+        self._view.initView()
+        self._sender.addListener(self._senderlistener)
+        if self._notifier:
+            struct = 'com.sun.star.frame.DispatchResultEvent'
+            notification = uno.createUnoStruct(struct, self, SUCCESS, None)
+            self._notifier.dispatchFinished(notification)
+

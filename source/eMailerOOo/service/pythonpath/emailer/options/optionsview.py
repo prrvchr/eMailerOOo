@@ -38,6 +38,9 @@ class OptionsView(unohelper.Base):
         self._window = window
 
 # OptionsView getter methods
+    def getWindow(self):
+        return self._window
+
     def getTimeout(self):
         return int(self._getTimeout().Value)
 

@@ -29,7 +29,6 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.lang import XEventListener
 
 import traceback
@@ -40,11 +39,10 @@ class OptionsListener(unohelper.Base,
     def __init__(self, manager):
         self._manager = manager
 
-# com.sun.star.lang.XEventListener
+# XEventListener
     def disposing(self, source):
         try:
             self._manager.dispose()
         except Exception as e:
-            msg = "OptionsListener.disposing() Error: %s" % traceback.format_exc()
-            print(msg)
+            print("OptionsListener.disposing() ERROR: %s" % traceback.format_exc())
 

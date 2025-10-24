@@ -115,7 +115,6 @@ class Dispatcher(Master):
                 # XXX: completed so that we can cleanly close all resources from the DataSource.
                 composer.start()
                 composer.join()
-                print("Dispatcher.run() normal thread end")
                 self._closeDataSource()
                 self._notifyClosed(progress)
 
@@ -123,12 +122,10 @@ class Dispatcher(Master):
                 self._notifyStarted(mtd)
                 sleep(self._wait)
                 msg = self._logger.resolveString(self._resource + 3)
-                print("Dispatcher.run() 9 msg: %s" % msg)
                 self._setProgress(msg, 50)
                 self._logger.logp(INFO, self._cls, mtd, msg)
                 sleep(self._wait)
                 self._notifyClosed()
-        print("Dispatcher.run() normal thread end")
 
     # Private getter methods
     def _getBatchs(self):
@@ -151,10 +148,10 @@ class Dispatcher(Master):
         job = len(batch.Jobs)
         task = len(batch.Attachments)
         # XXX: Progress in: Dispatcher + Executor  + Composer
-        progress += (10) + (30 + 20 * task) + (30 * task) +  (20 + 20 * task) + (10 + 20 * job)
+        progress += (10) + (30) +  (10 + (20 * job))
         if self._output:
             # XXX: Progress in: Sender if used
-            progress += (30 * job)
+            progress += (20 * job)
         return job, task, progress
 
     def _getComposer(self):

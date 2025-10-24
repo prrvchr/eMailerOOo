@@ -75,7 +75,6 @@ import traceback
 
 class SpoolerModel(unohelper.Base):
     def __init__(self, ctx, datasource):
-        print("SpoolerModel.__init__() 1")
         self._ctx = ctx
         self._diposed = False
         self._path = getPathSettings(ctx).Work
@@ -94,7 +93,6 @@ class SpoolerModel(unohelper.Base):
                            'TabTitle':    'SpoolerTab%s.Title',
                            'GridColumns': 'SpoolerTab1.Grid1.Column.%s',
                            'MsgBoxTitle': 'SpoolerMsgBox.Title'}
-        print("SpoolerModel.__init__() 2")
 
     @property
     def _dataSource(self):
@@ -258,15 +256,11 @@ class SpoolerModel(unohelper.Base):
 
 # SpoolerModel private setter methods
     def _initSpooler(self, window, listener1, listener2):
-        print("SpoolerModel._initSpooler() 1 wait for database")
         self._rowset = self._spooler.getContent()
-        print("SpoolerModel._initSpooler() 2 finish waiting for database")
         resources = (self._resolver, self._resources.get('GridColumns'))
         self._grid = GridManager(self._ctx, self._url, window, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener1)
-        print("SpoolerModel._initSpooler() 3")
         self._spooler.addContentListener(listener2)
-        print("SpoolerModel._initSpooler() 4")
 
     def _getDialogTitle(self):
         resource = self._resources.get('Title')

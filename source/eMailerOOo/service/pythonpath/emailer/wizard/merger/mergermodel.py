@@ -444,8 +444,6 @@ class MergerModel(MailModel):
         self._identifiers, self._emails = self._getSubQueryInfos()
         columns = ()
         tables = self._subcomposer.getTables()
-        print("MergerModel._getQuery() tables: %s" % (tables.getElementNames(), ))
-        print("MergerModel._getQuery() subquery: %s" % subquery.Second)
         table = self._subcomposer.getTables().getByName(subquery.Second)
         if table.getColumns().hasElements():
             columns = table.getColumns().getElementNames()
@@ -914,7 +912,6 @@ class MergerModel(MailModel):
 
 # XDispatchResultListener
     def dispatchFinished(self, notification):
-        print("MergerModel.dispatchFinished()")
         if notification.State == SUCCESS:
             self._saved = notification.Result
 
@@ -923,7 +920,6 @@ class MergerModel(MailModel):
             document.close(True)
 
     def saveDocumentFinished(self, saved):
-        print("MergerModel.saveDocumentFinished()")
         self._saved = saved
 
     def getDocument(self, url=None):

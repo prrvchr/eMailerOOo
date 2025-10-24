@@ -111,7 +111,6 @@ class Viewer(Master):
         struct = 'com.sun.star.frame.DispatchResultEvent'
         notification = uno.createUnoStruct(struct, self._source, status, result)
         self._notifier.dispatchFinished(notification)
-        print("Viewer.run() normal thread end")
 
     # Private getter methods
     def _getProgressRange(self):

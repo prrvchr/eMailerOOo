@@ -106,7 +106,6 @@ class MailerModel(MailModel):
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
         location = getUrlPresentation(self._ctx, url)
-        print("MailerModel._loadDocument() url: %s - presentation: %s" % (url, location))
         properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
         descriptor = getPropertyValueSet(properties)
         document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
@@ -119,7 +118,6 @@ class MailerModel(MailModel):
         # XXX: Breathe
         sleep(0.2)
         status, result = SUCCESS, None
-        print("MailerModel._viewDocument() url: %s" % filter)
         if not self._sf.exists(url):
             status, result = FAILURE, self._getMsgBoxMessage(1) % attachment
         else:

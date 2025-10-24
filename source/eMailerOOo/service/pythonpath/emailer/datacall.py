@@ -47,10 +47,8 @@ class DataCall():
         self._calls = {}
 
     def dispose(self):
-        print("DataCall.dispose() 1")
         for name, call in self._calls.items():
             call.close()
-            print("DataCall.dispose() 2 call: %s closed!!!" % name)
 
 # Procedures called by the Spooler
     def addJob(self, sender, subject, document, recipients, attachments):
@@ -115,7 +113,6 @@ class DataCall():
         value = call.getArray(2)
         if not call.wasNull() and value is not None:
             ids = value.getArray(None)
-        print("DataCall.resubmitJobs() ids: %s" % (ids, ))
         return ids
 
     def getSendJobs(self):

@@ -84,7 +84,6 @@ class Sender(Manager):
             if mail.BatchId != batchid:
                 user = getMailUser(self._ctx, mail.Sender)
                 if user is None:
-                    self._setProgressValue(-20)
                     self._input.task_done()
                     self._taskDone()
                     msg = self._logger.resolveString(self._resource + 33, mail.Sender)
@@ -114,7 +113,7 @@ class Sender(Manager):
                 msg = self._logger.resolveString(self._resource + 35, job, recipient)
                 level = INFO
             self._logger.logp(level, self._cls, mtd, msg)
-            self._setProgress(msg, -20)
+            self._setProgress(msg, -10)
             self._input.task_done()
             self._taskDone()
             if self.isCanceled():
@@ -145,9 +144,7 @@ class Sender(Manager):
         return threadid
 
     def _getThreadMessage(self, mail):
-        print("Sender._getThreadMessage() 1 Query: %s" % mail.Query)
         title = self._logger.resolveString(1551, g_extension, mail.BatchId, mail.Query)
-        print("Sender._getThreadMessage() 2 Query: %s" % mail.Query)
         message = self._logger.resolveString(1552)
         label = self._logger.resolveString(1553)
         files = self._logger.resolveString(1554)

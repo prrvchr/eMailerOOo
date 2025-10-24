@@ -42,7 +42,6 @@ import traceback
 
 class SpoolerView(unohelper.Base):
     def __init__(self, ctx, handler, listener, handler1, listener1, point, titles):
-        print("SpoolerView.__init__() 1")
         rectangle = getDialogPosSize(ctx, g_identifier, 'SpoolerDialog', point)
         self._frame = getTopWindow(ctx, g_spoolerframe, rectangle)
         self._frame.setTitle(titles[0])
@@ -61,7 +60,6 @@ class SpoolerView(unohelper.Base):
         self._tab3 = getContainerWindow(ctx, tab3.getPeer(), None, g_identifier, 'SpoolerTab3')
         self._tab3.setVisible(True)
         self._tab.addTabPageContainerListener(listener1)
-        print("SpoolerView.__init__() 2")
 
 # SpoolerView getter methods
     def getDialogPosition(self):

@@ -102,11 +102,9 @@ class Dispatch(unohelper.Base,
 # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, notifier):
         self._dispatch(url, arguments, notifier)
-        print("Dispatch.dispatchWithNotification () finished...")
 
     def dispatch(self, url, arguments):
         self._dispatch(url, arguments)
-        print("Dispatch.dispatch () finished...")
 
     def addStatusListener(self, listener, url):
         pass
@@ -169,7 +167,6 @@ class Dispatch(unohelper.Base,
     #Ispdb methods
     def _showIspdb(self, arguments, notifier):
         try:
-            print("Dispatch._showIspdb() 1")
             email = None
             msg = "Wizard Loading ..."
             sender = ''
@@ -227,14 +224,10 @@ class Dispatch(unohelper.Base,
 
     def _showSpooler(self, notifier):
         try:
-            print("Dispatch._showSpooler() 1")
             frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
-            print("Dispatch._showSpooler() 2")
             if frame:
-                print("Dispatch._showSpooler() 3")
                 frame.getContainerWindow().toFront()
             else:
-                print("Dispatch._showSpooler() 4")
                 manager = SpoolerManager(self._ctx, self._getDataSource(), notifier)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.format_exc())
@@ -273,7 +266,6 @@ class Dispatch(unohelper.Base,
             if frame:
                 frame.getContainerWindow().toFront()
             else:
-                msg = "Wizard Loading ..."
                 document = self._frame.getController().getModel()
                 if document.hasLocation():
                     config = getConfiguration(self._ctx, g_identifier)
@@ -282,14 +274,10 @@ class Dispatch(unohelper.Base,
                     else:
                         point = None
                     config.dispose()
-                    print("Dispatch._showMerger() 4 Point X: %s - Y: %s" % (point.X, point.Y))
-                    print("Dispatch._showMerger() 5 document.URL: %s" % document.URL)
                     wizard = Wizard(self._ctx, g_merger_page, True, None, g_mergerframe, point)
                     controller = MergerController(self._ctx, wizard, document)
                     arguments = (g_merger_paths, controller)
                     wizard.initialize(arguments)
-                    msg += " Done ..."
-                    print("Dispatch._showMerger() 6 document.URL: %s" % document.URL)
                     wizard.execute()
                 else:
                     logger = getLogger(self._ctx, g_defaultlog)
@@ -299,10 +287,8 @@ class Dispatch(unohelper.Base,
                     dialog = createMessageBox(parent, box, 1, title, message)
                     dialog.execute()
                     dialog.dispose()
-            print(msg)
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            print("Dispatch._showMerger() ERROR: %s" % traceback.format_exc())
 
     #Viewer methods
     def _getMail(self, arguments, notifier):

@@ -35,19 +35,18 @@ import traceback
 
 class PdfExport():
     def __init__(self, ctx):
-        path = 'org.openoffice.Office.Common'
-        nodes = ('Filter', 'PDF', 'Export')
-        descriptor = self._getDescriptor(ctx, path, nodes)
+        entry = 'org.openoffice.Office.Common'
+        path = 'Filter/PDF/Export'
+        descriptor = self._getDescriptor(ctx, entry, path)
         self._descriptor = getPropertyValueSet(descriptor)
 
     def getDescriptor(self):
         return self._descriptor
 
-    def _getDescriptor(self, ctx, path, nodes):
-        descriptor = None
-        config = self._getConfig(ctx, path, nodes)
+    def _getDescriptor(self, ctx, entry, path):
+        descriptor = {}
+        config = self._getConfig(ctx, entry, path)
         if config:
-            descriptor = {}
             self._setProperties(config, descriptor, self._getGeneralProperties())
             self._setProperties(config, descriptor, self._getViewProperties())
             self._setProperties(config, descriptor, self._getInterfaceProperties())
@@ -55,14 +54,12 @@ class PdfExport():
             self._setProperties(config, descriptor, self._getSecurityProperties())
         return descriptor
 
-    def _getConfig(self, ctx, path, nodes):
-        config = getConfiguration(ctx, path, False)
-        for node in nodes:
-            if config.hasByName(node):
-                config = config.getByName(node)
-            else:
-                config = None
-                break
+    def _getConfig(self, ctx, entry, path):
+        configuration = getConfiguration(ctx, entry, False)
+        if configuration.hasByHierarchicalName(path):
+            config = configuration.getByHierarchicalName(path)
+        else:
+            config = None
         return config
 
     def _setProperties(self, config, descriptor, properties):

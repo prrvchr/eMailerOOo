@@ -80,7 +80,6 @@ import traceback
 
 class SpoolerManager(unohelper.Base):
     def __init__(self, ctx, datasource, notifier):
-        print("SpoolerManager.__init__() 1")
         self._ctx = ctx
         self._notifier = notifier
         self._lock = Lock()
@@ -107,7 +106,6 @@ class SpoolerManager(unohelper.Base):
         self._log2.addRollerHandler()
         self._closelistener = listener
         #self._updateLogger()
-        print("SpoolerManager.__init__() 2")
 
     @property
     def HandlerEnabled(self):
@@ -115,7 +113,6 @@ class SpoolerManager(unohelper.Base):
 
 # XCallback
     def notify(self, rowset):
-        print("SpoolerManager.notify() 1")
         with self._lock:
             if not self._model.isDisposed():
                 self._view.initView()
@@ -123,7 +120,6 @@ class SpoolerManager(unohelper.Base):
 
 # XDispatchResultListener
     def dispatchFinished(self, notification):
-        print("SpoolerManager.dispatchFinished() 1")
         self._model.endDispatch()
         if self._closing:
             if not self._model.hasDispatch():
@@ -160,11 +156,9 @@ class SpoolerManager(unohelper.Base):
 
 # XStreamListener
     def started(self):
-        print("SpoolerManager.started() 1")
         self._refreshSpoolerView(2)
 
     def closed(self):
-        print("SpoolerManager.closed() 1")
         self._refreshSpoolerView(1)
         if self._closing:
             if not self._model.hasDispatch():
@@ -172,10 +166,8 @@ class SpoolerManager(unohelper.Base):
                 self._view.close()
         else:
             self._enableButtons(self._model.hasGridSelectedRows())
-        print("SpoolerManager.closed() 2")
 
     def terminated(self):
-        print("SpoolerManager.terminated() 1")
         self._refreshSpoolerView(0)
 
 # XTabPageContainerListener
@@ -191,13 +183,11 @@ class SpoolerManager(unohelper.Base):
 
 # SpoolerManager setter method
     def setDataModel(self, rowset):
-        print("SpoolerManager.setDataModel() 1")
         with self._lock:
             if not self._model.isDisposed():
                 self._model.setGridData(rowset)
                 if self._initialize:
                     self._initView()
-        print("SpoolerManager.setDataModel() 2")
 
     def changeGridSelection(self, index, grid):
         selected = index != -1

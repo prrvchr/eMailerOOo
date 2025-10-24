@@ -47,7 +47,6 @@ class Tab1Handler(unohelper.Base,
             handled = False
             enabled = self._manager.isHandlerEnabled()
             if method == 'ChangeAddressTable':
-                print("Tab1Handler.callHandlerMethod() ChangeAddressTable *************** %s" % enabled)
                 if enabled:
                     self._manager.setAddressTable(event.Source.getSelectedItem())
                 handled = True

@@ -129,7 +129,6 @@ class MailManager(unohelper.Base,
         selection = self._view.getSelectedRecipients()
         url = self._model.parseUri()
         options = self._getViewOptions('html')
-        print("MailManger.viewHtml() url: %s" % url)
         self._model.viewDocument(selection, url, True, 'html', *options)
 
     def viewPdf(self):
@@ -139,7 +138,6 @@ class MailManager(unohelper.Base,
         selection = self._view.getSelectedRecipients()
         url, merge, filter = self._model.parseUriFragment(self._view.getSelectedAttachment())
         options = self._getViewOptions('pdf')
-        print("MailManger.viewPdf() url: %s" % url)
         self._model.viewDocument(selection, url, merge, 'pdf', *options)
 
     def changeAttachments(self, index, selected, item, positions):

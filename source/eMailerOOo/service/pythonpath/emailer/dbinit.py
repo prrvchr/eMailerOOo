@@ -68,7 +68,6 @@ def getDataBaseConnection(ctx, url, user, pwd, new=False, infos=None):
     return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
 def createDataBase(ctx, connection, odb):
-    print("smtpMailer.DataBase._initialize() 1")
     sleep(0.2)
     tables = connection.getTables()
     statement = connection.createStatement()
@@ -85,7 +84,6 @@ def createDataBase(ctx, connection, odb):
     statement.close()
     connection.getParent().DatabaseDocument.storeAsURL(odb, ())
     connection.close()
-    print("smtpMailer.DataBase._initialize() 2 finished...")
 
 def _createTables(connection, statement, tables):
     infos = getConnectionInfos(connection, 'AutoIncrementCreation', 'RowVersionCreation')

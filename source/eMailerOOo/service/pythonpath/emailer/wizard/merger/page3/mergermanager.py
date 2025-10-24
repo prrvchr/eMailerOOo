@@ -109,7 +109,6 @@ class MergerManager(MailManager,
         for listener in self._listeners:
             listener.disposing(event)
         self._view.getWindow().dispose()
-        print("MergerManager.dispose() page3")
 
     def addEventListener(self, listener):
         if listener not in self._listeners:

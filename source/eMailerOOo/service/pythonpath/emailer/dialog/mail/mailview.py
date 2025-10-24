@@ -79,7 +79,6 @@ class MailView(unohelper.Base):
     def hasSelectedPdfAttachment(self):
         control = self._getAttachments()
         position = control.getSelectedItemPos()
-        print("MailView.hasSelectedPdfAttachment() position: %s" % position)
         return position != -1 and control.getSelectedItem().endswith('pdf')
 
     def getSubject(self):

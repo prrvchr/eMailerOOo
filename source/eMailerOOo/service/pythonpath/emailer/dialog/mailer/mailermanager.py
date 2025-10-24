@@ -89,7 +89,6 @@ class MailerManager(MailManager):
     def sendDocument(self):
         try:
             subject, attachments = self._getSavedDocumentProperty()
-            print("MailerManager.sendDocument() *************************** %s - %s" % (subject, attachments))
             sender, recipients = self._view.getEmail()
             url = self._model.getUrl()
             spooler = getMailSpooler(self._ctx)

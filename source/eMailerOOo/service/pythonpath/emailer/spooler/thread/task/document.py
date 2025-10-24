@@ -76,14 +76,11 @@ class Document(Job):
     def execute(self, cancel):
         if not cancel.isSet():
             if self._job:
-                print("Document.execute() 1")
                 self._fields = executeMerge(self._job, self)
-                print("Document.execute() 2")
             elif self._filter:
                 executeExport(self._ctx, self, self._export)
 
     def close(self):
-        print("Document.close() 1 ")
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
         # XXX: it is imperative to close / dispose all these references.
         if self._job:
@@ -91,7 +88,6 @@ class Document(Job):
             if result:
                 result.close()
             self._job.dispose()
-        print("Document.close() 2")
 
     def getUrl(self, job):
         if self._rows and job in self._rows:

@@ -67,7 +67,6 @@ class MailSpooler(unohelper.Base,
         self._table = getConfiguration(ctx, g_identifier, False).getByName('SpoolerTable')
         self._datacall = None
         self._close = False
-        print("MailSpooler.__init__() 1")
 
     _rowset = None
 
@@ -165,11 +164,9 @@ class MailSpooler(unohelper.Base,
 
     # method caller internally
     def _getDataCall(self):
-        print("MailSpooler._getDataCall() 1")
         if self._datacall is None:
             self._datasource.waitForDataBase()
             self._datacall = self._datasource.getDataCall()
-        print("MailSpooler._getDataCall() 2")
         return self._datacall
 
     def _getRowSet(self):

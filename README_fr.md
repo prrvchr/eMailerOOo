@@ -45,6 +45,7 @@ Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source][11].
 - A apporter des modifications, des corrections, des améliorations.
 - D'ouvrir un [dysfonctionnement][12] si nécessaire.
+- De [participer au frais][13] de la [certification CASA][14].
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -53,15 +54,15 @@ ___
 
 ## Certification CASA:
 
-Afin de garantir l'interopérabilité avec **Google**, l'extension **eMailerOOo** utilise l'extension **OAuth2OOo** qui nécessite la [certification CASA][13].  
+Afin de garantir l'interopérabilité avec **Google**, l'extension **eMailerOOo** utilise l'extension **OAuth2OOo** qui nécessite la [certification CASA][14].  
 Jusqu'à présent, cette certification était gratuite et réalisée par un partenaire de Google.  
-L'application **OAuth2OOo** a obtenu sa [certification CASA][14] le 28/11/2023.
+L'application **OAuth2OOo** a obtenu sa [certification CASA][15] le 28/11/2023.
 
 **Maintenant cette certification est devenue désormais payante et coûte 600$.**
 
-Je n'avais jamais anticipé de tels frais et je compte sur votre contribution pour financer ce projet.
+Je n'avais jamais anticipé de tels frais et je compte sur votre contribution pour financer cette certification.
 
-Merci pour votre aide. [![Sponsor][15]][16]
+Merci pour votre aide. [![Sponsor][16]][13]
 
 ___
 
@@ -699,8 +700,10 @@ ___
   - [sender.py][124]
   - [mailer.py][125]
   - [viewer.py][126]
+- Ajout de l'interface [XTaskEvent.idl][127] à l'API UNO. Cette nouvelle interface, qui est la transcription de la classe Python [threading.Event][128], permet de contrôler une tâche exécutée par le [Dispatcher][129] de LibreOffice.
 - Si des fichiers sont joints au courriel et au format PDF, alors ils suivront les paramètres de configuration de LibreOffice qui se trouvent dans: **Fichier -> Exporter vers -> Exporter au format PDF** lors de leur transformation.
-- Toutes les méthodes exécutées en arrière-plan utilisent désormais le service UNO [com.sun.star.awt.AsyncCallback][127] pour le rappel.
+- Toutes les méthodes nécessaires à l'affichage et s'exécutant en arrière-plan utilisent désormais le service UNO [com.sun.star.awt.AsyncCallback][130] pour le rappel.
+- Si l'extension jdbcDriverOOo fonctionne sans l'instrumentation Java, un message d'avertissement s'affichera dans les options de l'extension.
 - Nécessite l'extension **jdbcDriverOOo en version 1.6.0 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.6.0 minimum**.
 - A été testé avec LibreOfficeDev 26.2.
@@ -723,10 +726,10 @@ ___
 [10]: <https://prrvchr.github.io/eMailerOOo/README_fr#envoi-de-courriel-avec-une-macro-libreoffice-en-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
-[13]: <https://appdefensealliance.dev/casa>
-[14]: <https://github.com/prrvchr/OAuth2OOo/blob/master/LOV_OAuth2OOo.pdf>
-[15]: <https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86#right>
-[16]: <https://github.com/sponsors/prrvchr>
+[13]: <https://github.com/sponsors/prrvchr>
+[14]: <https://appdefensealliance.dev/casa>
+[15]: <https://github.com/prrvchr/OAuth2OOo/blob/master/LOV_OAuth2OOo.pdf>
+[16]: <https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86#right>
 [17]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
 [18]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
 [19]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
@@ -837,4 +840,7 @@ ___
 [124]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/sender.py>
 [125]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/mailer.py>
 [126]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/viewer.py>
-[127]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/AsyncCallback.html>
+[127]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/task/XTaskEvent>
+[128]: <https://docs.python.org/3/library/threading.html#threading.Event>
+[129]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/frame/XDispatch.html#dispatch>
+[130]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/AsyncCallback.html>

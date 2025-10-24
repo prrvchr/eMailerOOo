@@ -24,6 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MergerPage1" dlg:left="85" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MergerPage1.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MergerPage1.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
@@ -33,18 +34,18 @@
     <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="5" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine1.HelpText" dlg:value="&amp;MergerPage1.FixedLine1.Label"/>
     <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="200" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label1.HelpText" dlg:value="&amp;MergerPage1.Label1.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="25" dlg:width="60" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label2.HelpText" dlg:value="&amp;MergerPage1.Label2.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:disabled="true" dlg:left="75" dlg:top="25" dlg:width="100" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox1.HelpText" dlg:value="&amp;MergerPage1.ListBox1.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:disabled="true" dlg:left="75" dlg:top="25" dlg:width="100" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBook" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="4" dlg:disabled="true" dlg:left="185" dlg:top="25" dlg:width="95" dlg:height="15" dlg:help-text="&amp;MergerPage1.CommandButton1.HelpText" dlg:value="&amp;MergerPage1.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewAddressBook" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label3" dlg:tab-index="5" dlg:left="10" dlg:top="45" dlg:width="60" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label3.HelpText" dlg:value="&amp;MergerPage1.Label3.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:disabled="true" dlg:left="75" dlg:top="45" dlg:width="80" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox2.HelpText" dlg:value="&amp;MergerPage1.ListBox2.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:disabled="true" dlg:left="75" dlg:top="45" dlg:width="100" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox2.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookTable" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="165" dlg:top="45" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label4.HelpText" dlg:value="&amp;MergerPage1.Label4.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox3" dlg:tab-index="8" dlg:disabled="true" dlg:left="200" dlg:top="45" dlg:width="80" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox3.HelpText" dlg:value="&amp;MergerPage1.ListBox3.Text" dlg:spin="true">
+    <dlg:text dlg:id="Label4" dlg:tab-index="7" dlg:left="185" dlg:top="45" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label4.HelpText" dlg:value="&amp;MergerPage1.Label4.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox3" dlg:tab-index="8" dlg:disabled="true" dlg:left="220" dlg:top="45" dlg:width="60" dlg:height="15" dlg:help-text="&amp;MergerPage1.ListBox3.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeAddressBookColumn" script:language="UNO"/>
     </dlg:menulist>
     <dlg:fixedline dlg:id="FixedLine2" dlg:tab-index="9" dlg:left="0" dlg:top="69" dlg:width="285" dlg:height="1" dlg:help-text="&amp;MergerPage1.FixedLine2.HelpText" dlg:value="&amp;MergerPage1.FixedLine2.Label"/>
@@ -69,7 +70,7 @@
     <dlg:text dlg:style-id="0" dlg:id="Label11" dlg:tab-index="21" dlg:page="3" dlg:left="5" dlg:top="115" dlg:width="200" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label11.HelpText" dlg:value="&amp;MergerPage1.Label11.Label" dlg:valign="center"/>
     <dlg:text dlg:style-id="0" dlg:id="Label12" dlg:tab-index="22" dlg:page="3" dlg:left="10" dlg:top="125" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label12.HelpText" dlg:value="&amp;MergerPage1.Label12.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label13" dlg:tab-index="23" dlg:page="3" dlg:left="10" dlg:top="135" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label13.HelpText" dlg:value="&amp;MergerPage1.Label13.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox4" dlg:tab-index="24" dlg:page="3" dlg:disabled="true" dlg:left="10" dlg:top="150" dlg:width="90" dlg:height="46" dlg:help-text="&amp;MergerPage1.ListBox4.HelpText" dlg:value="&amp;MergerPage1.ListBox4.Text">
+    <dlg:menulist dlg:id="ListBox4" dlg:tab-index="24" dlg:page="3" dlg:disabled="true" dlg:left="10" dlg:top="150" dlg:width="90" dlg:height="46" dlg:help-text="&amp;MergerPage1.ListBox4.HelpText">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeEmail" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton4" dlg:tab-index="25" dlg:page="3" dlg:disabled="true" dlg:left="105" dlg:top="150" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.CommandButton4.HelpText" dlg:value="&amp;MergerPage1.CommandButton4.Label">
@@ -84,9 +85,9 @@
     <dlg:button dlg:id="CommandButton7" dlg:tab-index="28" dlg:page="3" dlg:disabled="true" dlg:left="105" dlg:top="182" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.CommandButton7.HelpText" dlg:value="&amp;MergerPage1.CommandButton7.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveEmail" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="29" dlg:page="3" dlg:left="155" dlg:top="125" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label14.HelpText" dlg:value="&amp;MergerPage1.Label14.Label.0" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="29" dlg:page="3" dlg:left="155" dlg:top="125" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label14.HelpText" dlg:value="&amp;MergerPage1.Label14.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label15" dlg:tab-index="30" dlg:page="3" dlg:left="155" dlg:top="135" dlg:width="124" dlg:height="15" dlg:help-text="&amp;MergerPage1.Label15.HelpText" dlg:value="&amp;MergerPage1.Label15.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox5" dlg:tab-index="31" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="150" dlg:width="90" dlg:height="46" dlg:help-text="&amp;MergerPage1.ListBox5.HelpText" dlg:value="&amp;MergerPage1.ListBox5.Text">
+    <dlg:menulist dlg:id="ListBox5" dlg:tab-index="31" dlg:page="3" dlg:disabled="true" dlg:left="155" dlg:top="150" dlg:width="90" dlg:height="46" dlg:help-text="&amp;MergerPage1.ListBox5.HelpText">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeIdentifier" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton8" dlg:tab-index="32" dlg:page="3" dlg:disabled="true" dlg:left="250" dlg:top="150" dlg:width="30" dlg:height="15" dlg:help-text="&amp;MergerPage1.CommandButton8.HelpText" dlg:value="&amp;MergerPage1.CommandButton8.Label">
@@ -103,3 +104,4 @@
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
+

@@ -75,9 +75,6 @@ class OptionsHandler(unohelper.Base,
             elif method == 'ShowIspdb':
                 self._manager.showIspdb()
                 handled = True
-            elif method == 'ToggleSpooler':
-                self._manager.toogleSpooler(event.Source.Model.State)
-                handled = True
             elif method == 'ShowSpooler':
                 self._manager.showSpooler()
                 handled = True
@@ -86,12 +83,12 @@ class OptionsHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
+            print("OptionsHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
             self._logger.logprb(SEVERE, 'OptionsHandler', 'callHandlerMethod', 141, e, traceback.format_exc())
 
         def getSupportedMethodNames(self):
             return ('external_event',
                     'ShowIspdb',
-                    'ToggleSpooler',
                     'ShowSpooler',
                     'ShowDataBase')
 

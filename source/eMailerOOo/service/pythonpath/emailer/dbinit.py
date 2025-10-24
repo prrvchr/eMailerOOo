@@ -68,7 +68,6 @@ def getDataBaseConnection(ctx, url, user, pwd, new=False, infos=None):
     return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
 def createDataBase(ctx, connection, odb):
-    print("smtpMailer.DataBase._initialize() 1")
     sleep(0.2)
     tables = connection.getTables()
     statement = connection.createStatement()
@@ -85,7 +84,6 @@ def createDataBase(ctx, connection, odb):
     statement.close()
     connection.getParent().DatabaseDocument.storeAsURL(odb, ())
     connection.close()
-    print("smtpMailer.DataBase._initialize() 2")
 
 def _createTables(connection, statement, tables):
     infos = getConnectionInfos(connection, 'AutoIncrementCreation', 'RowVersionCreation')
@@ -102,7 +100,8 @@ def _getViews(ctx, catalog, schema, view, *option):
     yield catalog, schema, view, getSqlQuery(ctx, 'get%sViewCommand' % view, format), *option
 
 def _getProcedures():
-    for name in ('InsertJob', 'InsertMergeJob', 'DeleteJobs', 'GetRecipient',
-                 'GetMailer', 'GetAttachments', 'UpdateSpooler'):
+    for name in ('GetBatchJobs', 'GetBatchState', 'AddJob', 'AddMergeJob',
+                 'DeleteJobs', 'GetAttachments', 'UpdateSpooler', 'UpdateJobsState',
+                 'UpdateJobState', 'ResubmitJobs', 'GetSendJobs', 'GetJobs'):
         yield name
 

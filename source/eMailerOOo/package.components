@@ -15,6 +15,11 @@
       <service name="com.sun.star.mail.MailSpooler"/>
     </implementation>
   </component>
+  <component loader="com.sun.star.loader.Python" uri="service/MailSender.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.MailSender">
+      <service name="com.sun.star.mail.MailSender"/>
+    </implementation>
+  </component>
   <component loader="com.sun.star.loader.Python" uri="service/MailUser.py">
     <implementation name="io.github.prrvchr.eMailerOOo.MailUser">
       <service name="com.sun.star.mail.MailUser"/>

@@ -38,6 +38,9 @@ class OptionsView(unohelper.Base):
         self._window = window
 
 # OptionsView getter methods
+    def getWindow(self):
+        return self._window
+
     def getTimeout(self):
         return int(self._getTimeout().Value)
 
@@ -45,35 +48,41 @@ class OptionsView(unohelper.Base):
     def dispose(self):
         self._window.dispose()
 
-    def initView(self, restart, exist, timeout, state, status):
-        self.setRestart(restart)
+    def initView(self, restart, url, instrumented, exist, timeout):
+        control = self._getWarning()
+        control.URL = url
+        self._setWarning(control, restart, instrumented)
         self.updateDataBase(exist)
         self._getTimeout().Value = timeout
-        self.setSpoolerStatus(state, status)
+
+    def setWarning(self, restart, instrumented):
+        self._setWarning(self._getWarning(), restart, instrumented)
 
     def updateDataBase(self, exist):
         self._getDataBaseButton().Model.Enabled = exist
 
-    def setSpoolerStatus(self, state, status):
-        self._getSpoolerButton().Model.State = state
-        self._getSpoolerStatus().Text = status
-
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
+
+# OptionsView private methods
+    def _setWarning(self, control, restart, instrumented):
+        if restart:
+            control.setVisible(False)
+            self._getRestart().setVisible(True)
+        else:
+            self._getRestart().setVisible(False)
+            control.setVisible(not instrumented)
 
 # OptionsView private control methods
     def _getTimeout(self):
         return self._window.getControl('NumericField1')
 
-    def _getSpoolerStatus(self):
-        return self._window.getControl('Label5')
-
     def _getDataBaseButton(self):
         return self._window.getControl('CommandButton2')
 
-    def _getSpoolerButton(self):
-        return self._window.getControl('CommandButton3')
-
     def _getRestart(self):
-        return self._window.getControl('Label7')
+        return self._window.getControl('Label5')
+
+    def _getWarning(self):
+        return self._window.getControl('Hyperlink1')
 

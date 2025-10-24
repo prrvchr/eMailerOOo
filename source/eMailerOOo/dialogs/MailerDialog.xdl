@@ -24,6 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailerDialog" dlg:left="0" dlg:top="10" dlg:width="285" dlg:height="220" dlg:help-text="&amp;MailerDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailerDialog.Title">
   <dlg:bulletinboard>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:disabled="false" dlg:left="185" dlg:top="201" dlg:width="45" dlg:height="15" dlg:help-text="&amp;MailerDialog.CommandButton1.HelpText" dlg:value="&amp;MailerDialog.CommandButton1.Label" dlg:button-type="cancel"/>
@@ -32,3 +33,4 @@
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
+

@@ -275,7 +275,6 @@ class SmtpService(unohelper.Base,
             if self._debug:
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
             raise AuthenticationFailedException(msg, self)
-        print("SmtpService._doLogin() Code: %s - Reply: %s" % (code, self._getReply(reply)))
         if code != 235:
             pwd = '*' * len(password)
             msg = self._logger.resolveString(252, user, pwd, self._getReply(reply))

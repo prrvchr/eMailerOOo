@@ -24,6 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
 <dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="SendDialog" dlg:left="30" dlg:top="30" dlg:width="180" dlg:height="200" dlg:help-text="&amp;SendDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;SendDialog.Title">
  <dlg:bulletinboard>
   <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="5" dlg:top="5" dlg:width="50" dlg:height="15" dlg:help-text="&amp;SendDialog.Label1.HelpText" dlg:value="&amp;SendDialog.Label1.Label" dlg:valign="center"/>
@@ -42,3 +43,4 @@
   <dlg:button dlg:id="CommandButton2" dlg:tab-index="7" dlg:left="130" dlg:top="180" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SendDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;SendDialog.CommandButton2.Label" dlg:button-type="ok"/>
  </dlg:bulletinboard>
 </dlg:window>
+

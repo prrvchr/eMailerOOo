@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -38,11 +40,11 @@ from .optionsview import OptionsView
 
 from .optionshandler import OptionsListener
 
+from ..listener import DispatchListener
+
 from ..logger import LogManager
 
-from ..spooler import StreamListener
-
-from ..unotool import executeDispatch
+from ..unotool import executeDesktopDispatch
 from ..unotool import getDesktop
 
 from ..configuration import g_defaultlog
@@ -62,25 +64,12 @@ class OptionsManager(unohelper.Base):
         self._view.initView(OptionsManager._restart, *self._model.getViewData())
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._logmanager.initView()
-        self._listener = StreamListener(self)
-        self._model.addStreamListener(self._listener)
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
 
     _restart = False
 
-    def started(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(1))
-
-    def closed(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
-        self._view.updateDataBase(self._model.getDataBaseStatus())
-
-    def terminated(self):
-        self._view.setSpoolerStatus(*self._model.getSpoolerStatus(0))
-
     def dispose(self):
         self._logmanager.dispose()
-        self._model.removeStreamListener(self._listener)
         self._view.dispose()
 
     def loadSetting(self):
@@ -93,26 +82,27 @@ class OptionsManager(unohelper.Base):
         log = self._logmanager.saveSetting()
         if log:
             OptionsManager._restart = True
-            self._view.setRestart(OptionsManager._restart)
+            self._view.setWarning(True, self._model.isInstrumented())
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting', 171, option, log)
 
     def changeTimeout(self, timeout):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        executeDispatch(self._ctx, 'emailer:ShowIspdb')
-        self._view.updateDataBase(self._model.getDataBaseStatus())
-
-    def toogleSpooler(self, state):
-        if state:
-            command = 'emailer:StopSpooler'
-        else:
-            command = 'emailer:StartSpooler'
-        executeDispatch(self._ctx, command)
+        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
+        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
+        kwargs = {'ParentWindow': self._view.getWindow()}
+        executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', None, **kwargs)
 
     def showSpooler(self):
-        executeDispatch(self._ctx, 'emailer:ShowSpooler')
-        self._view.updateDataBase(self._model.getDataBaseStatus())
+        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
+        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
+        executeDesktopDispatch(self._ctx, 'emailer:ShowSpooler', DispatchListener(self))
+
+# XDispatchResultListener
+    def dispatchFinished(self, notification):
+        if notification.State == SUCCESS:
+            self._view.updateDataBase(self._model.getDataBaseStatus())
 
     def showDataBase(self):
         url = self._model.getDataBaseUrl()

@@ -27,26 +27,29 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .datasource import DataSource
+
+from .dispatch import Dispatch
+
+from .mailsend import MailSend
+
 from .mailservice import ImapService
 from .mailservice import Pop3Service
 from .mailservice import SmtpService
 
-from .transferable import Transferable
-
 from .options import OptionsManager
-
-from .dispatch import Dispatch
-
-from .spooler import Spooler
 
 from .user import User
 
+from .transferable import Transferable
+
+from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
 from .unotool import getCurrentLocale
 from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
-from .unotool import hasInterface
+from .unotool import hasFrameInterface
 
 from .logger import getLogger
 
@@ -54,4 +57,5 @@ from .configuration import g_identifier
 from .configuration import g_mailservicelog
 from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
+from .configuration import g_fetchsize
 

@@ -29,20 +29,28 @@
 
 import unohelper
 
+from com.sun.star.frame import XDispatchResultListener
+
 from com.sun.star.frame import XTerminateListener
+
+from com.sun.star.io import XStreamListener
+
+from com.sun.star.task import XJobListener
+
+from com.sun.star.util import XCloseListener
 
 import traceback
 
 
 class TerminateListener(unohelper.Base,
                         XTerminateListener):
-    def __init__(self, spooler):
-        self._spooler = spooler
+    def __init__(self, manager):
+        self._manager = manager
 
 # XTerminateListener
     def queryTermination(self, event):
         try:
-            self._spooler.terminate()
+            self._manager.dispose()
         except Exception as e:
             msg = "TerminateListener Error: %s" % traceback.format_exc()
             print(msg)
@@ -52,3 +60,76 @@ class TerminateListener(unohelper.Base,
 
     def disposing(self, source):
         pass
+
+
+class DispatchListener(unohelper.Base,
+                       XDispatchResultListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
+        try:
+            self._manager.dispatchFinished(notification)
+        except Exception as e:
+            msg = "Error: %s" % traceback.format_exc()
+            print(msg)
+
+    def disposing(self, source):
+        pass
+
+
+class JobListener(unohelper.Base,
+                  XJobListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XJobListener
+    def jobFinished(self, job, result):
+        try:
+            manager.jobFinished(job, result)
+        except Exception as e:
+            msg = "Error: %s" % traceback.format_exc()
+            print(msg)
+
+    def disposing(self, source):
+        pass
+
+
+class StreamListener(unohelper.Base,
+                     XStreamListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XStreamListener
+    def started(self):
+        self._manager.started()
+
+    def closed(self):
+        self._manager.closed()
+
+    def terminated(self):
+        self._manager.terminated()
+
+    def error(self, e):
+        pass
+
+    def disposing(self, source):
+        pass
+
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XCloseListener
+    def queryClosing(self, event, ownership):
+        self._manager.queryClosing(event.Source, ownership)
+
+    def notifyClosing(self, event):
+        pass
+
+    def disposing(self, event):
+        pass
+

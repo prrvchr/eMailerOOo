@@ -29,7 +29,7 @@
 
 import unohelper
 
-from ..helper import getMailSpooler
+from ..jdbcdriver import isInstrumented
 
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
@@ -49,29 +49,23 @@ class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._spooler = getMailSpooler(ctx)
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'SpoolerStatus':  'OptionsDialog.Label5.Label.%s'}
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
+        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
+        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
 
     @property
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
 
-    def addStreamListener(self, listener):
-        if self._spooler is not None:
-            self._spooler.addListener(listener)
-
-    def removeStreamListener(self, listener):
-        if self._spooler is not None:
-            self._spooler.removeListener(listener)
+    def isInstrumented(self):
+        return self._instrumented
 
     def getViewData(self):
         exist = self.getDataBaseStatus()
-        state, status = self._getSpoolerStatus()
-        return exist, self._Timeout, state, status
+        return self._link, self._instrumented, exist, self._Timeout
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:
@@ -81,20 +75,9 @@ class OptionsModel():
             return True
         return False
 
-    def getSpoolerStatus(self, started):
-        resource = self._resources.get('SpoolerStatus') % started
-        return started, self._resolver.resolveString(resource)
-
     def getDataBaseStatus(self):
         return getSimpleFile(self._ctx).exists(self._url)
 
     def getDataBaseUrl(self):
         return self._url
-
-    # OptionsModel private methods
-    def _getSpoolerStatus(self):
-        started = 0
-        if self._spooler is not None:
-            started = int(self._spooler.isStarted())
-        return self.getSpoolerStatus(started)
 

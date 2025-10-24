@@ -1,7 +1,7 @@
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'Utilisation][4] et à notre [Politique de Protection des Données][5].**
 
-# version [1.4.2][6]
+# version [1.5.0][6]
 
 ## Introduction:
 
@@ -45,19 +45,34 @@ Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source][11].
 - A apporter des modifications, des corrections, des améliorations.
 - D'ouvrir un [dysfonctionnement][12] si nécessaire.
+- De [participer au frais][13] de la [certification CASA][14].
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
 ___
 
+## Certification CASA:
+
+Afin de garantir l'interopérabilité avec **Google**, l'extension **eMailerOOo** utilise l'extension **OAuth2OOo** qui nécessite la [certification CASA][14].  
+Jusqu'à présent, cette certification était gratuite et réalisée par un partenaire de Google.  
+L'application **OAuth2OOo** a obtenu sa [certification CASA][15] le 28/11/2023.
+
+**Maintenant cette certification est devenue désormais payante et coûte 600$.**
+
+Je n'avais jamais anticipé de tels frais et je compte sur votre contribution pour financer cette certification.
+
+Merci pour votre aide. [![Sponsor][16]][13]
+
+___
+
 ## Prérequis:
 
 L'extension eMailerOOo utilise l'extension OAuth2OOo pour fonctionner.  
-Elle doit donc répondre aux [prérequis de l'extension OAuth2OOo][13].
+Elle doit donc répondre aux [prérequis de l'extension OAuth2OOo][17].
 
 L'extension eMailerOOo utilise l'extension jdbcDriverOOo pour fonctionner.  
-Elle doit donc répondre aux [prérequis de l'extension jdbcDriverOOo][14].  
+Elle doit donc répondre aux [prérequis de l'extension jdbcDriverOOo][18].  
 De plus, eMailerOOo nécessite que l'extension jdbcDriverOOo soit configurée pour fournir `com.sun.star.sdb` comme niveau d'API, qui est la configuration par défaut.
 
 ___
@@ -67,33 +82,33 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- [![OAuth2OOo logo][17]][18] Installer l'extension **[OAuth2OOo.oxt][19]** [![Version][20]][19]
+- [![OAuth2OOo logo][19]][20] Installer l'extension **[OAuth2OOo.oxt][21]** [![Version][22]][21]
 
     Vous devez d'abord installer cette extension, si elle n'est pas déjà installée.
 
-- [![jdbcDriverOOo logo][21]][22] Installer l'extension **[jdbcDriverOOo.oxt][23]** [![Version][24]][23]
+- [![jdbcDriverOOo logo][23]][24] Installer l'extension **[jdbcDriverOOo.oxt][25]** [![Version][26]][25]
 
     Cette extension est nécessaire pour utiliser HsqlDB version 2.7.2 avec toutes ses fonctionnalités.
 
 - Si vous n'avez pas de source de données, vous pouvez:
 
-    - [![vCardOOo logo][25]][26] Installer l'extension **[vCardOOo.oxt][27]** [![Version][28]][27]
+    - [![vCardOOo logo][27]][28] Installer l'extension **[vCardOOo.oxt][29]** [![Version][30]][29]
 
-        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [Nextcloud][29] comme source de données pour les listes de diffusion et la fusion de documents.
+        Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts présents sur une plateforme [Nextcloud][31] comme source de données pour les listes de diffusion et la fusion de documents.
 
-    - [![gContactOOo logo][30]][31] Installer l'extension **[gContactOOo.oxt][32]** [![Version][33]][32]
+    - [![gContactOOo logo][32]][33] Installer l'extension **[gContactOOo.oxt][34]** [![Version][35]][34]
 
         Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts téléphoniques personnels (contact Android) comme source de données pour les listes de diffusion et la fusion de documents.
 
-    - [![mContactOOo logo][34]][35] Installer l'extension **[mContactOOo.oxt][36]** [![Version][37]][36]
+    - [![mContactOOo logo][36]][37] Installer l'extension **[mContactOOo.oxt][38]** [![Version][39]][38]
 
         Cette extension n'est nécessaire que si vous souhaitez utiliser vos contacts Microsoft Outlook comme source de données pour les listes de diffusion et la fusion de documents.
 
-    - [![HyperSQLOOo logo][38]][39] Installer l'extension **[HyperSQLOOo.oxt][40]** [![Version][41]][40]
+    - [![HyperSQLOOo logo][40]][41] Installer l'extension **[HyperSQLOOo.oxt][42]** [![Version][43]][42]
 
-        Cette extension n'est nécessaire que si vous souhaitez utiliser un fichier Calc comme source de données pour les listes de diffusion et la fusion de documents. Voir: [Comment importer des données depuis un fichier Calc][42].
+        Cette extension n'est nécessaire que si vous souhaitez utiliser un fichier Calc comme source de données pour les listes de diffusion et la fusion de documents. Voir: [Comment importer des données depuis un fichier Calc][44].
 
-- ![eMailerOOo logo][43] Installer l'extension **[eMailerOOo.oxt][44]** [![Version][45]][44]
+- ![eMailerOOo logo][45] Installer l'extension **[eMailerOOo.oxt][46]** [![Version][47]][46]
 
 Redémarrez LibreOffice après l'installation.  
 **Attention, redémarrer LibreOffice peut ne pas suffire.**
@@ -113,18 +128,18 @@ Pour pouvoir utiliser la fonctionnalité de publipostage de courriels en utilisa
 De plus, cette **source de données** doit avoir au moins une **table principale**, comprenant tous les enregistrements pouvant être utilisés lors du publipostage du courriel.
 
 Si vous ne disposez pas d'une telle **source de données** alors je vous invite à installer une des extensions suivantes :
-- [vCardOOo][26]. Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [Nextcloud][29] comme source de données.
-- [gContactOOo][31]. Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
-- [mContactOOo][35]. Cette extension vous permettra d'utiliser vos contacts Microsoft Outlook comme source de données.
-- [HyperSQLOOo][39]. Cette extension vous permettra d'utiliser un fichier Calc comme source de données. Voir: [Comment importer des données depuis un fichier Calc][42].
+- [vCardOOo][28]. Cette extension vous permettra d'utiliser vos contacts présents sur une plateforme [Nextcloud][31] comme source de données.
+- [gContactOOo][33]. Cette extension vous permettra d'utiliser votre téléphone Android (vos contacts téléphoniques) comme source de données.
+- [mContactOOo][37]. Cette extension vous permettra d'utiliser vos contacts Microsoft Outlook comme source de données.
+- [HyperSQLOOo][41]. Cette extension vous permettra d'utiliser un fichier Calc comme source de données. Voir: [Comment importer des données depuis un fichier Calc][44].
 
 Pour les 3 premières extensions le nom de la **table principale** peut être trouvé (et même changé avant toute connexion) dans:  
 **Outils -> Options -> Internet -> Nom de l'extension -> Nom de la table principale**
 
 Ce mode d'utilisation est composé de 3 sections:
-- [Publipostage de courriels avec des listes de diffusion][46].
-- [Configuration de la connexion][47].
-- [Courriels sortants][48].
+- [Publipostage de courriels avec des listes de diffusion][48].
+- [Configuration de la connexion][49].
+- [Courriels sortants][50].
 
 ### Publipostage de courriels avec des listes de diffusion:
 
@@ -145,26 +160,26 @@ Si ces recommandations ne sont pas suivies alors **la fusion de documents ne fon
 
 Dans un document LibreOffice Writer aller à: **Outils -> Add-ons -> Envoi de courriels -> Publiposter un document**
 
-![eMailerOOo Merger screenshot 1][49]
+![eMailerOOo Merger screenshot 1][51]
 
 #### Sélection de la source de données:
 
 Le chargement de la source de données de l'assistant **Publipostage de courriels** devrait apparaître :
 
-![eMailerOOo Merger screenshot 2][50]
+![eMailerOOo Merger screenshot 2][52]
 
-Les captures d'écran suivantes utilisent l'extension [gContactOOo][31] comme **source de données**. Si vous utilisez votre propre **source de données**, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
+Les captures d'écran suivantes utilisent l'extension [gContactOOo][33] comme **source de données**. Si vous utilisez votre propre **source de données**, il est nécessaire d'adapter les paramètres par rapport à celle-ci. 
 
 Dans la copie d'écran suivante, on peut voir que la **source de données** gContactOOo s'appelle: `Adresses` et que dans la liste des tables la table: `PUBLIC.Tous mes contacts` est sélectionnée.
 
-![eMailerOOo Merger screenshot 3][51]
+![eMailerOOo Merger screenshot 3][53]
 
 Si aucune liste de diffusion n'existe, vous devez en créer une, en saisissant son nom et en validant avec: `ENTRÉE` ou le bouton `Ajouter`.
 
 Assurez-vous lors de la création de la liste de diffusion que la **table principale** est toujours bien sélectionnée dans la liste des tables.  
 Si cette recommandation n'est pas suivie alors **la fusion de documents ne fonctionnera pas** et ceci silencieusement.
 
-![eMailerOOo Merger screenshot 4][52]
+![eMailerOOo Merger screenshot 4][54]
 
 Maintenant que votre nouvelle liste de diffusion est disponible dans la liste, vous devez la sélectionner.
 
@@ -173,10 +188,10 @@ Et ajouter les colonnes suivantes:
 - Colonnes d'adresses électronique: `HomeEmail`, `WorkEmail` et `OtherEmail`
 
 Si plusieurs colonnes d'adresses courriel sont sélectionnées, alors l'ordre devient pertinent puisque le courriel sera envoyé à la première adresse disponible.  
-De plus, à l'étape Sélection des destinataires de l'assistant, dans l'onglet [Destinataires disponibles][53], seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
+De plus, à l'étape Sélection des destinataires de l'assistant, dans l'onglet [Destinataires disponibles][55], seuls les enregistrements avec au moins une colonne d'adresse courriel saisie seront répertoriés.  
 Assurez-vous donc d'avoir un carnet d'adresses avec au moins un des champs d'adresse e-mail (Home, Work ou Other) renseigné.
 
-![eMailerOOo Merger screenshot 5][54]
+![eMailerOOo Merger screenshot 5][56]
 
 Ce paramètrage ne doit être effectué que pour les nouvelles listes de diffusion.  
 Vous pouvez maintenant passer à l'étape suivante.
@@ -189,11 +204,11 @@ Les destinataires sont sélectionnés à l'aide de 2 boutons `Tout ajouter` et `
 - Soit d'ajouter le groupe de destinataires sélectionnés dans la liste `Carnet d'adresses`. Ceci permet lors d'un publipostage, que les modifications du contenu du groupe soient prises en compte. Une liste de diffusion n'accepte qu'un seul groupe.
 - Soit d'ajouter la sélection, qui peut être multiple à l'aide de la touche `CTRL`. Cette sélection est immuable quelle que soit la modification des groupes du carnet d'adresses.
 
-![eMailerOOo Merger screenshot 6][55]
+![eMailerOOo Merger screenshot 6][57]
 
 Example de la sélection multiple:
 
-![eMailerOOo Merger screenshot 7][56]
+![eMailerOOo Merger screenshot 7][58]
 
 ##### Destinataires sélectionnés:
 
@@ -201,7 +216,7 @@ Les destinataires sont désélectionnés à l'aide de 2 boutons `Tout retirer` e
 - Soit de retirer le groupe qui a été affecté à cette liste de diffusion. Ceci est nécessaire afin de pouvoir modifier à nouveau le contenu de cette liste de diffusion.
 - Soit de retirer la sélection, qui peut être multiple à l'aide de la touche `CTRL`.
 
-![eMailerOOo Merger screenshot 8][57]
+![eMailerOOo Merger screenshot 8][59]
 
 Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'étape suivante.
 
@@ -209,22 +224,22 @@ Si vous avez sélectionné au moins 1 destinataire, vous pouvez passer à l'éta
 
 Si cela n'est pas déjà fait, vous devez créer un nouvel expéditeur à l'aide du bouton `Ajouter`.
 
-![eMailerOOo Merger screenshot 9][58]
+![eMailerOOo Merger screenshot 9][60]
 
-La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion][47].
+La création du nouvel expéditeur est décrite dans la section [Configuration de la connexion][49].
 
 Le courriel doit avoir un sujet. Il peut être enregistré dans le document Writer.  
 Vous pouvez insérer des champs de fusion dans l'objet du courriel. Un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomColonne}`).
 
-![eMailerOOo Merger screenshot 10][59]
+![eMailerOOo Merger screenshot 10][61]
 
 Le courriel peut éventuellement contenir des fichiers joints. Ils peuvent être enregistrés dans le document Writer.  
 La capture d'écran suivante montre 1 fichier joint qui sera fusionné sur la source de données puis converti au format PDF avant d'être joint au courriel.
 
-![eMailerOOo Merger screenshot 11][60]
+![eMailerOOo Merger screenshot 11][62]
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` pour confirmer la soumission des travaux d'envoi.  
-Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants][48].
+Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants][50].
 
 ### Configuration de la connexion:
 
@@ -232,27 +247,27 @@ Pour envoyer les travaux d'envoi, veuillez suivre la section [Courriels sortants
 
 Dans LibreOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Configurer la connexion**
 
-![eMailerOOo Ispdb screenshot 1][61]
+![eMailerOOo Ispdb screenshot 1][63]
 
 #### Sélection du compte:
 
-![eMailerOOo Ispdb screenshot 2][62]
+![eMailerOOo Ispdb screenshot 2][64]
 
 #### Trouver la configuration:
 
-![eMailerOOo Ispdb screenshot 3][63]
+![eMailerOOo Ispdb screenshot 3][65]
 
 #### Configuration SMTP:
 
-![eMailerOOo Ispdb screenshot 4][64]
+![eMailerOOo Ispdb screenshot 4][66]
 
 #### Configuration IMAP:
 
-![eMailerOOo Ispdb screenshot 5][65]
+![eMailerOOo Ispdb screenshot 5][67]
 
 #### Tester la connexion:
 
-![eMailerOOo Ispdb screenshot 6][66]
+![eMailerOOo Ispdb screenshot 6][68]
 
 Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'enregistrer les paramètres de connexion.
 
@@ -262,16 +277,16 @@ Assurez-vous de toujours quitter l'assistant avec le bouton `Terminer` afin d'en
 
 Dans LibreOffice aller à: **Outils -> Add-ons -> Envoi de courriels -> Courriels sortants**
 
-![eMailerOOo Spooler screenshot 1][67]
+![eMailerOOo Spooler screenshot 1][69]
 
 #### Liste des courriels sortants:
 
 Chaque travaux d'envoi possède 3 états différents:
 - État **0**: le courriel est prêt à être envoyé.
 - État **1**: le courriel a été envoyé avec succès.
-- État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le [Journal d'activité du spouleur][68].
+- État **2**: Une erreur est survenue lors de l'envoi du courriel. Vous pouvez consulter le message d'erreur dans le [Journal d'activité du spouleur][70].
 
-![eMailerOOo Spooler screenshot 2][69]
+![eMailerOOo Spooler screenshot 2][71]
 
 Le spouleur de courriels est arrêté par défaut. **Il doit être démarré avec le bouton `Démarrer / Arrêter` pour que les courriels en attente soient envoyés**.
 
@@ -279,7 +294,7 @@ Le spouleur de courriels est arrêté par défaut. **Il doit être démarré ave
 
 Lorsque le spouleur de courriel est démarré, son activité peut être visualisée dans le journal d'activité.
 
-![eMailerOOo Spooler screenshot 3][70]
+![eMailerOOo Spooler screenshot 3][72]
 
 ___
 
@@ -440,12 +455,12 @@ ___
 
 ## Comment créer l'extension:
 
-Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][28]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
+Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][73]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
 Pour créer l'extension eMailerOOo avec l'aide d'Apache Ant, vous devez:
-- Installer le [SDK Java][29] version 8 ou supérieure.
-- Installer [Apache Ant][30] version 1.10.0 ou supérieure.
-- Installer [LibreOffice et son SDK][31] version 7.x ou supérieure.
-- Cloner le dépôt [eMailerOOo][32] sur GitHub dans un dossier.
+- Installer le [SDK Java][74] version 8 ou supérieure.
+- Installer [Apache Ant][75] version 1.10.0 ou supérieure.
+- Installer [LibreOffice et son SDK][76] version 7.x ou supérieure.
+- Cloner le dépôt [eMailerOOo][77] sur GitHub dans un dossier.
 - Depuis ce dossier, accédez au répertoire: `source/eMailerOOo/`
 - Dans ce répertoire, modifiez le fichier `build.properties` afin que les propriétés `office.install.dir` et `sdk.dir` pointent vers les dossiers d'installation de LibreOffice et de son SDK, respectivement.
 - Lancez la création de l'archive avec la commande: `ant`
@@ -465,7 +480,7 @@ ___
 
 * LibreOffice 24.8.0.3 (X86_64) - Windows 10(x64) - Python version 3.9.19 (sous Lubuntu 22.04 / VirtualBox 6.1.38)
 
-* **Ne fonctionne pas avec OpenOffice** voir [dysfonctionnement 128569][71]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
+* **Ne fonctionne pas avec OpenOffice** voir [dysfonctionnement 128569][78]. N'ayant aucune solution, je vous encourrage d'installer **LibreOffice**.
 
 Je vous encourage en cas de problème :confused:  
 de créer un [dysfonctionnement][12]  
@@ -477,57 +492,57 @@ ___
 
 ### Ce qui a été fait pour la version 0.0.1:
 
-- Ecriture de [IspDB][72] ou l'assistant de configuration de connexion aux serveurs SMTP permettant:
-    - De trouver les paramètres de connexion à un serveur SMTP à partir d'une adresse courriel. D'ailleur je remercie particulierement Mozilla, pour [Thunderbird autoconfiguration database][73] ou IspDB, qui à rendu ce défi possible...
+- Ecriture de [IspDB][79] ou l'assistant de configuration de connexion aux serveurs SMTP permettant:
+    - De trouver les paramètres de connexion à un serveur SMTP à partir d'une adresse courriel. D'ailleur je remercie particulierement Mozilla, pour [Thunderbird autoconfiguration database][80] ou IspDB, qui à rendu ce défi possible...
     - D'afficher l'activité du service UNO `com.sun.star.mail.MailServiceProvider` lors de la connexion au serveur SMTP et l'envoi d'un courriel. 
 
-- Ecriture du [Spouleur][74] de courriels permettant:
+- Ecriture du [Spouleur][81] de courriels permettant:
     - D'afficher les travaux d'envoi de courriel avec leurs états respectifs.
     - D'afficher l'activité du service UNO `com.sun.star.mail.SpoolerService` lors de l'envoi de courriels.
     - De démarrer et arrêter le service spouleur.
 
-- Ecriture du [Merger][75] ou l'assistant de publipostage de courriels permettant:
+- Ecriture du [Merger][82] ou l'assistant de publipostage de courriels permettant:
     - De créer des listes de diffusions.
     - De fusionner et convertir au format HTML le document courant pour en faire le message du courriel.
     - De fusionner et/ou convertir au format PDF d'éventuel fichiers joints au courriel.
 
-- Ecriture du [Mailer][76] de document permettant:
+- Ecriture du [Mailer][83] de document permettant:
     - De convertir au format HTML le document pour en faire le message du courriel.
     - De convertir au format PDF d'éventuel fichiers joints au courriel.
 
-- Ecriture d'un [Grid][77] piloté par un `com.sun.star.sdb.RowSet` permettant:
+- Ecriture d'un [Grid][84] piloté par un `com.sun.star.sdb.RowSet` permettant:
     - D'être paramètrable sur les colonnes à afficher.
     - D'être paramètrable sur l'ordre de tri à afficher.
     - De sauvegarder les paramètres d'affichage.
 
 ### Ce qui a été fait pour la version 0.0.2:
 
-- Réécriture de [IspDB][72] ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
-    - Utilisation de [IMAPClient][78] version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
-    - Extension des fichiers IDL [com.sun.star.mail.*][79]:
-        - [XMailMessage2.idl][80] prend désormais en charge la hiérarchisation des courriels (thread).
-        - La nouvelle interface [XImapService][81] permet d'accéder à une partie de la bibliothèque IMAPClient.
+- Réécriture de [IspDB][79] ou Assistant de configuration de connexion aux serveurs de messagerie afin d'intégrer la configuration de la connexion IMAP.
+    - Utilisation de [IMAPClient][85] version 2.2.0: une bibliothèque cliente IMAP complète, Pythonic et facile à utiliser.
+    - Extension des fichiers IDL [com.sun.star.mail.*][86]:
+        - [XMailMessage2.idl][87] prend désormais en charge la hiérarchisation des courriels (thread).
+        - La nouvelle interface [XImapService][88] permet d'accéder à une partie de la bibliothèque IMAPClient.
 
-- Réécriture du [Spouleur][82] afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
+- Réécriture du [Spouleur][81] afin d'intégrer des fonctionnalités IMAP comme la création d'un fil récapitulant le publipostage et regroupant tous les courriels envoyés.
 
 - Soumission de l'extension eMailerOOo à Google et obtention de l'autorisation d'utiliser son API GMail afin d'envoyer des courriels avec un compte Google.
 
 ### Ce qui a été fait pour la version 0.0.3:
 
-- Réécriture du [Grid][77] afin de permettre:
-    - Le tri sur une colonne avec l'intégration du service UNO [SortableGridDataModel][83].
-    - La génération des filtres des enregistrements nécessaires au service [Spouleur][74].
-    - Le partage avec le module python [Grid][84] de l'extension [jdbcDriverOOo][22].
+- Réécriture du [Grid][84] afin de permettre:
+    - Le tri sur une colonne avec l'intégration du service UNO [SortableGridDataModel][89].
+    - La génération des filtres des enregistrements nécessaires au service [Spouleur][81].
+    - Le partage avec le module python [Grid][90] de l'extension [jdbcDriverOOo][24].
 
-- Réécriture du [Merger][75] afin de permettre:
-    - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][22].
+- Réécriture du [Merger][82] afin de permettre:
+    - La gestion du nom du Schema dans de nom des tables afin d'être compatible avec la version 0.0.4 de [jdbcDriverOOo][24].
     - La création de liste de diffusion sur un groupe du carnet d'adresse et permettant de suivre la modification de son contenu.
-    - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][85] `VARCHAR` et `INTEGER` ou derivé.
-    - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au [Grid][77].
+    - L'utilisation de clé primaire, qui peuvent être composite, supportant les [DataType][91] `VARCHAR` et `INTEGER` ou derivé.
+    - Un aperçu du document avec des champs de fusion remplis plus rapidement grâce au [Grid][84].
 
-- Réécriture du [Spouleur][74] afin de permettre:
-    - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][75].
-    - L'utilisation du nouveau [Grid][77] permettant le tri sur une colonne.
+- Réécriture du [Spouleur][81] afin de permettre:
+    - L'utilisation des nouveaux filtres supportant les clés primaires composite fourni par le [Merger][82].
+    - L'utilisation du nouveau [Grid][84] permettant le tri sur une colonne.
 
 - Encore plein d'autres choses...
 
@@ -537,7 +552,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.0.1:
 
-- L'absence ou l'obsolescence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaires au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur. Ceci afin d'éviter qu'un dysfonctionnement tel que le [dysfonctionnement #3][86] ne se reproduise...
+- L'absence ou l'obsolescence des extensions **OAuth2OOo** et/ou **jdbcDriverOOo** nécessaires au bon fonctionnement de **eMailerOOo** affiche désormais un message d'erreur. Ceci afin d'éviter qu'un dysfonctionnement tel que le [dysfonctionnement #3][92] ne se reproduise...
 
 - La base de données HsqlDB sous-jacente peut être ouverte dans Base avec: **Outils -> Options -> Internet -> eMailerOOo -> Base de données**.
 
@@ -547,7 +562,7 @@ ___
 
 ### Ce qui a été fait pour la version 1.0.2:
 
-- Si aucune configuration n'est trouvée dans l'assistant de configuration de la connexion (IspDB Wizard) alors il est possible de configurer la connexion manuellement. Voir [dysfonctionnement #5][87].
+- Si aucune configuration n'est trouvée dans l'assistant de configuration de la connexion (IspDB Wizard) alors il est possible de configurer la connexion manuellement. Voir [dysfonctionnement #5][93].
 
 ### Ce qui a été fait pour la version 1.1.0:
 
@@ -555,15 +570,15 @@ ___
     En conséquence, cela n'envoie plus de fil de discussion (message IMAP) lors de la fusion d'un mailing.  
     Dans ce même assistant, il est désormais possible de saisir une adresse courriel de réponse.
 
-- Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][88].  
+- Dans l'assistant de fusion d'email, il est désormais possible d'insérer des champs de fusion dans l'objet du courriel. Voir [dysfonctionnement #6][94].  
     Dans le sujet d'un courriel, un champ de fusion est composé d'une accolade ouvrante, du nom de la colonne référencée (sensible à la casse) et d'une accolade fermante (ie: `{NomDeLaColonne}`).  
     Lors de la saisie du sujet du courriel, une erreur de syntaxe dans un champ de fusion sera signalée et empêchera la soumission du mailing.
 
 - Il est désormais possible dans le Spouleur de visualiser les courriels au format eml.
 
-- Un service [com.sun.star.mail.MailUser][89] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel qui suite la rfc822.  
-    Un autre service [com.sun.star.datatransfer.TransferableFactory][90] permet, comme son nom l'indique, la création de [Transferable][91] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).  
-    Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][92].  
+- Un service [com.sun.star.mail.MailUser][95] permet désormais d'accéder à une configuration de connexion (SMTP et/ou IMAP) depuis une adresse courriel qui suite la rfc822.  
+    Un autre service [com.sun.star.datatransfer.TransferableFactory][96] permet, comme son nom l'indique, la création de [Transferable][97] à partir d'un texte (string), d'une séquence binaire, d'une Url (file://...) ou un flux de données (InputStream).  
+    Ces deux nouveaux services simplifient grandement l'API mail de LibreOffice et permettent d'envoyer des courriels depuis Basic. Voir le [dysfonctionnement #4][98].  
     Vous trouverez une macro Basic vous permettant d'envoyer des emails dans : **Outils -> Macros -> Editer les Macros... -> eMailerOOo -> SendEmail**.
 
 ### Ce qui a été fait pour la version 1.1.1:
@@ -572,39 +587,39 @@ ___
 
 ### Ce qui a été fait pour la version 1.2.0:
 
-- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][93] suivant la [PEP 508][94].
+- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][99] suivant la [PEP 508][100].
 - Désormais si vous n'êtes pas sous Windows alors les paquets Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
   `pip install requirements.txt`
-- Modification de la section [Prérequis][95].
+- Modification de la section [Prérequis][101].
 
 ### Ce qui a été fait pour la version 1.2.1:
 
 - Correction d'une régression permettant l'affichage des erreurs dans le Spouleur.
-- Intégration d'un correctif pour contourner le [dysfonctionnement #159988][96].
+- Intégration d'un correctif pour contourner le [dysfonctionnement #159988][102].
 
 ### Ce qui a été fait pour la version 1.2.2:
 
-- La création de la base de données, lors de la première connexion, utilise l'API UNO proposée par l'extension jdbcDriverOOo depuis la version 1.3.2. Cela permet d'enregistrer toutes les informations nécessaires à la création de la base de données dans 5 tables texte qui sont en fait [5 fichiers csv][97].
+- La création de la base de données, lors de la première connexion, utilise l'API UNO proposée par l'extension jdbcDriverOOo depuis la version 1.3.2. Cela permet d'enregistrer toutes les informations nécessaires à la création de la base de données dans 5 tables texte qui sont en fait [5 fichiers csv][103].
 - L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.4 et 1.3.2 minimum.
 - De nombreuses corrections.
 
 ### Ce qui a été fait pour la version 1.2.3:
 
 - Correction d'une régression provenant de la version 1.2.2 et empêchant la soumission des travaux dans le spouleur de courriels.
-- Correction du [dysfonctionnement #7][98] ne permettant pas l'affichage des messages d'erreur en cas de configuration incorrecte.
+- Correction du [dysfonctionnement #7][104] ne permettant pas l'affichage des messages d'erreur en cas de configuration incorrecte.
 
 ### Ce qui a été fait pour la version 1.2.4:
 
-- Mise à jour du paquet [Python decorator][99] vers la version 5.1.1.
-- Mise à jour du paquet [Python ijson][100] vers la version 3.3.0.
-- Mise à jour du paquet [Python packaging][101] vers la version 24.1.
-- Mise à jour du paquet [Python setuptools][102] vers la version 72.1.0 afin de répondre à l'[alerte de sécurité Dependabot][103].
-- Mise à jour du paquet [Python validators][104] vers la version 0.33.0.
+- Mise à jour du paquet [Python decorator][105] vers la version 5.1.1.
+- Mise à jour du paquet [Python ijson][106] vers la version 3.3.0.
+- Mise à jour du paquet [Python packaging][107] vers la version 24.1.
+- Mise à jour du paquet [Python setuptools][108] vers la version 72.1.0 afin de répondre à l'[alerte de sécurité Dependabot][109].
+- Mise à jour du paquet [Python validators][110] vers la version 0.33.0.
 - L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.6 et 1.4.2 minimum.
 
 ### Ce qui a été fait pour la version 1.2.5:
 
-- Mise à jour du paquet [Python setuptools][102] vers la version 73.0.1.
+- Mise à jour du paquet [Python setuptools][108] vers la version 73.0.1.
 - L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.3.7 et 1.4.5 minimum.
 - Les modifications apportées aux options de l'extension, qui nécessitent un redémarrage de LibreOffice, entraîneront l'affichage d'un message.
 - Support de LibreOffice version 24.8.x.
@@ -624,10 +639,10 @@ ___
     - Tous les paramètres des requêtes HTTP nécessaires à l'envoi de courriels sont stockés dans les fichiers de configuration de LibreOffice.
     - Toutes les données nécessaires au traitement des réponses HTTP sont stockées dans les fichiers de configuration de LibreOffice.
 
-    Cela devrait permettre d'implémenter une API tierce pour l'envoi de courriels simplement en modifiant le fichier de configuration [Options.xcu][105].
+    Cela devrait permettre d'implémenter une API tierce pour l'envoi de courriels simplement en modifiant le fichier de configuration [Options.xcu][111].
 - Pour fonctionner, ces nouvelles fonctionnalités nécessitent l'extension OAuth2OOo en version 1.3.9 minimum.
 - La commande permettant d'ouvrir un courriel dans Thunderbird ne peut actuellement être modifiée que dans la configuration de LibreOffice (ie: Outils -> Options... -> Avancé -> Ouvrir la configuration avancée)
-- Le non rafraîchissement des barres de défilement dans les listes multicolonnes (ie: grid) a été corrigé et sera disponible à partir de LibreOffice 24.8.4, voir [SortableGridDataModel cannot be notified for changes][106].
+- Le non rafraîchissement des barres de défilement dans les listes multicolonnes (ie: grid) a été corrigé et sera disponible à partir de LibreOffice 24.8.4, voir [SortableGridDataModel cannot be notified for changes][112].
 - L'ouverture des courriels dans votre navigateur ne fonctionne pas avec un compte Microsoft, l'url permettant cela n'a pas encore été trouvée et il semble que ce ne serait pas possible (ie: le popup doit être ouvert par la fenêtre Outlook)?
 - De nombreuses corrections.
 
@@ -636,36 +651,36 @@ ___
 - L'extension vous demandera d'installer les extensions OAuth2OOo et jdbcDriverOOo en version respectivement 1.4.0 et 1.4.6 minimum.
 - Seuls les fournisseurs disposant d'une API tierce ou d'une authentification OAuth2 et disposant d'une entrée dans la configuration de LibreOffice proposeront l'authentification OAuth2 par défaut dans l'assistant de configuration de connexion (ie: IspDB Wizard).
 - Les fournisseurs de messagerie `yahoo.com` et `aol.com` ont été intégrés. Afin de faciliter la configuration, un lien vers la page permettant la création d'un mot de passe d'application a été ajouté à l'assistant de configuration de connexion. Si vous pensez que des liens vers d'autres fournisseurs manquent, veuillez ouvrir un dysfonctionnement afin que je puisse les rajouter.
-- Mise à jour du paquet [Python IMAPClient][78] vers la version 3.0.1.
-- Grâce aux améliorations apportées au [plugin Eclipse][107], il est désormais possible de créer le fichier de l'extension en utilisant la ligne de commande et l'outil de création d'archive [Apache Ant][108], voir le fichier [build.xml][109].
+- Mise à jour du paquet [Python IMAPClient][85] vers la version 3.0.1.
+- Grâce aux améliorations apportées au [plugin Eclipse][113], il est désormais possible de créer le fichier de l'extension en utilisant la ligne de commande et l'outil de création d'archive [Apache Ant][114], voir le fichier [build.xml][115].
 - L'extension refusera de s'installer sous OpenOffice quelle que soit la version ou LibreOffice autre que 7.x ou supérieur.
 - Ajout des fichiers binaires nécessaires aux bibliothèques Python pour fonctionner sous Linux et LibreOffice 24.8 (ie: Python 3.9).
 - De nombreuses corrections.
 
 ### Ce qui a été fait pour la version 1.3.1:
 
-- Mise à jour du paquet [Python packaging][101] vers la version 24.2.
-- Mise à jour du paquet [Python setuptools][102] vers la version 75.8.0.
-- Mise à jour du paquet [Python six][110] vers la version 1.17.0.
-- Mise à jour du paquet [Python validators][104] vers la version 0.34.0.
+- Mise à jour du paquet [Python packaging][107] vers la version 24.2.
+- Mise à jour du paquet [Python setuptools][108] vers la version 75.8.0.
+- Mise à jour du paquet [Python six][116] vers la version 1.17.0.
+- Mise à jour du paquet [Python validators][110] vers la version 0.34.0.
 - Support de Python version 3.13.
 
 ### Ce qui a été fait pour la version 1.4.0:
 
-- Mise à jour du paquet [Python packaging][60] vers la version 25.0.
-- Rétrogradage du paquet [Python setuptools][61] vers la version 75.3.2, afin d'assurer la prise en charge de Python 3.8.
-- Déploiement de l'enregistrement passif permettant une installation beaucoup plus rapide des extensions et de différencier les services UNO enregistrés de ceux fournis par une implémentation Java ou Python. Cet enregistrement passif est assuré par l'extension [LOEclipse][28] via les [PR#152][67] et [PR#157][68].
-- Modification de [LOEclipse][28] pour prendre en charge le nouveau format de fichier `rdb` produit par l'utilitaire de compilation `unoidl-write`. Les fichiers `idl` ont été mis à jour pour prendre en charge les deux outils de compilation disponibles: idlc et unoidl-write.
-- Il est désormais possible de créer le fichier oxt de l'extension eMailerOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][69] a été ajoutée à la documentation.
-- Implémentation de [PEP 570][70] dans la [journalisation][71] pour prendre en charge les arguments multiples uniques.
+- Mise à jour du paquet [Python packaging][107] vers la version 25.0.
+- Rétrogradage du paquet [Python setuptools][108] vers la version 75.3.2, afin d'assurer la prise en charge de Python 3.8.
+- Déploiement de l'enregistrement passif permettant une installation beaucoup plus rapide des extensions et de différencier les services UNO enregistrés de ceux fournis par une implémentation Java ou Python. Cet enregistrement passif est assuré par l'extension [LOEclipse][73] via les [PR#152][117] et [PR#157][118].
+- Modification de [LOEclipse][73] pour prendre en charge le nouveau format de fichier `rdb` produit par l'utilitaire de compilation `unoidl-write`. Les fichiers `idl` ont été mis à jour pour prendre en charge les deux outils de compilation disponibles: idlc et unoidl-write.
+- Il est désormais possible de créer le fichier oxt de l'extension eMailerOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][119] a été ajoutée à la documentation.
+- Implémentation de [PEP 570][120] dans la [journalisation][121] pour prendre en charge les arguments multiples uniques.
 - Pour garantir la création correcte de la base de données eMailerOOo, il sera vérifié que l'extension jdbcDriverOOo a `com.sun.star.sdb` comme niveau d'API.
-- Écriture de macros pour pouvoir placer des menus personnalisés où vous le souhaitez. Pour faciliter la création de ces menus personnalisés, la section [Comment personnaliser les menus de LibreOffice][72] a été ajoutée à la documentation.
+- Écriture de macros pour pouvoir placer des menus personnalisés où vous le souhaitez. Pour faciliter la création de ces menus personnalisés, la section [Comment personnaliser les menus de LibreOffice][122] a été ajoutée à la documentation.
 - Nécessite l'extension **jdbcDriverOOo en version 1.5.0 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.5.0 minimum**.
 
 ### Ce qui a été fait pour la version 1.4.1:
 
-- Dans l'assistant de connexion, si l'adresse courriel donnée n'est pas trouvée dans Mozilla IspDB ou si vous êtes hors ligne, les noms de serveur peuvent être de simples noms d'hôtes et les ports valides s'étendront jusqu'à 65535. Ceci afin de répondre à l'[issue#10][111].
+- Dans l'assistant de connexion, si l'adresse courriel donnée n'est pas trouvée dans Mozilla IspDB ou si vous êtes hors ligne, les noms de serveur peuvent être de simples noms d'hôtes et les ports valides s'étendront jusqu'à 65535. Ceci afin de répondre à l'[issue#10][123].
 - Les problèmes d'actualisation de la deuxième page de l'assistant de connexion ont été résolus par l'utilisation du service UNO `com.sun.star.awt.AsyncCallback`.
 - Nécessite l'extension **jdbcDriverOOo en version 1.5.4 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.5.1 minimum**.
@@ -675,7 +690,25 @@ ___
 - Support de LibreOffice 25.2.x et 25.8.x sous Windows 64 bits.
 - Nécessite l'extension **OAuth2OOo en version 1.5.2 minimum**.
 
-### Que reste-t-il à faire pour la version 1.4.2:
+### Ce qui a été fait pour la version 1.5.0:
+
+- Modification de l'assistant utilisé lors de la fusion des courriels afin qu'il s'ouvre dans une fenêtre dédiée plutôt que modale comme auparavant.
+- Modification également du Spouleur de courriels afin qu'il s'ouvre dans une fenêtre dédiée plutôt que modale comme auparavant.
+- Ces deux nouvelles fenêtres affichent maintenant une barre de progression ainsi qu'un indicateur d'état lorsque des tâches en arrière-plan sont lancées.
+- Si des tâches sont démarrées alors que ces fenêtres sont demandées à être fermées, alors les tâches seront annulées si possible et leur achèvement sera attendu avant la fermeture.
+- Le Spouleur de courriels a été entièrement réécrit. Il propose désormais trois tâches pour envoyer des courriels, afficher un courriel et fusioner un document:
+  - [sender.py][124]
+  - [mailer.py][125]
+  - [viewer.py][126]
+- Ajout de l'interface [XTaskEvent.idl][127] à l'API UNO. Cette nouvelle interface, qui est la transcription de la classe Python [threading.Event][128], permet de contrôler une tâche exécutée par le [Dispatcher][129] de LibreOffice.
+- Si des fichiers sont joints au courriel et au format PDF, alors ils suivront les paramètres de configuration de LibreOffice qui se trouvent dans: **Fichier -> Exporter vers -> Exporter au format PDF** lors de leur transformation.
+- Toutes les méthodes nécessaires à l'affichage et s'exécutant en arrière-plan utilisent désormais le service UNO [com.sun.star.awt.AsyncCallback][130] pour le rappel.
+- Si l'extension jdbcDriverOOo fonctionne sans l'instrumentation Java, un message d'avertissement s'affichera dans les options de l'extension.
+- Nécessite l'extension **jdbcDriverOOo en version 1.6.0 minimum**.
+- Nécessite l'extension **OAuth2OOo en version 1.6.0 minimum**.
+- A été testé avec LibreOfficeDev 26.2.
+
+### Que reste-t-il à faire pour la version 1.5.0:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 
@@ -686,108 +719,128 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-142>
+[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-150>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>
 [10]: <https://prrvchr.github.io/eMailerOOo/README_fr#envoi-de-courriel-avec-une-macro-libreoffice-en-basic>
 [11]: <https://github.com/prrvchr/eMailerOOo>
 [12]: <https://github.com/prrvchr/eMailerOOo/issues/new>
-[13]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
-[14]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
-[15]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
-[17]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
-[18]: <https://prrvchr.github.io/OAuth2OOo/README_fr>
-[19]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
-[20]: <https://img.shields.io/github/v/tag/prrvchr/OAuth2OOo?label=latest#right>
-[21]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.svg#middle>
-[22]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
-[23]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[24]: <https://img.shields.io/github/v/tag/prrvchr/jdbcDriverOOo?label=latest#right>
-[25]: <https://prrvchr.github.io/vCardOOo/img/vCardOOo.svg#middle>
-[26]: <https://prrvchr.github.io/vCardOOo/README_fr>
-[27]: <https://github.com/prrvchr/vCardOOo/releases/latest/download/vCardOOo.oxt>
-[28]: <https://img.shields.io/github/v/tag/prrvchr/vCardOOo?label=latest#right>
-[29]: <https://fr.wikipedia.org/wiki/Nextcloud>
-[30]: <https://prrvchr.github.io/gContactOOo/img/gContactOOo.svg#middle>
-[31]: <https://prrvchr.github.io/gContactOOo/README_fr>
-[32]: <https://github.com/prrvchr/gContactOOo/releases/latest/download/gContactOOo.oxt>
-[33]: <https://img.shields.io/github/v/tag/prrvchr/gContactOOo?label=latest#right>
-[34]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.svg#middle>
-[35]: <https://prrvchr.github.io/mContactOOo/README_fr>
-[36]: <https://github.com/prrvchr/mContactOOo/releases/latest/download/mContactOOo.oxt>
-[37]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
-[38]: <https://prrvchr.github.io/HyperSQLOOo/img/HyperSQLOOo.svg#middle>
-[39]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
-[40]: <https://github.com/prrvchr/HyperSQLOOo/releases/latest/download/HyperSQLOOo.oxt>
-[41]: <https://img.shields.io/github/v/tag/prrvchr/HyperSQLOOo?label=latest#right>
-[42]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
-[43]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
-[44]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[45]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.4.2#right>
-[46]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
-[47]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
-[48]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
-[49]: <img/eMailerOOo-Merger1_fr.png>
-[50]: <img/eMailerOOo-Merger2_fr.png>
-[51]: <img/eMailerOOo-Merger3_fr.png>
-[52]: <img/eMailerOOo-Merger4_fr.png>
-[53]: <https://prrvchr.github.io/eMailerOOo/README_fr#destinataires-disponibles>
-[54]: <img/eMailerOOo-Merger5_fr.png>
-[55]: <img/eMailerOOo-Merger6_fr.png>
-[56]: <img/eMailerOOo-Merger7_fr.png>
-[57]: <img/eMailerOOo-Merger8_fr.png>
-[58]: <img/eMailerOOo-Merger9_fr.png>
-[59]: <img/eMailerOOo-Merger10_fr.png>
-[60]: <img/eMailerOOo-Merger11_fr.png>
-[61]: <img/eMailerOOo-Ispdb1_fr.png>
-[62]: <img/eMailerOOo-Ispdb2_fr.png>
-[63]: <img/eMailerOOo-Ispdb3_fr.png>
-[64]: <img/eMailerOOo-Ispdb4_fr.png>
-[65]: <img/eMailerOOo-Ispdb5_fr.png>
-[66]: <img/eMailerOOo-Ispdb6_fr.png>
-[67]: <img/eMailerOOo-Spooler1_fr.png>
-[68]: <https://prrvchr.github.io/eMailerOOo/README_fr#journal-dactivité-du-spouleur>
-[69]: <img/eMailerOOo-Spooler2_fr.png>
-[70]: <img/eMailerOOo-Spooler3_fr.png>
-[71]: <https://bz.apache.org/ooo/show_bug.cgi?id=128569>
-[72]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
-[73]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
-[74]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
-[75]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
-[76]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
-[77]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
-[78]: <https://github.com/mjs/imapclient#readme>
-[79]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
-[80]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
-[81]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
-[82]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/spooler.py>
-[83]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
-[84]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
-[85]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
-[86]: <https://github.com/prrvchr/eMailerOOo/issues/3>
-[87]: <https://github.com/prrvchr/eMailerOOo/issues/5>
-[88]: <https://github.com/prrvchr/eMailerOOo/issues/6>
-[89]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
-[90]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
-[91]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
-[92]: <https://github.com/prrvchr/eMailerOOo/issues/4>
-[93]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
-[94]: <https://peps.python.org/pep-0508/>
-[95]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>
-[96]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
-[97]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
-[98]: <https://github.com/prrvchr/eMailerOOo/issues/7>
-[99]: <https://pypi.org/project/decorator/>
-[100]: <https://pypi.org/project/ijson/>
-[101]: <https://pypi.org/project/packaging/>
-[102]: <https://pypi.org/project/setuptools/>
-[103]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
-[104]: <https://pypi.org/project/validators/>
-[105]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
-[106]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>
-[107]: <https://github.com/LibreOffice/loeclipse/pull/123>
-[108]: <https://ant.apache.org/>
-[109]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
-[110]: <https://pypi.org/project/six/>
-[111]: <https://github.com/prrvchr/eMailerOOo/issues/10>
+[13]: <https://github.com/sponsors/prrvchr>
+[14]: <https://appdefensealliance.dev/casa>
+[15]: <https://github.com/prrvchr/OAuth2OOo/blob/master/LOV_OAuth2OOo.pdf>
+[16]: <https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86#right>
+[17]: <https://prrvchr.github.io/OAuth2OOo/README_fr#pr%C3%A9requis>
+[18]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[19]: <https://prrvchr.github.io/OAuth2OOo/img/OAuth2OOo.svg#middle>
+[20]: <https://prrvchr.github.io/OAuth2OOo/README_fr>
+[21]: <https://github.com/prrvchr/OAuth2OOo/releases/latest/download/OAuth2OOo.oxt>
+[22]: <https://img.shields.io/github/v/tag/prrvchr/OAuth2OOo?label=latest#right>
+[23]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.svg#middle>
+[24]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
+[25]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
+[26]: <https://img.shields.io/github/v/tag/prrvchr/jdbcDriverOOo?label=latest#right>
+[27]: <https://prrvchr.github.io/vCardOOo/img/vCardOOo.svg#middle>
+[28]: <https://prrvchr.github.io/vCardOOo/README_fr>
+[29]: <https://github.com/prrvchr/vCardOOo/releases/latest/download/vCardOOo.oxt>
+[30]: <https://img.shields.io/github/v/tag/prrvchr/vCardOOo?label=latest#right>
+[31]: <https://fr.wikipedia.org/wiki/Nextcloud>
+[32]: <https://prrvchr.github.io/gContactOOo/img/gContactOOo.svg#middle>
+[33]: <https://prrvchr.github.io/gContactOOo/README_fr>
+[34]: <https://github.com/prrvchr/gContactOOo/releases/latest/download/gContactOOo.oxt>
+[35]: <https://img.shields.io/github/v/tag/prrvchr/gContactOOo?label=latest#right>
+[36]: <https://prrvchr.github.io/mContactOOo/img/mContactOOo.svg#middle>
+[37]: <https://prrvchr.github.io/mContactOOo/README_fr>
+[38]: <https://github.com/prrvchr/mContactOOo/releases/latest/download/mContactOOo.oxt>
+[39]: <https://img.shields.io/github/v/tag/prrvchr/mContactOOo?label=latest#right>
+[40]: <https://prrvchr.github.io/HyperSQLOOo/img/HyperSQLOOo.svg#middle>
+[41]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
+[42]: <https://github.com/prrvchr/HyperSQLOOo/releases/latest/download/HyperSQLOOo.oxt>
+[43]: <https://img.shields.io/github/v/tag/prrvchr/HyperSQLOOo?label=latest#right>
+[44]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-importer-des-donn%C3%A9es-depuis-un-fichier-calc>
+[45]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
+[46]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
+[47]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.5.0#right>
+[48]: <https://prrvchr.github.io/eMailerOOo/README_fr#publipostage-de-courriels-avec-des-listes-de-diffusion>
+[49]: <https://prrvchr.github.io/eMailerOOo/README_fr#configuration-de-la-connexion>
+[50]: <https://prrvchr.github.io/eMailerOOo/README_fr#courriels-sortants>
+[51]: <img/eMailerOOo-Merger1_fr.png>
+[52]: <img/eMailerOOo-Merger2_fr.png>
+[53]: <img/eMailerOOo-Merger3_fr.png>
+[54]: <img/eMailerOOo-Merger4_fr.png>
+[55]: <https://prrvchr.github.io/eMailerOOo/README_fr#destinataires-disponibles>
+[56]: <img/eMailerOOo-Merger5_fr.png>
+[57]: <img/eMailerOOo-Merger6_fr.png>
+[58]: <img/eMailerOOo-Merger7_fr.png>
+[59]: <img/eMailerOOo-Merger8_fr.png>
+[60]: <img/eMailerOOo-Merger9_fr.png>
+[61]: <img/eMailerOOo-Merger10_fr.png>
+[62]: <img/eMailerOOo-Merger11_fr.png>
+[63]: <img/eMailerOOo-Ispdb1_fr.png>
+[64]: <img/eMailerOOo-Ispdb2_fr.png>
+[65]: <img/eMailerOOo-Ispdb3_fr.png>
+[66]: <img/eMailerOOo-Ispdb4_fr.png>
+[67]: <img/eMailerOOo-Ispdb5_fr.png>
+[68]: <img/eMailerOOo-Ispdb6_fr.png>
+[69]: <img/eMailerOOo-Spooler1_fr.png>
+[70]: <https://prrvchr.github.io/eMailerOOo/README_fr#journal-dactivité-du-spouleur>
+[71]: <img/eMailerOOo-Spooler2_fr.png>
+[72]: <img/eMailerOOo-Spooler3_fr.png>
+[73]: <https://github.com/LibreOffice/loeclipse>
+[74]: <https://adoptium.net/temurin/releases/?version=8&package=jdk>
+[75]: <https://ant.apache.org/manual/install.html>
+[76]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[77]: <https://github.com/prrvchr/eMailerOOo.git>
+[78]: <https://bz.apache.org/ooo/show_bug.cgi?id=128569>
+[79]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/ispdb>
+[80]: <https://wiki.mozilla.org/Thunderbird:Autoconfiguration>
+[81]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler>
+[82]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/merger>
+[83]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/mailer>
+[84]: <https://github.com/prrvchr/eMailerOOo/tree/master/uno/lib/uno/grid>
+[85]: <https://github.com/mjs/imapclient#readme>
+[86]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/mail>
+[87]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailMessage2.idl>
+[88]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XImapService.idl>
+[89]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/grid/SortableGridDataModel.html>
+[90]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/grid>
+[91]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/DataType.html>
+[92]: <https://github.com/prrvchr/eMailerOOo/issues/3>
+[93]: <https://github.com/prrvchr/eMailerOOo/issues/5>
+[94]: <https://github.com/prrvchr/eMailerOOo/issues/6>
+[95]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/mail/XMailUser.idl>
+[96]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/idl/com/sun/star/datatransfer/XTransferableFactory.idl>
+[97]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/datatransfer/XTransferable.html>
+[98]: <https://github.com/prrvchr/eMailerOOo/issues/4>
+[99]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/requirements.txt>
+[100]: <https://peps.python.org/pep-0508/>
+[101]: <https://prrvchr.github.io/eMailerOOo/README_fr#pr%C3%A9requis>
+[102]: <https://bugs.documentfoundation.org/show_bug.cgi?id=159988>
+[103]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/hsqldb>
+[104]: <https://github.com/prrvchr/eMailerOOo/issues/7>
+[105]: <https://pypi.org/project/decorator/>
+[106]: <https://pypi.org/project/ijson/>
+[107]: <https://pypi.org/project/packaging/>
+[108]: <https://pypi.org/project/setuptools/>
+[109]: <https://github.com/prrvchr/eMailerOOo/security/dependabot/1>
+[110]: <https://pypi.org/project/validators/>
+[111]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/Options.xcu>
+[112]: <https://bugs.documentfoundation.org/show_bug.cgi?id=164040>
+[113]: <https://github.com/LibreOffice/loeclipse/pull/123>
+[114]: <https://ant.apache.org/>
+[115]: <https://github.com/prrvchr/eMailerOOo/blob/master/source/eMailerOOo/build.xml>
+[116]: <https://pypi.org/project/six/>
+[117]: <https://github.com/LibreOffice/loeclipse/pull/152>
+[118]: <https://github.com/LibreOffice/loeclipse/pull/157>
+[119]: <https://prrvchr.github.io/eMailerOOo/README_fr#comment-cr%C3%A9er-lextension>
+[120]: <https://peps.python.org/pep-0570/>
+[121]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L109>
+[122]: <https://prrvchr.github.io/eMailerOOo/README_fr#comment-personnaliser-les-menus-de-libreoffice>
+[123]: <https://github.com/prrvchr/eMailerOOo/issues/10>
+[124]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/sender.py>
+[125]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/mailer.py>
+[126]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/viewer.py>
+[127]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/task/XTaskEvent>
+[128]: <https://docs.python.org/3/library/threading.html#threading.Event>
+[129]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/frame/XDispatch.html#dispatch>
+[130]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/AsyncCallback.html>

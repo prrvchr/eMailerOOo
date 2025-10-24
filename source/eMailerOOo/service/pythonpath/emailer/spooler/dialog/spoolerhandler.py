@@ -29,11 +29,11 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt import XDialogEventHandler
+from com.sun.star.awt.tab import XTabPageContainerListener
 
-from com.sun.star.frame import XDispatchResultListener
-
+from com.sun.star.util import XCloseListener
 from com.sun.star.util import XModifyListener
 
 from com.sun.star.frame.DispatchResultState import SUCCESS
@@ -43,12 +43,12 @@ from com.sun.star.sdbc import XRowSetListener
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
-    # XDialogEventHandler
+    # XContainerWindowEventHandler
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
@@ -56,6 +56,9 @@ class DialogHandler(unohelper.Base,
                 control = event.Source.Model
                 control.Enabled = False
                 self._manager.toogleSpooler(control.State)
+                handled = True
+            elif method == 'ClearLogger':
+                self._manager.clearLogger()
                 handled = True
             elif method == 'Close':
                 self._manager.closeSpooler()
@@ -67,11 +70,12 @@ class DialogHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('ToogleSpooler',
+                'ClearLogger'
                 'Close')
 
 
-class Tab1Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabHandler(unohelper.Base,
+                 XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -88,6 +92,9 @@ class Tab1Handler(unohelper.Base,
             elif method == 'WebView':
                 self._manager.viewWeb()
                 handled = True
+            elif method == 'Resubmit':
+                self._manager.resubmitJobs()
+                handled = True
             elif method == 'Add':
                 self._manager.addDocument()
                 handled = True
@@ -103,47 +110,26 @@ class Tab1Handler(unohelper.Base,
         return ('EmlView',
                 'ClientView',
                 'WebView',
+                'Resubmit',
                 'Add',
                 'Remove')
 
 
-class Tab2Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabPageListener(unohelper.Base,
+                      XTabPageContainerListener):
     def __init__(self, manager):
         self._manager = manager
 
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
+    # XTabPageContainerListener
+    def tabPageActivated(self, event):
         try:
-            handled = False
-            if method == 'ClearLogger':
-                self._manager.clearLogger()
-                handled = True
-            return handled
+            self._manager.activateTab(event.TabPageID)
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
-    def getSupportedMethodNames(self):
-        return ('ClearLogger', )
-
-
-class Tab3Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        try:
-            handled = False
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ()
+    def disposing(self, source):
+        pass
 
 
 class RowSetListener(unohelper.Base,
@@ -178,6 +164,22 @@ class LoggerListener(unohelper.Base,
         except Exception as e:
             msg = f"Error: {traceback.format_exc()}"
             print(msg)
+
+    def disposing(self, event):
+        pass
+
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XCloseListener
+    def queryClosing(self, event, ownership):
+        self._manager.queryClosing(event.Source, ownership)
+
+    def notifyClosing(self, event):
+        self._manager.notifyClosing(event.Source)
 
     def disposing(self, event):
         pass

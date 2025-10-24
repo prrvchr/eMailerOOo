@@ -24,11 +24,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<oor:component-schema oor:name="eMailerOOo" oor:package="io.github.prrvchr"
-  xml:lang="en-US"
+<!DOCTYPE oor:component-schema SYSTEM "component-schema.dtd">
+<oor:component-schema
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  oor:package="io.github.prrvchr"
+  oor:name="eMailerOOo"
+  xml:lang="en-US">
   <templates>
     <group oor:name="ServerSet">
       <prop oor:name="ServerName" oor:type="xs:string"/>
@@ -92,9 +94,11 @@
   <component>
     <prop oor:name="ConnectTimeout" oor:type="xs:short"/>
     <prop oor:name="IspDBUrl" oor:type="xs:string"/>
+    <prop oor:name="SpoolerPosition" oor:type="oor:int-list"/>
     <prop oor:name="SpoolerTable" oor:type="xs:string"/>
     <prop oor:name="SpoolerColumns" oor:type="xs:string"/>
     <prop oor:name="SpoolerOrders" oor:type="xs:string"/>
+    <prop oor:name="MergerPosition" oor:type="oor:int-list"/>
     <prop oor:name="MergerLoadDataSource" oor:type="xs:boolean"/>
     <prop oor:name="MergerGrid1Columns" oor:type="xs:string"/>
     <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>
@@ -108,3 +112,4 @@
     <set oor:name="Applications" oor:node-type="ApplicationSet"/>
   </component>
 </oor:component-schema>
+

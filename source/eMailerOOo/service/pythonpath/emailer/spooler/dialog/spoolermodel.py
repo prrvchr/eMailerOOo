@@ -30,20 +30,32 @@
 import uno
 import unohelper
 
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.view.SelectionType import MULTI
-
 from com.sun.star.sdb.CommandType import TABLE
 
-from ...gridcontrol import GridManager
+from com.sun.star.util.MeasureUnit import APPFONT
+
+from com.sun.star.view.SelectionType import MULTI
+
+from ...grid import GridManager
+
+from ...unotool import TaskEvent
 
 from ...unotool import createService
+from ...unotool import executeDesktopDispatch
 from ...unotool import getConfiguration
 from ...unotool import getPathSettings
 from ...unotool import getResourceLocation
 from ...unotool import getStringResource
+from ...unotool import saveTopWindowPosition
+
+from ...listener import DispatchListener
+
+from ...helper import getMailSpooler
 
 from ...dbtool import getValueFromResult
 
@@ -67,8 +79,11 @@ class SpoolerModel(unohelper.Base):
         self._diposed = False
         self._path = getPathSettings(ctx).Work
         self._datasource = datasource
-        self._rowset = self._getRowSet()
+        self._spooler = getMailSpooler(ctx)
+        self._rowset = None
         self._grid = None
+        self._status = 1
+        self._dispatch = TaskEvent(True)
         self._identifiers = ('JobId', )
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
@@ -76,7 +91,8 @@ class SpoolerModel(unohelper.Base):
         self._resources = {'Title':       'SpoolerDialog.Title',
                            'State':       'SpoolerDialog.Label2.Label.%s',
                            'TabTitle':    'SpoolerTab%s.Title',
-                           'GridColumns': 'SpoolerTab1.Grid1.Column.%s'}
+                           'GridColumns': 'SpoolerTab1.Grid1.Column.%s',
+                           'MsgBoxTitle': 'SpoolerMsgBox.Title'}
 
     @property
     def _dataSource(self):
@@ -89,6 +105,11 @@ class SpoolerModel(unohelper.Base):
     def Path(self, path):
         self._path = path
 
+# XDispatchResultListener
+    def dispatchFinished(self, notification):
+        if notification.State == SUCCESS:
+            self._path = notification.Result
+
 # SpoolerModel getter methods
     def hasGridSelectedRows(self):
         return self._grid.hasSelectedRows()
@@ -99,14 +120,19 @@ class SpoolerModel(unohelper.Base):
     def getSelectedColumn(self, column):
         return self._grid.getSelectedColumn(column)
 
-    def getSelectedIdentifier(self, identifier):
-        return self._grid.getSelectedIdentifier(identifier)
+    def resubmitJobs(self, identifier):
+        if self._grid.hasSelectedRows():
+            jobs = self._grid.getSelectedIdentifiers(identifier)
+            self._spooler.resubmitJobs(jobs)
 
     def isDisposed(self):
         return self._diposed
 
     def getDialogTitles(self):
         return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3)
+
+    def getDialogPosition(self):
+        return uno.createUnoStruct('com.sun.star.awt.Point', *self._config.getByName('SpoolerPosition'))
 
     def getRowClientInfo(self):
         link = False
@@ -118,9 +144,29 @@ class SpoolerModel(unohelper.Base):
                 link = self._config.getByName('Urls').hasByName(client)
         return sent, link
 
-    def getSpoolerState(self, state):
-        resource = self._resources.get('State') % state
-        return self._resolver.resolveString(resource)
+    def hasDispatch(self):
+        return not self._dispatch.isSet() or self._status != 1
+
+    def isSenderStarted(self):
+        return self._status == 2
+
+    def endDispatch(self):
+        self._dispatch.set()
+
+    def startDispatch(self, listener):
+        self._dispatch.clear()
+        job = self._grid.getSelectedIdentifier('JobId')
+        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, )}
+        executeDesktopDispatch(self._ctx, 'emailer:GetMail', listener, **kwargs)
+
+    def setSpoolerStatus(self, status):
+        self._status = status
+        resource = self._resources.get('State') % status
+        label = self._resolver.resolveString(resource)
+        return label, int(status == 2), bool(status)
+
+    def getSpoolerStatus(self):
+        return self._status
 
     def getSenderClient(self, sender):
         client = None
@@ -171,34 +217,31 @@ class SpoolerModel(unohelper.Base):
     def deselectAllRows(self):
         self._grid.deselectAllRows()
 
+    def addDocument(self):
+        listener = DispatchListener(self)
+        kwargs = {'Path': self._path}
+        executeDesktopDispatch(self._ctx, 'emailer:ShowMailer', listener, **kwargs)
+
+    def save(self, position):
+        saveTopWindowPosition(self._config, position, 'SpoolerPosition')
+        self._grid.saveColumnSettings()
+
     def dispose(self):
         self._diposed = True
-        if self._grid is not None:
+        if self._grid:
             self._grid.dispose()
-        self._dataSource.dispose()
-
-    def saveGrid(self):
-        self._grid.saveColumnSettings()
+        self._datasource.dispose()
+        self._spooler.dispose()
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
-        if self._dataSource.deleteJob(jobs):
-            self._rowset.execute()
+        self._spooler.removeJobs(jobs)
 
-    def executeRowSet(self):
-        # TODO: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
-        self._rowset.ApplyFilter = True
-        self._rowset.ApplyFilter = False
-        self._rowset.execute()
+    def getMsgBoxTitle(self):
+        resource = self._resources.get('MsgBoxTitle')
+        return self._resolver.resolveString(resource)
 
 # SpoolerModel private getter methods
-    def _getRowSet(self):
-        service = 'com.sun.star.sdb.RowSet'
-        rowset = createService(self._ctx, service)
-        rowset.CommandType = TABLE
-        rowset.FetchSize = g_fetchsize
-        return rowset
-
     def _getRowsJobs(self, rows):
         jobs = []
         i = self._rowset.findColumn('JobId')
@@ -212,17 +255,12 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, window, listener, initView):
-        self._dataSource.waitForDataBase()
-        self._rowset.ActiveConnection = self._dataSource.DataBase.Connection
-        self._rowset.Command = self._getQueryTable()
+    def _initSpooler(self, window, listener1, listener2):
+        self._rowset = self._spooler.getContent()
         resources = (self._resolver, self._resources.get('GridColumns'))
-        quote = self._datasource.IdentifierQuoteString
-        self._grid = GridManager(self._ctx, self._url, window, quote, 'Spooler', MULTI, resources)
-        self._grid.addSelectionListener(listener)
-        initView(self._rowset)
-        # TODO: GridColumn and GridModel needs a RowSet already executed!!!
-        self.executeRowSet()
+        self._grid = GridManager(self._ctx, self._url, window, 'Spooler', MULTI, resources)
+        self._grid.addSelectionListener(listener1)
+        self._spooler.addContentListener(listener2)
 
     def _getDialogTitle(self):
         resource = self._resources.get('Title')

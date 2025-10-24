@@ -28,20 +28,28 @@
 """
 import uno
 
-from com.sun.star.uno import Exception as UnoException
-
 from com.sun.star.mail import MailSpoolerException
+
+from com.sun.star.text.MailMergeType import FILE
+
+from com.sun.star.sdb.CommandType import TABLE
+
+from com.sun.star.uno import Exception as UnoException
 
 from .unotool import checkVersion
 from .unotool import createService
+from .unotool import executeFrameDispatch
+from .unotool import getDocument
 from .unotool import getExtensionVersion
 from .unotool import getFileSequence
+from .unotool import getInteractionHandler
+from .unotool import getLastNamedParts
+from .unotool import getNamedValueSet
+from .unotool import getMailMerge
 from .unotool import getMessageBox
-from .unotool import getPathSettings
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile
 from .unotool import getToolKit
-from .unotool import getUrl
 from .unotool import hasInterface
 
 from .oauth20 import getOAuth2Version
@@ -104,48 +112,120 @@ def checkConnection(ctx, source, connection, logger, new, warn=False):
             _showWarning(ctx, title, msg)
         raise UnoException(msg, source)
 
-def getDataBaseContext(ctx, source, name, resolver, code, *format):
+def getDataBaseContext(ctx, source, name, resolver, code, *args):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     if not dbcontext.hasByName(name):
-        msg = resolver(code, name, *format)
+        msg = resolver(code, name, *args)
         raise MailSpoolerException(msg, source, ())
     location = dbcontext.getDatabaseLocation(name)
     # FIXME: The location can be an embedded database in odt file
     # FIXME: ie: vnd.sun.star.pkg://file://path/document.odt/EmbeddedDatabase
     # FIXME: eMailerOOo cannot work with such a datasource
     if not location.startswith('file://'):
-        msg = resolver(code + 1, location, *format)
+        msg = resolver(code + 1, location, *args)
         raise MailSpoolerException(msg, source, ())
     # We need to check if the registered datasource has an existing odb file
     if not getSimpleFile(ctx).exists(location):
-        msg = resolver(code + 2, location, *format)
+        msg = resolver(code + 2, location, *args)
         raise MailSpoolerException(msg, source, ())
     return dbcontext, location
+
+def getDataSourceConnection(ctx, name, resolver, resource):
+    dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)
+    datasource = dbcontext.getByName(name)
+    if datasource.IsPasswordRequired:
+        handler = getInteractionHandler(ctx)
+        connection = datasource.getIsolatedConnectionWithCompletion(handler)
+    else:
+        connection = datasource.getIsolatedConnection('', '')
+    return connection
+
+def getDataSource(ctx, name, resolver, resource):
+    datasource = None
+    dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)
+    if dbcontext.hasByName(name):
+        datasource = dbcontext.getByName(name)
+    return datasource
+
+def getConnection(ctx, datasource, parent=None, context=''):
+    if datasource.IsPasswordRequired:
+        handler = getInteractionHandler(ctx)
+        if parent:
+            handler.initialize(getPropertyValueSet({'Parent': parent, 'Context': context}))
+        connection = datasource.getIsolatedConnectionWithCompletion(handler)
+    else:
+        connection = datasource.getIsolatedConnection('', '')
+    return connection
+
+def getRowSet(ctx, connection, datasource, table, cmdtype=TABLE):
+    service = 'com.sun.star.sdb.RowSet'
+    rowset = createService(ctx, service)
+    rowset.ActiveConnection = connection
+    rowset.DataSourceName = datasource
+    rowset.CommandType = cmdtype
+    rowset.Command = table
+    return rowset
+
+def getFilteredRowSet(rowset, filter):
+    # XXX: If RowSet.ApplyFilter is not disabled then enabled, RowSet.RowCount is always 1
+    rowset.ApplyFilter = False
+    rowset.Filter = filter
+    rowset.ApplyFilter = True
+    rowset.execute()
+    return rowset
+
+def parseUri(factory, url):
+    uri = factory.parse(url)
+    if uri.hasFragment():
+        uri.clearFragment()
+    return uri.getUriReference()
+
+def parseUriFragment(factory, url, ismerge=True):
+    merge = False
+    filter = ''
+    uri = factory.parse(url)
+    if uri.hasFragment():
+        fragment = uri.getFragment()
+        if ismerge and fragment.startswith('merge'):
+            merge = True
+        if fragment.endswith('pdf'):
+            filter = 'pdf'
+        uri.clearFragment()
+    return uri.getUriReference(), merge, filter
+
+def mergeDocument(ctx, document, connection, result, datasource, table, row):
+    url = None
+    if document.supportsService('com.sun.star.text.TextDocument'):
+        url = '.uno:DataSourceBrowser/InsertContent'
+    elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
+        url = '.uno:DataSourceBrowser/InsertColumns'
+    if url:
+        descriptor = _getDataDescriptor(connection, result, datasource, table, row)
+        frame = document.CurrentController.Frame
+        executeFrameDispatch(ctx, frame, url, None, *descriptor)
 
 def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)
     img = base64.b64encode(sequence.value).decode('utf-8')
     return img
 
-def getDocumentFilter(extension, format):
-    ext = extension.lower()
-    if ext in ('odt', 'ott', 'odm', 'doc', 'dot'):
-        filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
-    elif ext in ('ods', 'ots', 'xls', 'xlt'):
-        filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
-    elif ext in ('odg', 'otg'):
-        filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
-    elif ext in ('odp', 'otp', 'ppt', 'pot'):
-        filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
-    else:
-        filters = {}
-    filter = filters.get(format, None)
-    return filter
+def hasExtensionFilter(extension, format):
+    return getExtensionFilter(extension, format) is not None
+
+def hasDocumentFilter(document, format):
+    return hasExtensionFilter(getDocumentExtension(document), format)
 
 def getMailService(ctx, stype):
     service = 'com.sun.star.mail.MailServiceProvider'
     mailtype = uno.Enum('com.sun.star.mail.MailServiceType', stype)
     return createService(ctx, service).create(mailtype)
+
+def getMailServer(ctx, user,  mailtype):
+    server = getMailService(ctx, mailtype.value)
+    context = user.getConnectionContext(mailtype)
+    authenticator = user.getAuthenticator(mailtype)
+    server.connect(context, authenticator)
+    return server
 
 def getMailUser(ctx, sender):
     service = 'com.sun.star.mail.MailUser'
@@ -157,6 +237,11 @@ def getMailSpooler(ctx):
     spooler = createService(ctx, service)
     return spooler
 
+def getMailSender(ctx):
+    service = 'com.sun.star.mail.MailSender'
+    sender = createService(ctx, service)
+    return sender
+
 def getMailMessage(ctx, sender, recipient, subject, body):
     service = 'com.sun.star.mail.MailMessage'
     mail = createService(ctx, service, recipient, sender, subject, body)
@@ -167,58 +252,22 @@ def getTransferable(ctx):
     transferable = createService(ctx, service)
     return transferable
 
-def getNamedExtension(name):
-    part1, dot, part2 = name.rpartition('.')
-    if dot:
-        name, extension = part1, part2
-    else:
-        name, extension = part2, None
-    return name, extension
-
-def saveDocumentAs(ctx, document, format):
-    url = None
-    name, extension = getNamedExtension(document.Title)
-    if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
-    if filter is not None:
-        temp = getPathSettings(ctx).Temp
-        url = '%s/%s.%s' % (temp, name, format)
-        descriptor = getPropertyValueSet({'FilterName': filter, 'Overwrite': True})
-        document.storeToURL(url, descriptor)
-        url = getUrl(ctx, url)
-        if url is not None:
-            url = url.Main
-    return url
-
-def saveTempDocument(document, url, name, format=None):
+def saveDocumentTo(document, folder, filter, export=None):
+    name, extension = getLastNamedParts(document.Title)
     descriptor = {'Overwrite': True}
-    title, extension = getNamedExtension(name)
-    if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
-    if filter is not None:
-        descriptor['FilterName'] = filter
-    document.storeToURL(url, getPropertyValueSet(descriptor))
-    return name if format is None else '%s.%s' % (title, format)
-
-def saveDocumentTmp(ctx, document, format=None):
-    url = None
-    descriptor = {'Overwrite': True}
-    name, extension = getNamedExtension(document.Title)
-    if extension is None:
-        extension = _getDocumentExtension(document)
-    filter = getDocumentFilter(extension, format)
-    if filter is not None:
-        descriptor['FilterName'] = filter
-    temp = getPathSettings(ctx).Temp
-    if format is None:
-        url = '%s/%s' % (temp, document.Title)
-    else:
-        url = '%s/%s.%s' % (temp, name, format)
-    document.storeToURL(url, getPropertyValueSet(descriptor))
-    url = getUrl(ctx, url)
-    return url
+    suffix = ''
+    if filter and hasDocumentFilter(document, filter):
+        suffix += '.' + filter
+        descriptor['FilterName'] = getDocumentFilter(document, filter)
+        if export:
+            descriptor['FilterData'] = export.getDescriptor()
+    elif extension:
+        suffix += '.' + extension
+    temp = '%s/%s' % (folder, name)
+    temp += suffix
+    name += suffix
+    document.storeToURL(temp, getPropertyValueSet(descriptor))
+    return temp, name
 
 def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True):
     itype, descriptor = detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
@@ -230,7 +279,7 @@ def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True
                 mimetype = t.Value
     return uiname, mimetype
 
-def _getDocumentExtension(document):
+def getDocumentExtension(document):
     identifier = document.getIdentifier()
     if identifier == 'com.sun.star.text.TextDocument':
         extension = 'odt'
@@ -243,6 +292,60 @@ def _getDocumentExtension(document):
     else:
         extension = None
     return extension
+
+def getDocumentFilter(document, format):
+    filter = ''
+    extension = getDocumentExtension(document)
+    if extension:
+        filter = getExtensionFilter(extension, format)
+    return filter
+
+def getExtensionFilter(extension, format):
+    if extension:
+        extension = extension.lower()
+    if extension in ('odt', 'ott', 'odm', 'doc', 'dot'):
+        filters = {'pdf': 'writer_pdf_Export', 'html': 'XHTML Writer File'}
+    elif extension in ('ods', 'ots', 'xls', 'xlt'):
+        filters = {'pdf': 'calc_pdf_Export', 'html': 'XHTML Calc File'}
+    elif extension in ('odg', 'otg'):
+        filters = {'pdf': 'draw_pdf_Export', 'html': 'draw_html_Export'}
+    elif extension in ('odp', 'otp', 'ppt', 'pot'):
+        filters = {'pdf': 'impress_pdf_Export', 'html': 'impress_html_Export'}
+    else:
+        filters = {}
+    filter = filters.get(format, None)
+    return filter
+
+def getJob(ctx, connection, datasource, table, result, export, selection=None):
+    # XXX: To avoid AttributeError: job has no attribute
+    # XXX: OutputType, so we only use XPropertySet here...
+    job = getMailMerge(ctx)
+    job.setPropertyValue('OutputType', FILE)
+    job.setPropertyValue('SaveAsSingleFile', False)
+    job.setPropertyValue('ActiveConnection', connection)
+    job.setPropertyValue('DataSourceName', datasource)
+    job.setPropertyValue('Command', table)
+    job.setPropertyValue('CommandType', TABLE)
+    job.setPropertyValue('ResultSet', result)
+    if selection:
+        any = uno.Any('[]any', selection)
+        uno.invoke(job, 'setPropertyValue', ('Selection', any))
+    if export:
+        any = uno.Any('[]com.sun.star.beans.PropertyValue', export.getDescriptor())
+        uno.invoke(job, 'setPropertyValue', ('SaveFilterData', any))
+    return job
+
+def executeMerge(job, task):
+    job.setPropertyValue('DocumentURL', task.Url)
+    fields = _getInvalidFields(job)
+    if fields is None:
+        job.getPropertyValue('ResultSet').beforeFirst()
+        job.execute(_getDescriptor(task))
+    return fields
+
+def executeExport(ctx, task, export):
+    document = getDocument(ctx, task.Url)
+    task.Url, task.Name = saveDocumentTo(document, task.Folder, task.Filter, export)
 
 def _checkJdbc(ctx, method):
     driver = getExtensionVersion(ctx, g_jdbcid)
@@ -267,4 +370,65 @@ def _showWarning(ctx, title, msg):
 
 def _checkConnection(connection, service, interface):
     return connection.supportsService(service) and hasInterface(connection, interface)
+
+def _getInvalidFields(job):
+    fields = None
+    connection = job.getPropertyValue('ActiveConnection')
+    datasource = job.getPropertyValue('DataSourceName')
+    document = job.getPropertyValue('Model')
+    table = job.getPropertyValue('Command')
+    columns = connection.getTables().getByName(table).getColumns().getElementNames()
+    masters = document.getTextFieldMasters()
+    for name in masters.getElementNames():
+        field = masters.getByName(name)
+        fields = _getMissingFields(field, document.Title, datasource, table, columns)
+        if fields:
+            break
+    return fields
+
+def _getMissingFields(field, title, datasource, table, columns):
+    fields = name = None
+    properties = field.getPropertySetInfo()
+    if _checkProperty(field, properties, 'DataBaseName', datasource):
+        name = 'DataBaseName'
+    elif _checkProperty(field, properties, 'DataTableName', table):
+        name = 'DataTableName'
+    elif _checkProperties(field, properties, 'DataColumnName', columns):
+        name = 'DataColumnName'
+    if name:
+        fields = (title, field.getPropertyValue(name), name, datasource)
+    return fields
+
+def _checkProperty(field, properties, name, value):
+    return properties.hasPropertyByName(name) and field.getPropertyValue(name) != value
+
+def _checkProperties(field, properties, name, values):
+    return properties.hasPropertyByName(name) and field.getPropertyValue(name) not in values
+
+def _getDescriptor(task):
+    name, extension = getLastNamedParts(task.Name)
+    descriptor = {'OutputURL': task.Folder,
+                  'FileNamePrefix': name}
+    suffix = ''
+    if task.Filter and hasExtensionFilter(extension, task.Filter):
+        descriptor['SaveFilter'] = getExtensionFilter(extension, task.Filter)
+        suffix += '.' + task.Filter
+    elif extension:
+        suffix += '.' + extension
+    task.Url = task.Folder + '/' + name + '%s' + suffix
+    task.Name = name + suffix
+    return getNamedValueSet(descriptor)
+
+def _getDataDescriptor(connection, result, datasource, table, row):
+    # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
+    # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
+    properties = {'ActiveConnection': connection,
+                  'DataSourceName': datasource,
+                  'Command': table,
+                  'CommandType': TABLE,
+                  'Cursor': result,
+                  'BookmarkSelection': False,
+                  'Selection': (row, )}
+    descriptor = getPropertyValueSet(properties)
+    return descriptor
 

@@ -40,6 +40,10 @@ g_merger_paths = (1, 2, 3)
 g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
+# Spooler frame name
+g_spoolerframe = 'Spooler'
+# Merger frame name
+g_mergerframe = 'Merger'
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)
 # Thread Logo

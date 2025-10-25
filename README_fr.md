@@ -834,13 +834,13 @@ ___
 [118]: <https://github.com/LibreOffice/loeclipse/pull/157>
 [119]: <https://prrvchr.github.io/eMailerOOo/README_fr#comment-cr%C3%A9er-lextension>
 [120]: <https://peps.python.org/pep-0570/>
-[121]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L109>
+[121]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L106>
 [122]: <https://prrvchr.github.io/eMailerOOo/README_fr#comment-personnaliser-les-menus-de-libreoffice>
 [123]: <https://github.com/prrvchr/eMailerOOo/issues/10>
 [124]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/sender.py>
 [125]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/mailer.py>
 [126]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/viewer.py>
-[127]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/task/XTaskEvent>
+[127]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/rdb/idl/com/sun/star/task/XTaskEvent.idl>
 [128]: <https://docs.python.org/3/library/threading.html#threading.Event>
 [129]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/frame/XDispatch.html#dispatch>
 [130]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/AsyncCallback.html>

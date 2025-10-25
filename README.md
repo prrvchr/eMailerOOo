@@ -702,7 +702,7 @@ ___
   - [viewer.py][126]
 - Added the [XTaskEvent.idl][127] interface to the UNO API. This new interface, which is the transcription of the Python class [threading.Event][128], allows you to control a task executed by the LibreOffice [Dispatcher][129].
 - If files are attached to an email and in PDF format, then they will follow the LibreOffice configuration settings found in: **File -> Export to -> Export as PDF** when being transformed.
-- All methods needed for rendering and running in the background now use the UNO service [com.sun.star.awt.AsyncCallback][124] for callback.
+- All methods needed for rendering and running in the background now use the UNO service [com.sun.star.awt.AsyncCallback][130] for callback.
 - If the jdbcDriverOOo extension works without Java instrumentation, a warning message will be displayed in the extension options.
 - Requires the **jdbcDriverOOo extension at least version 1.6.0**.
 - Requires the **OAuth2OOo extension at least version 1.6.0**.
@@ -834,13 +834,13 @@ ___
 [118]: <https://github.com/LibreOffice/loeclipse/pull/157>
 [119]: <https://prrvchr.github.io/eMailerOOo/#how-to-build-the-extension>
 [120]: <https://peps.python.org/pep-0570/>
-[121]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L109>
+[121]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L106>
 [122]: <https://prrvchr.github.io/eMailerOOo/#how-to-customize-libreoffice-menus>
 [123]: <https://github.com/prrvchr/eMailerOOo/issues/10>
 [124]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/sender.py>
 [125]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/mailer.py>
 [126]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/service/pythonpath/emailer/spooler/thread/viewer.py>
-[127]: <https://github.com/prrvchr/eMailerOOo/tree/master/source/eMailerOOo/idl/com/sun/star/task/XTaskEvent>
+[127]: <https://github.com/prrvchr/eMailerOOo/blob/master/uno/rdb/idl/com/sun/star/task/XTaskEvent.idl>
 [128]: <https://docs.python.org/3/library/threading.html#threading.Event>
 [129]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/frame/XDispatch.html#dispatch>
 [130]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/awt/AsyncCallback.html>

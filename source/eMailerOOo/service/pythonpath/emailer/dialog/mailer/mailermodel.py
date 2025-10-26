@@ -105,13 +105,10 @@ class MailerModel(MailModel):
     def _loadDocument(self, url, caller):
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
-        location = getUrlPresentation(self._ctx, url)
-        properties = {'Hidden': True, 'MacroExecutionMode': ALWAYS_EXECUTE_NO_WARN}
-        descriptor = getPropertyValueSet(properties)
-        document = getDesktop(self._ctx).loadComponentFromURL(location, '_blank', 0, descriptor)
+        self._url = url
+        document = getDocument(self._ctx, url)
         title = self._getDocumentTitle(document.URL)
-        result = document, title
-        data = {'call': 'init', 'status': SUCCESS, 'result': result}
+        data = {'call': 'init', 'document': document, 'title': title}
         self._callback.addCallback(caller, getPropertyValueSet(data))
 
     def _viewDocument(self, selection, url, merge, filter, caller):
@@ -119,14 +116,14 @@ class MailerModel(MailModel):
         sleep(0.2)
         status, result = SUCCESS, None
         if not self._sf.exists(url):
-            status, result = FAILURE, self._getMsgBoxMessage(1) % attachment
+            status, result = FAILURE, self._getMsgBoxMessage(1) % url
         else:
             try:
                 document = self.getDocument(url)
                 if document is None:
-                    status, result = FAILURE, self._getMsgBoxMessage(2) % attachment
+                    status, result = FAILURE, self._getMsgBoxMessage(2) % url
             except Exception as e:
-                status, result = FAILURE, self._getMsgBoxMessage(3) % (attachment, e)
+                status, result = FAILURE, self._getMsgBoxMessage(3) % (url, e)
         if status:
             folder = self._getTempFolder()
             export = self._getPdfExport(filter)
@@ -135,15 +132,13 @@ class MailerModel(MailModel):
         data = {'call': filter, 'status': status, 'result': result}
         self._callback.addCallback(caller, getPropertyValueSet(data))
 
+    def getDocument(self, url=None, readonly=True):
+        if url is None:
+            url = self._url
+        return getDocument(self._ctx, url, readonly)
+
     def getUrl(self):
         return self._url
-
-    def getDocument(self, url):
-        if url == self._url:
-            document = self._document
-        else:
-            document = getDocument(self._ctx, url)
-        return document
 
     def setUrl(self, url):
         self._url = url

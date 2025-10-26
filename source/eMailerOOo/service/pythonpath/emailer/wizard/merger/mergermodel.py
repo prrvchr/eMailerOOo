@@ -922,11 +922,11 @@ class MergerModel(MailModel):
     def saveDocumentFinished(self, saved):
         self._saved = saved
 
-    def getDocument(self, url=None):
+    def getDocument(self, url=None, readonly=True):
         if url is None:
             document = self._document
         else:
-            document = getDocument(self._ctx, url)
+            document = getDocument(self._ctx, url, readonly)
         return document
 
     def setUrl(self, url):

@@ -153,11 +153,13 @@ class Mail(Batch):
             self._job.dispose()
 
     def getRecipient(self, job):
-        if self._merge:
+        if not self._merge:
+            index = self._batch.Jobs.index(job)
+            recipient = self._batch.Recipients[index]
+        elif job in self._rows:
             recipient = self._rows[job][1]
         else:
-            index = self._jobs.index(job)
-            recipient = self._recipients[index]
+            recipient = None
         return recipient
 
     def getSubject(self, job):

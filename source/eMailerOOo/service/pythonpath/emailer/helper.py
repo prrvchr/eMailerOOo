@@ -263,9 +263,8 @@ def saveDocumentTo(document, folder, filter, export=None):
             descriptor['FilterData'] = export.getDescriptor()
     elif extension:
         suffix += '.' + extension
-    temp = '%s/%s' % (folder, name)
-    temp += suffix
     name += suffix
+    temp = folder + '/' + name
     document.storeToURL(temp, getPropertyValueSet(descriptor))
     return temp, name
 
@@ -346,6 +345,7 @@ def executeMerge(job, task):
 def executeExport(ctx, task, export):
     document = getDocument(ctx, task.Url)
     task.Url, task.Name = saveDocumentTo(document, task.Folder, task.Filter, export)
+    document.close(True)
 
 def _checkJdbc(ctx, method):
     driver = getExtensionVersion(ctx, g_jdbcid)

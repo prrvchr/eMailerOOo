@@ -48,6 +48,9 @@ class MailerView(MailView):
     def getSelectedRecipients(self):
         return None
 
+    def getMergeAttachments(self):
+        return False
+
     def getRecipient(self):
         return self._getRecipients().getText().strip()
 

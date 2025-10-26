@@ -45,6 +45,10 @@ class MergerView(MailView):
             selection.append(i + 1)
         return tuple(selection)
 
+    def getMergeAttachments(self):
+        state = self._getMergeAttachments().Model.State
+        return bool(state)
+
 # MergerView setter methods
     def setRecipients(self, recipients, message):
         self._getMergerMessage().Text = message

@@ -70,9 +70,6 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getQueryCommand':
         query = 'SELECT %s.* FROM %s;' % format
 
-    elif name == 'getRecipientQuery':
-        query = 'SELECT %s AS "Recipient" FROM %s ORDER BY %s;' % format
-
     # MailSpooler Select Queries
     elif name == 'getSpoolerJobs':
         query = 'SELECT "JobId" FROM "Spooler" WHERE "State" = ? ORDER BY "JobId";'
@@ -82,21 +79,6 @@ def getSqlQuery(ctx, name, format=None):
 
     elif name == 'getJobIds':
         query = 'SELECT ARRAY_AGG("JobId") FROM "Recipients" WHERE "BatchId" = ?;'
-
-# Update Queries
-    # MailSpooler Update Queries
-    elif name == 'updateRecipient':
-        query = 'UPDATE "Recipients" SET "State"=?, "MessageId"=?, "Modified"=? WHERE "JobId"=?;'
-
-# Function creation Queries
-    # IspDb Function Queries
-    elif name == 'createGetDomain':
-        query = """\
-CREATE FUNCTION "GetDomain"(EMAIL VARCHAR(320))
-  RETURNS VARCHAR(100)
-  SPECIFIC "GetDomain_1"
-  RETURN SUBSTRING(EMAIL FROM POSITION('@' IN EMAIL) + 1);
-"""
 
 # Delete Procedure Queries
     # MailSpooler Delete Procedure Queries
@@ -140,7 +122,7 @@ CREATE PROCEDURE "UpdateJobState"(IN JOBID INTEGER,
   SPECIFIC "UpdateJobState_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Recipients" SET "State"=STATE, "Modified"=DEFAULT WHERE "JobId"=JOBID;
+    UPDATE "Recipients" SET "State" = STATE, "Modified" = DEFAULT WHERE "JobId" = JOBID;
   END"""
 
     elif name == 'createUpdateJobsState':
@@ -150,7 +132,7 @@ CREATE PROCEDURE "UpdateJobsState"(IN JOBIDS INTEGER ARRAY,
   SPECIFIC "UpdateJobsState_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Recipients" SET "State"=STATE, "Modified"=DEFAULT WHERE "JobId" IN (UNNEST (JOBIDS));
+    UPDATE "Recipients" SET "State" = STATE, "Modified" = DEFAULT WHERE "JobId" IN (UNNEST(JOBIDS));
   END"""
 
     elif name == 'createGetAttachments':
@@ -162,7 +144,7 @@ CREATE PROCEDURE "GetAttachments"(IN BATCHID INTEGER)
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT "Attachment" From "Attachments"
-      WHERE "BatchId"=BATCHID ORDER BY "Created"
+      WHERE "BatchId" = BATCHID ORDER BY "Created"
       FOR READ ONLY;
     OPEN RSLT;
   END;"""

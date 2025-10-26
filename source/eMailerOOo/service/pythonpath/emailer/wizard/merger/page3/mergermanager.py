@@ -32,6 +32,7 @@ import unohelper
 
 from com.sun.star.awt.MessageBoxType import WARNINGBOX
 
+from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from com.sun.star.lang import XComponent
@@ -170,4 +171,8 @@ class MergerManager(MailManager,
             self._view.setRecipients(getArgumentSet(recipients), message)
             self._updateUI()
         self._model.closeDocument(document)
+
+    def _notifyView(self, status, result):
+        if status == FAILURE:
+            self._showMessageBox(result)
 

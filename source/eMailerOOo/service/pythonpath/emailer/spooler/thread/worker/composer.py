@@ -75,6 +75,8 @@ class Composer(Worker):
                     self._result.Result = msg
                     break
                 else:
+                    progress = 10 + 20 * mail.JobCount()
+                    self._setProgressValue(-progress)
                     continue
             if self.isCanceled():
                 self._input.task_done()
@@ -86,6 +88,17 @@ class Composer(Worker):
                     continue
                 self._setProgressValue(-10)
                 recipient = mail.getRecipient(job)
+                if recipient is None:
+                    msg = self._logger.resolveString(self._resource + 23, job)
+                    self._logger.logp(SEVERE, self._cls, mtd, msg)
+                    self._setProgressValue(-10)
+                    if self._result:
+                        msg = self._logger.resolveString(self._resource + 24, job)
+                        self._result.State = FAILURE
+                        self._result.Result = msg
+                        break
+                    else:
+                        continue
                 subject = mail.getSubject(job)
                 url = mail.getUrl(job)
                 try:
@@ -99,7 +112,7 @@ class Composer(Worker):
                         attachment.ReadableName = task.Name
                         email.addAttachment(attachment)
                 except UnoException as e:
-                    msg = self._logger.resolveString(self._resource + 23, e.Message, job, recipient)
+                    msg = self._logger.resolveString(self._resource + 25, e.Message, job, recipient)
                     self._logger.logp(SEVERE, self._cls, mtd, msg)
                 else:
                     if sender:
@@ -116,7 +129,7 @@ class Composer(Worker):
             self._taskDone()
 
         if self.isCanceled():
-            msg = self._logger.resolveString(self._resource + 24)
+            msg = self._logger.resolveString(self._resource + 26)
             self._logger.logp(SEVERE, self._cls, mtd, msg)
         elif sender:
             sender.start()

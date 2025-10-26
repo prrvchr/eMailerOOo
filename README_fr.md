@@ -704,6 +704,7 @@ ___
 - Si des fichiers sont joints au courriel et au format PDF, alors ils suivront les paramètres de configuration de LibreOffice qui se trouvent dans: **Fichier -> Exporter vers -> Exporter au format PDF** lors de leur transformation.
 - Toutes les méthodes nécessaires à l'affichage et s'exécutant en arrière-plan utilisent désormais le service UNO [com.sun.star.awt.AsyncCallback][130] pour le rappel.
 - Si l'extension jdbcDriverOOo fonctionne sans l'instrumentation Java, un message d'avertissement s'affichera dans les options de l'extension.
+- De nombreuses corrections et quelques nouveautés que je vous laisse découvrir.
 - Nécessite l'extension **jdbcDriverOOo en version 1.6.0 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.6.0 minimum**.
 - A été testé avec LibreOfficeDev 26.2.

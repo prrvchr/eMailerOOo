@@ -27,6 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -37,6 +40,8 @@ from .mailermodel import MailerModel
 from .mailerview import MailerView
 from .mailerhandler import DialogHandler
 
+from ...unotool import executeShell
+
 from ...helper import getMailSpooler
 
 import traceback
@@ -46,7 +51,7 @@ class MailerManager(MailManager):
     def __init__(self, ctx, model, parent, url):
         super().__init__(ctx, model)
         self._view = MailerView(ctx, DialogHandler(self), WindowHandler(ctx, self), parent, 1)
-        self._view.setSenders(self._model.getSenders())
+        self._view.setSenders(model.getSenders())
         self._model.loadDocument(url, self)
 
 # XDispatchResultListener
@@ -102,6 +107,7 @@ class MailerManager(MailManager):
 # MailerManager private setter methods
     def _updateUI(self):
         enabled = self._canAdvance()
+        print("MailerManger._updateUI() enabled: %s" % enabled)
         self._view.enableButtonSend(enabled)
 
     def _notifyInit(self, document, title):
@@ -109,4 +115,10 @@ class MailerManager(MailManager):
             self._initView(document)
             self._view.setTitle(title)
         self._model.closeDocument(document)
+
+    def _notifyView(self, status, result):
+        if status == FAILURE:
+            self._showMessageBox(result)
+        else:
+            executeShell(self._ctx, result)
 

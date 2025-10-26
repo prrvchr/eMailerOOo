@@ -74,13 +74,13 @@ class Viewer(Master):
         result = uno.createUnoStruct('com.sun.star.beans.StringPair')
         result.First = document.Filter
         progress = self._getProgressRange()
-        msg = self._logger.resolveString(self._resource + 1)
+        msg = self._logger.resolveString(901)
         self._startProgress(msg, progress)
         if not document.hasFile():
             document.close()
-            msg = self._logger.resolveString(self._resource + 2, document.Url)
+            msg = self._logger.resolveString(902, document.Url)
             self._setProgress(msg, progress)
-            msg = self._logger.resolveString(self._resource + 3, document.Url)
+            msg = self._logger.resolveString(903, document.Url)
             sleep(self._wait)
             status, result.Second = FAILURE, msg
         else:
@@ -89,21 +89,21 @@ class Viewer(Master):
             if watchdog.startExecutor(executor, document):
                 executor.join()
             else:
-                msg = self._logger.resolveString(self._resource + 21)
+                msg = self._logger.resolveString(921)
                 self._setProgress(msg, -20)
             document.close()
             if self.isCanceled():
-                msg = self._logger.resolveString(self._resource + 21)
+                msg = self._logger.resolveString(921)
                 self._setProgress(msg, progress)
                 status, result.Second = FAILURE, msg
             elif document.hasInvalidFields():
-                msg = self._logger.resolveString(self._resource + 22)
+                msg = self._logger.resolveString(922)
                 self._setProgress(msg, progress)
-                msg = self._logger.resolveString(self._resource + 23, *document.getInvalidFields())
+                msg = self._logger.resolveString(923, *document.getInvalidFields())
                 sleep(self._wait)
                 status, result.Second = FAILURE, msg
             else:
-                msg = self._logger.resolveString(self._resource + 24)
+                msg = self._logger.resolveString(924)
                 self._setProgress(msg, progress)
                 sleep(self._wait)
                 status, result.Second = SUCCESS, document.getUrl(0)

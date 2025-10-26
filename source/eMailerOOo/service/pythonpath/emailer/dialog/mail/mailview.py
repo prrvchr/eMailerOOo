@@ -50,6 +50,9 @@ class MailView(unohelper.Base):
     def getSelectedRecipients(self):
         raise NotImplementedError('Need to be implemented!')
 
+    def getMergeAttachments(self):
+        raise NotImplementedError('Need to be implemented!')
+
     def getWindow(self):
         return self._window
 
@@ -90,10 +93,6 @@ class MailView(unohelper.Base):
 
     def getSaveAttachments(self):
         state = self._getSaveAttachments().Model.State
-        return bool(state)
-
-    def getMergeAttachments(self):
-        state = self._getMergeAttachments().Model.State
         return bool(state)
 
 # MailView setter methods

@@ -148,7 +148,7 @@ class Dispatcher(Master):
         job = len(batch.Jobs)
         task = len(batch.Attachments)
         # XXX: Progress in: Dispatcher + Executor  + Composer
-        progress += (10) + (30) +  (10 + (20 * job))
+        progress += (10) + (30) +  (10 + 20 * job)
         if self._output:
             # XXX: Progress in: Sender if used
             progress += (20 * job)

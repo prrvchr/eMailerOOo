@@ -31,16 +31,13 @@ import uno
 import unohelper
 
 from com.sun.star.awt.MessageBoxType import WARNINGBOX
-from com.sun.star.awt import XCallback
 
-from com.sun.star.frame.DispatchResultState import SUCCESS
-from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.awt import XCallback
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from ...unotool import createMessageBox
-from ...unotool import executeShell
 from ...unotool import getArgumentSet
 from ...unotool import getFileUrl
 
@@ -213,7 +210,7 @@ class MailManager(unohelper.Base,
     def _getSavedDocumentProperty(self):
         subject = self._view.getSubject()
         attachments = self._view.getAttachments()
-        document = self._model.getDocument()
+        document = self._model.getDocument(None, False)
         state = self._view.getSaveSubject()
         self._model.setDocumentUserProperty(document, 'SaveSubject', state)
         if state:
@@ -246,10 +243,12 @@ class MailManager(unohelper.Base,
         raise NotImplementedError('Need to be implemented!')
 
     def _notifyView(self, status, result):
-        if status == FAILURE:
-            parent = self._view.getWindow().Peer
-            title = self._model.getMsgBoxTitle()
-            dialog = createMessageBox(parent, WARNINGBOX, 1, title, result)
-            dialog.execute()
-            dialog.dispose()
+        raise NotImplementedError('Need to be implemented!')
+
+    def _showMessageBox(self, message):
+        parent = self._view.getWindow().Peer
+        title = self._model.getMsgBoxTitle()
+        dialog = createMessageBox(parent, WARNINGBOX, 1, title, message)
+        dialog.execute()
+        dialog.dispose()
 

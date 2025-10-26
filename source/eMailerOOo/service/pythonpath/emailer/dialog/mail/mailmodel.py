@@ -88,7 +88,7 @@ class MailModel(unohelper.Base):
     def getUrl(self):
         raise NotImplementedError('Need to be implemented!')
 
-    def getDocument(self, url=None):
+    def getDocument(self, url=None, readonly=True):
         raise NotImplementedError('Need to be implemented!')
 
     def parseUri(self):

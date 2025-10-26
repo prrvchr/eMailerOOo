@@ -704,6 +704,7 @@ ___
 - If files are attached to an email and in PDF format, then they will follow the LibreOffice configuration settings found in: **File -> Export to -> Export as PDF** when being transformed.
 - All methods needed for rendering and running in the background now use the UNO service [com.sun.star.awt.AsyncCallback][130] for callback.
 - If the jdbcDriverOOo extension works without Java instrumentation, a warning message will be displayed in the extension options.
+- Many corrections and some new features that I will let you discover.
 - Requires the **jdbcDriverOOo extension at least version 1.6.0**.
 - Requires the **OAuth2OOo extension at least version 1.6.0**.
 - Has been tested with LibreOfficeDev 26.2.

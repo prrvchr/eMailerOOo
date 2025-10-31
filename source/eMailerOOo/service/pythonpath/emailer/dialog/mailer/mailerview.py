@@ -55,7 +55,6 @@ class MailerView(MailView):
 
 # MailerView setter methods
     def execute(self):
-        print("MailerView.execute() 1")
         return self._dialog.execute()
 
     def setTitle(self, title):

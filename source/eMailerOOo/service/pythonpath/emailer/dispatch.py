@@ -141,9 +141,7 @@ class Dispatch(unohelper.Base,
         if not self._isChecked(1):
             logger = getLogger(self._ctx, g_defaultlog)
             try:
-                print("Dispatch._dispatchIspdb() 1")
                 checkOAuth2(self._ctx, self, logger, True)
-                print("Dispatch._dispatchIspdb() 2")
             except UnoException as e:
                 logger.logprb(SEVERE, 'Dispatch', '_dispatchIspdb', 1111, url.Main, e.Message)
             else:
@@ -155,7 +153,6 @@ class Dispatch(unohelper.Base,
         # FIXME: We need to check the configuration
         if not self._isChecked(3):
             logger = getLogger(self._ctx, g_defaultlog)
-            print("Dispatch._dispatchSpooler() 1")
             try:
                 datasource = DataSource(self._ctx, self, logger, True)
             except UnoException as e:
@@ -201,7 +198,7 @@ class Dispatch(unohelper.Base,
                 manager = SpoolerManager(self._ctx, self._getDataSource())
             getMailSender(self._ctx).start()
             return SUCCESS, ()
-        except Exception as e:
+        except:
             print("Dispatch._startSpooler() ERROR: %s" % traceback.format_exc())
 
     def _stopSpooler(self):
@@ -214,7 +211,7 @@ class Dispatch(unohelper.Base,
             else:
                 state = FAILURE
             return state, ()
-        except Exception as e:
+        except:
             print("Dispatch._stopSpooler() ERROR: %s" % traceback.format_exc())
 
     def _showSpooler(self, notifier):
@@ -224,7 +221,7 @@ class Dispatch(unohelper.Base,
                 frame.getContainerWindow().toFront()
             else:
                 manager = SpoolerManager(self._ctx, self._getDataSource(), notifier)
-        except Exception as e:
+        except:
             print("Dispatch._showSpooler() ERROR: %s" % traceback.format_exc())
 
     #Mail methods
@@ -244,14 +241,12 @@ class Dispatch(unohelper.Base,
             if url is None:
                 model.dispose()
             else:
-                print("Dispatch._showMailer() 1")
                 mailer = MailerManager(self._ctx, model, parent, url)
                 if mailer.execute() == OK:
-                    print("Dispatch._showMailer() 2")
                     state = SUCCESS
                     path = model.getPath()
             return state, path
-        except Exception as e:
+        except:
             print("Dispatch._showMailer() ERROR: %s" % traceback.format_exc())
 
     #Merger methods
@@ -282,7 +277,7 @@ class Dispatch(unohelper.Base,
                     dialog = createMessageBox(self._ctx, box, 1, title, message)
                     dialog.execute()
                     dialog.dispose()
-        except Exception as e:
+        except:
             print("Dispatch._showMerger() ERROR: %s" % traceback.format_exc())
 
     #Viewer methods
@@ -336,7 +331,7 @@ class Dispatch(unohelper.Base,
             progress = StatusIndicator(self._ctx, g_mergerframe)
             viewer = Viewer(self._ctx, event, progress, connection, result,
                             datasource, table, url, merge, filter, selection, notifier, self)
-        except Exception as e:
+        except:
             print("Dispatch._getDocument() ERROR: %s" % traceback.format_exc())
 
     # Private methods

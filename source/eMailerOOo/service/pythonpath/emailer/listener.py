@@ -51,9 +51,8 @@ class TerminateListener(unohelper.Base,
     def queryTermination(self, event):
         try:
             self._manager.dispose()
-        except Exception as e:
-            msg = "TerminateListener Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("TerminateListener.queryTermination() ERROR: %s" % traceback.format_exc())
 
     def notifyTermination(self, event):
         pass
@@ -71,9 +70,8 @@ class DispatchListener(unohelper.Base,
     def dispatchFinished(self, notification):
         try:
             self._manager.dispatchFinished(notification)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("DispatchListener.dispatchFinished() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, source):
         pass
@@ -88,9 +86,8 @@ class JobListener(unohelper.Base,
     def jobFinished(self, job, result):
         try:
             manager.jobFinished(job, result)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("JobListener.jobFinished() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, source):
         pass

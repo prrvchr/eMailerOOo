@@ -50,7 +50,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.cancel()
                 handled = True
             return handled
-        except Exception as e:
+        except:
             print("DialogHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):

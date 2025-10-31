@@ -64,9 +64,8 @@ class WindowHandler(unohelper.Base,
                 self._manager.closeSpooler()
                 handled = True
             return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('ToogleSpooler',
@@ -102,9 +101,8 @@ class TabHandler(unohelper.Base,
                 self._manager.removeDocument()
                 handled = True
             return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("TabHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('EmlView',
@@ -124,9 +122,8 @@ class TabPageListener(unohelper.Base,
     def tabPageActivated(self, event):
         try:
             self._manager.activateTab(event.TabPageID)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("TabPageListener.tabPageActivated() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, source):
         pass
@@ -147,9 +144,8 @@ class RowSetListener(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             self._manager.setDataModel(event.Source)
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("RowSetListener.rowSetChanged() ERROR: %s" % traceback.format_exc())
 
 
 class LoggerListener(unohelper.Base,
@@ -161,9 +157,8 @@ class LoggerListener(unohelper.Base,
     def modified(self, event):
         try:
             self._callback()
-        except Exception as e:
-            msg = f"Error: {traceback.format_exc()}"
-            print(msg)
+        except:
+            print("LoggerListener.modified() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, event):
         pass

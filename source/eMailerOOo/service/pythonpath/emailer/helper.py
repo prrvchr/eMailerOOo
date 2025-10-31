@@ -362,11 +362,8 @@ def _getExceptionMessage(logger, code, extension, *args):
     return title, message
 
 def _showWarning(ctx, title, msg):
-    print("helper._showWarning() 1")
     msgbox = createMessageBox(ctx, ERRORBOX, 1, title, msg)
-    print("helper._showWarning() 3")
     msgbox.execute()
-    print("helper._showWarning() 4")
     msgbox.dispose()
 
 def _checkConnection(connection, service, interface):

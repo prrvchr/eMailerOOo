@@ -246,9 +246,8 @@ class MailManager(unohelper.Base,
         raise NotImplementedError('Need to be implemented!')
 
     def _showMessageBox(self, message):
-        parent = self._view.getWindow().Peer
         title = self._model.getMsgBoxTitle()
-        dialog = createMessageBox(parent, WARNINGBOX, 1, title, message)
+        dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, message)
         dialog.execute()
         dialog.dispose()
 

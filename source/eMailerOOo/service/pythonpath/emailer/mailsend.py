@@ -74,11 +74,9 @@ class MailSend(unohelper.Base,
         self._implementation = implementation
         self._services = services
         self._lock = Lock()
-        self._cls = 'MailSender'
         self._logger = getLogger(ctx, g_spoolerlog)
         self._listeners = []
         self._cancel = TaskEvent()
-        self._logger.logprb(INFO, self._cls, '__init__', 601)
         self._thread = None
 
 

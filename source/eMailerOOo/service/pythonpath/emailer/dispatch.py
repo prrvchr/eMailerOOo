@@ -36,6 +36,7 @@ from com.sun.star.awt.WindowClass import MODALTOP
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 from com.sun.star.frame.FrameSearchFlag import GLOBAL
+from com.sun.star.frame import FeatureStateEvent
 from com.sun.star.frame import XNotifyingDispatch
 
 from com.sun.star.uno import Exception as UnoException
@@ -107,39 +108,54 @@ class Dispatch(unohelper.Base,
         self._dispatch(url, arguments)
 
     def addStatusListener(self, listener, url):
-        pass
+        state = FeatureStateEvent()
+        state.FeatureURL = url
+        state.IsEnabled = True
+        #state.State = True
+        listener.statusChanged(state)
+        self._listeners.append(listener)
 
     def removeStatusListener(self, listener, url):
-        pass
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
 # Dispatch private methods
     def _dispatch(self, url, arguments, notifier=None):
-        try:
-            if url.Path == 'ShowIspdb':
-                self._dispatchIspdb(url, arguments, notifier)
-            else:
-                self._dispatchSpooler(url, arguments, notifier)
-        except Exception as e:
-            msg = "Dispatch._dispatch() Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+        if url.Path == 'ShowIspdb':
+            self._dispatchIspdb(url, arguments, notifier)
+        else:
+            self._dispatchSpooler(url, arguments, notifier)
 
     def _dispatchIspdb(self, url, arguments, notifier):
+        sender = ''
+        parent = None
+        readonly = False
+        for argument in arguments:
+            if argument.Name == 'Sender':
+                sender = argument.Value
+            elif argument.Name == 'ParentWindow':
+                parent = argument.Value
+            elif argument.Name == 'ReadOnly':
+                readonly = argument.Value
         # FIXME: We need to check the presence of OAuth2OOo extension
         if not self._isChecked(1):
             logger = getLogger(self._ctx, g_defaultlog)
             try:
+                print("Dispatch._dispatchIspdb() 1")
                 checkOAuth2(self._ctx, self, logger, True)
+                print("Dispatch._dispatchIspdb() 2")
             except UnoException as e:
                 logger.logprb(SEVERE, 'Dispatch', '_dispatchIspdb', 1111, url.Main, e.Message)
             else:
                 Dispatch._checked |= 1
         if self._isChecked(1):
-            self._showIspdb(arguments, notifier)
+            self._showIspdb(sender, parent, readonly, notifier)
 
     def _dispatchSpooler(self, url, arguments, notifier):
         # FIXME: We need to check the configuration
         if not self._isChecked(3):
             logger = getLogger(self._ctx, g_defaultlog)
+            print("Dispatch._dispatchSpooler() 1")
             try:
                 datasource = DataSource(self._ctx, self, logger, True)
             except UnoException as e:
@@ -165,34 +181,15 @@ class Dispatch(unohelper.Base,
                 self._getDocument(arguments, notifier)
 
     #Ispdb methods
-    def _showIspdb(self, arguments, notifier):
+    def _showIspdb(self, sender, parent, readonly, notifier):
         try:
-            email = None
-            msg = "Wizard Loading ..."
-            sender = ''
-            parent = None
-            readonly = False
-            for argument in arguments:
-                if argument.Name == 'Sender':
-                    sender = argument.Value
-                elif argument.Name == 'ParentWindow':
-                    parent = argument.Value
-                elif argument.Name == 'ReadOnly':
-                    readonly = argument.Value
-            if parent is None:
-                parent = self._frame.getContainerWindow().getToolkit().getActiveTopWindow()
-            wizard = Wizard(self._ctx, g_ispdb_page, True, parent)
+            wizard = Wizard(self._ctx, g_ispdb_page)
             controller = IspdbController(self._ctx, wizard, sender, readonly, notifier)
             arguments = (g_ispdb_paths, controller)
             wizard.initialize(arguments)
-            msg += " Done ..."
-            if wizard.execute() == OK:
-                msg +=  " Retrieving SMTP configuration OK..."
-            wizard.dispose()
-            print(msg)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            wizard.execute()
+        except:
+            print("Dispatch._showIspdb() ERROR: %s" % traceback.format_exc())
 
     #Spooler methods
     def _startSpooler(self):
@@ -205,8 +202,7 @@ class Dispatch(unohelper.Base,
             getMailSender(self._ctx).start()
             return SUCCESS, ()
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            print("Dispatch._startSpooler() ERROR: %s" % traceback.format_exc())
 
     def _stopSpooler(self):
         try:
@@ -219,8 +215,7 @@ class Dispatch(unohelper.Base,
                 state = FAILURE
             return state, ()
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            print("Dispatch._stopSpooler() ERROR: %s" % traceback.format_exc())
 
     def _showSpooler(self, notifier):
         try:
@@ -230,34 +225,34 @@ class Dispatch(unohelper.Base,
             else:
                 manager = SpoolerManager(self._ctx, self._getDataSource(), notifier)
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            print("Dispatch._showSpooler() ERROR: %s" % traceback.format_exc())
 
     #Mail methods
     def _showMailer(self, arguments):
         try:
             state = FAILURE
-            path = None
+            path = parent = None
             for argument in arguments:
                 if argument.Name == 'Path':
                     path = argument.Value
+                elif argument.Name == 'ParentWindow':
+                    parent = argument.Value
             if path is None:
                 path = getPathSettings(self._ctx).Work
-            model = MailerModel(self._ctx, path)
-            url = model.getDocumentUrl()
+            model = MailerModel(self._ctx)
+            url = model.getDocumentUrl(path)
             if url is None:
                 model.dispose()
             else:
-                parent = self._frame.getContainerWindow()
+                print("Dispatch._showMailer() 1")
                 mailer = MailerManager(self._ctx, model, parent, url)
                 if mailer.execute() == OK:
+                    print("Dispatch._showMailer() 2")
                     state = SUCCESS
                     path = model.getPath()
-                mailer.dispose()
             return state, path
         except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+            print("Dispatch._showMailer() ERROR: %s" % traceback.format_exc())
 
     #Merger methods
     def _showMerger(self):
@@ -274,7 +269,7 @@ class Dispatch(unohelper.Base,
                     else:
                         point = None
                     config.dispose()
-                    wizard = Wizard(self._ctx, g_merger_page, True, None, g_mergerframe, point)
+                    wizard = Wizard(self._ctx, g_merger_page, g_mergerframe, point)
                     controller = MergerController(self._ctx, wizard, document)
                     arguments = (g_merger_paths, controller)
                     wizard.initialize(arguments)
@@ -284,7 +279,7 @@ class Dispatch(unohelper.Base,
                     box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
                     title = logger.resolveString(1131)
                     message = logger.resolveString(1132, document.Title)
-                    dialog = createMessageBox(parent, box, 1, title, message)
+                    dialog = createMessageBox(self._ctx, box, 1, title, message)
                     dialog.execute()
                     dialog.dispose()
         except Exception as e:
@@ -292,7 +287,7 @@ class Dispatch(unohelper.Base,
 
     #Viewer methods
     def _getMail(self, arguments, notifier):
-        cls = 'MailSpooler'
+        cls = 'Mailer'
         mtd = '_getMail'
         jobs = ()
         event = None
@@ -314,7 +309,7 @@ class Dispatch(unohelper.Base,
                 logger.logprb(SEVERE, cls, mtd, 1123, jobslist, str(e), traceback.format_exc())
 
     def _getDocument(self, arguments, notifier):
-        cls = 'Merger'
+        cls = 'Viewer'
         mtd = '_getDocument'
         event = connection = result = datasource = table = url = merge = filter = selection = None
         logger = getLogger(self._ctx, g_spoolerlog)
@@ -343,7 +338,6 @@ class Dispatch(unohelper.Base,
                             datasource, table, url, merge, filter, selection, notifier, self)
         except Exception as e:
             print("Dispatch._getDocument() ERROR: %s" % traceback.format_exc())
-
 
     # Private methods
     def _isChecked(self, state):

@@ -324,10 +324,9 @@ class MergerManager(unohelper.Base,
 
     def _cancelAction(self):
         query = self._view.getQuery()
-        parent = self._view.getWindow().Peer
         box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
         message, title = self._model.getMessageBoxData(query)
-        dialog = createMessageBox(parent, box, 1, title, message)
+        dialog = createMessageBox(self._ctx, box, 1, title, message)
         status = dialog.execute()
         dialog.dispose()
         return status != OK

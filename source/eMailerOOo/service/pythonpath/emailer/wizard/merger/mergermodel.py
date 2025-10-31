@@ -256,7 +256,6 @@ class MergerModel(MailModel):
         if self._isConnectionNotClosed():
             self._closeConnection()
         self._setProgress(caller, 20)
-        self._book = book
         try:
             datasource = self._getDataSource(book)
             self._setProgress(caller, 30)
@@ -278,6 +277,7 @@ class MergerModel(MailModel):
             self._setProgress(caller, 50)
             # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
             # FIXME: the URL of the odb file rather than the registered name of the datasource
+            self._book = book
             self._addressbook = datasource
             self._statement = connection.createStatement()
             self._composer = connection.createInstance(self._service)

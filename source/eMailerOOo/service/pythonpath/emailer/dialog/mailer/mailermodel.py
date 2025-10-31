@@ -43,6 +43,7 @@ from ...unotool import createService
 from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getFileUrl
+from ...unotool import getPathSettings
 from ...unotool import getPropertyValueSet
 from ...unotool import getUrlPresentation
 
@@ -54,10 +55,10 @@ import traceback
 
 
 class MailerModel(MailModel):
-    def __init__(self, ctx, path):
+    def __init__(self, ctx):
         super().__init__(ctx)
-        self._path = path
         self._url = None
+        self._path = None
         self._resources = {'DialogTitle':     'MailerDialog.Title',
                            'PickerTitle':     'Mail.FilePicker.Title',
                            'PickerFilters':   'Mail.FilePicker.Filters',
@@ -70,14 +71,14 @@ class MailerModel(MailModel):
                            'MsgBoxMsg4':      'MessageBox.Error.Message.4'}
 
 # MailerModel getter methods
-    def isSubjectValid(self, subject):
-        return subject != ''
-
-    def getDocumentUrl(self):
+    def getDocumentUrl(self, path):
         title = self.getFilePickerTitle()
         filters = self._getFilePickerFilters()
-        url, self._path = getFileUrl(self._ctx, title, self._path, filters)
+        url, self._path = getFileUrl(self._ctx, title, path, filters)
         return url
+
+    def isSubjectValid(self, subject):
+        return subject != ''
 
     def getPath(self):
         return self._path

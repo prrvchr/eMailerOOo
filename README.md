@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4] and [Data Protection Policy][5].**
 
-# version [1.5.0][6]
+# version [1.5.1][6]
 
 ## Introduction:
 
@@ -709,7 +709,12 @@ ___
 - Requires the **OAuth2OOo extension at least version 1.6.0**.
 - Has been tested with LibreOfficeDev 26.2.
 
-### What remains to be done for version 1.5.0:
+### What has been done for version 1.5.1:
+
+- Requires the **jdbcDriverOOo extension at least version 1.6.1**.
+- Requires the **OAuth2OOo extension at least version 1.6.1**.
+
+### What remains to be done for version 1.5.1:
 
 - Add new languages for internationalization...
 
@@ -761,7 +766,7 @@ ___
 [44]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-import-data-from-a-calc-file>
 [45]: <https://prrvchr.github.io/eMailerOOo/img/eMailerOOo.svg#middle>
 [46]: <https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.oxt>
-[47]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.5.0#right>
+[47]: <https://img.shields.io/github/downloads/prrvchr/eMailerOOo/latest/total?label=v1.5.1#right>
 [48]: <https://prrvchr.github.io/eMailerOOo/#merge-emails-with-mailing-lists>
 [49]: <https://prrvchr.github.io/eMailerOOo/#configure-connection>
 [50]: <https://prrvchr.github.io/eMailerOOo/#outgoing-emails>

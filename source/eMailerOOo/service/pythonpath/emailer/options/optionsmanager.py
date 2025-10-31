@@ -46,6 +46,7 @@ from ..logger import LogManager
 
 from ..unotool import executeDesktopDispatch
 from ..unotool import getDesktop
+from ..unotool import getMri
 
 from ..configuration import g_defaultlog
 from ..configuration import g_spoolerlog
@@ -89,14 +90,13 @@ class OptionsManager(unohelper.Base):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
-        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
-        kwargs = {'ParentWindow': self._view.getWindow()}
-        executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb', None, **kwargs)
+        # XXX: If we want to be able to display warning message boxes,
+        # XXX: then we must not use DispatchHelper.
+        executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb')
 
     def showSpooler(self):
-        # XXX: It is not possible to use the DispatchHelper service in OptionsDialog.
-        # XXX: We must dispatch from the current Frame or, failing that, from the Desktop.
+        # XXX: If we want to be able to display warning message boxes,
+        # XXX: then we must not use DispatchHelper.
         executeDesktopDispatch(self._ctx, 'emailer:ShowSpooler', DispatchListener(self))
 
 # XDispatchResultListener

@@ -60,8 +60,6 @@ from .wizard import Wizard
 
 from .datasource import DataSource
 
-from .unotool import StatusIndicator
-
 from .unotool import createMessageBox
 from .unotool import getConfiguration
 from .unotool import getDesktop
@@ -285,19 +283,20 @@ class Dispatch(unohelper.Base,
         cls = 'Mailer'
         mtd = '_getMail'
         jobs = ()
-        event = None
+        event = frame = None
         logger = getLogger(self._ctx, g_spoolerlog)
         for argument in arguments:
             if argument.Name == 'TaskEvent':
                 event = argument.Value
             elif argument.Name == 'JobIds':
                 jobs = argument.Value
+            elif argument.Name == 'Frame':
+                frame = argument.Value
         if not jobs:
             logger.logprb(SEVERE, cls, mtd, 1121)
         else:
             try:
-                progress = StatusIndicator(self._ctx, g_spoolerframe)
-                mailer = Mailer(self._ctx, event, progress, logger, jobs, notifier, self)
+                mailer = Mailer(self._ctx, event, frame, logger, jobs, notifier, self)
             except UnoException as e:
                 logger.logprb(SEVERE, cls, mtd, 1122, jobslist, e.Message)
             except Exception as e:
@@ -306,11 +305,13 @@ class Dispatch(unohelper.Base,
     def _getDocument(self, arguments, notifier):
         cls = 'Viewer'
         mtd = '_getDocument'
-        event = connection = result = datasource = table = url = merge = filter = selection = None
-        logger = getLogger(self._ctx, g_spoolerlog)
+        event = frame = connection = result = datasource = None
+        table = url = merge = filter = selection = None
         for argument in arguments:
             if argument.Name == 'TaskEvent':
                 event = argument.Value
+            elif argument.Name == 'Frame':
+                frame = argument.Value
             elif argument.Name == 'Connection':
                 connection = argument.Value
             elif argument.Name == 'ResultSet':
@@ -328,8 +329,7 @@ class Dispatch(unohelper.Base,
             elif argument.Name == 'Selection':
                 selection = argument.Value
         try:
-            progress = StatusIndicator(self._ctx, g_mergerframe)
-            viewer = Viewer(self._ctx, event, progress, connection, result,
+            viewer = Viewer(self._ctx, event, frame, connection, result,
                             datasource, table, url, merge, filter, selection, notifier, self)
         except:
             print("Dispatch._getDocument() ERROR: %s" % traceback.format_exc())

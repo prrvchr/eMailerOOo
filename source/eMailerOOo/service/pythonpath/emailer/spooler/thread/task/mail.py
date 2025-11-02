@@ -53,14 +53,14 @@ import traceback
 
 
 class Mail(Batch):
-    def __init__(self, ctx, cancel, resolver, sf, uf, export, batch, filter='html'):
+    def __init__(self, ctx, parent, cancel, resolver, sf, uf, export, batch, filter='html'):
         super().__init__(sf, batch, batch.Document, getTempFile(ctx).Uri, batch.Merge, filter)
         self._ctx = ctx
         folder, name = getLastNamedParts(batch.Document, '/')
         self._title = name
         self._exists = sf.exists(batch.Document)
         if self._exists:
-            self._job, self._ds, self._rs, self._rows, self._error = self._getJob(ctx, resolver, batch, export)
+            self._job, self._ds, self._rs, self._rows, self._error = self._getJob(ctx, parent, resolver, batch, export)
             self._attachments, self._missings = self._parseAttachments(cancel, sf, uf, batch)
         else:
             self._job = self._ds = self._rs = self._rows = self._error = None
@@ -179,21 +179,27 @@ class Mail(Batch):
     def _hasMissingFile(self):
         return not self._exists or len(self._missings)
 
-    def _getJob(self, ctx, resolver, batch, export):
+    def _getJob(self, ctx, parent, resolver, batch, export):
         rows = {}
         job = ds = rs = error = None
         if batch.Merge:
             try:
-                ds = getDataSource(ctx, batch.DataSource, resolver, 1531)
-                connection = getConnection(ctx, ds)
+                name = batch.DataSource
+                ds = getDataSource(ctx, name, resolver, 1531)
+                connection = getConnection(ctx, ds, parent, name)
             except UnoException as e:
                 error = e.Message
             else:
-                rowset = getRowSet(ctx, connection, batch.DataSource, batch.Table)
-                rs = getFilteredRowSet(rowset, self._getFilters(batch.Filters))
-                result = rs.createResultSet()
-                rows = self._getJobRows(batch, result)
-                job = getJob(ctx, connection, batch.DataSource, batch.Table, result, export)
+                # XXX: If the data source require a password and the
+                # XXX: InteractionHandler is aborted, the connection may be null.
+                if connection is None:
+                    error = resolver(1541, name)
+                else:
+                    rowset = getRowSet(ctx, connection, name, batch.Table)
+                    rs = getFilteredRowSet(rowset, self._getFilters(batch.Filters))
+                    result = rs.createResultSet()
+                    rows = self._getJobRows(batch, result)
+                    job = getJob(ctx, connection, name, batch.Table, result, export)
         return job, ds, rs, rows, error
 
     def _getFilters(self, filters):

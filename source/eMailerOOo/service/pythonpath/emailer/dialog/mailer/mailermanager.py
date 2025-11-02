@@ -33,13 +33,9 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from ..mail import MailManager
 from ..mail import WindowHandler
 
-from .mailermodel import MailerModel
 from .mailerview import MailerView
 from .mailerhandler import DialogHandler
 

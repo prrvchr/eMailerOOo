@@ -60,12 +60,12 @@ from ...helper import getDataBaseContext
 from ...helper import mergeDocument
 from ...helper import saveDocumentTo
 
-from ...unotool import StatusIndicator
 from ...unotool import TaskEvent
 
 from ...unotool import createService
 from ...unotool import executeDesktopDispatch
 from ...unotool import executeFrameDispatch
+from ...unotool import findFrame
 from ...unotool import getConfiguration
 from ...unotool import getDocument
 from ...unotool import getLastNamedParts
@@ -240,7 +240,7 @@ class MergerModel(MailModel):
         Thread(target=self._setAddressBook, args=args).start()
 
     # AddressBook private methods
-    def _setAddressBook(self, book, parent, caller):
+    def _setAddressBook(self, parent, book, caller):
         sleep(0.2)
         step = 2
         self._setProgress(caller, 5)
@@ -259,7 +259,9 @@ class MergerModel(MailModel):
         try:
             datasource = self._getDataSource(book)
             self._setProgress(caller, 30)
-            connection = getConnection(self._ctx, datasource, parent)
+            sleep(0.2)
+            connection = getConnection(self._ctx, datasource, parent, book)
+            sleep(0.2)
             self._setProgress(caller, 40)
             if not connection:
                 msg = self._getErrorMessage(4)
@@ -976,10 +978,12 @@ class MergerModel(MailModel):
             result = self._recipient.createResultSet()
         else:
             connection = table = result = None
-        kwargs = {'TaskEvent': event, 'Connection': connection, 'ResultSet': result,
-                  'DataSource': self._book, 'Table': table, 'Url': url,
-                  'Merge': merge, 'Filter': filter, 'Selection': selection}
-        executeDesktopDispatch(self._ctx, 'emailer:GetDocument', notifier, **kwargs)
+        frame = findFrame(self._ctx, g_mergerframe)
+        if frame:
+            kwargs = {'TaskEvent': event, 'Frame': frame, 'Connection': connection,
+                      'ResultSet': result, 'DataSource': self._book, 'Table': table,
+                      'Url': url, 'Merge': merge, 'Filter': filter, 'Selection': selection}
+            executeDesktopDispatch(self._ctx, 'emailer:GetDocument', notifier, **kwargs)
 
     def _isMerge(self, selection, url, mark):
         return selection and self._hasMergeMark(url, mark)

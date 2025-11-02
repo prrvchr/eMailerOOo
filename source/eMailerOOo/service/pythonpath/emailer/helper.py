@@ -131,16 +131,6 @@ def getDataBaseContext(ctx, source, name, resolver, code, *args):
         raise MailSpoolerException(msg, source, ())
     return dbcontext, location
 
-def getDataSourceConnection(ctx, name, resolver, resource):
-    dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)
-    datasource = dbcontext.getByName(name)
-    if datasource.IsPasswordRequired:
-        handler = getInteractionHandler(ctx)
-        connection = datasource.getIsolatedConnectionWithCompletion(handler)
-    else:
-        connection = datasource.getIsolatedConnection('', '')
-    return connection
-
 def getDataSource(ctx, name, resolver, resource):
     datasource = None
     dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)

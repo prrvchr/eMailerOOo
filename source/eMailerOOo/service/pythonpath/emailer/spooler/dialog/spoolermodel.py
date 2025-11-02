@@ -153,10 +153,10 @@ class SpoolerModel(unohelper.Base):
     def endDispatch(self):
         self._dispatch.set()
 
-    def startDispatch(self, listener):
+    def startDispatch(self, frame, listener):
         self._dispatch.clear()
         job = self._grid.getSelectedIdentifier('JobId')
-        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, )}
+        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, ), 'Frame': frame}
         executeDesktopDispatch(self._ctx, 'emailer:GetMail', listener, **kwargs)
 
     def setSpoolerStatus(self, status):

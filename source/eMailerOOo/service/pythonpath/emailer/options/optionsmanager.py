@@ -46,7 +46,6 @@ from ..logger import LogManager
 
 from ..unotool import executeDesktopDispatch
 from ..unotool import getDesktop
-from ..unotool import getMri
 
 from ..configuration import g_defaultlog
 from ..configuration import g_spoolerlog

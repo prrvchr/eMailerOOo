@@ -199,7 +199,7 @@ class SpoolerManager(unohelper.Base):
     def viewEml(self):
         self._view.disableButtons()
         self._view.enableStartSpooler(False)
-        self._model.startDispatch(DispatchListener(self))
+        self._model.startDispatch(self._view.getFrame(), DispatchListener(self))
 
     def viewClient(self):
         self._view.disableButtons()

@@ -29,7 +29,7 @@
 
 import uno
 
-from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -71,7 +71,6 @@ class Composer(Worker):
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
                 if self._result:
                     msg = self._logger.resolveString(self._resource + 22, mail.Url)
-                    self._result.State = FAILURE
                     self._result.Result = msg
                     break
                 else:
@@ -94,7 +93,6 @@ class Composer(Worker):
                     self._setProgressValue(-10)
                     if self._result:
                         msg = self._logger.resolveString(self._resource + 24, job)
-                        self._result.State = FAILURE
                         self._result.Result = msg
                         break
                     else:
@@ -124,6 +122,7 @@ class Composer(Worker):
                         stream.writeBytes(uno.ByteSequence(email.asBytes()))
                         stream.flush()
                         stream.closeOutput()
+                        self._result.State = SUCCESS
                 self._setProgressValue(-10)
             self._input.task_done()
             self._taskDone()

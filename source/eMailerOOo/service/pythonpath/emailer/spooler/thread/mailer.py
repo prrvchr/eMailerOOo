@@ -29,13 +29,14 @@
 
 import uno
 
-from com.sun.star.frame.DispatchResultState import SUCCESS
+from com.sun.star.frame.DispatchResultState import FAILURE
 
 from .worker import Dispatcher
 
-from ...dbtool import getObjectSequenceFromResult
-
+from ...unotool import StatusIndicator
 from ...unotool import getTempFile
+
+from ...dbtool import getObjectSequenceFromResult
 
 from ...helper import getMailSpooler
 
@@ -43,14 +44,15 @@ import traceback
 
 
 class Mailer(Dispatcher):
-    def __init__(self, ctx, cancel, progress, logger, jobs, notifier, source):
-        super().__init__(ctx, cancel, progress, logger)
+    def __init__(self, ctx, cancel, frame, logger, jobs, notifier, source):
+        super().__init__(ctx, cancel, StatusIndicator(frame), logger)
         self._cls = 'Mailer'
         self._jobs = jobs
+        self._parent = frame.getComponentWindow().getPeer()
         self._notifier = notifier
         folder = getTempFile(self._ctx).Uri
         struct = 'com.sun.star.frame.DispatchResultEvent'
-        self._result = uno.createUnoStruct(struct, source, SUCCESS, '%s/Email.eml' % folder)
+        self._result = uno.createUnoStruct(struct, source, FAILURE, '%s/Email.eml' % folder)
         self._resource = 800
         self.start()
 

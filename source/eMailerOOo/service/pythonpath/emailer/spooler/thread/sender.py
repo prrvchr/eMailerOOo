@@ -34,6 +34,7 @@ from com.sun.star.ucb.ConnectionMode import ONLINE
 
 from .worker import Dispatcher
 
+from ...unotool import StatusIndicator
 from ...unotool import getConnectionMode
 
 from ...dbtool import getObjectSequenceFromResult
@@ -47,9 +48,10 @@ import traceback
 
 
 class Sender(Dispatcher):
-    def __init__(self, ctx, cancel, progress, logger, listeners):
-        super().__init__(ctx, cancel, progress, logger)
+    def __init__(self, ctx, cancel, frame, logger, listeners):
+        super().__init__(ctx, cancel, StatusIndicator(frame), logger)
         self._cls = 'Sender'
+        self._parent = frame.getComponentWindow().getPeer()
         self._listeners = listeners
         self._queue = Queue()
         self._resource = 700

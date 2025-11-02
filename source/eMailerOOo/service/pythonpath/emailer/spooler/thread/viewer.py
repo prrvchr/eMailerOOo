@@ -40,9 +40,10 @@ from .task import Document
 
 from ..export import PdfExport
 
-from ...logger import getLogger
-
+from ...unotool import StatusIndicator
 from ...unotool import getSimpleFile
+
+from ...logger import getLogger
 
 from ...configuration import g_spoolerlog
 
@@ -51,9 +52,9 @@ import traceback
 
 
 class Viewer(Master):
-    def __init__(self, ctx, cancel, progress, connection, result, datasource,
+    def __init__(self, ctx, cancel, frame, connection, result, datasource,
                  table, selection, url, merge, filter, notifier, source):
-        super().__init__(cancel, progress)
+        super().__init__(cancel, StatusIndicator(frame))
         self._ctx = ctx
         sf = getSimpleFile(ctx)
         self._document = Document(ctx, cancel, sf, connection, result, datasource, table, selection, url, merge, filter)

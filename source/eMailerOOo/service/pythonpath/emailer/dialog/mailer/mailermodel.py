@@ -30,22 +30,13 @@
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
-from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from ..mail import MailModel
 
 from ...helper import saveDocumentTo
 
-from ...unotool import createService
-from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getFileUrl
-from ...unotool import getPathSettings
 from ...unotool import getPropertyValueSet
-from ...unotool import getUrlPresentation
 
 from collections import OrderedDict
 from threading import Thread
@@ -104,6 +95,8 @@ class MailerModel(MailModel):
 
 # SenderModel private setter methods
     def _loadDocument(self, url, caller):
+        # XXX: Breathe
+        sleep(0.2)
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
         self._url = url
@@ -143,3 +136,4 @@ class MailerModel(MailModel):
 
     def setUrl(self, url):
         self._url = url
+

@@ -171,9 +171,8 @@ class MailSpooler(unohelper.Base,
 
     def _getRowSet(self):
         if MailSpooler._rowset is None:
-            table = getConfiguration(self._ctx, g_identifier, False).getByName('SpoolerTable')
             rowset = createService(self._ctx, 'com.sun.star.sdb.RowSet')
-            rowset.Command = table
+            rowset.Command = self._table
             rowset.CommandType = TABLE
             rowset.FetchSize = g_fetchsize
             rowset.ActiveConnection = self.getConnection()
@@ -195,3 +194,4 @@ class MailSpooler(unohelper.Base,
 g_ImplementationHelper.addImplementation(MailSpooler,                     # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
+

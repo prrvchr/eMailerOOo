@@ -74,7 +74,7 @@ import traceback
 
 
 class SpoolerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, notifier):
+    def __init__(self, ctx, datasource, notifier, start=False):
         self._ctx = ctx
         self._notifier = notifier
         self._lock = Lock()
@@ -89,17 +89,17 @@ class SpoolerManager(unohelper.Base):
         point = self._model.getDialogPosition()
         titles = self._model.getDialogTitles()
         self._view = SpoolerView(ctx, handler, listener, handler1, listener1, point, titles)
+        self._closelistener = listener
         self._sender = getMailSender(ctx)
         self._senderlistener = StreamListener(self)
-        window = self._view.getGridWindow()
-        self._model.initSpooler(window, GridSelectionListener(self), RowSetListener(self))
         self._loglistener1 = LoggerListener(self.updateLog1)
         self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._loglistener1)
         self._log1.addRollerHandler()
         self._loglistener2 = LoggerListener(self.updateLog2)
         self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._loglistener2)
         self._log2.addRollerHandler()
-        self._closelistener = listener
+        window = self._view.getGridWindow()
+        self._model.initSpooler(self._sender, window, GridSelectionListener(self), RowSetListener(self), start)
 
     @property
     def HandlerEnabled(self):

@@ -30,8 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
 from com.sun.star.awt import Point
-from com.sun.star.awt.WindowClass import MODALTOP
 
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
@@ -43,7 +43,6 @@ from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .wizard import IspdbController
@@ -64,18 +63,13 @@ from .unotool import createMessageBox
 from .unotool import getConfiguration
 from .unotool import getDesktop
 from .unotool import getPathSettings
-from .unotool import getStringResource
 
 from .logger import getLogger
-from .logger import RollerHandler
 
 from .helper import checkOAuth2
 from .helper import getMailSender
 
-from .configuration import g_extension
 from .configuration import g_identifier
-from .configuration import g_resource
-from .configuration import g_basename
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
 from .configuration import g_mergerframe
@@ -161,9 +155,9 @@ class Dispatch(unohelper.Base,
         # FIXME: Configuration has been checked we can continue
         if self._isChecked(3):
             if url.Path == 'StartSpooler':
-                state, result = self._startSpooler()
+                self._startSpooler(notifier)
             elif url.Path == 'StopSpooler':
-                state, result = self._stopSpooler()
+                self._stopSpooler(notifier)
             elif url.Path == 'ShowSpooler':
                 self._showSpooler(notifier)
             elif url.Path == 'ShowMailer':
@@ -187,34 +181,34 @@ class Dispatch(unohelper.Base,
             print("Dispatch._showIspdb() ERROR: %s" % traceback.format_exc())
 
     #Spooler methods
-    def _startSpooler(self):
+    def _startSpooler(self, notifier):
         try:
-            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
+            frame = self._getNamedFrame(g_spoolerframe)
             if frame:
                 frame.getContainerWindow().toFront()
+                getMailSender(self._ctx).start()
+                self._notifyDispatch(notifier, SUCCESS)
             else:
-                manager = SpoolerManager(self._ctx, self._getDataSource())
-            getMailSender(self._ctx).start()
-            return SUCCESS, ()
+                manager = SpoolerManager(self._ctx, self._getDataSource(), notifier, True)
         except:
             print("Dispatch._startSpooler() ERROR: %s" % traceback.format_exc())
 
-    def _stopSpooler(self):
+    def _stopSpooler(self, notifier):
         try:
-            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
+            frame = self._getNamedFrame(g_spoolerframe)
             if frame:
                 frame.getContainerWindow().toFront()
                 getMailSender(self._ctx).terminate()
                 state = SUCCESS
             else:
                 state = FAILURE
-            return state, ()
+            self._notifyDispatch(notifier, state)
         except:
             print("Dispatch._stopSpooler() ERROR: %s" % traceback.format_exc())
 
     def _showSpooler(self, notifier):
         try:
-            frame = getDesktop(self._ctx).findFrame(g_spoolerframe, GLOBAL)
+            frame = self._getNamedFrame(g_spoolerframe)
             if frame:
                 frame.getContainerWindow().toFront()
             else:
@@ -250,7 +244,7 @@ class Dispatch(unohelper.Base,
     #Merger methods
     def _showMerger(self):
         try:
-            frame = getDesktop(self._ctx).findFrame(g_mergerframe, GLOBAL)
+            frame = self._getNamedFrame(g_mergerframe)
             if frame:
                 frame.getContainerWindow().toFront()
             else:
@@ -269,10 +263,9 @@ class Dispatch(unohelper.Base,
                     wizard.execute()
                 else:
                     logger = getLogger(self._ctx, g_defaultlog)
-                    box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
                     title = logger.resolveString(1131)
                     message = logger.resolveString(1132, document.Title)
-                    dialog = createMessageBox(self._ctx, box, 1, title, message)
+                    dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, message)
                     dialog.execute()
                     dialog.dispose()
         except:
@@ -335,13 +328,16 @@ class Dispatch(unohelper.Base,
             print("Dispatch._getDocument() ERROR: %s" % traceback.format_exc())
 
     # Private methods
+    def _getNamedFrame(self, name):
+        return getDesktop(self._ctx).findFrame(name, GLOBAL)
+
     def _isChecked(self, state):
         return Dispatch._checked & state == state
 
     def _getDataSource(self):
         return Dispatch._datasource
 
-    def _notifyDispatch(self, notifier, state, result):
+    def _notifyDispatch(self, notifier, state, result=None):
         if notifier:
             struct = 'com.sun.star.frame.DispatchResultEvent'
             notification = uno.createUnoStruct(struct, self, state, result)

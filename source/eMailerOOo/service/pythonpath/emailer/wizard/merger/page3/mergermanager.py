@@ -92,7 +92,7 @@ class MergerManager(MailManager,
                 executeShell(self._ctx, value)
             else:
                 title = self._model.getMsgBoxTitle()
-                dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, value)
+                dialog = createMessageBox(self._ctx, title, value, WARNINGBOX)
                 dialog.execute()
                 dialog.dispose()
             self._viewpdf = True

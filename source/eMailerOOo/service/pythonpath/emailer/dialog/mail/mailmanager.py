@@ -247,7 +247,7 @@ class MailManager(unohelper.Base,
 
     def _showMessageBox(self, message):
         title = self._model.getMsgBoxTitle()
-        dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, message)
+        dialog = createMessageBox(self._ctx, title, message, WARNINGBOX)
         dialog.execute()
         dialog.dispose()
 

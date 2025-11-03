@@ -30,6 +30,7 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
 from com.sun.star.awt import XCallback
 
 from com.sun.star.lang import XComponent
@@ -320,9 +321,8 @@ class MergerManager(unohelper.Base,
 
     def _cancelAction(self):
         query = self._view.getQuery()
-        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
         message, title = self._model.getMessageBoxData(query)
-        dialog = createMessageBox(self._ctx, box, 1, title, message)
+        dialog = createMessageBox(self._ctx, title, message, WARNINGBOX)
         status = dialog.execute()
         dialog.dispose()
         return status != OK

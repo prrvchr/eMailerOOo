@@ -352,7 +352,7 @@ def _getExceptionMessage(logger, code, extension, *args):
     return title, message
 
 def _showWarning(ctx, title, msg):
-    msgbox = createMessageBox(ctx, ERRORBOX, 1, title, msg)
+    msgbox = createMessageBox(ctx, title, msg, ERRORBOX)
     msgbox.execute()
     msgbox.dispose()
 

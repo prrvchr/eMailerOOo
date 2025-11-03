@@ -265,7 +265,7 @@ class Dispatch(unohelper.Base,
                     logger = getLogger(self._ctx, g_defaultlog)
                     title = logger.resolveString(1131)
                     message = logger.resolveString(1132, document.Title)
-                    dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, message)
+                    dialog = createMessageBox(self._ctx, title, message, WARNINGBOX)
                     dialog.execute()
                     dialog.dispose()
         except:

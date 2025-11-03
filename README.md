@@ -711,6 +711,7 @@ ___
 
 ### What has been done for version 1.5.1:
 
+- All modal windows now open correctly in modal mode.
 - Requires the **jdbcDriverOOo extension at least version 1.6.1**.
 - Requires the **OAuth2OOo extension at least version 1.6.1**.
 

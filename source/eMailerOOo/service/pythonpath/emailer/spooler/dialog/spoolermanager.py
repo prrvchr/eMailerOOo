@@ -124,7 +124,7 @@ class SpoolerManager(unohelper.Base):
                 executeShell(self._ctx, notification.Result)
             else:
                 title = self._model.getMsgBoxTitle()
-                dialog = createMessageBox(self._ctx, WARNINGBOX, 1, title, notification.Result)
+                dialog = createMessageBox(self._ctx, title, notification.Result, WARNINGBOX)
                 dialog.execute()
                 dialog.dispose()
             self._enableButtons(self._model.hasGridSelectedRows())

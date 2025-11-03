@@ -711,6 +711,9 @@ ___
 
 ### Ce qui a été fait pour la version 1.5.1:
 
+- Toute erreur survenant lors de l'envoi d'un courriel n'affectera pas son statut si elle se produit lors de la préparation et non lors de l'envoi. Cela permet de corriger l'erreur et de réessayer l'envoi.
+- Il est possible d'ouvrir une pièce jointe directement depuis la liste des fichiers joints à un courriel.
+- Si cette opération est effectuée sur un fichier joint (Writer ou Calc) à fusionner, les champs de fusion de ce document ouvert dans LibreOffice suivront la sélection des Grids `Destinataires disponibles` et/ou `Destinataires sélectionnés`.
 - Toutes les fenêtres modales s'ouvrent désormais correctement en mode modal.
 - Nécessite l'extension **jdbcDriverOOo en version 1.6.1 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.6.1 minimum**.

@@ -67,6 +67,7 @@ from ...unotool import executeDesktopDispatch
 from ...unotool import executeFrameDispatch
 from ...unotool import findFrame
 from ...unotool import getConfiguration
+from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getLastNamedParts
 from ...unotool import getNamedValueSet
@@ -101,8 +102,10 @@ class MergerModel(MailModel):
         super().__init__(ctx)
         self._listener = CloseListener(self)
         document.addCloseListener(self._listener)
+        self._listened = True
         self._document = document
         self._url = document.getLocation()
+        self._documents = []
         self._path = self._getPath()
         self._addressbook = None
         self._book = None
@@ -183,18 +186,23 @@ class MergerModel(MailModel):
 
 # XCloseListener
     def queryClosing(self, document, ownership):
-        if self._listener:
+        if document.getLocation() == self._url:
             document.removeCloseListener(self._listener)
             self._document = getDocument(self._ctx, self._url, False)
-            self._listener = None
+            self._listened = False
+        if document in self._documents:
+            document.removeCloseListener(self._listener)
+            self._documents.remove(document)
 
 # Procedures called by WizardController
     def dispose(self):
         self._disposed = True
         if self._isConnectionNotClosed():
             self._closeConnection()
-        if self._listener:
+        if self._listened:
             self._document.removeCloseListener(self._listener)
+        for document in self._documents:
+            document.removeCloseListener(self._listener)
         if self._grid1 is not None:
             self._grid1.dispose()
         if self._grid2 is not None:
@@ -736,16 +744,20 @@ class MergerModel(MailModel):
     def setAddressRecord(self, index):
         # XXX: If the document has been previously closed,
         # XXX: then no more DocumentRecords will be defined.
-        if self._listener is not None:
-            row = self._grid1.getUnsortedIndex(index) + 1
-            self._setDocumentRecord(self._document, self._address, row)
+        row = self._grid1.getUnsortedIndex(index) + 1
+        self._setDocumentsRecord(row, self._address)
 
     def setRecipientRecord(self, index):
         # XXX: If the document has been previously closed,
         # XXX: then no more DocumentRecords will be defined.
-        if self._listener is not None:
-            row = self._grid2.getUnsortedIndex(index) + 1
-            self._setDocumentRecord(self._document, self._recipient, row)
+        row = self._grid2.getUnsortedIndex(index) + 1
+        self._setDocumentsRecord(row, self._recipient)
+
+    def _setDocumentsRecord(self, row, rowset):
+        if self._listened:
+            self._mergeDocument(self._document, rowset, row)
+        for document in self._documents:
+            self._mergeDocument(document, rowset, row)
 
     def addAddressListener(self, listener):
         self._address.addRowSetListener(listener)
@@ -840,7 +852,7 @@ class MergerModel(MailModel):
         elif filter in filters:
             filters.remove(filter)
 
-    def _setDocumentRecord(self, document, rowset, index):
+    def _mergeDocument(self, document, rowset, index):
         result = rowset.createResultSet()
         if result:
             table = self._subquery.Second
@@ -911,6 +923,13 @@ class MergerModel(MailModel):
             listener = DispatchListener(self)
             executeFrameDispatch(self._ctx, frame, '.uno:Save', listener)
         return self._saved
+
+    def viewAttachment(self, attachment):
+        url, merge, filter = self.parseUriFragment(attachment)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
+        if merge and document not in self._documents:
+            self._documents.append(document)
+            document.addCloseListener(self._listener)
 
 # XDispatchResultListener
     def dispatchFinished(self, notification):

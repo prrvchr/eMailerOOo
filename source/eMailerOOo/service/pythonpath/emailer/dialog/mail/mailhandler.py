@@ -115,6 +115,9 @@ class WindowHandler(unohelper.Base,
             elif method == 'ViewPdf':
                 self._manager.viewPdf()
                 handled = True
+            elif method == 'ViewAttachment':
+                self._manager.viewAttachment()
+                handled = True
             return handled
         except:
             print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
@@ -135,5 +138,6 @@ class WindowHandler(unohelper.Base,
                 'ChangeAttachments',
                 'MoveBefore',
                 'MoveAfter',
-                'ViewPdf')
+                'ViewPdf',
+                'ViewAttachment')
 

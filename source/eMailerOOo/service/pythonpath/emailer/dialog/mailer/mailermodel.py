@@ -34,6 +34,7 @@ from ..mail import MailModel
 
 from ...helper import saveDocumentTo
 
+from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getFileUrl
 from ...unotool import getPropertyValueSet
@@ -77,6 +78,10 @@ class MailerModel(MailModel):
 # MailerModel setter methods
     def loadDocument(self, *args):
         Thread(target=self._loadDocument, args=args).start()
+
+    def viewAttachment(self, attachment):
+        url, merge, filter = self.parseUriFragment(attachment)
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
 
     def closeDocument(self, document):
         document.close(True)

@@ -108,6 +108,9 @@ class MailManager(unohelper.Base,
     def sendDocument(self):
         raise NotImplementedError('Need to be implemented!')
 
+    def viewAttachment(self):
+        self._model.viewAttachment(self._view.getSelectedAttachment())
+
     def removeSender(self):
         # TODO: button 'RemoveSender' must be deactivated to avoid multiple calls  
         self._view.enableRemoveSender(False)
@@ -139,6 +142,7 @@ class MailManager(unohelper.Base,
 
     def changeAttachments(self, index, selected, item, positions):
         self._view.enableRemoveAttachments(selected)
+        self._view.enableViewAttachment(selected)
         enabled = selected and min(positions) > 0
         self._view.enableMoveBefore(enabled)
         enabled = selected and max(positions) < index
@@ -150,6 +154,7 @@ class MailManager(unohelper.Base,
         self._view.enableRemoveAttachments(False)
         self._view.enableMoveBefore(False)
         self._view.enableMoveAfter(False)
+        self._view.enableViewAttachment(False)
         self._view.enableViewPdf(False)
         # TODO: We must disable the handler "ChangeAttachments" otherwise it activates twice
         self._disableHandler()

@@ -711,6 +711,9 @@ ___
 
 ### What has been done for version 1.5.1:
 
+- Any error occurring during the sending of an email will not affect its status if it happens during preparation and not during sending. This allows the error to be corrected and the sending attempt to be retried.
+- It is possible to open an attachment directly from the list of files attached to an email.
+- If this operation is performed on an attached file (Writer or Calc) to be merged, the merge fields of this document opened in LibreOffice will follow the selection of the Grids `Available recipients` and/or `Selected recipients`.
 - All modal windows now open correctly in modal mode.
 - Requires the **jdbcDriverOOo extension at least version 1.6.1**.
 - Requires the **OAuth2OOo extension at least version 1.6.1**.

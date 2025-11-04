@@ -104,9 +104,8 @@ class MergerController(unohelper.Base,
             elif pageid == 3:
                 page = WizardPage3(self._ctx, self._wizard, self._model, pageid, parent)
             return page
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.format_exc())
-            print(msg)
+        except:
+            print("MergerController.createPage() ERROR: %s" % traceback.format_exc())
 
     def getPageTitle(self, pageid):
         return self._model.getPageStep(self._resolver, pageid)

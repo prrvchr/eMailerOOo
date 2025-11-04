@@ -29,16 +29,12 @@
 
 import unohelper
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
-from ...unotool import createService
 from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
 
 class MailView(unohelper.Base):
     def __init__(self, ctx, handler, parent, step):
-        self._ctx = ctx
         self._window = getContainerWindow(ctx, parent, handler, g_identifier, 'MailWindow')
         self._window.Model.Step = step
         self._window.setVisible(True)
@@ -145,6 +141,9 @@ class MailView(unohelper.Base):
     def enableViewPdf(self, enabled):
         self._getViewPdf().Model.Enabled = enabled
 
+    def enableViewAttachment(self, enabled):
+        self._getViewAttachment().Model.Enabled = enabled
+
     def enableRemoveAttachments(self, enabled):
         self._getRemoveAttachments().Model.Enabled = enabled
 
@@ -182,8 +181,9 @@ class MailView(unohelper.Base):
         control.selectItemsPos(positions, True)
 
     def removeAttachments(self):
-        self._getRemoveAttachments().Model.Enabled = False
-        self._getViewPdf().Model.Enabled = False
+        self.enableRemoveAttachments(False)
+        self.enableViewPdf(False)
+        self.enableViewAttachment(False)
         control = self._getAttachments()
         for position in reversed(control.getSelectedItemsPos()):
             control.removeItems(position, 1)
@@ -234,6 +234,9 @@ class MailView(unohelper.Base):
 
     def _getViewPdf(self):
         return self._window.getControl('CommandButton10')
+
+    def _getViewAttachment(self):
+        return self._window.getControl('CommandButton11')
 
     def _getMessage(self):
         return self._window.getControl('Label8')

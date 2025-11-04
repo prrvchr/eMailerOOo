@@ -28,9 +28,17 @@ Rem ╚════════════════════════�
 
 
 Sub ShowSpooler
-    Set oDispatch = CreateUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
-    Dim args(0) As New com.sun.star.beans.PropertyValue
-    oDispatch.executeDispatch(StarDesktop.ActiveFrame, &quot;emailer:ShowSpooler&quot;, &quot;&quot;, 0, args)
+    Rem It is not possible to use the UNO DispatchHelper service here...
+    oUrl = createUnoStruct(&quot;com.sun.star.util.URL&quot;)
+    oUrl.Complete = &quot;emailer:ShowSpooler&quot;
+    oTransformer = createUnoService(&quot;com.sun.star.util.URLTransformer&quot;)
+    If oTransformer.parseStrict(oUrl) Then
+        Set oDispatcher = StarDesktop.ActiveFrame.queryDispatch(oUrl, &quot;&quot;, 0)
+        If Not isNull(oDispatcher) Then
+            Dim args(0) As New com.sun.star.beans.PropertyValue
+            oDispatcher.dispatch(oUrl, args)
+        Endif
+    Endif
 End Sub
 
 </script:module>

@@ -25,7 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailWindow" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MailWindow.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;MailWindow.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="MailWindow" dlg:left="0" dlg:top="0" dlg:width="285" dlg:height="200" dlg:help-text="&amp;MailWindow.HelpText" dlg:closeable="false" dlg:moveable="true" dlg:title="&amp;MailWindow.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
@@ -87,8 +87,11 @@
     <dlg:button dlg:id="CommandButton9" dlg:tab-index="28" dlg:disabled="true" dlg:left="256" dlg:top="160" dlg:width="24" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton9.HelpText" dlg:value="&amp;MailWindow.CommandButton9.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveAfter" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton10" dlg:tab-index="29" dlg:disabled="true" dlg:left="230" dlg:top="180" dlg:width="50" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton10.HelpText" dlg:value="&amp;MailWindow.CommandButton10.Label">
+    <dlg:button dlg:id="CommandButton10" dlg:tab-index="29" dlg:disabled="true" dlg:left="230" dlg:top="180" dlg:width="24" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton10.HelpText" dlg:value="&amp;MailWindow.CommandButton10.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewPdf" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton11" dlg:tab-index="30" dlg:disabled="true" dlg:left="256" dlg:top="180" dlg:width="24" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton11.HelpText" dlg:value="&amp;MailWindow.CommandButton11.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewAttachment" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>

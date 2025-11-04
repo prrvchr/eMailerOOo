@@ -27,16 +27,15 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from ..mail import MailManager
 from ..mail import WindowHandler
 
-from .mailermodel import MailerModel
 from .mailerview import MailerView
 from .mailerhandler import DialogHandler
 
@@ -83,13 +82,11 @@ class MailerManager(MailManager):
         self._view.removeRecipient()
         self._updateUI()
 
-    def dispose(self):
-        with self._lock:
-            self._model.dispose()
-            self._view.dispose()
-
     def execute(self):
-        return self._view.execute()
+        status = self._view.execute()
+        self._model.dispose()
+        self._view.dispose()
+        return status
 
     def sendDocument(self):
         try:
@@ -99,21 +96,23 @@ class MailerManager(MailManager):
             spooler = getMailSpooler(self._ctx)
             id = spooler.addJob(sender, subject, url, recipients, attachments)
             spooler.dispose()
-            self._view.endDialog()
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+            self._view.endDialog(OK)
+        except:
+            print("MailerManager.sendDocument() ERROR: %s" % traceback.format_exc())
+
+    def cancel(self):
+        self._view.endDialog(CANCEL)
 
 # MailerManager private setter methods
     def _updateUI(self):
         enabled = self._canAdvance()
-        print("MailerManger._updateUI() enabled: %s" % enabled)
         self._view.enableButtonSend(enabled)
 
     def _notifyInit(self, document, title):
         if not self._model.isDisposed():
             self._initView(document)
             self._view.setTitle(title)
+            self._view.enableButtonCancel()
         self._model.closeDocument(document)
 
     def _notifyView(self, status, result):

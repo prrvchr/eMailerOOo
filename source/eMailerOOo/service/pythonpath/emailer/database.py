@@ -101,7 +101,6 @@ class DataBase(unohelper.Base):
     def wait(self):
         if DataBase._init and DataBase._init.is_alive():
             DataBase._init.join()
-            #DataBase._init = None
 
     def getConnection(self, user='', password=''):
         return getDataBaseConnection(self._ctx, self._url, user, password)

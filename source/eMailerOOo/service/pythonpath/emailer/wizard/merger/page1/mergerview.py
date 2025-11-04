@@ -147,8 +147,6 @@ class MergerView(unohelper.Base):
         if not self.isDisposed():
             self._getProgressBar().Value = value
             self._getProgressMessage().Text = message
-        else:
-            print("MergerView.updateProgress() ERROR *********************")
 
     def setMessageText(self, text):
         self.enableAddressBook(True)

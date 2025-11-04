@@ -91,9 +91,8 @@ class MergerManager(MailManager,
             if state == SUCCESS:
                 executeShell(self._ctx, value)
             else:
-                parent = self._view.getWindow().Peer
                 title = self._model.getMsgBoxTitle()
-                dialog = createMessageBox(parent, WARNINGBOX, 1, title, value)
+                dialog = createMessageBox(self._ctx, title, value, WARNINGBOX)
                 dialog.execute()
                 dialog.dispose()
             self._viewpdf = True

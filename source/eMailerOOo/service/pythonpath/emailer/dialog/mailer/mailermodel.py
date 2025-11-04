@@ -30,21 +30,14 @@
 from com.sun.star.frame.DispatchResultState import FAILURE
 from com.sun.star.frame.DispatchResultState import SUCCESS
 
-from com.sun.star.document.MacroExecMode import ALWAYS_EXECUTE_NO_WARN
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from ..mail import MailModel
 
 from ...helper import saveDocumentTo
 
-from ...unotool import createService
 from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getFileUrl
 from ...unotool import getPropertyValueSet
-from ...unotool import getUrlPresentation
 
 from collections import OrderedDict
 from threading import Thread
@@ -54,10 +47,10 @@ import traceback
 
 
 class MailerModel(MailModel):
-    def __init__(self, ctx, path):
+    def __init__(self, ctx):
         super().__init__(ctx)
-        self._path = path
         self._url = None
+        self._path = None
         self._resources = {'DialogTitle':     'MailerDialog.Title',
                            'PickerTitle':     'Mail.FilePicker.Title',
                            'PickerFilters':   'Mail.FilePicker.Filters',
@@ -70,14 +63,14 @@ class MailerModel(MailModel):
                            'MsgBoxMsg4':      'MessageBox.Error.Message.4'}
 
 # MailerModel getter methods
-    def isSubjectValid(self, subject):
-        return subject != ''
-
-    def getDocumentUrl(self):
+    def getDocumentUrl(self, path):
         title = self.getFilePickerTitle()
         filters = self._getFilePickerFilters()
-        url, self._path = getFileUrl(self._ctx, title, self._path, filters)
+        url, self._path = getFileUrl(self._ctx, title, path, filters)
         return url
+
+    def isSubjectValid(self, subject):
+        return subject != ''
 
     def getPath(self):
         return self._path
@@ -85,6 +78,10 @@ class MailerModel(MailModel):
 # MailerModel setter methods
     def loadDocument(self, *args):
         Thread(target=self._loadDocument, args=args).start()
+
+    def viewAttachment(self, attachment):
+        url, merge, filter = self.parseUriFragment(attachment)
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
 
     def closeDocument(self, document):
         document.close(True)
@@ -103,6 +100,8 @@ class MailerModel(MailModel):
 
 # SenderModel private setter methods
     def _loadDocument(self, url, caller):
+        # XXX: Breathe
+        sleep(0.2)
         # TODO: Document can be <None> if a lock or password exists !!!
         # TODO: It would be necessary to test a Handler on the descriptor...
         self._url = url
@@ -142,3 +141,4 @@ class MailerModel(MailModel):
 
     def setUrl(self, url):
         self._url = url
+

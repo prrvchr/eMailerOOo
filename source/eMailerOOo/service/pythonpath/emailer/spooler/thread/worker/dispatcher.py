@@ -104,6 +104,8 @@ class Dispatcher(Master):
                         else:
                             msg = self._logger.resolveString(self._resource + 8, mail.getMissingAttachments())
                             self._logger.logp(SEVERE, self._cls, mtd, msg)
+                        if self._result:
+                            self._result.Result = msg
                     else:
                         executor = self._getExecutor(mail)
                         if watchdog.startExecutor(executor, mail):
@@ -163,7 +165,7 @@ class Dispatcher(Master):
                         self._cancel, self._progress, mail, self._output)
 
     def _getMail(self, batch):
-        mail = Mail(self._ctx, self._cancel, self._getResolver, self._sf, self._uf, self._export, batch)
+        mail = Mail(self._ctx, self._parent, self._cancel, self._getResolver, self._sf, self._uf, self._export, batch)
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
         # XXX: it is imperative to dispose all used DataSources.
         if mail.hasDataSource():

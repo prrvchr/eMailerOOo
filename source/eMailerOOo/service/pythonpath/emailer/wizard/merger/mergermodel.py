@@ -60,13 +60,14 @@ from ...helper import getDataBaseContext
 from ...helper import mergeDocument
 from ...helper import saveDocumentTo
 
-from ...unotool import StatusIndicator
 from ...unotool import TaskEvent
 
 from ...unotool import createService
 from ...unotool import executeDesktopDispatch
 from ...unotool import executeFrameDispatch
+from ...unotool import findFrame
 from ...unotool import getConfiguration
+from ...unotool import getDesktop
 from ...unotool import getDocument
 from ...unotool import getLastNamedParts
 from ...unotool import getNamedValueSet
@@ -101,8 +102,10 @@ class MergerModel(MailModel):
         super().__init__(ctx)
         self._listener = CloseListener(self)
         document.addCloseListener(self._listener)
+        self._listened = True
         self._document = document
         self._url = document.getLocation()
+        self._documents = []
         self._path = self._getPath()
         self._addressbook = None
         self._book = None
@@ -183,18 +186,23 @@ class MergerModel(MailModel):
 
 # XCloseListener
     def queryClosing(self, document, ownership):
-        if self._listener:
+        if document.getLocation() == self._url:
             document.removeCloseListener(self._listener)
             self._document = getDocument(self._ctx, self._url, False)
-            self._listener = None
+            self._listened = False
+        if document in self._documents:
+            document.removeCloseListener(self._listener)
+            self._documents.remove(document)
 
 # Procedures called by WizardController
     def dispose(self):
         self._disposed = True
         if self._isConnectionNotClosed():
             self._closeConnection()
-        if self._listener:
+        if self._listened:
             self._document.removeCloseListener(self._listener)
+        for document in self._documents:
+            document.removeCloseListener(self._listener)
         if self._grid1 is not None:
             self._grid1.dispose()
         if self._grid2 is not None:
@@ -240,7 +248,7 @@ class MergerModel(MailModel):
         Thread(target=self._setAddressBook, args=args).start()
 
     # AddressBook private methods
-    def _setAddressBook(self, book, parent, caller):
+    def _setAddressBook(self, parent, book, caller):
         sleep(0.2)
         step = 2
         self._setProgress(caller, 5)
@@ -256,11 +264,12 @@ class MergerModel(MailModel):
         if self._isConnectionNotClosed():
             self._closeConnection()
         self._setProgress(caller, 20)
-        self._book = book
         try:
             datasource = self._getDataSource(book)
             self._setProgress(caller, 30)
-            connection = getConnection(self._ctx, datasource, parent)
+            sleep(0.2)
+            connection = getConnection(self._ctx, datasource, parent, book)
+            sleep(0.2)
             self._setProgress(caller, 40)
             if not connection:
                 msg = self._getErrorMessage(4)
@@ -278,6 +287,7 @@ class MergerModel(MailModel):
             self._setProgress(caller, 50)
             # FIXME: We need to keep the datasource name because sometimes datasource.Name returns
             # FIXME: the URL of the odb file rather than the registered name of the datasource
+            self._book = book
             self._addressbook = datasource
             self._statement = connection.createStatement()
             self._composer = connection.createInstance(self._service)
@@ -734,16 +744,20 @@ class MergerModel(MailModel):
     def setAddressRecord(self, index):
         # XXX: If the document has been previously closed,
         # XXX: then no more DocumentRecords will be defined.
-        if self._listener is not None:
-            row = self._grid1.getUnsortedIndex(index) + 1
-            self._setDocumentRecord(self._document, self._address, row)
+        row = self._grid1.getUnsortedIndex(index) + 1
+        self._setDocumentsRecord(row, self._address)
 
     def setRecipientRecord(self, index):
         # XXX: If the document has been previously closed,
         # XXX: then no more DocumentRecords will be defined.
-        if self._listener is not None:
-            row = self._grid2.getUnsortedIndex(index) + 1
-            self._setDocumentRecord(self._document, self._recipient, row)
+        row = self._grid2.getUnsortedIndex(index) + 1
+        self._setDocumentsRecord(row, self._recipient)
+
+    def _setDocumentsRecord(self, row, rowset):
+        if self._listened:
+            self._mergeDocument(self._document, rowset, row)
+        for document in self._documents:
+            self._mergeDocument(document, rowset, row)
 
     def addAddressListener(self, listener):
         self._address.addRowSetListener(listener)
@@ -838,7 +852,7 @@ class MergerModel(MailModel):
         elif filter in filters:
             filters.remove(filter)
 
-    def _setDocumentRecord(self, document, rowset, index):
+    def _mergeDocument(self, document, rowset, index):
         result = rowset.createResultSet()
         if result:
             table = self._subquery.Second
@@ -910,6 +924,13 @@ class MergerModel(MailModel):
             executeFrameDispatch(self._ctx, frame, '.uno:Save', listener)
         return self._saved
 
+    def viewAttachment(self, attachment):
+        url, merge, filter = self.parseUriFragment(attachment)
+        document = getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
+        if merge and document not in self._documents:
+            self._documents.append(document)
+            document.addCloseListener(self._listener)
+
 # XDispatchResultListener
     def dispatchFinished(self, notification):
         if notification.State == SUCCESS:
@@ -976,10 +997,12 @@ class MergerModel(MailModel):
             result = self._recipient.createResultSet()
         else:
             connection = table = result = None
-        kwargs = {'TaskEvent': event, 'Connection': connection, 'ResultSet': result,
-                  'DataSource': self._book, 'Table': table, 'Url': url,
-                  'Merge': merge, 'Filter': filter, 'Selection': selection}
-        executeDesktopDispatch(self._ctx, 'emailer:GetDocument', notifier, **kwargs)
+        frame = findFrame(self._ctx, g_mergerframe)
+        if frame:
+            kwargs = {'TaskEvent': event, 'Frame': frame, 'Connection': connection,
+                      'ResultSet': result, 'DataSource': self._book, 'Table': table,
+                      'Url': url, 'Merge': merge, 'Filter': filter, 'Selection': selection}
+            executeDesktopDispatch(self._ctx, 'emailer:GetDocument', notifier, **kwargs)
 
     def _isMerge(self, selection, url, mark):
         return selection and self._hasMergeMark(url, mark)

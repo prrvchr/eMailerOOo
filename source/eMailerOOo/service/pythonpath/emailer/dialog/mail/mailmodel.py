@@ -142,6 +142,9 @@ class MailModel(unohelper.Base):
         return self._config.getByName('Senders').ElementNames
 
 # MailModel setter methods
+    def viewAttachment(self):
+        raise NotImplementedError('Need to be implemented!')
+
     def closeDocument(self, document):
         raise NotImplementedError('Need to be implemented!')
 

@@ -26,41 +26,23 @@
 
 import unohelper
 
-from com.sun.star.frame.DispatchResultState import FAILURE
-from com.sun.star.frame.DispatchResultState import SUCCESS
-
 from com.sun.star.io import XActiveDataControl
-
-from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XComponent
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from com.sun.star.ucb.ConnectionMode import ONLINE
-
 from .spooler import Sender
 
-from .unotool import StatusIndicator
 from .unotool import TaskEvent
 
 from .unotool import findFrame
-from .unotool import getConnectionMode
-from .unotool import getDesktop
-from .unotool import getNamedValueSet
 
 from .logger import getLogger
 
-from .helper import getMailSpooler
-
 from .configuration import g_spoolerlog
 from .configuration import g_spoolerframe
-from .configuration import g_dns
 
 from threading import Lock
-from time import sleep
 import traceback
 
 
@@ -74,11 +56,9 @@ class MailSend(unohelper.Base,
         self._implementation = implementation
         self._services = services
         self._lock = Lock()
-        self._cls = 'MailSender'
         self._logger = getLogger(ctx, g_spoolerlog)
         self._listeners = []
         self._cancel = TaskEvent()
-        self._logger.logprb(INFO, self._cls, '__init__', 601)
         self._thread = None
 
 
@@ -101,10 +81,11 @@ class MailSend(unohelper.Base,
     def start(self):
         with self._lock:
             if self._hasNoThread():
-                progress = StatusIndicator(self._ctx, g_spoolerframe)
-                self._cancel.clear()
-                self._thread = Sender(self._ctx, self._cancel, progress, self._logger, self._listeners)
-                self._notifyStarted()
+                frame = findFrame(self._ctx, g_spoolerframe)
+                if frame:
+                    self._cancel.clear()
+                    self._thread = Sender(self._ctx, self._cancel, frame, self._logger, self._listeners)
+                    self._notifyStarted()
 
     def terminate(self):
         with self._lock:

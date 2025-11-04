@@ -30,6 +30,7 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
 from com.sun.star.awt import XCallback
 
 from com.sun.star.lang import XComponent
@@ -66,18 +67,15 @@ class MergerManager(unohelper.Base,
                     XCallback):
     def __init__(self, ctx, wizard, model, pageid, parent):
         self._ctx = ctx
-        print ("MergerManager.__init__() 1")
         self._wizard = wizard
         self._model = model
         self._pageid = pageid
         self._listeners = []
         self._disabled = False
-        print ("MergerManager.__init__() 2")
         addressbooks = self._model.getAvailableAddressBooks()
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MergerPage1')
         self._view = MergerView(ctx, WindowHandler(self), parent, addressbooks)
         addressbook = self._model.getDefaultAddressBook()
-        print ("MergerManager.__init__() 3")
         if addressbook in addressbooks:
             self._view.setPageStep(1)
             # FIXME: We must disable the "ChangeAddressBook"
@@ -86,7 +84,6 @@ class MergerManager(unohelper.Base,
             self._view.selectAddressBook(addressbook)
         else:
             self._view.enableAddressBook(True)
-        print ("MergerManager.__init__() 4")
 
     # FIXME: One shot disabler handler
     def isHandlerEnabled(self):
@@ -127,9 +124,8 @@ class MergerManager(unohelper.Base,
         try:
             self._model.commitPage1()
             return True
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("MergerManager.commitPage() ERROR: %s" % traceback.format_exc())
 
     def canAdvance(self):
         return self._view.hasEmail() and self._view.hasIdentifier()
@@ -147,7 +143,8 @@ class MergerManager(unohelper.Base,
             self._view.setPageStep(1)
             message = self._model.getProgressMessage(self._resolver, 0)
             self._view.updateProgress(0, message)
-            self._model.setAddressBook(addressbook, self._view.getWindow().Peer, self)
+            parent = self._view.getWindow().getPeer()
+            self._model.setAddressBook(parent, addressbook, self)
 
     def newAddressBook(self):
         executeDispatch(self._ctx, '.uno:AutoPilotAddressDataSource')
@@ -324,10 +321,8 @@ class MergerManager(unohelper.Base,
 
     def _cancelAction(self):
         query = self._view.getQuery()
-        parent = self._view.getWindow().Peer
-        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'WARNINGBOX')
         message, title = self._model.getMessageBoxData(query)
-        dialog = createMessageBox(parent, box, 1, title, message)
+        dialog = createMessageBox(self._ctx, title, message, WARNINGBOX)
         status = dialog.execute()
         dialog.dispose()
         return status != OK

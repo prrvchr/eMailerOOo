@@ -47,9 +47,9 @@ class WindowHandler(unohelper.Base,
                 self._manager.changeSender()
                 handled = True
             return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('ChangeSender', )
+

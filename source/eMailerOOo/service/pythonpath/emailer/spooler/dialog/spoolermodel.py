@@ -153,10 +153,10 @@ class SpoolerModel(unohelper.Base):
     def endDispatch(self):
         self._dispatch.set()
 
-    def startDispatch(self, listener):
+    def startDispatch(self, frame, listener):
         self._dispatch.clear()
         job = self._grid.getSelectedIdentifier('JobId')
-        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, )}
+        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, ), 'Frame': frame}
         executeDesktopDispatch(self._ctx, 'emailer:GetMail', listener, **kwargs)
 
     def setSpoolerStatus(self, status):
@@ -255,12 +255,14 @@ class SpoolerModel(unohelper.Base):
         return table
 
 # SpoolerModel private setter methods
-    def _initSpooler(self, window, listener1, listener2):
+    def _initSpooler(self, sender, window, listener1, listener2, start):
         self._rowset = self._spooler.getContent()
         resources = (self._resolver, self._resources.get('GridColumns'))
         self._grid = GridManager(self._ctx, self._url, window, 'Spooler', MULTI, resources)
         self._grid.addSelectionListener(listener1)
         self._spooler.addContentListener(listener2)
+        if start:
+            sender.start()
 
     def _getDialogTitle(self):
         resource = self._resources.get('Title')

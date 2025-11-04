@@ -59,12 +59,7 @@ from ...listener import StreamListener
 from ...helper import getMailSender
 
 from ...unotool import createMessageBox
-from ...unotool import executeDesktopDispatch
-from ...unotool import executeFrameDispatch
 from ...unotool import executeShell
-from ...unotool import getPropertyValueSet
-from ...unotool import getSimpleFile
-from ...unotool import getTempFile
 
 from ...logger import LogController
 
@@ -79,7 +74,7 @@ import traceback
 
 
 class SpoolerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, notifier):
+    def __init__(self, ctx, datasource, notifier, start=False):
         self._ctx = ctx
         self._notifier = notifier
         self._lock = Lock()
@@ -94,18 +89,17 @@ class SpoolerManager(unohelper.Base):
         point = self._model.getDialogPosition()
         titles = self._model.getDialogTitles()
         self._view = SpoolerView(ctx, handler, listener, handler1, listener1, point, titles)
+        self._closelistener = listener
         self._sender = getMailSender(ctx)
         self._senderlistener = StreamListener(self)
-        window = self._view.getGridWindow()
-        self._model.initSpooler(window, GridSelectionListener(self), RowSetListener(self))
         self._loglistener1 = LoggerListener(self.updateLog1)
         self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._loglistener1)
         self._log1.addRollerHandler()
         self._loglistener2 = LoggerListener(self.updateLog2)
         self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._loglistener2)
         self._log2.addRollerHandler()
-        self._closelistener = listener
-        #self._updateLogger()
+        window = self._view.getGridWindow()
+        self._model.initSpooler(self._sender, window, GridSelectionListener(self), RowSetListener(self), start)
 
     @property
     def HandlerEnabled(self):
@@ -129,9 +123,8 @@ class SpoolerManager(unohelper.Base):
             if notification.State == SUCCESS:
                 executeShell(self._ctx, notification.Result)
             else:
-                parent = self._view.getWindow().Peer
                 title = self._model.getMsgBoxTitle()
-                dialog = createMessageBox(parent, WARNINGBOX, 1, title, notification.Result)
+                dialog = createMessageBox(self._ctx, title, notification.Result, WARNINGBOX)
                 dialog.execute()
                 dialog.dispose()
             self._enableButtons(self._model.hasGridSelectedRows())
@@ -206,7 +199,7 @@ class SpoolerManager(unohelper.Base):
     def viewEml(self):
         self._view.disableButtons()
         self._view.enableStartSpooler(False)
-        self._model.startDispatch(DispatchListener(self))
+        self._model.startDispatch(self._view.getFrame(), DispatchListener(self))
 
     def viewClient(self):
         self._view.disableButtons()
@@ -220,7 +213,8 @@ class SpoolerManager(unohelper.Base):
         self._viewWeb(sender, **self._model.getCommandArguments())
 
     def resubmitJobs(self):
-        self._model.resubmitJobs('JobId')
+        column = 'JobId'
+        self._model.resubmitJobs(column)
 
     def _viewClient(self, **args):
         command, option = self._model.getClientCommand(args)
@@ -300,10 +294,6 @@ class SpoolerManager(unohelper.Base):
     def _dispose(self):
         with self._lock:
             self._model.dispose()
-
-    def _updateLogger(self):
-        self.updateLog1()
-        self.updateLog2()
 
     def _refreshSpoolerView(self, status):
         self._view.setSpoolerState(*self._model.setSpoolerStatus(status))

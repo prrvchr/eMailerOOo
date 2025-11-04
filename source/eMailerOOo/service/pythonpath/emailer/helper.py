@@ -28,6 +28,8 @@
 """
 import uno
 
+from com.sun.star.awt.MessageBoxType import ERRORBOX
+
 from com.sun.star.mail import MailSpoolerException
 
 from com.sun.star.text.MailMergeType import FILE
@@ -37,6 +39,7 @@ from com.sun.star.sdb.CommandType import TABLE
 from com.sun.star.uno import Exception as UnoException
 
 from .unotool import checkVersion
+from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeFrameDispatch
 from .unotool import getDocument
@@ -46,10 +49,8 @@ from .unotool import getInteractionHandler
 from .unotool import getLastNamedParts
 from .unotool import getNamedValueSet
 from .unotool import getMailMerge
-from .unotool import getMessageBox
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile
-from .unotool import getToolKit
 from .unotool import hasInterface
 
 from .oauth20 import getOAuth2Version
@@ -129,16 +130,6 @@ def getDataBaseContext(ctx, source, name, resolver, code, *args):
         msg = resolver(code + 2, location, *args)
         raise MailSpoolerException(msg, source, ())
     return dbcontext, location
-
-def getDataSourceConnection(ctx, name, resolver, resource):
-    dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)
-    datasource = dbcontext.getByName(name)
-    if datasource.IsPasswordRequired:
-        handler = getInteractionHandler(ctx)
-        connection = datasource.getIsolatedConnectionWithCompletion(handler)
-    else:
-        connection = datasource.getIsolatedConnection('', '')
-    return connection
 
 def getDataSource(ctx, name, resolver, resource):
     datasource = None
@@ -361,10 +352,7 @@ def _getExceptionMessage(logger, code, extension, *args):
     return title, message
 
 def _showWarning(ctx, title, msg):
-    toolkit = getToolKit(ctx)
-    peer = toolkit.getActiveTopWindow()
-    box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
-    msgbox = getMessageBox(toolkit, peer, box, 1, title, msg)
+    msgbox = createMessageBox(ctx, title, msg, ERRORBOX)
     msgbox.execute()
     msgbox.dispose()
 

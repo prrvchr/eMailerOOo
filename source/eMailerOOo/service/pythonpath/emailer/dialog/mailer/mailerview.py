@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
 from ..mail import MailView
 
 from ...unotool import getDialog
@@ -38,8 +36,9 @@ from ...configuration import g_identifier
 
 class MailerView(MailView):
     def __init__(self, ctx, handler1, handler2, parent, step):
-        self._dialog = getDialog(ctx, g_identifier, 'MailerDialog', handler1, parent)
-        super().__init__(ctx, handler2, self._dialog.getPeer(), step)
+        dialog = getDialog(ctx, g_identifier, 'MailerDialog', handler1, parent)
+        super().__init__(ctx, handler2, dialog.getPeer(), step)
+        self._dialog = dialog
 
 # MailerView getter methods
     def getEmail(self):
@@ -61,11 +60,14 @@ class MailerView(MailView):
     def setTitle(self, title):
         self._dialog.setTitle(title)
 
+    def enableButtonCancel(self):
+        self._getButtonCancel().Model.Enabled = True
+
     def enableButtonSend(self, enabled):
         self._getButtonSend().Model.Enabled = enabled
 
-    def endDialog(self):
-        self._dialog.endDialog(OK)
+    def endDialog(self, status):
+        self._dialog.endDialog(status)
 
     def dispose(self):
         self._dialog.dispose()
@@ -97,6 +99,9 @@ class MailerView(MailView):
 
     def _getRemoveRecipient(self):
         return self._window.getControl('CommandButton4')
+
+    def _getButtonCancel(self):
+        return self._dialog.getControl('CommandButton1')
 
     def _getButtonSend(self):
         return self._dialog.getControl('CommandButton2')

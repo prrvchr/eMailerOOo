@@ -167,7 +167,7 @@ class MergerManager(MailManager,
             # TODO: Document can be <None> if a lock or password exists !!!
             # TODO: It would be necessary to test a Handler on the descriptor...
             self._initView(document)
-            self._view.setRecipients(getArgumentSet(recipients), message)
+            self._view.setRecipients(getArgumentSet(recipients, False), message)
             self._updateUI()
         self._model.closeDocument(document)
 

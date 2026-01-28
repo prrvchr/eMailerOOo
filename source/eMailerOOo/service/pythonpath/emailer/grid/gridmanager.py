@@ -103,7 +103,7 @@ class GridManager(GridManagerBase):
         indexes = OrderedDict([(identifier, -1) for identifier in identifiers])
         types = {}
         for i in range(metadata.getColumnCount()):
-            name = metadata.getColumnLabel(i +1)
+            name = metadata.getColumnLabel(i + 1)
             title = self._getColumnTitle(name)
             if name in identifiers:
                 indexes[name] = i

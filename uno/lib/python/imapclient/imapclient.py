@@ -99,7 +99,7 @@ _POPULAR_PERSONAL_NAMESPACES = (("", ""), ("INBOX.", "."))
 
 # Names of special folders that are common among providers
 _POPULAR_SPECIAL_FOLDERS = {
-    SENT: ("Sent", "Sent Items", "Sent items"),
+    SENT: ("Sent", "Sent Items", "Sent items", "Sent Messages"),
     DRAFTS: ("Drafts",),
     ARCHIVE: ("Archive",),
     TRASH: ("Trash", "Deleted Items", "Deleted Messages", "Deleted"),
@@ -1157,9 +1157,11 @@ class IMAPClient:
                     "about search criteria syntax..\n"
                     "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
                         original_msg=m.group(1),
-                        criteria='"%s"' % criteria
-                        if not isinstance(criteria, list)
-                        else criteria,
+                        criteria=(
+                            '"%s"' % criteria
+                            if not isinstance(criteria, list)
+                            else criteria
+                        ),
                     )
                 )
 
@@ -1675,6 +1677,10 @@ class IMAPClient:
         """
         command = command.upper()
 
+        # Check for LITERAL+ now because if capabilities haven't been cached
+        # yet, we can't call CAPABILITY while sending another command.
+        has_literal_plus = self.has_capability("LITERAL+")
+
         if isinstance(args, tuple):
             args = list(args)
         if not isinstance(args, list):
@@ -1702,7 +1708,7 @@ class IMAPClient:
                 # Now send the (unquoted) literal
                 if isinstance(item, _quoted):
                     item = item.original
-                self._send_literal(tag, item)
+                self._send_literal(tag, item, has_literal_plus)
                 if not is_last:
                     self._imap.send(b" ")
             else:
@@ -1717,9 +1723,9 @@ class IMAPClient:
 
         return self._imap._command_complete(to_unicode(command), tag)
 
-    def _send_literal(self, tag, item):
+    def _send_literal(self, tag, item, has_literal_plus):
         """Send a single literal for the command with *tag*."""
-        if b"LITERAL+" in self._cached_capabilities:
+        if has_literal_plus:
             out = b" {" + str(len(item)).encode("ascii") + b"+}\r\n" + item
             logger.debug("> %s", debug_trunc(out, 64))
             self._imap.send(out)

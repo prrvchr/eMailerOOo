@@ -1,0 +1,8 @@
+Wheel-Version: 1.0
+<<<<<<<< HEAD:uno/lib/python/attrs-26.1.0.dist-info/WHEEL
+Generator: hatchling 1.29.0
+========
+Generator: hatchling 1.27.0
+>>>>>>>> master:uno/lib/python/setuptools/_vendor/platformdirs-4.4.0.dist-info/WHEEL
+Root-Is-Purelib: true
+Tag: py3-none-any

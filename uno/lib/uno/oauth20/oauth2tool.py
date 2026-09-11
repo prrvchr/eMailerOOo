@@ -41,7 +41,13 @@ from string import Template
 from urllib import parse
 import base64
 import json
-import ijson
+
+g_checkSetup = False
+try:
+    import ijson
+except Exception as e:
+    g_checkSetup = True
+    # do nothing OAuth2Setup will do
 
 
 def getRequest(ctx, url=None, name=None):

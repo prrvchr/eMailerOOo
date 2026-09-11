@@ -1,0 +1,8 @@
+Wheel-Version: 1.0
+<<<<<<<< HEAD:uno/lib/python/idna-3.19.dist-info/WHEEL
+Generator: flit 4.0.2
+========
+Generator: flit 3.12.0
+>>>>>>>> master:uno/lib/python/setuptools/_vendor/packaging-26.0.dist-info/WHEEL
+Root-Is-Purelib: true
+Tag: py3-none-any

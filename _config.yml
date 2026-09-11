@@ -1,5 +1,10 @@
+url: "https://prrvchr.github.io"
+baseurl: "/eMailerOOo"
 remote_theme: prrvchr/minimalist
+include:
+  - uno/doc/setup/
 plugins:
+  - jekyll-redirect-from
   - jekyll-remote-theme
   - jekyll-sitemap
   - jekyll-seo-tag

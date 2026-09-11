@@ -1,4 +1,4 @@
-decorator>=5.1.1
+decorator>=5.3.1
 ijson>=3.3.0
 imapclient>=3.0.1
 packaging>=25.0

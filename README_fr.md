@@ -507,7 +507,7 @@ ___
 [3]: <https://prrvchr.github.io/eMailerOOo/>
 [4]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/TermsOfUse_fr>
 [5]: <https://prrvchr.github.io/eMailerOOo/source/eMailerOOo/registration/PrivacyPolicy_fr>
-[6]: <https://prrvchr.github.io/eMailerOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-152>
+[6]: <https://prrvchr.github.io/eMailerOOo/change/fr/#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-152>
 [7]: <https://prrvchr.github.io/>
 [8]: <https://www.libreoffice.org/download/download-libreoffice/>
 [9]: <https://www.openoffice.org/download/index.html>

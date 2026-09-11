@@ -37,7 +37,7 @@ redirect_from:
 
 Regarding installation, configuration and use, please consult the **[documentation][4]**.
 
-### What has been done for version 0.0.1:
+### What was done for version 0.0.1:
 
 - Writing an [IspDB][5] or SMTP servers connection configuration wizard allowing:
     - Find the connection parameters to an SMTP server from an email address. Besides, I especially thank Mozilla, for [Thunderbird autoconfiguration database][6] or IspDB, which made this challenge possible...
@@ -62,7 +62,7 @@ Regarding installation, configuration and use, please consult the **[documentati
     - To be configurable on the sort order to be displayed.
     - Save the display settings.
 
-### What has been done for version 0.0.2:
+### What was done for version 0.0.2:
 
 - Rewrite of [IspDB][5] or Mail servers connection configuration wizard in order to integrate the IMAP connection configuration.
     - Use of [IMAPClient][11] version 2.2.0: an easy-to-use, Pythonic and complete IMAP client library.
@@ -74,7 +74,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 
 - Submitting the eMailerOOo extension to Google and obtaining permission to use its GMail API to send emails with a Google account.
 
-### What has been done for version 0.0.3:
+### What was done for version 0.0.3:
 
 - Rewrote the [Grid][10] to allow:
     - Sorting on a column with the integration of the UNO service [SortableGridDataModel][15].
@@ -93,11 +93,11 @@ Regarding installation, configuration and use, please consult the **[documentati
 
 - Many other things...
 
-### What has been done for version 1.0.0:
+### What was done for version 1.0.0:
 
 - The **smtpMailerOOo** extension has been renamed to **eMailerOOo**.
 
-### What has been done for version 1.0.1:
+### What was done for version 1.0.1:
 
 - The absence or obsolescence of the **OAuth2OOo** and/or **jdbcDriverOOo** extensions necessary for the proper functioning of **eMailerOOo** now displays an error message. This is to prevent a malfunction such as [issue #3][19] from recurring...
 
@@ -107,11 +107,11 @@ Regarding installation, configuration and use, please consult the **[documentati
 
 - Many other things...
 
-### What has been done for version 1.0.2:
+### What was done for version 1.0.2:
 
 - If no configuration is found in the connection configuration wizard (IspDB Wizard) then it is possible to configure the connection manually. See [issue #5][20].
 
-### What has been done for version 1.1.0:
+### What was done for version 1.1.0:
 
 - In the connection configuration wizard (IspDB Wizard) it is now possible to deactivate the IMAP configuration.  
     As a result, this no longer sends a thread (IMAP message) when merging a mailing.  
@@ -128,34 +128,34 @@ Regarding installation, configuration and use, please consult the **[documentati
     These two new services greatly simplify the LibreOffice mail API and allow sending emails from Basic. See [Issue #4][25].  
     You will find a Basic macro allowing you to send emails in: **Tools -> Macros -> Edit Macros... -> eMailerOOo -> SendEmail**.
 
-### What has been done for version 1.1.1:
+### What was done for version 1.1.1:
 
 - Support for version **1.2.0** of the **OAuth2OOo** extension. Previous versions will not work with **OAuth2OOo** extension 1.2.0 or higher.
 
-### What has been done for version 1.2.0:
+### What was done for version 1.2.0:
 
 - All Python packages necessary for the extension are now recorded in a [requirements.txt][26] file following [PEP 508][27].
 - Now if you are not on Windows then the Python packages necessary for the extension can be easily installed with the command:  
   `pip install requirements.txt`
 - Modification of the [Requirement][28] section.
 
-### What has been done for version 1.2.1:
+### What was done for version 1.2.1:
 
 - Fixed a regression allowing errors to be displayed in the Spooler.
 - Integration of a fix to workaround the [issue #159988][29].
 
-### What has been done for version 1.2.2:
+### What was done for version 1.2.2:
 
 - The creation of the database, during the first connection, uses the UNO API offered by the jdbcDriverOOo extension since version 1.3.2. This makes it possible to record all the information necessary for creating the database in 5 text tables which are in fact [5 csv files][30].
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.4 and 1.3.2 respectively minimum.
 - Many fixes.
 
-### What has been done for version 1.2.3:
+### What was done for version 1.2.3:
 
 - Fixed a regression from version 1.2.2 preventing jobs from being submitted to the email spooler.
 - Fixed [issue #7][31] not allowing error messages to be displayed in case of incorrect configuration.
 
-### What has been done for version 1.2.4:
+### What was done for version 1.2.4:
 
 - Updated the [Python decorator][32] package to version 5.1.1.
 - Updated the [Python ijson][33] package to version 3.3.0.
@@ -164,20 +164,20 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Updated the [Python validators][37] package to version 0.33.0.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.6 and 1.4.2 respectively minimum.
 
-### What has been done for version 1.2.5:
+### What was done for version 1.2.5:
 
 - Updated the [Python setuptools][35] package to version 73.0.1.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.7 and 1.4.5 respectively minimum.
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
 
-### What has been done for version 1.2.6:
+### What was done for version 1.2.6:
 
 - If a reply address was given then it will be used when generating the eml file by the Spooler.
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.3.8 and 1.4.6 respectively minimum.
 - Modification of the extension options accessible via: **Tools -> Options... -> Internet -> eMailerOOo** in order to comply with the new graphic charter.
 
-### What has been done for version 1.2.7:
+### What was done for version 1.2.7:
 
 - The spooler allows opening sent emails either in the local email client (ie: Thunderbird) or online in your browser for accounts using an API for sending email (ie: Google and Microsoft).
 - A new tab has been added to the spooler to allow tracking of mail service activity.
@@ -193,7 +193,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Opening emails in your browser does not work with a Microsoft account, the url allowing this has not yet been found and it seems that it would not be possible (ie: popup must be open by the Outlook window)?
 - Many fixes.
 
-### What has been done for version 1.3.0:
+### What was done for version 1.3.0:
 
 - The extension will ask you to install the OAuth2OOo and jdbcDriverOOo extensions in versions 1.4.0 and 1.4.6 respectively minimum.
 - Only providers with a third-party API or OAuth2 authentication and have an entry in the LibreOffice configuration will offer OAuth2 authentication by default in the connection setup wizard (ie: IspDB Wizard).
@@ -204,7 +204,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Added binaries needed for Python libraries to work on Linux and LibreOffice 24.8 (ie: Python 3.9).
 - Many fixes.
 
-### What has been done for version 1.3.1:
+### What was done for version 1.3.1:
 
 - Updated the [Python packaging][34] package to version 24.2.
 - Updated the [Python setuptools][35] package to version 75.8.0.
@@ -212,7 +212,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Updated the [Python validators][37] package to version 0.34.0.
 - Support for Python version 3.13.
 
-### What has been done for version 1.4.0:
+### What was done for version 1.4.0:
 
 - Updated the [Python packaging][34] package to version 25.0.
 - Downgrade the [Python setuptools][35] package to version 75.3.2. to ensure support for Python 3.8.
@@ -225,19 +225,19 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Requires the **jdbcDriverOOo extension at least version 1.5.0**.
 - Requires the **OAuth2OOo extension at least version 1.5.0**.
 
-### What has been done for version 1.4.1:
+### What was done for version 1.4.1:
 
 - In the connection wizard, if the given email address is not found in Mozilla IspDB or if you are offline, server names can be simple hostnames and valid ports will extend up to 65535. This is to address [issue#10][51].
 - Fixed refresh issues on the second page of the connection wizard by using the UNO service `com.sun.star.awt.AsyncCallback`.
 - Requires the **jdbcDriverOOo extension at least version 1.5.4**.
 - Requires the **OAuth2OOo extension at least version 1.5.1**.
 
-### What has been done for version 1.4.2:
+### What was done for version 1.4.2:
 
 - Support for LibreOffice 25.2.x and 25.8.x on Windows 64-bit.
 - Requires the **OAuth2OOo extension at least version 1.5.2**.
 
-### What has been done for version 1.5.0:
+### What was done for version 1.5.0:
 
 - Changed the wizard used when merging emails so that it opens in a dedicated window rather than modal as before.
 - Also changed the email Spooler to open in a dedicated window rather than modal as before.
@@ -256,7 +256,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Requires the **OAuth2OOo extension at least version 1.6.0**.
 - Has been tested with LibreOfficeDev 26.2.
 
-### What has been done for version 1.5.1:
+### What was done for version 1.5.1:
 
 - Any error occurring during the sending of an email will not affect its status if it happens during preparation and not during sending. This allows the error to be corrected and the sending attempt to be retried.
 - It is possible to open an attachment directly from the list of files attached to an email.
@@ -265,7 +265,14 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Requires the **jdbcDriverOOo extension at least version 1.6.1**.
 - Requires the **OAuth2OOo extension at least version 1.6.1**.
 
-### What remains to be done for version 1.5.1:
+### What was done for version 1.5.2:
+
+- Fixed a regression that prevented valid jobs from being submitted to the Spooler for merging.
+
+### What was done for version 1.7.0:
+
+
+### What remains to be done for version 1.7.0:
 
 - Add new languages for internationalization...
 

@@ -265,7 +265,14 @@ Concernant l'installation, la configuration et l'utilisation, veuillez consulter
 - Nécessite l'extension **jdbcDriverOOo en version 1.6.1 minimum**.
 - Nécessite l'extension **OAuth2OOo en version 1.6.1 minimum**.
 
-### Que reste-t-il à faire pour la version 1.5.1:
+### Ce qui a été fait pour la version 1.5.2:
+
+- Correction d'une régression qui empêchait la soumission de travaux valides au Spouleur en vue d'une fusion.
+
+### Ce qui a été fait pour la version 1.7.0:
+
+
+### Que reste-t-il à faire pour la version 1.7.0:
 
 - Ajouter de nouvelles langues pour l’internationalisation...
 

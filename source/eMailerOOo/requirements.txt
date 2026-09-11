@@ -1,6 +1,7 @@
 ijson>=3.5.1
 imapclient>=3.1.0
 packaging>=26.3
+pip>=26.0.1
 setuptools>=61.0.0,<81.0.0
 six>=1.17.0
 validators>=0.35.0

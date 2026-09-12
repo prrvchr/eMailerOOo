@@ -49,11 +49,18 @@ from ..oauth20 import getRequest
 from ..oauth20 import getResponseResults
 from ..oauth20 import setResquestParameter
 
+from ..oauth20 import g_checkSetup
+
 from ..configuration import g_chunk
 from ..configuration import g_identifier
 
 from string import Template
-import ijson
+
+try:
+    import ijson
+except Exception as e:
+    g_checkSetup = True
+
 import traceback
 
 

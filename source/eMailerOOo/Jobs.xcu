@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -24,15 +24,25 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
-  <manifest:file-entry manifest:full-path="types.rdb" manifest:media-type="application/vnd.sun.star.uno-typelibrary;type=RDB"/>
-  <manifest:file-entry manifest:full-path="eMailerOOo/" manifest:media-type="application/vnd.sun.star.basic-library"/>
-  <manifest:file-entry manifest:full-path="Addons.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
-  <manifest:file-entry manifest:full-path="Options.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
-  <manifest:file-entry manifest:full-path="OptionsDialog.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
-  <manifest:file-entry manifest:full-path="Options.xcs" manifest:media-type="application/vnd.sun.star.configuration-schema"/>
-  <manifest:file-entry manifest:full-path="ProtocolHandler.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
-  <manifest:file-entry manifest:full-path="Jobs.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
-  <manifest:file-entry manifest:full-path="package.components" manifest:media-type="application/vnd.sun.star.uno-components"/>
-</manifest:manifest>
-
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
+<oor:component-data
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office"
+  oor:name="Jobs">
+  <node oor:name="Jobs">
+    <node oor:name="eMailerOOoSetup" oor:op="fuse">
+      <prop oor:name="Service">
+        <value>io.github.prrvchr.eMailerOOo.Setup</value>
+      </prop>
+    </node>
+  </node>
+  <node oor:name="Events">
+    <node oor:name="OnStartApp" oor:op="fuse">
+      <node oor:name="JobList">
+        <node oor:name="eMailerOOoSetup" oor:op="fuse"/>
+      </node>
+    </node>
+  </node>
+</oor:component-data>

@@ -163,6 +163,22 @@ def getDocument(ctx, url, readonly=True):
     document = getDesktop(ctx).loadComponentFromURL(url, '_blank', 0, descriptor)
     return document
 
+def hasStartupJob(ctx, job):
+    config = getConfiguration(ctx, '/org.openoffice.Office.Jobs/Events/OnStartApp/JobList')
+    return config.hasByName(job)
+
+def registerStartupJob(ctx, job):
+    config = getConfiguration(ctx, '/org.openoffice.Office.Jobs/Events/OnStartApp/JobList', True)
+    if not config.hasByName(job):
+        config.insertByName(job, config.createInstance())
+        config.commitChanges()
+
+def deregisterStartupJob(ctx, job):
+    config = getConfiguration(ctx, '/org.openoffice.Office.Jobs/Events/OnStartApp/JobList', True)
+    if config.hasByName(job):
+        config.removeByName(job)
+        config.commitChanges()
+
 def getExceptionMessage(exception):
     messages = []
     if hasattr(exception, 'args'):

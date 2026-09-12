@@ -78,6 +78,7 @@ class OptionsManager(unohelper.Base):
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting', 161)
 
     def saveSetting(self):
+        self._model.saveStartup(self._view.getStarup())
         option = self._model.saveTimeout(self._view.getTimeout())
         log = self._logmanager.saveSetting()
         if log:

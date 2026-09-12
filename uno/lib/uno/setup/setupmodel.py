@@ -32,13 +32,13 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from ..logger import getLogger
-
-from ..unotool import getConfiguration
+from ..unotool import deregisterStartupJob
 from ..unotool import getPathSubstitution
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getStringResource
+
+from ..logger import getLogger
 
 from ..configuration import g_basename
 from ..configuration import g_defaultlog
@@ -55,8 +55,10 @@ import traceback
 
 
 class SetupModel():
-    def __init__(self, ctx, name):
+    def __init__(self, ctx, job, name, code):
         self._ctx = ctx
+        self._job = job
+        self._code = code
         self._modules = []
         self._requirements = '/requirements.txt'
         self._program = getPathSubstitution(ctx, '$(prog)')
@@ -78,7 +80,8 @@ class SetupModel():
         url = self._url + self._requirements
         if getSimpleFile(self._ctx).exists(url):
             self._checkPackages(url, maxProgress, progress)
-        return self._getResult(self._modules)
+        success = len(self._modules) > 0
+        return success, self._getResult(self._modules)
 
     def installPackages(self, maxProgress, progress):
         index = 1
@@ -94,19 +97,15 @@ class SetupModel():
             message = self._pipInstall(info, command, module)
             if message is None:
                 importlib.invalidate_caches()
-                self._log(INFO, 201, module)
+                self._log(INFO, self._code + 1, module)
             else:
                 modules.append(module)
-                self._log(SEVERE, 202, module, message)
+                self._log(SEVERE, self._code + 2, module, message)
         success = len(modules) == 0
         return success, self._getResult(self._modules) if success else self._getResult(modules)
 
     def deregisterJob(self):
-        path = "/org.openoffice.Office.Jobs/Events/OnStartApp/JobList"
-        config = getConfiguration(self._ctx, path, True)
-        if config.hasByName("OAuth2Setup"):
-            config.removeByName("OAuth2Setup")
-            config.commitChanges()
+        deregisterStartupJob(self._ctx, self._job)
 
     def _checkPackages(self, url, maxProgress, progress):
         packages = []

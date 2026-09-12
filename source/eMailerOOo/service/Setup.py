@@ -27,52 +27,55 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.frame import XDispatchProvider
-
-from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XServiceInfo
+from com.sun.star.task import XAsyncJob
 
-from emailer import Dispatch
+from emailer import SetupManager
 
-from emailer import hasFrameInterface
+from emailer import createMessageBox
+from emailer import getStringResource
 
+from emailer import g_identifier
+
+
+import socket
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'io.github.prrvchr.eMailerOOo.Dispatcher'
-g_ServiceNames = ('io.github.prrvchr.eMailerOOo.Dispatcher', )
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.Setup'
+g_ServiceNames = ('io.github.prrvchr.eMailerOOo.Setup',
+                  'com.sun.star.task.Job')
 
 
-class Dispatcher(unohelper.Base,
-                 XDispatchProvider,
-                 XInitialization,
-                 XServiceInfo):
+class Setup(unohelper.Base,
+            XServiceInfo,
+            XAsyncJob):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._frame = None
+        self._job = "eMailerOOoSetup"
+        self._name = 'SetupWindow'
+        self._code = 600
+        self._resources = {'Title': 'Setup.ErrorBox.Title',
+                           'Message': 'Setup.ErrorBox.Message'}
 
-# XInitialization
-    def initialize(self, args):
-        if isinstance(args, tuple) and len(args) and hasFrameInterface(args[0]):
-            self._frame = args[0]
-
-# XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
-        dispatch = None
-        if url.Protocol == 'emailer:':
-            dispatch = Dispatch(self._ctx, self._frame)
-        return dispatch
-
-    def queryDispatches(self, requests):
-        dispatches = []
-        for request in requests:
-            dispatch = self.queryDispatch(request.FeatureURL, request.FrameName, request.SearchFlags)
-            dispatches.append(dispatch)
-        return tuple(dispatches)
+    # XAsyncJob
+    def executeAsync(self, arguments, listener):
+        try:
+            if self._checkInternet():
+                SetupManager(self._ctx, self._job, self._name, self._code)
+            else:
+                self._showMessageBox()
+        except Exception as e:
+            # FIXME: It is essential to notify LibreOffice of
+            # FIXME: the Job's completion so as not to block its loading.
+            pass
+        finally:
+            if listener is not None:
+                listener.jobFinished(self, None)
+        return None
 
     # XServiceInfo
     def supportsService(self, service):
@@ -82,8 +85,26 @@ class Dispatcher(unohelper.Base,
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
+    # Show MessageBox Error
+    def _showMessageBox(self):
+        resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
+        title = resolver.resolveString(self._resources.get('Title'))
+        message = resolver.resolveString(self._resources.get('Message'))
+        dialog = createMessageBox(self._ctx, title, message)
+        dialog.execute()
+        dialog.dispose()
 
-g_ImplementationHelper.addImplementation(Dispatcher,                      # UNO object class
-                                         g_ImplementationName,            # Implementation name
-                                         g_ServiceNames)                  # List of implemented services
+    def _checkInternet(self, host="8.8.8.8", port=53, timeout=3):
+        try:
+            socket.setdefaulttimeout(timeout)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((host, port))
+            return True
+        except (OSError, socket.timeout):
+            return False
+
+
+g_ImplementationHelper.addImplementation(Setup,
+                                         g_ImplementationName,
+                                         g_ServiceNames)
 

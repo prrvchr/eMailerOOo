@@ -41,17 +41,23 @@ from .options import OptionsManager
 
 from .user import User
 
+from .setup import SetupManager
+
 from .transferable import Transferable
 
+from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
 from .unotool import getCurrentLocale
 from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
+from .unotool import getStringResource
 from .unotool import hasFrameInterface
 
 from .logger import getLogger
+
+from .oauth20 import g_checkSetup
 
 from .configuration import g_identifier
 from .configuration import g_mailservicelog

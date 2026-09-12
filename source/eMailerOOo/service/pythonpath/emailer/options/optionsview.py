@@ -44,16 +44,20 @@ class OptionsView(unohelper.Base):
     def getTimeout(self):
         return int(self._getTimeout().Value)
 
+    def getStarup(self):
+        return bool(self._getStartupJob().State)
+
 # OptionsView setter methods
     def dispose(self):
         self._window.dispose()
 
-    def initView(self, restart, url, instrumented, exist, timeout):
+    def initView(self, restart, url, instrumented, exist, timeout, startup):
         control = self._getWarning()
         control.URL = url
         self._setWarning(control, restart, instrumented)
         self.updateDataBase(exist)
         self._getTimeout().Value = timeout
+        self._getStartupJob().State = int(startup)
 
     def setWarning(self, restart, instrumented):
         self._setWarning(self._getWarning(), restart, instrumented)
@@ -79,6 +83,9 @@ class OptionsView(unohelper.Base):
 
     def _getDataBaseButton(self):
         return self._window.getControl('CommandButton2')
+
+    def _getStartupJob(self):
+        return self._window.getControl('CheckBox1')
 
     def _getRestart(self):
         return self._window.getControl('Label5')

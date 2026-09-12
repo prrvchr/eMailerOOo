@@ -34,6 +34,7 @@ from .statusindicator import StatusIndicator
 from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
+from .unotool import deregisterStartupJob
 from .unotool import executeDesktopDispatch
 from .unotool import executeDispatch
 from .unotool import executeFrameDispatch
@@ -94,8 +95,10 @@ from .unotool import getUrlTransformer
 from .unotool import hasFrameInterface
 from .unotool import hasInterface
 from .unotool import hasService
+from .unotool import hasStartupJob
 from .unotool import parseDateTime
 from .unotool import parseUrl
+from .unotool import registerStartupJob
 from .unotool import saveTopWindowPosition
 from .unotool import setProgress
 from .unotool import unparseDateTime

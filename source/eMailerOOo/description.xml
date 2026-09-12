@@ -28,12 +28,12 @@
              xmlns:d="http://openoffice.org/extensions/description/2006"
              xmlns:l="http://libreoffice.org/extensions/description/2011"
              xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="1.5.2"/>
+  <version value="1.6.0"/>
   <identifier value="io.github.prrvchr.eMailerOOo"/>
   <platform value="all"/>
   <dependencies>
-    <d:OpenOffice.org-minimal-version value="6.0" d:name="LibreOffice 6.0"/>
-    <l:LibreOffice-minimal-version value="6.0" l:name="LibreOffice 6.0"/>
+    <d:OpenOffice.org-minimal-version value="7.5" d:name="LibreOffice 7.5"/>
+    <l:LibreOffice-minimal-version value="7.5" l:name="LibreOffice 7.5"/>
   </dependencies>
   <update-information>
     <src xlink:href="https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.update.xml"/>
@@ -49,8 +49,8 @@
     </simple-license>
   </registration>
   <release-notes>
-    <src xlink:href="https://prrvchr.github.io/eMailerOOo/" lang="en"/>
-    <src xlink:href="https://prrvchr.github.io/eMailerOOo/README_fr" lang="fr"/>
+    <src xlink:href="https://prrvchr.github.io/eMailerOOo/change/#what-was-done-for-version-160" lang="en"/>
+    <src xlink:href="https://prrvchr.github.io/eMailerOOo/change/fr/#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-160" lang="fr"/>
   </release-notes>
   <display-name>
     <name lang="en">eMailerOOo</name>

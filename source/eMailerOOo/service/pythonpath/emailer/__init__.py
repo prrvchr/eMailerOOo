@@ -27,23 +27,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-#from .datasource import DataSource
+from .datasource import DataSource
 
-#from .dispatch import Dispatch
+from .dispatch import Dispatch
 
-#from .mailsend import MailSend
+from .mailsend import MailSend
 
-#from .mailservice import ImapService
-#from .mailservice import Pop3Service
-#from .mailservice import SmtpService
+from .mailservice import ImapService
+from .mailservice import Pop3Service
+from .mailservice import SmtpService
 
-#from .options import OptionsManager
+from .options import OptionsManager
 
-#from .user import User
+from .user import User
 
 from .setup import SetupManager
 
-#from .transferable import Transferable
+from .transferable import Transferable
 
 from .unotool import createMessageBox
 from .unotool import createService
@@ -57,8 +57,7 @@ from .unotool import hasFrameInterface
 
 from .logger import getLogger
 
-#from .oauth20 import g_checkSetup
-g_checkSetup = True
+from .oauth20 import g_checkSetup
 
 from .configuration import g_identifier
 from .configuration import g_mailservicelog

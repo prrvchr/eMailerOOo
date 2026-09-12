@@ -31,10 +31,13 @@ import unohelper
 
 from ..jdbcdriver import isInstrumented
 
+from ..unotool import deregisterStartupJob
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getStringResource
+from ..unotool import hasStartupJob
+from ..unotool import registerStartupJob
 
 from ..dbconfig  import g_folder
 
@@ -48,6 +51,7 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
+        self._job = 'eMailerOOoSetup'
         self._config = getConfiguration(ctx, g_identifier, True)
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
@@ -59,21 +63,31 @@ class OptionsModel():
     @property
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
+    @property
+    def _Startup(self):
+        return hasStartupJob(self._ctx, self._job)
 
     def isInstrumented(self):
         return self._instrumented
 
     def getViewData(self):
         exist = self.getDataBaseStatus()
-        return self._link, self._instrumented, exist, self._Timeout
+        return self._link, self._instrumented, exist, self._Timeout, self._Startup
+
+    def saveStartup(self, startup):
+        if startup != self._Startup:
+            if startup:
+                registerStartupJob(self._ctx, self._job)
+            else:
+                deregisterStartupJob(self._ctx, self._job)
+            return True
+        return False
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:
             self._config.replaceByName('ConnectTimeout', timeout)
         if self._config.hasPendingChanges():
             self._config.commitChanges()
-            return True
-        return False
 
     def getDataBaseStatus(self):
         return getSimpleFile(self._ctx).exists(self._url)

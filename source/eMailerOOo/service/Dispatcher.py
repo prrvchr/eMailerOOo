@@ -39,8 +39,6 @@ from emailer import Dispatch
 
 from emailer import hasFrameInterface
 
-from emailer import g_identifier
-
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable

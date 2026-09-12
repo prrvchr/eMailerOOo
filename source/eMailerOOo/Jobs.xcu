@@ -32,16 +32,16 @@
   oor:package="org.openoffice.Office"
   oor:name="Jobs">
   <node oor:name="Jobs">
-    <node oor:name="MailerSetup" oor:op="fuse">
+    <node oor:name="eMailerOOoSetup" oor:op="fuse">
       <prop oor:name="Service">
-        <value>io.github.prrvchr.eMailerOOo.MailerSetup</value>
+        <value>io.github.prrvchr.eMailerOOo.Setup</value>
       </prop>
     </node>
   </node>
   <node oor:name="Events">
     <node oor:name="OnStartApp" oor:op="fuse">
       <node oor:name="JobList">
-        <node oor:name="MailerSetup" oor:op="fuse"/>
+        <node oor:name="eMailerOOoSetup" oor:op="fuse"/>
       </node>
     </node>
   </node>

@@ -40,4 +40,10 @@
       <service name="io.github.prrvchr.eMailerOOo.Dispatcher"/>
     </implementation>
   </component>
+  <component loader="com.sun.star.loader.Python" uri="service/MailerSetup.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.MailerSetup">
+      <service name="io.github.prrvchr.eMailerOOo.MailerSetup"/>
+      <service name="com.sun.star.task.Job"/>
+    </implementation>
+  </component>
 </components>

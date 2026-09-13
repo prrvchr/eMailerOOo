@@ -84,15 +84,13 @@ class SetupModel():
         return success, self._getResult(self._modules)
 
     def installPackages(self, maxProgress, progress):
+        maxProgress(len(self._modules))
         index = 1
-        maxProgress(len(self._modules) + 1)
-        progress(self._getInstallText(''), index)
         modules = []
         isWindows = os.name == 'nt'
         info = self._getStartupInfo(isWindows)
         command = self._getPipCommand(isWindows)
         for module in self._modules:
-            index += 1
             progress(self._getInstallText(module), index)
             message = self._pipInstall(info, command, module)
             if message is None:
@@ -101,6 +99,7 @@ class SetupModel():
             else:
                 modules.append(module)
                 self._log(SEVERE, self._code + 2, module, message)
+            index += 1
         success = len(modules) == 0
         return success, self._getResult(self._modules) if success else self._getResult(modules)
 

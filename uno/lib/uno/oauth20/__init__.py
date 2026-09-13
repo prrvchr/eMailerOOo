@@ -43,8 +43,6 @@ from .oauth2tool import setResquestParameter
 from .oauth2core import getOAuth2UserName
 from .oauth2core import getOAuth2Token
 
-from .oauth2tool import g_checkSetup
-
 from .configuration import g_extension
 from .configuration import g_identifier
 from .configuration import g_service

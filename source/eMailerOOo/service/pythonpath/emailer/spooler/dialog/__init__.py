@@ -27,5 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .spoolermanager import SpoolerManager
+from .helper import showSpooler
 

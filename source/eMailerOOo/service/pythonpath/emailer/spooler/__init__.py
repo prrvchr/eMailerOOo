@@ -27,9 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dialog import SpoolerManager
-
-from .export import PdfExport
+from .dialog import showSpooler
 
 from .thread import Mailer
 from .thread import Sender

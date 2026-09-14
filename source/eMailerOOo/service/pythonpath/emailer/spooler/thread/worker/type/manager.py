@@ -33,17 +33,7 @@ import traceback
 
 
 class Manager(Master):
-    def __init__(self, cancel, progress, input):
-        super().__init__(cancel, progress)
+    def __init__(self, progress, input):
+        super().__init__(progress)
         self._input = input
-        self._tasks = 0
-
-    def addTasks(self, tasks=1):
-        self._tasks += tasks
-
-    def _hasTasks(self):
-        return self._tasks > 0
-
-    def _taskDone(self):
-        self._tasks -= 1
 

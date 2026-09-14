@@ -34,11 +34,26 @@
   <prop oor:name="ConnectTimeout" oor:op="fuse">
     <value>15</value>
   </prop>
+  <prop oor:name="RunDelay" oor:op="fuse">
+    <value>0.1</value>
+  </prop>
+  <prop oor:name="ErrorMode" oor:op="fuse">
+    <value>2</value>
+  </prop>
   <prop oor:name="IspDBUrl" oor:op="fuse">
     <value>https://autoconfig.thunderbird.net/v1.1/</value>
   </prop>
-  <prop oor:name="SpoolerPosition" oor:type="oor:int-list" oor:op="fuse">
-    <value>50 100</value>
+  <prop oor:name="SetupPosition" oor:op="fuse">
+    <value>-1 -1</value>
+  </prop>
+  <prop oor:name="SetupUpdate" oor:op="fuse">
+    <value>0</value>
+  </prop>
+  <prop oor:name="ControllerPosition" oor:op="fuse">
+    <value>-1 -1</value>
+  </prop>
+  <prop oor:name="SpoolerPosition" oor:op="fuse">
+    <value>-1 -1</value>
   </prop>
   <prop oor:name="SpoolerTable" oor:op="fuse">
     <value>PUBLIC.PUBLIC.Spooler</value>
@@ -49,8 +64,8 @@
   <prop oor:name="SpoolerOrders" oor:op="fuse">
     <value>[-1, true]</value>
   </prop>
-  <prop oor:name="MergerPosition" oor:type="oor:int-list" oor:op="fuse">
-    <value>60 120</value>
+  <prop oor:name="MergerPosition" oor:op="fuse">
+    <value>-1 -1</value>
   </prop>
   <prop oor:name="MergerLoadDataSource" oor:op="fuse">
     <value>true</value>

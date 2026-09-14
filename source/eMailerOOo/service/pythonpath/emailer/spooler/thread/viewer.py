@@ -34,13 +34,11 @@ from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from .worker import Master
 from .worker import Executor
-from .worker import WatchDog
 
 from .task import Document
 
-from ..export import PdfExport
+from ...export import PdfExport
 
-from ...unotool import StatusIndicator
 from ...unotool import getSimpleFile
 
 from ...logger import getLogger
@@ -52,12 +50,14 @@ import traceback
 
 
 class Viewer(Master):
-    def __init__(self, ctx, cancel, frame, connection, result, datasource,
-                 table, selection, url, merge, filter, notifier, source):
-        super().__init__(cancel, StatusIndicator(frame))
+    def __init__(self, ctx, caller, progress, connection, result, datasource,
+                 table, selection, url, merge, filter, notifier, source, callback):
+        super().__init__(progress)
         self._ctx = ctx
+        self._caller = caller
+        self._callback = callback
         sf = getSimpleFile(ctx)
-        self._document = Document(ctx, cancel, sf, connection, result, datasource, table, selection, url, merge, filter)
+        self._document = Document(ctx, sf, connection, result, datasource, table, selection, url, merge, filter)
         self._sf = sf
         self._notifier = notifier
         self._source = source
@@ -70,7 +70,7 @@ class Viewer(Master):
         self._wait = 1.0
         self.start()
 
-    def run(self):
+    def notify(self, data):
         document = self._document
         result = uno.createUnoStruct('com.sun.star.beans.StringPair')
         result.First = document.Filter
@@ -84,36 +84,29 @@ class Viewer(Master):
             msg = self._logger.resolveString(903, document.Url)
             sleep(self._wait)
             status, result.Second = FAILURE, msg
+        elif document.hasInvalidFields():
+            msg = self._logger.resolveString(922)
+            self._setProgress(msg, progress)
+            msg = self._logger.resolveString(923, *document.getInvalidFields())
+            sleep(self._wait)
+            status, result.Second = FAILURE, msg
+        elif not self.isCanceled():
+            self._caller.addCallback(self._getExecutor(document), None)
+            msg = self._logger.resolveString(924)
+            self._setProgress(msg, progress)
+            sleep(self._wait)
+            status, result.Second = SUCCESS, document.getUrl(0)
         else:
-            executor = Executor(self._logger, self._resource, self._cancel, self._progress, document)
-            watchdog = WatchDog(executor)
-            if watchdog.startExecutor(executor, document):
-                executor.join()
-            else:
-                msg = self._logger.resolveString(921)
-                self._setProgress(msg, -20)
-            document.close()
-            if self.isCanceled():
-                msg = self._logger.resolveString(921)
-                self._setProgress(msg, progress)
-                status, result.Second = FAILURE, msg
-            elif document.hasInvalidFields():
-                msg = self._logger.resolveString(922)
-                self._setProgress(msg, progress)
-                msg = self._logger.resolveString(923, *document.getInvalidFields())
-                sleep(self._wait)
-                status, result.Second = FAILURE, msg
-            else:
-                msg = self._logger.resolveString(924)
-                self._setProgress(msg, progress)
-                sleep(self._wait)
-                status, result.Second = SUCCESS, document.getUrl(0)
+            msg = self._logger.resolveString(921)
+            self._setProgress(msg, progress)
+            status, result.Second = FAILURE, msg
         self._endProgress()
-        struct = 'com.sun.star.frame.DispatchResultEvent'
-        notification = uno.createUnoStruct(struct, self._source, status, result)
-        self._notifier.dispatchFinished(notification)
+        callBack(status, result)
 
     # Private getter methods
+    def _getExecutor(self, document):
+        return Executor(self._logger, self._resource, self._progress, document)
+
     def _getProgressRange(self):
         # XXX: Viewer + Executor
         return 20 + 20

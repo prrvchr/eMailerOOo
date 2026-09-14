@@ -77,6 +77,9 @@ class Job():
     def getUrl(self, job):
         return self._url
 
+    def close(self):
+        pass
+
 # Private shared methods
     def _getTempFolder(self, folder, name):
         return folder

@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from com.sun.star.lang import XComponent
@@ -40,8 +41,8 @@ from com.sun.star.sdb.CommandType import TABLE
 
 from emailer import DataSource
 
-from emailer import createService
 from emailer import getConfiguration
+from emailer import getRowSet
 
 from emailer import getLogger
 
@@ -61,14 +62,20 @@ class MailSpooler(unohelper.Base,
                   XMailSpooler,
                   XComponent):
     def __init__(self, ctx):
+        print("MailSpooler.__init__() 1")
         self._ctx = ctx
+        self._listeners = []
+        self._datacall = None
+        self._datasource = None
+        MailSpooler._count += 1
+        self._table = 'SpoolerTable'
         self._logger = getLogger(ctx, g_spoolerlog)
         self._datasource = DataSource(ctx, self, self._logger)
-        self._table = getConfiguration(ctx, g_identifier, False).getByName('SpoolerTable')
-        self._datacall = None
-        self._close = False
+        self._initRowSet()
+        print("MailSpooler.__init__() 2")
 
     _rowset = None
+    _count = 0
 
     # XServiceInfo
     def supportsService(self, service):
@@ -80,11 +87,9 @@ class MailSpooler(unohelper.Base,
 
     # XMailSpooler
     def getConnection(self):
-        self._datasource.waitForDataBase()
         return self._datasource.DataBase.getConnection()
 
     def getContent(self):
-        self._close = True
         return self._getRowSet()
 
     def getSendJobs(self):
@@ -97,6 +102,8 @@ class MailSpooler(unohelper.Base,
         if self._hasRowSet():
             self._getRowSet().addRowSetListener(listener)
             self._executeRowSet()
+        else:
+            self._listeners.append(listener)
 
     def removeContentListener(self, listener):
         if self._hasRowSet():
@@ -150,10 +157,11 @@ class MailSpooler(unohelper.Base,
 
     # com.sun.star.lang.XComponent
     def dispose(self):
-        if self._datacall:
+        MailSpooler._count -= 1
+        if self._datacall is not None:
             self._datacall.dispose()
             self._datacall = None
-        if self._close and self._hasRowSet():
+        if MailSpooler._count == 0 and self._hasRowSet():
             self._getRowSet().close()
             MailSpooler._rowset = None
 
@@ -163,29 +171,33 @@ class MailSpooler(unohelper.Base,
         pass
 
     # method caller internally
+    def _initRowSet(self):
+        if not self._hasRowSet():
+            rowset = getRowSet(self._ctx)
+            rowset.Command = getConfiguration(self._ctx, g_identifier).getByName(self._table)
+            rowset.CommandType = TABLE
+            rowset.FetchSize = g_fetchsize
+            rowset.ActiveConnection = self._datasource.DataBase.getConnection()
+            MailSpooler._rowset = rowset
+            for listener in self._listeners:
+                rowset.addRowSetListener(listener)
+            rowset.execute()
+
     def _getDataCall(self):
         if self._datacall is None:
-            self._datasource.waitForDataBase()
             self._datacall = self._datasource.getDataCall()
         return self._datacall
 
     def _getRowSet(self):
-        if MailSpooler._rowset is None:
-            rowset = createService(self._ctx, 'com.sun.star.sdb.RowSet')
-            rowset.Command = self._table
-            rowset.CommandType = TABLE
-            rowset.FetchSize = g_fetchsize
-            rowset.ActiveConnection = self.getConnection()
-            MailSpooler._rowset = rowset
         return MailSpooler._rowset
 
     def _hasRowSet(self):
         return MailSpooler._rowset is not None
 
     def _executeRowSet(self):
-        if MailSpooler._rowset:
+        if self._hasRowSet():
             # FIXME: If RowSet.Filter is not assigned then unassigned, RowSet.RowCount is always 1
-            rowset = MailSpooler._rowset
+            rowset = self._getRowSet()
             rowset.ApplyFilter = True
             rowset.ApplyFilter = False
             rowset.execute()

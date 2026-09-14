@@ -30,13 +30,10 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt import XDialogEventHandler
+
 from com.sun.star.awt.tab import XTabPageContainerListener
 
 from com.sun.star.util import XCloseListener
-from com.sun.star.util import XModifyListener
-
-from com.sun.star.frame.DispatchResultState import SUCCESS
 
 from com.sun.star.sdbc import XRowSetListener
 
@@ -52,15 +49,13 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'ToogleSpooler':
-                control = event.Source.Model
-                control.Enabled = False
-                self._manager.toogleSpooler(control.State)
+            if method == 'ShowController':
+                self._manager.showController()
                 handled = True
             elif method == 'ClearLogger':
                 self._manager.clearLogger()
                 handled = True
-            elif method == 'Close':
+            elif method == 'CloseSpooler':
                 self._manager.closeSpooler()
                 handled = True
             return handled
@@ -68,9 +63,9 @@ class WindowHandler(unohelper.Base,
             print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
-        return ('ToogleSpooler',
+        return ('ShowController',
                 'ClearLogger'
-                'Close')
+                'CloseSpooler')
 
 
 class TabHandler(unohelper.Base,
@@ -146,22 +141,6 @@ class RowSetListener(unohelper.Base,
             self._manager.setDataModel(event.Source)
         except:
             print("RowSetListener.rowSetChanged() ERROR: %s" % traceback.format_exc())
-
-
-class LoggerListener(unohelper.Base,
-                     XModifyListener):
-    def __init__(self, callback):
-        self._callback = callback
-
-    # XModifyListener
-    def modified(self, event):
-        try:
-            self._callback()
-        except:
-            print("LoggerListener.modified() ERROR: %s" % traceback.format_exc())
-
-    def disposing(self, event):
-        pass
 
 
 class CloseListener(unohelper.Base,

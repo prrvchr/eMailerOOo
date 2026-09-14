@@ -53,7 +53,7 @@ import traceback
 
 
 class Mail(Batch):
-    def __init__(self, ctx, parent, cancel, resolver, sf, uf, export, batch, filter='html'):
+    def __init__(self, ctx, parent, resolver, sf, uf, export, batch, filter='html'):
         super().__init__(sf, batch, batch.Document, getTempFile(ctx).Uri, batch.Merge, filter)
         self._ctx = ctx
         folder, name = getLastNamedParts(batch.Document, '/')
@@ -61,7 +61,7 @@ class Mail(Batch):
         self._exists = sf.exists(batch.Document)
         if self._exists:
             self._job, self._ds, self._rs, self._rows, self._error = self._getJob(ctx, parent, resolver, batch, export)
-            self._attachments, self._missings = self._parseAttachments(cancel, sf, uf, batch)
+            self._attachments, self._missings = self._parseAttachments(sf, uf, batch)
         else:
             self._job = self._ds = self._rs = self._rows = self._error = None
             self._attachments = self._missings = ()
@@ -128,14 +128,13 @@ class Mail(Batch):
     def getJob(self):
         return self._job
 
-    def execute(self, cancel):
-        if not cancel.isSet():
-            if self._job:
-                self._fields = executeMerge(self._job, self)
-            elif self._filter:
-                executeExport(self._ctx, self, self._export)
-            if not self.hasInvalidFields() and not cancel.isSet():
-                self._fields = self._proccessAttachments(cancel)
+    def execute(self):
+        if self._job:
+            self._fields = executeMerge(self._job, self)
+        elif self._filter:
+            executeExport(self._ctx, self, self._export)
+        if not self.hasInvalidFields() and not cancel.isSet():
+            self._fields = self._proccessAttachments(cancel)
 
     def close(self):
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
@@ -270,12 +269,10 @@ class Mail(Batch):
             pass
         return subject
 
-    def _parseAttachments(self, cancel, sf, uf, batch):
+    def _parseAttachments(self, sf, uf, batch):
         attachments = []
         missings = []
         for attachment in batch.Attachments:
-            if cancel.isSet():
-                break
             url, merge, filter = parseUriFragment(uf, attachment, batch.Merge)
             if sf.exists(url):
                 attachments.append(Attachment(sf, batch, self.Folder, self._rows, url, merge, filter))
@@ -286,8 +283,6 @@ class Mail(Batch):
     def _proccessAttachments(self, cancel):
         fields = None
         for attachment in self.Attachments:
-            if cancel.isSet():
-                break
             if self._job and attachment.Merge:
                 fields = executeMerge(self._job, attachment)
                 if fields is not None:

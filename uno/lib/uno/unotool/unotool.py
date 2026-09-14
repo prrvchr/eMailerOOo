@@ -66,7 +66,17 @@ import binascii
 import datetime
 from packaging import version
 import traceback
+import socket
 
+
+def checkInternet(host="8.8.8.8", port=53, timeout=3):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            s.connect((host, port))
+        return True
+    except (OSError, socket.timeout):
+        return False
 
 def getConnectionMode(ctx, host, port=80):
     connector = getConnector(ctx)

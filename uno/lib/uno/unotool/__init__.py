@@ -31,6 +31,7 @@ from .taskevent import TaskEvent
 
 from .statusindicator import StatusIndicator
 
+from .unotool import checkInternet
 from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService

@@ -63,12 +63,15 @@ from .unotool import createMessageBox
 from .unotool import getConfiguration
 from .unotool import getDesktop
 from .unotool import getPathSettings
+from .unotool import getStringResource
 
 from .logger import getLogger
 
 from .helper import checkOAuth2
 from .helper import getMailSender
 
+from .configuration import g_check
+from .configuration import g_defaultlog
 from .configuration import g_identifier
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
@@ -76,7 +79,6 @@ from .configuration import g_mergerframe
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 from .configuration import g_spoolerframe
-from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
 
 import traceback
@@ -88,6 +90,8 @@ class Dispatch(unohelper.Base,
         self._ctx = ctx
         self._frame = frame
         self._listeners = []
+        self._resources = {'Title': 'Dispatch.ErrorBox.Title',
+                           'Message': 'Dispatch.ErrorBox.Message'}
 
     _datasource = None
     _checked = 0
@@ -113,7 +117,9 @@ class Dispatch(unohelper.Base,
 
 # Dispatch private methods
     def _dispatch(self, url, arguments, notifier=None):
-        if url.Path == 'ShowIspdb':
+        if g_check:
+            self._showMessageBox()
+        elif url.Path == 'ShowIspdb':
             self._dispatchIspdb(url, arguments, notifier)
         else:
             self._dispatchSpooler(url, arguments, notifier)
@@ -328,6 +334,16 @@ class Dispatch(unohelper.Base,
             print("Dispatch._getDocument() ERROR: %s" % traceback.format_exc())
 
     # Private methods
+
+    # Show MessageBox Error
+    def _showMessageBox(self):
+        resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
+        title = resolver.resolveString(self._resources.get('Title'))
+        message = resolver.resolveString(self._resources.get('Message'))
+        dialog = createMessageBox(self._ctx, title, message)
+        dialog.execute()
+        dialog.dispose()
+
     def _getNamedFrame(self, name):
         return getDesktop(self._ctx).findFrame(name, GLOBAL)
 

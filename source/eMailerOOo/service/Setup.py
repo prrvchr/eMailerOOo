@@ -27,43 +27,74 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .datasource import DataSource
+import unohelper
 
-from .dispatch import Dispatch
+from com.sun.star.lang import XServiceInfo
+from com.sun.star.task import XAsyncJob
 
-from .mailsend import MailSend
+from emailer import SetupManager
 
-from .mailservice import ImapService
-from .mailservice import Pop3Service
-from .mailservice import SmtpService
+from emailer import checkInternet
+from emailer import createMessageBox
+from emailer import getStringResource
 
-from .options import OptionsManager
+from emailer import g_identifier
 
-from .user import User
+import traceback
 
-from .setup import SetupManager
+# pythonloader looks for a static g_ImplementationHelper variable
+g_ImplementationHelper = unohelper.ImplementationHelper()
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.Setup'
+g_ServiceNames = ('io.github.prrvchr.eMailerOOo.Setup',
+                  'com.sun.star.task.Job')
 
-from .spooler import SpoolerManager
 
-from .transferable import Transferable
+class Setup(unohelper.Base,
+            XServiceInfo,
+            XAsyncJob):
+    def __init__(self, ctx):
+        self._ctx = ctx
+        self._job = "eMailerOOo.Setup"
+        self._name = 'SetupWindow'
+        self._code = 600
+        self._resources = {'Title': 'Setup.ErrorBox.Title',
+                           'Message': 'Setup.ErrorBox.Message'}
 
-from .unotool import checkInternet
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import getConfiguration
-from .unotool import getCurrentLocale
-from .unotool import getExtensionVersion
-from .unotool import getMimeTypeFactory
-from .unotool import getStringResource
-from .unotool import hasFrameInterface
+    # XAsyncJob
+    def executeAsync(self, arguments, listener):
+        try:
+            if checkInternet():
+                SetupManager(self._ctx, self._job, self._name, self._code)
+            else:
+                self._showMessageBox()
+        except Exception as e:
+            # FIXME: It is essential to notify LibreOffice of
+            # FIXME: the Job's completion so as not to block its loading.
+            pass
+        finally:
+            if listener is not None:
+                listener.jobFinished(self, None)
+        return None
 
-from .logger import getLogger
+    # XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
-from .configuration import g_check
-from .configuration import g_defaultlog
-from .configuration import g_fetchsize
-from .configuration import g_identifier
-from .configuration import g_mailservicelog
-from .configuration import g_spoolerlog
+    # Show MessageBox Error
+    def _showMessageBox(self):
+        resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
+        title = resolver.resolveString(self._resources.get('Title'))
+        message = resolver.resolveString(self._resources.get('Message'))
+        dialog = createMessageBox(self._ctx, title, message)
+        dialog.execute()
+        dialog.dispose()
+
+
+g_ImplementationHelper.addImplementation(Setup,
+                                         g_ImplementationName,
+                                         g_ServiceNames)
 

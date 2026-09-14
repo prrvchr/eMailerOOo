@@ -1,7 +1,5 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
@@ -25,45 +23,26 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
-
-from .datasource import DataSource
-
-from .dispatch import Dispatch
-
-from .mailsend import MailSend
-
-from .mailservice import ImapService
-from .mailservice import Pop3Service
-from .mailservice import SmtpService
-
-from .options import OptionsManager
-
-from .user import User
-
-from .setup import SetupManager
-
-from .spooler import SpoolerManager
-
-from .transferable import Transferable
-
-from .unotool import checkInternet
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import getConfiguration
-from .unotool import getCurrentLocale
-from .unotool import getExtensionVersion
-from .unotool import getMimeTypeFactory
-from .unotool import getStringResource
-from .unotool import hasFrameInterface
-
-from .logger import getLogger
-
-from .configuration import g_check
-from .configuration import g_defaultlog
-from .configuration import g_fetchsize
-from .configuration import g_identifier
-from .configuration import g_mailservicelog
-from .configuration import g_spoolerlog
-
+-->
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
+<oor:component-data
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office"
+  oor:name="Jobs">
+  <node oor:name="Jobs">
+    <node oor:name="eMailerOOo.Setup" oor:op="fuse">
+      <prop oor:name="Service">
+        <value>io.github.prrvchr.eMailerOOo.Setup</value>
+      </prop>
+    </node>
+  </node>
+  <node oor:name="Events">
+    <node oor:name="OnStartApp" oor:op="fuse">
+      <node oor:name="JobList">
+        <node oor:name="eMailerOOo.Setup" oor:op="fuse"/>
+      </node>
+    </node>
+  </node>
+</oor:component-data>

@@ -27,21 +27,20 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.mail import XMailUser
+from com.sun.star.mail import XMailUser  # noqa
 
 from com.sun.star.lang import XServiceInfo
 
-from emailer import User
+from emailer.user import User
 
-from emailer import executeDispatch
-from emailer import getConfiguration
+from emailer.unotool import getConfiguration
 
-from emailer import g_identifier
+from emailer.helper import showIspDB
 
-import traceback
+from emailer.configuration import g_identifier
+
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -58,8 +57,7 @@ class MailUser(unohelper.Base,
         senders = getConfiguration(ctx, g_identifier).getByName('Senders')
         if not senders.hasByName(sender):
             # FIXME: The Sender name must not be able to be changed (ie: ReadOnly)
-            arguments = {'Sender': sender, 'ReadOnly': True}
-            executeDispatch(ctx, 'emailer:ShowIspdb', **arguments)
+            showIspDB(ctx, Sender=sender, ReadOnly=True)
             # The IspDB Wizard has been canceled
             if not senders.hasByName(sender):
                 return None
@@ -84,14 +82,16 @@ class MailUser(unohelper.Base,
     def getConnectionContext(self, stype):
         return self._user.getConnectionContext(stype.value)
 
-
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
 
 g_ImplementationHelper.addImplementation(MailUser,                        # UNO object class
                                          g_ImplementationName,            # Implementation name

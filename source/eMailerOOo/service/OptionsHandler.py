@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.logging.LogLevel import SEVERE
@@ -35,14 +34,14 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 
-from emailer import OptionsManager
+from emailer.options.optionsmanager import OptionsManager
 
-from emailer import getLogger
+from emailer.logger.helper import getLogger
 
-from emailer import g_identifier
-from emailer import g_defaultlog
+from emailer.configuration import g_defaultlog
 
 import traceback
+
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -64,7 +63,7 @@ class OptionsHandler(unohelper.Base,
             handled = False
             if method == 'external_event':
                 if event == 'initialize':
-                    self._manager = OptionsManager(self._ctx, self._logger, window)
+                    self._manager = OptionsManager(self._ctx, window, self._logger)
                     handled = True
                 elif event == 'ok':
                     self._manager.saveSetting()
@@ -78,6 +77,9 @@ class OptionsHandler(unohelper.Base,
             elif method == 'ShowSpooler':
                 self._manager.showSpooler()
                 handled = True
+            elif method == 'ShowController':
+                self._manager.showController()
+                handled = True
             elif method == 'ShowDataBase':
                 self._manager.showDataBase()
                 handled = True
@@ -90,15 +92,19 @@ class OptionsHandler(unohelper.Base,
             return ('external_event',
                     'ShowIspdb',
                     'ShowSpooler',
+                    'ShowController',
                     'ShowDataBase')
 
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
 
 g_ImplementationHelper.addImplementation(OptionsHandler,                  # UNO object class
                                          g_ImplementationName,            # Implementation name

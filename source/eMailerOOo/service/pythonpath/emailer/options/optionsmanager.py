@@ -27,12 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
-from com.sun.star.frame.DispatchResultState import SUCCESS
-
 from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionsmodel import OptionsModel
 
@@ -42,68 +37,134 @@ from .optionshandler import OptionsListener
 
 from ..listener import DispatchListener
 
-from ..logger import LogManager
+from ..setup.setupcheck import SetupCheck
 
-from ..unotool import executeDesktopDispatch
+from .logger.logmanager import LogManager
+
+from .setup.setuphandler import SetupHandler
+
+from .setup.setupmanager import SetupManager
+
 from ..unotool import getDesktop
 
+from ..setup.helper import getSetupListener
+from ..setup.helper import removeSetupListener
+from ..setup.helper import showSetup
+
+from ..helper import getExtensions
+from ..helper import showController
+from ..helper import showIspDB
+from ..helper import showSpooler
+
+from ..jdbcdriver.configuration import g_agent
+from ..jdbcdriver.configuration import g_java
+from ..jdbcdriver.configuration import g_protocol
+from ..jdbcdriver.configuration import g_script
+from ..jdbcdriver.configuration import g_service
+
+from ..config.configuration import State
+
 from ..configuration import g_defaultlog
-from ..configuration import g_spoolerlog
+from ..configuration import g_extension
 from ..configuration import g_mailservicelog
+from ..configuration import g_spoolerlog
 
-import traceback
 
-
-class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, logger, window):
+class OptionsManager():
+    def __init__(self, ctx, window, logger):
         self._ctx = ctx
+        self._checker = None
+        self._disposed = False
+        self._java = g_extension, g_java, g_script
+        self._agent = g_service, g_protocol, g_agent
         self._logger = logger
         self._model = OptionsModel(ctx)
-        window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(window)
-        self._view.initView(OptionsManager._restart, *self._model.getViewData())
-        self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
+        self._view = OptionsView(ctx, window)
+        self._logmanager = LogManager(ctx, self._view.getFrame(), 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
+        self._setup = SetupManager(ctx, self._view.getSetup(), SetupHandler(self), self._model.getConfig())
+        self._listener = OptionsListener(self)
+        window.addEventListener(self._listener)
+        self._slistener = getSetupListener(ctx, self)
         self._logmanager.initView()
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
+        self._view.getLayout().addLayout(self._logmanager.getLayout()).addLayout(self._setup.getLayout())
+        self._loadView(self.init)
 
-    _restart = False
+    def init(self, state):
+        self._checker = None
+        if self._disposed:
+            return
+        self._setup.init()
+        self._view.initView(*self._model.getInitData(state))
+        self._logmanager.loadSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'init', 161)
 
-    def dispose(self):
+    def refresh(self, state):
+        self._checker = None
+        if self._disposed:
+            return
+        self._view.refreshView(*self._model.getRefreshData(state))
+
+    def closeSetup(self):
+        self._slistener = None
+        if self._disposed:
+            return
+        self._loadView(self.refresh)
+
+    def dispose(self, window):
+        if self._disposed:
+            return
+        self._disposed = True
         self._logmanager.dispose()
+        self._setup.dispose()
         self._view.dispose()
+        window.removeEventListener(self._listener)
+        if self._slistener:
+            removeSetupListener(self._ctx, self._slistener)
+            self._slistener = None
 
     def loadSetting(self):
-        self._view.initView(OptionsManager._restart, *self._model.getViewData())
-        self._logmanager.loadSetting()
-        self._logger.logprb(INFO, 'OptionsManager', 'loadSetting', 161)
+        self._loadView(self.init)
 
     def saveSetting(self):
-        option = self._model.saveTimeout(self._view.getTimeout())
+        if self._checker:
+            self._checker.cancel()
+        self._setup.saveSetting()
+        option = self._model.saveData(*self._view.getData())
         log = self._logmanager.saveSetting()
         if log:
-            OptionsManager._restart = True
-            self._view.setWarning(True, self._model.isInstrumented())
+            State.restart = True
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting', 171, option, log)
 
     def changeTimeout(self, timeout):
         self._model.setTimeout(timeout)
 
     def showIspdb(self):
-        # XXX: If we want to be able to display warning message boxes,
-        # XXX: then we must not use DispatchHelper.
-        executeDesktopDispatch(self._ctx, 'emailer:ShowIspdb')
+        showIspDB(self._ctx, Parent=self._view.getWindow())
 
     def showSpooler(self):
-        # XXX: If we want to be able to display warning message boxes,
-        # XXX: then we must not use DispatchHelper.
-        executeDesktopDispatch(self._ctx, 'emailer:ShowSpooler', DispatchListener(self))
+        showSpooler(self._ctx, Dispatch=DispatchListener(self))
 
-# XDispatchResultListener
-    def dispatchFinished(self, notification):
-        if notification.State == SUCCESS:
-            self._view.updateDataBase(self._model.getDataBaseStatus())
+    def showController(self):
+        showController(self._ctx, Dispatch=DispatchListener(self))
 
     def showDataBase(self):
-        url = self._model.getDataBaseUrl()
+        url = self._model.getDataSourceUrl()
         getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
 
+    def showSetup(self):
+        mode = self._setup.getSetupMode()
+        showSetup(self._ctx, Dispatch=DispatchListener(self), Mode=mode)
+
+    def dispatchFinished(self, _notification):
+        if self._disposed:
+            return
+        self._loadView(self.refresh)
+
+    def _loadView(self, callback):
+        if self._disposed:
+            return
+        mode = self._setup.getSetupMode()
+        database = self._model.getDataSourceUrl()
+        self._checker = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
+        self._checker.start()

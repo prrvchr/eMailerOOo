@@ -29,11 +29,15 @@
 
 import unohelper
 
+from com.sun.star.awt import XWindowListener
+
 from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame import XTerminateListener
 
 from com.sun.star.io import XStreamListener
+
+from com.sun.star.mail import XMailSpoolerListener
 
 from com.sun.star.task import XJobListener
 
@@ -49,13 +53,10 @@ class TerminateListener(unohelper.Base,
 
 # XTerminateListener
     def queryTermination(self, event):
-        try:
-            self._manager.dispose()
-        except:
-            print("TerminateListener.queryTermination() ERROR: %s" % traceback.format_exc())
+        self._manager.queryTermination(event.Source)
 
     def notifyTermination(self, event):
-        pass
+        self._manager.notifyTermination(event.Source)
 
     def disposing(self, source):
         pass
@@ -70,11 +71,21 @@ class DispatchListener(unohelper.Base,
     def dispatchFinished(self, notification):
         try:
             self._manager.dispatchFinished(notification)
-        except:
+        except Exception:
             print("DispatchListener.dispatchFinished() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, source):
         pass
+
+
+class SpoolerListener(unohelper.Base,
+                      XMailSpoolerListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XMailSpoolerListener
+    def spoolerToggleState(self, event, success):
+        self._manager.spoolerToggleState(event.Source, success)
 
 
 class JobListener(unohelper.Base,
@@ -85,8 +96,8 @@ class JobListener(unohelper.Base,
     # XJobListener
     def jobFinished(self, job, result):
         try:
-            manager.jobFinished(job, result)
-        except:
+            self._manager.jobFinished(job, result)
+        except Exception:
             print("JobListener.jobFinished() ERROR: %s" % traceback.format_exc())
 
     def disposing(self, source):
@@ -115,6 +126,28 @@ class StreamListener(unohelper.Base,
         pass
 
 
+class WindowListener(unohelper.Base,
+                     XWindowListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XWindowListener
+    def windowShown(self, event):
+        self._manager.windowShown(event.Source)
+
+    def windowHidden(self, event):
+        pass
+
+    def windowMoved(self, event):
+        pass
+
+    def windowResized(self, event):
+        pass
+
+    def disposing(self, event):
+        pass
+
+
 class CloseListener(unohelper.Base,
                     XCloseListener):
     def __init__(self, manager):
@@ -129,4 +162,3 @@ class CloseListener(unohelper.Base,
 
     def disposing(self, event):
         pass
-

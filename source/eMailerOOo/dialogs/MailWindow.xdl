@@ -30,7 +30,7 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="3" dlg:width="285" dlg:height="5" dlg:help-text="&amp;MailWindow.FixedLine1.HelpText" dlg:value="&amp;MailWindow.FixedLine1.Label"/>
+    <dlg:fixedline dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="0" dlg:top="5" dlg:width="285" dlg:height="5" dlg:help-text="&amp;MailWindow.FixedLine1.HelpText" dlg:value="&amp;MailWindow.FixedLine1.Label"/>
     <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="6" dlg:top="5" dlg:width="120" dlg:height="15" dlg:help-text="&amp;MailWindow.Label1.HelpText" dlg:value="&amp;MailWindow.Label1.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="23" dlg:width="45" dlg:height="15" dlg:help-text="&amp;MailWindow.Label2.HelpText" dlg:value="&amp;MailWindow.Label2.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="3" dlg:left="60" dlg:top="23" dlg:width="130" dlg:height="15" dlg:help-text="&amp;MailWindow.ListBox1.HelpText" dlg:spin="true">
@@ -66,7 +66,7 @@
     <dlg:text dlg:id="Label7" dlg:tab-index="17" dlg:left="10" dlg:top="100" dlg:width="40" dlg:height="15" dlg:help-text="&amp;MailWindow.Label7.HelpText" dlg:value="&amp;MailWindow.Label7.Label" dlg:valign="center"/>
     <dlg:text dlg:id="Label8" dlg:tab-index="18" dlg:left="60" dlg:top="100" dlg:width="165" dlg:height="15" dlg:help-text="&amp;MailWindow.Label8.HelpText" dlg:value="&amp;MailWindow.Label8.Label" dlg:valign="center"/>
     <dlg:button dlg:id="CommandButton5" dlg:tab-index="19" dlg:disabled="true" dlg:left="230" dlg:top="100" dlg:width="50" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton5.HelpText" dlg:value="&amp;MailWindow.CommandButton5.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewHtml" script:language="UNO"/>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewHTML" script:language="UNO"/>
     </dlg:button>
     <dlg:text dlg:id="Label9" dlg:tab-index="20" dlg:left="10" dlg:top="120" dlg:width="45" dlg:height="15" dlg:help-text="&amp;MailWindow.Label9.HelpText" dlg:value="&amp;MailWindow.Label9.Label" dlg:valign="center"/>
     <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="21" dlg:left="105" dlg:top="123" dlg:width="60" dlg:height="8" dlg:help-text="&amp;MailWindow.CheckBox2.HelpText" dlg:value="&amp;MailWindow.CheckBox2.Label" dlg:valign="center" dlg:checked="false"/>
@@ -88,7 +88,7 @@
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:MoveAfter" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton10" dlg:tab-index="29" dlg:disabled="true" dlg:left="230" dlg:top="180" dlg:width="24" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton10.HelpText" dlg:value="&amp;MailWindow.CommandButton10.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewPdf" script:language="UNO"/>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewPDF" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton11" dlg:tab-index="30" dlg:disabled="true" dlg:left="256" dlg:top="180" dlg:width="24" dlg:height="15" dlg:help-text="&amp;MailWindow.CommandButton11.HelpText" dlg:value="&amp;MailWindow.CommandButton11.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewAttachment" script:language="UNO"/>

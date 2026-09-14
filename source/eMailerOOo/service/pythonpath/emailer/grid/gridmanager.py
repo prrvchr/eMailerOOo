@@ -33,12 +33,11 @@ from .gridmodel import GridModel
 
 from collections import OrderedDict
 import json
-import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, url, window, setting, selection, resource=None, maxi=None, multi=False):
-        GridManagerBase.__init__(self, ctx, url, GridModel(), window, setting, selection, resource, maxi, multi)
+    def __init__(self, ctx, url, window, size, setting, selection, resource=None, maxi=None, multi=False):
+        GridManagerBase.__init__(self, ctx, url, GridModel(), window, size, setting, selection, resource, maxi, multi)
 
 # GridManager setter methods
     def setDataModel(self, rowset, identifiers):
@@ -70,7 +69,7 @@ class GridManager(GridManagerBase):
         # XXX: After changing the data, the sort order must be activated if needed...
         if changed:
             index, ascending = self._getSavedOrders(datasource, table)
-            if index != -1: 
+            if index != -1:
                 self.Model.sortByColumn(index, ascending)
             else:
                 self.Model.removeColumnSort()

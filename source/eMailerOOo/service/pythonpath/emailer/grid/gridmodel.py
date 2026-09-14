@@ -31,8 +31,6 @@ from .grid import GridModel as GridModelBase
 
 from ..dbtool import getResultValue
 
-import traceback
-
 
 class GridModel(GridModelBase):
     def __init__(self, rowset=None):
@@ -43,25 +41,26 @@ class GridModel(GridModelBase):
     @property
     def RowCount(self):
         return self._row
+
     @property
     def ColumnCount(self):
         return self._column
 
 # XCloneable
     def createClone(self):
-         return GridModel(self._rowset)
+        return GridModel(self._rowset)
 
 # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row + 1)
-        return  getResultValue(self._resultset, column + 1)
+        return getResultValue(self._resultset, column + 1)
 
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
 
     def getRowData(self, row):
         data = []
-        self._resultset.absolute(row +1)
+        self._resultset.absolute(row + 1)
         for column in range(self._column):
             data.append(getResultValue(self._resultset, column + 1))
         return tuple(data)
@@ -74,7 +73,6 @@ class GridModel(GridModelBase):
             self.rowsRemoved(-1, -1)
 
     def setRowSetData(self, rowset):
-        row = self._row
         self._resultset, self._row, self._column = self._getRowsetData(rowset)
         if self._row:
             self.rowsInserted(0, self._row)
@@ -82,6 +80,5 @@ class GridModel(GridModelBase):
 # GridModel private methods
     def _getRowsetData(self, rowset):
         if rowset is None:
-            return None, 0 , 0
+            return None, 0, 0
         return rowset.createResultSet(), rowset.RowCount, rowset.getMetaData().getColumnCount()
-

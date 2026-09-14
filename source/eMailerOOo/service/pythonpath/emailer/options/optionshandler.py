@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.frame import XDispatchResultListener
+
 from com.sun.star.lang import XEventListener
 
 import traceback
@@ -40,9 +42,24 @@ class OptionsListener(unohelper.Base,
         self._manager = manager
 
 # XEventListener
-    def disposing(self, source):
+    def disposing(self, _source):
         try:
             self._manager.dispose()
-        except:
+        except Exception:
             print("OptionsListener.disposing() ERROR: %s" % traceback.format_exc())
 
+
+class DispatchListener(unohelper.Base,
+                       XDispatchResultListener):
+    def __init__(self, callback):
+        self._callback = callback
+
+    # XDispatchResultListener
+    def dispatchFinished(self, notification):
+        try:
+            self._callback(notification)
+        except Exception:
+            print("DispatchListener.dispatchFinished() ERROR: %s" % traceback.format_exc())
+
+    def disposing(self, source):
+        pass

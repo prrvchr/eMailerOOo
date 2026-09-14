@@ -33,4 +33,3 @@ from .gridmodel import GridModel
 
 from .grid import GridDataListener
 from .grid import GridSelectionListener
-

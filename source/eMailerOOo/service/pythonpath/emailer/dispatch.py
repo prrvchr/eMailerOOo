@@ -70,8 +70,8 @@ from .logger import getLogger
 from .helper import checkOAuth2
 from .helper import getMailSender
 
-from .oauth20 import g_checkSetup
-
+from .configuration import g_check
+from .configuration import g_defaultlog
 from .configuration import g_identifier
 from .configuration import g_ispdb_page
 from .configuration import g_ispdb_paths
@@ -79,7 +79,6 @@ from .configuration import g_mergerframe
 from .configuration import g_merger_page
 from .configuration import g_merger_paths
 from .configuration import g_spoolerframe
-from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
 
 import traceback
@@ -118,7 +117,7 @@ class Dispatch(unohelper.Base,
 
 # Dispatch private methods
     def _dispatch(self, url, arguments, notifier=None):
-        if g_checkSetup:
+        if g_check:
             self._showMessageBox()
         elif url.Path == 'ShowIspdb':
             self._dispatchIspdb(url, arguments, notifier)

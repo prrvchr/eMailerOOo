@@ -34,41 +34,39 @@ from com.sun.star.task import XAsyncJob
 
 from emailer import SetupManager
 
+from emailer import checkInternet
 from emailer import createMessageBox
 from emailer import getStringResource
 
-from emailer import g_checkSetup
 from emailer import g_identifier
 
-
-import socket
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'io.github.prrvchr.eMailerOOo.MailerSetup'
-g_ServiceNames = ('io.github.prrvchr.eMailerOOo.MailerSetup',
+g_ImplementationName = 'io.github.prrvchr.eMailerOOo.Setup'
+g_ServiceNames = ('io.github.prrvchr.eMailerOOo.Setup',
                   'com.sun.star.task.Job')
 
 
-class MailerSetup(unohelper.Base,
-                  XServiceInfo,
-                  XAsyncJob):
+class Setup(unohelper.Base,
+            XServiceInfo,
+            XAsyncJob):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._job = "MailerSetup"
+        self._job = "eMailerOOo.Setup"
         self._name = 'SetupWindow'
-        self._resources = {'Title': 'MailerSetup.ErrorBox.Title',
-                           'Message': 'MailerSetup.ErrorBox.Message'}
+        self._code = 600
+        self._resources = {'Title': 'Setup.ErrorBox.Title',
+                           'Message': 'Setup.ErrorBox.Message'}
 
     # XAsyncJob
     def executeAsync(self, arguments, listener):
         try:
-            if g_checkSetup:
-                if self._checkInternet():
-                    SetupManager(self._ctx, self._job, self._name)
-                else:
-                    self._showMessageBox()
+            if checkInternet():
+                SetupManager(self._ctx, self._job, self._name, self._code)
+            else:
+                self._showMessageBox()
         except Exception as e:
             # FIXME: It is essential to notify LibreOffice of
             # FIXME: the Job's completion so as not to block its loading.
@@ -95,17 +93,8 @@ class MailerSetup(unohelper.Base,
         dialog.execute()
         dialog.dispose()
 
-    def _checkInternet(self, host="8.8.8.8", port=53, timeout=3):
-        try:
-            socket.setdefaulttimeout(timeout)
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((host, port))
-            return True
-        except (OSError, socket.timeout):
-            return False
 
-
-g_ImplementationHelper.addImplementation(MailerSetup,
+g_ImplementationHelper.addImplementation(Setup,
                                          g_ImplementationName,
                                          g_ServiceNames)
 

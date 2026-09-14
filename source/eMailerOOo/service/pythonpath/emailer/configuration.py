@@ -60,4 +60,4 @@ g_chunk = 320 * 1024
 # The URL separator
 g_separator = '/'
 
-
+g_check = False

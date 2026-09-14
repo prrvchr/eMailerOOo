@@ -31,6 +31,7 @@
 #include <com/sun/star/sdbc/XConnection.idl>
 #include <com/sun/star/sdbc/XResultSet.idl>
 #include <com/sun/star/sdbc/XRowSetListener.idl>
+#include <com/sun/star/task/XJobListener.idl>
 #include <com/sun/star/task/XStatusIndicator.idl>
 
 module com { module sun { module star { module mail {
@@ -94,6 +95,20 @@ interface XMailSpooler : com::sun::star::lang::XServiceInfo
                    [in] short State);
 
     sequence<long> resubmitJobs([in] sequence<long> JobIds);
+
+    void start([in] com::sun::star::task::XStatusIndicator Indicator);
+
+    void stop();
+
+    boolean isRunning();
+
+    void addSpoolerListener([in] XMailSpoolerListener Listener);
+
+    void removeSpoolerListener([in] XMailSpoolerListener Listener);
+
+    void addStatusIndicator([in] com::sun::star::task::XStatusIndicator Indicator);
+
+    void removeStatusIndicator([in] com::sun::star::task::XStatusIndicator Indicator);
 
 };
 

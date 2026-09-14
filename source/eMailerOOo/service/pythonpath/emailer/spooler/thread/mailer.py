@@ -33,7 +33,6 @@ from com.sun.star.frame.DispatchResultState import FAILURE
 
 from .worker import Dispatcher
 
-from ...unotool import StatusIndicator
 from ...unotool import getTempFile
 
 from ...dbtool import getObjectSequenceFromResult
@@ -44,11 +43,11 @@ import traceback
 
 
 class Mailer(Dispatcher):
-    def __init__(self, ctx, cancel, frame, logger, jobs, notifier, source):
-        super().__init__(ctx, cancel, StatusIndicator(frame), logger)
+    def __init__(self, ctx, caller, parent, progress, logger, jobs, notifier, source):
+        super().__init__(ctx, caller, progress, logger)
         self._cls = 'Mailer'
         self._jobs = jobs
-        self._parent = frame.getComponentWindow().getPeer()
+        self._parent = parent
         self._notifier = notifier
         folder = getTempFile(self._ctx).Uri
         struct = 'com.sun.star.frame.DispatchResultEvent'

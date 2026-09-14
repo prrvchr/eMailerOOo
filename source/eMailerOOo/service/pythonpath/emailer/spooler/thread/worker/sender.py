@@ -37,7 +37,7 @@ from com.sun.star.uno import Exception as UnoException
 
 from .type import Manager
 
-from ....transferable import Transferable
+from ....unotool import Transferable
 
 from ....unotool import getResourceLocation
 
@@ -53,82 +53,89 @@ from ....configuration import g_logourl
 from ....configuration import g_logo
 
 import traceback
+from emailer.unotool.unotool import getLastNamedParts
 
 
 class Sender(Manager):
-    def __init__(self, ctx, logger, resource, cancel, progress, input):
-        super().__init__(cancel, progress, input)
+    def __init__(self, ctx, caller, callback, logger, resource, progress, input):
+        super().__init__(progress, input)
         self._ctx = ctx
         self._cls = 'Sender'
+        self._caller = caller
+        self._callback = callback
+        self._spooler = getMailSpooler(ctx)
+        self._server = None
+        self._user = None
         self._logger = logger
         self._resource = resource
-        self._transferable = Transferable(ctx, self._logger)
+        self._transferable = Transferable(ctx)
         logo = '%s/%s' % (g_extension, g_logo)
         self._logo = getResourceLocation(ctx, g_identifier, logo)
+        self._batchid = None
+        self._threadid = None
+        self._total = 0
 
-    def run(self):
+
+    def notify(self, data):
         mtd = 'run'
-        spooler = getMailSpooler(self._ctx)
-        server = user = batchid = threadid = None
-        total = 0
-        while self._hasTasks():
+        if not self._input.empty():
             job, mail, email = self._input.get()
             if self.isCanceled():
                 msg = self._logger.resolveString(self._resource + 31)
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
-                break
-            recipient = mail.getRecipient(job)
-            msg = self._logger.resolveString(self._resource + 32, job, recipient)
-            self._logger.logp(INFO, self._cls, mtd, msg)
-            self._setProgress(msg, -10)
-            if mail.BatchId != batchid:
-                user = getMailUser(self._ctx, mail.Sender)
-                if user is None:
-                    self._input.task_done()
-                    self._taskDone()
-                    msg = self._logger.resolveString(self._resource + 33, mail.Sender)
-                    self._logger.logp(SEVERE, self._cls, mtd, msg)
-                    break
-                batchid = mail.BatchId
-                if server:
-                    server.disconnect()
-                server = getMailServer(self._ctx, user, SMTP)
-                if user.supportIMAP() and mail.Merge:
-                    threadid = self._createThread(user, mail)
-                else:
-                    threadid = None
-            if threadid:
-                email.ThreadId = threadid
-            if user.useReplyTo():
-                email.ReplyToAddress = user.getReplyToAddress()
-            try:
-                server.sendMailMessage(email)
-            except UnoException as e:
-                spooler.setJobState(job, 2)
-                msg = self._logger.resolveString(self._resource + 34, e.Message, job, recipient)
-                level = SEVERE
             else:
-                total += 1
-                spooler.updateJob(mail.BatchId, job, recipient, email.ThreadId, email.MessageId, email.ForeignId, 1)
-                msg = self._logger.resolveString(self._resource + 35, job, recipient)
-                level = INFO
-            self._logger.logp(level, self._cls, mtd, msg)
-            self._setProgress(msg, -10)
-            self._input.task_done()
-            self._taskDone()
+                recipient = mail.getRecipient(job)
+                msg = self._logger.resolveString(self._resource + 32, job, recipient)
+                self._logger.logp(INFO, self._cls, mtd, msg)
+                self._setProgress(msg, -10)
+                if mail.BatchId != self._batchid:
+                    self._user = getMailUser(self._ctx, mail.Sender)
+                    if self._user is None:
+                        self._input.task_done()
+                        msg = self._logger.resolveString(self._resource + 33, mail.Sender)
+                        self._logger.logp(SEVERE, self._cls, mtd, msg)
+                    else:
+                        self._batchid = mail.BatchId
+                        if self._server:
+                            self._server.disconnect()
+                        self._server = getMailServer(self._ctx, self._user, SMTP)
+                        if self._user.supportIMAP() and mail.Merge:
+                            self._threadid = self._createThread(mail)
+                        else:
+                            self._threadid = None
+                if self._threadid:
+                    email.ThreadId = self._threadid
+                if self._user.useReplyTo():
+                    email.ReplyToAddress = self._user.getReplyToAddress()
+                try:
+                    self._server.sendMailMessage(email)
+                except UnoException as e:
+                    self._spooler.setJobState(job, 2)
+                    msg = self._logger.resolveString(self._resource + 34, e.Message, job, recipient)
+                    level = SEVERE
+                else:
+                    self._total += 1
+                    self._spooler.updateJob(mail.BatchId, job, recipient, email.ThreadId, email.MessageId, email.ForeignId, 1)
+                    msg = self._logger.resolveString(self._resource + 35, job, recipient)
+                    level = INFO
+                self._logger.logp(level, self._cls, mtd, msg)
+                self._setProgress(msg, -10)
+                self._input.task_done()
+        if self.isCanceled() or self._input.empty():
+            if self._server:
+                self._server.disconnect()
+            self._spooler.dispose()
             if self.isCanceled():
                 msg = self._logger.resolveString(self._resource + 31)
                 self._logger.logp(SEVERE, self._cls, mtd, msg)
-                break
-        if server:
-            server.disconnect()
-        spooler.dispose()
-        msg = self._logger.resolveString(self._resource + 36, total)
-        self._logger.logp(INFO, self._cls, mtd, msg)
+            msg = self._logger.resolveString(self._resource + 36, self._total)
+            self._logger.logp(INFO, self._cls, mtd, msg)
+        else:
+            self._caller.addCallback(self, None)
 
-    def _createThread(self, user, mail):
+    def _createThread(self, mail):
         threadid = None
-        server = getMailServer(self._ctx, user, IMAP)
+        server = getMailServer(self._ctx, self._user, IMAP)
         folder = server.getSentFolder()
         if server.hasFolder(folder):
             subject = mail.Subject
@@ -154,6 +161,7 @@ class Sender(Manager):
             tags = '<ol><li>%s</li></ol>' % self._getAttachments(mail.Attachments, tag, sep)
         else:
             tags = '<p>%s</p>' % self._logger.resolveString(1555)
+        path, name = getLastNamedParts(batch.Document, g_sep)
         logo = getMessageImage(self._ctx, self._logo)
         return '''\
 <!DOCTYPE html>
@@ -172,7 +180,7 @@ class Sender(Manager):
   </body>
 </html>
 ''' % (g_extension, logo, g_logourl, title, message, mail.Subject,
-       label, mail.Document, mail.Title, files, tags)
+       label, batch.Document, name, files, tags)
 
     def _getAttachments(self, attachments, tag, sep):
         urls = []

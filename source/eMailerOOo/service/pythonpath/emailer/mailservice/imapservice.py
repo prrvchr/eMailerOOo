@@ -27,8 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
+
+from com.sun.star.io import ConnectException
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -43,7 +44,6 @@ from com.sun.star.lang import EventObject
 from com.sun.star.io import AlreadyConnectedException
 from com.sun.star.io import NotConnectedException
 
-from com.sun.star.mail import MailException
 from com.sun.star.mail import XImapService
 
 from .helper import getHttpProvider
@@ -65,7 +65,6 @@ from imapclient.imapclient import SENT
 from imapclient.exceptions import IMAPClientError
 
 from email.base64mime import body_encode as encode_base64
-import traceback
 
 
 class ImapService(unohelper.Base,
@@ -78,9 +77,9 @@ class ImapService(unohelper.Base,
             logger.logprb(INFO, self._cls, mtd, 301)
         self._providers = providers
         self._listeners = []
-        self._supportedconnection =     ('Insecure', 'SSL', 'TLS')
+        self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
-        self._supportedmechanism =      ('OAUTHBEARER', 'XOAUTH2')
+        self._supportedmechanism = ('OAUTHBEARER', 'XOAUTH2')
         self._mechanism = 'AUTH='
         self._server = None
         self._context = None
@@ -278,10 +277,9 @@ class ImapService(unohelper.Base,
                 if mechanism in features:
                     parameters = self._getTokenParameters(mechanism, host)
                     token = getOAuth2TokenWithParameters(request, parameters, port)
-                    callable = lambda x: encode_base64(token.encode(), eol='')
-                    #callable = lambda x: token
                     try:
-                        code = server.sasl_login(mechanism, callable)
+                        code = server.sasl_login(mechanism,
+                                                 lambda _: encode_base64(token.encode(), eol=''))
                     except IMAPClientError as e:
                         ex = e
                         continue
@@ -318,7 +316,7 @@ class ImapService(unohelper.Base,
             find = True
         return find
 
-    def _uploadHttpMessage(self, folder, message):
+    def _uploadHttpMessage(self, _folder, message):
         mtd = '_uploadHttpMessage'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 371, message.Subject)
@@ -362,4 +360,3 @@ class ImapService(unohelper.Base,
 
     def _getProvider(self):
         return self._providers.getByName(self._provider)
-

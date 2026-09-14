@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.datatransfer import XTransferableFactory
@@ -35,13 +34,6 @@ from com.sun.star.datatransfer import XTransferableFactory
 from com.sun.star.lang import XServiceInfo
 
 from emailer import Transferable
-
-from emailer import getLogger
-
-from emailer import g_identifier
-from emailer import g_mailservicelog
-
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -53,11 +45,12 @@ class TransferableFactory(unohelper.Base,
                           XServiceInfo,
                           XTransferableFactory):
     def __init__(self, ctx):
-        self._transferable = Transferable(ctx, getLogger(ctx, g_mailservicelog))
+        self._transferable = Transferable(ctx)
 
     @property
     def Encoding(self):
         return self._transferable.Encoding
+
     @Encoding.setter
     def Encoding(self, encoding):
         self._transferable.Encoding = encoding
@@ -76,14 +69,16 @@ class TransferableFactory(unohelper.Base,
     def getByString(self, data):
         return self._transferable.getByString(data)
 
-
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
 
 g_ImplementationHelper.addImplementation(TransferableFactory,             # UNO object class
                                          g_ImplementationName,            # Implementation name

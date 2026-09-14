@@ -32,8 +32,8 @@
   <identifier value="io.github.prrvchr.eMailerOOo"/>
   <platform value="all"/>
   <dependencies>
-    <d:OpenOffice.org-minimal-version value="7.5" d:name="LibreOffice 7.5"/>
-    <l:LibreOffice-minimal-version value="7.5" l:name="LibreOffice 7.5"/>
+    <d:OpenOffice.org-minimal-version value="7.1" d:name="LibreOffice 7.1"/>
+    <l:LibreOffice-minimal-version value="7.1" l:name="LibreOffice 7.1"/>
   </dependencies>
   <update-information>
     <src xlink:href="https://github.com/prrvchr/eMailerOOo/releases/latest/download/eMailerOOo.update.xml"/>

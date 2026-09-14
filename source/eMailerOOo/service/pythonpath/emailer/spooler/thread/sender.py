@@ -34,8 +34,7 @@ from com.sun.star.ucb.ConnectionMode import ONLINE
 
 from .worker import Dispatcher
 
-from ...unotool import StatusIndicator
-from ...unotool import getConnectionMode
+from ...unotool import checkInternet
 
 from ...dbtool import getObjectSequenceFromResult
 
@@ -48,31 +47,25 @@ import traceback
 
 
 class Sender(Dispatcher):
-    def __init__(self, ctx, cancel, frame, logger, listeners):
-        super().__init__(ctx, cancel, StatusIndicator(frame), logger)
+    def __init__(self, ctx, spooler, callback, parent, progress, logger, cancel):
+        super().__init__(ctx, callback, progress, logger, cancel)
         self._cls = 'Sender'
-        self._parent = frame.getComponentWindow().getPeer()
-        self._listeners = listeners
-        self._queue = Queue()
+        self._spooler = spooler
+        self._parent = parent
         self._resource = 700
-        self._jobs = []
         self.start()
 
     # Private getter methods
     def _getBatchs(self):
-        spooler = getMailSpooler(self._ctx)
-        result = spooler.getSendJobs()
+        result = self._spooler.getSendJobs()
         batchs = getObjectSequenceFromResult(result)
         result.close()
-        spooler.dispose()
         return batchs
 
     def _isOffLine(self):
-        return getConnectionMode(self._ctx, *g_dns) != ONLINE
+        return not checkInternet()
 
     def _notifyClosed(self, value=100):
         super()._notifyClosed(value)
-        for listener in self._listeners:
-            listener.closed()
-        self._cancel.set()
+        self._callback()
 

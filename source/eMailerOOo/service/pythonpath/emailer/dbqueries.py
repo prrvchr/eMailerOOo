@@ -27,18 +27,18 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .logger import getLogger
 
 from .configuration import g_errorlog
+
 g_basename = 'dbqueries'
 
 
-def getSqlQuery(ctx, name, format=None):
+def getSqlQuery(ctx, name, options=None):
 
-# DataBase creation Queries
+    # DataBase creation Queries
     # Create View Queries
     if name == 'getSpoolerViewCommand':
         c1 = 'R."JobId"'
@@ -57,18 +57,18 @@ def getSqlQuery(ctx, name, format=None):
         c14 = 'S."ThreadId"'
         c15 = 'S."Created" AS "Submit"'
         c16 = 'R."Modified" AS "Sending"'
-        c = (c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16)
+        c = (c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16)
         f1 = '%(Catalog)s.%(Schema)s."Senders" AS S'
         f2 = 'INNER JOIN %(Catalog)s.%(Schema)s."Recipients" AS R ON R."BatchId" = S."BatchId"'
-        f = (f1,f2)
+        f = (f1, f2)
         p = (', '.join(c), ' '.join(f))
         command = 'SELECT %s FROM %s;' % p
-        query = command % format
+        query = command % options
 
 # Select Queries
     # Merger Composer Select Queries
     elif name == 'getQueryCommand':
-        query = 'SELECT %s.* FROM %s;' % format
+        query = 'SELECT %s.* FROM %s;' % options
 
     # MailSpooler Select Queries
     elif name == 'getSpoolerJobs':
@@ -306,7 +306,6 @@ CREATE PROCEDURE "GetJobs"(IN JOBIDS INTEGER ARRAY)
     OPEN RSLT;
   END;"""
 
-
     # Internal Function used in Procedure
     elif name == 'createGetBatchJobs':
         query = """\
@@ -358,7 +357,6 @@ CREATE FUNCTION "GetBatchState"(IN STATE INTEGER)
        ORDER BY S."BatchId");
   END"""
 
-
 # Call Procedure Query
     elif name == 'getAttachments':
         query = 'CALL "GetAttachments"(?)'
@@ -391,7 +389,7 @@ CREATE FUNCTION "GetBatchState"(IN STATE INTEGER)
 
 # Get prepareCommand Query
     elif name == 'prepareCommand':
-        query = 'SELECT * FROM "%s"' % format
+        query = 'SELECT * FROM "%s"' % options
 
 # Queries don't exist!!!
     else:
@@ -399,4 +397,3 @@ CREATE FUNCTION "GetBatchState"(IN STATE INTEGER)
         logger.logprb(SEVERE, g_basename, 'getSqlQuery', 101, name)
         query = None
     return query
-

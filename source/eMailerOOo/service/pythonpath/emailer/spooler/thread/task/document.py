@@ -29,11 +29,10 @@
 
 from .job import Job
 
-from ...export import PdfExport
+from ....export import PdfExport
 
 from ....helper import executeExport
 from ....helper import executeMerge
-from ....helper import getJob
 
 from ....unotool import getTempFile
 
@@ -41,7 +40,7 @@ import traceback
 
 
 class Document(Job):
-    def __init__(self, ctx, cancel, sf, connection, result, datasource, table, url, merge, filter, selection):
+    def __init__(self, ctx, sf, connection, result, datasource, table, url, merge, filter, selection):
         super().__init__(sf, url, getTempFile(ctx).Uri, merge, filter)
         self._ctx = ctx
         self._exists = sf.exists(url)
@@ -73,12 +72,11 @@ class Document(Job):
     def getJob(self):
         return self._job
 
-    def execute(self, cancel):
-        if not cancel.isSet():
-            if self._job:
-                self._fields = executeMerge(self._job, self)
-            elif self._filter:
-                executeExport(self._ctx, self, self._export)
+    def execute(self):
+        if self._job:
+            self._fields = executeMerge(self._job, self)
+        elif self._filter:
+            executeExport(self._ctx, self, self._export)
 
     def close(self):
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,

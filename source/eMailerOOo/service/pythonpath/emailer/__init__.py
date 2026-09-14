@@ -27,42 +27,81 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-#from .datasource import DataSource
-
-#from .dispatch import Dispatch
-
-#from .mailsend import MailSend
-
-#from .mailservice import ImapService
-#from .mailservice import Pop3Service
-#from .mailservice import SmtpService
-
-#from .options import OptionsManager
-
-#from .user import User
-
-from .setup import SetupManager
-
-#from .transferable import Transferable
-
-from .unotool import createMessageBox
-from .unotool import createService
-from .unotool import executeDispatch
-from .unotool import getConfiguration
-from .unotool import getCurrentLocale
-from .unotool import getExtensionVersion
-from .unotool import getMimeTypeFactory
-from .unotool import getStringResource
-from .unotool import hasFrameInterface
-
-from .logger import getLogger
-
-#from .oauth20 import g_checkSetup
-g_checkSetup = True
-
-from .configuration import g_identifier
-from .configuration import g_mailservicelog
-from .configuration import g_defaultlog
-from .configuration import g_spoolerlog
-from .configuration import g_fetchsize
-
+import traceback
+try:
+    from .datasource import DataSource
+    
+    from .datacall import DataCall
+    
+    from .dispatch import Dispatch
+    
+    #from .mailsend import MailSend
+    
+    from .mailservice import ImapService
+    from .mailservice import Pop3Service
+    from .mailservice import SmtpService
+    
+    from .options import OptionsManager
+    
+    from .jobs import Sender
+    
+    from .listener import TerminateListener
+    
+    from .user import User
+    
+    from .runner import Cancel
+    from .runner import Runner
+    
+    from .setup import SetupManager
+    
+    from .dbsetup import DBSetup
+    
+    from .unotool import Transferable
+    
+    from .unotool import createMessageBox
+    from .unotool import executeDispatch
+    from .unotool import findFrame
+    from .unotool import getConfiguration
+    from .unotool import getCurrentLocale
+    from .unotool import getDesktop
+    from .unotool import getExtensionVersion
+    from .unotool import getJobArguments
+    from .unotool import getMimeTypeFactory
+    from .unotool import getRowSet
+    from .unotool import getStringResource
+    from .unotool import hasFrameInterface
+    from .unotool import notifyDispatch
+    
+    from .dbinit import getDataSourceUrl
+    
+    from .logger import getLogger
+    
+    from .helper import getExtensions
+    
+    from .controller import showController
+    
+    from .ispdb import showIspdbWizard
+    
+    from .merger import showMergerWizard
+    
+    from .spooler import showSpooler
+    
+    from .jdbcdriver import g_agent
+    from .jdbcdriver import g_java
+    from .jdbcdriver import g_protocol
+    from .jdbcdriver import g_script
+    from .jdbcdriver import g_service
+    
+    from .configuration import g_controllerframe
+    from .configuration import g_defaultlog
+    from .configuration import g_extension
+    from .configuration import g_fetchsize
+    from .configuration import g_identifier
+    from .configuration import g_mailservicelog
+    from .configuration import g_mergerframe
+    from .configuration import g_resource
+    from .configuration import g_setup
+    from .configuration import g_spoolerframe
+    from .configuration import g_spoolerlog
+except Exception as e:
+    print("emailer.__init__() ERROR: %s" % traceback.format_exc())

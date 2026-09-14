@@ -78,6 +78,12 @@ class OptionsHandler(unohelper.Base,
             elif method == 'ShowSpooler':
                 self._manager.showSpooler()
                 handled = True
+            elif method == 'ShowController':
+                self._manager.showController()
+                handled = True
+            elif method == 'ShowSetup':
+                self._manager.showSetup()
+                handled = True
             elif method == 'ShowDataBase':
                 self._manager.showDataBase()
                 handled = True
@@ -90,6 +96,8 @@ class OptionsHandler(unohelper.Base,
             return ('external_event',
                     'ShowIspdb',
                     'ShowSpooler',
+                    'ShowController',
+                    'ShowSetup',
                     'ShowDataBase')
 
     # XServiceInfo

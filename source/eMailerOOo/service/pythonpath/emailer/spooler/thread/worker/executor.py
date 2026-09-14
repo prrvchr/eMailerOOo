@@ -33,27 +33,34 @@ import traceback
 
 
 class Executor(Worker):
-    def __init__(self, logger, resource, cancel, progress, input, output=None):
-        super().__init__(cancel, progress, input, output)
+    def __init__(self, callasync, callback, logger, resource, progress, input, output=None):
+        super().__init__(progress, input, output)
+        self._callback = callback
         self._logger = logger
         self._resource = resource
 
-    def run(self):
-        task = self._input
-        if task.Merge:
-            msg = self._logger.resolveString(self._resource + 11, task.Name, task.JobCount)
-        else:
-            msg = self._logger.resolveString(self._resource + 12, task.Name, task.JobCount)
-        self._setProgress(msg, -10)
-        task.execute(self._cancel)
-        if task.Merge:
-            msg = self._logger.resolveString(self._resource + 13, task.Name)
-        else:
-            msg = self._logger.resolveString(self._resource + 14, task.Name)
-        self._setProgress(msg, -10)
-
-        if self._output:
-            msg = self._logger.resolveString(self._resource + 15)
+    def notify(self, data):
+        if not self._input.empty():
+            task = self._input.get()
+            if task.Merge:
+                msg = self._logger.resolveString(self._resource + 11, task.Name, task.JobCount)
+            else:
+                msg = self._logger.resolveString(self._resource + 12, task.Name, task.JobCount)
             self._setProgress(msg, -10)
-            self._output.put(task)
+            task.execute()
+            if task.Merge:
+                msg = self._logger.resolveString(self._resource + 13, task.Name)
+            else:
+                msg = self._logger.resolveString(self._resource + 14, task.Name)
+            self._setProgress(msg, -10)
+    
+            if self._output:
+                msg = self._logger.resolveString(self._resource + 15)
+                self._setProgress(msg, -10)
+                self._output.put(task)
+            else:
+                task.close()
+        self._callback()
 
+    def finished(self):
+        self._callback()

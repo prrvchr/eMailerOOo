@@ -1,0 +1,129 @@
+#!
+# -*- coding: utf-8 -*-
+
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
+
+from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
+from ..mail import MailModel
+
+from ..helper import saveDocumentTo
+
+from ..unotool import getDesktop
+from ..unotool import getDocument
+from ..unotool import getPropertyValueSet
+
+from collections import OrderedDict
+from threading import Thread
+from time import sleep
+import json
+import traceback
+
+
+class MailerModel(MailModel):
+    def __init__(self, ctx, path):
+        super().__init__(ctx)
+        self._url = None
+        self._path = path
+        self._resources = {'DialogTitle':     'MailerDialog.Title',
+                           'Property':        'Mail.Document.Property.%s',
+                           'Document':        'MailWindow.Label8.Label',
+                           'MsgBoxTitle':     'MessageBox.Error.Title',
+                           'MsgBoxMsg1':      'MessageBox.Error.Message.1',
+                           'MsgBoxMsg2':      'MessageBox.Error.Message.2',
+                           'MsgBoxMsg3':      'MessageBox.Error.Message.3',
+                           'MsgBoxMsg4':      'MessageBox.Error.Message.4'}
+
+# MailerModel getter methods
+    def isSubjectValid(self, subject):
+        return subject != ''
+
+    def getPath(self):
+        return self._path
+
+# MailerModel setter methods
+    def loadDocument(self, *args):
+        Thread(target=self._loadDocument, args=args).start()
+
+    def viewAttachment(self, attachment):
+        url, merge, filter = self.parseUriFragment(attachment)
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())
+
+    def closeDocument(self, document):
+        document.close(True)
+
+# MailerModel private getter methods
+    def _getDocumentTitle(self, url):
+        resource = self._resources.get('DialogTitle')
+        title = self._resolver.resolveString(resource)
+        return title + url
+
+# SenderModel private setter methods
+    def _loadDocument(self, url, caller):
+        # XXX: Breathe
+        sleep(0.2)
+        # TODO: Document can be <None> if a lock or password exists !!!
+        # TODO: It would be necessary to test a Handler on the descriptor...
+        self._url = url
+        document = getDocument(self._ctx, url)
+        title = self._getDocumentTitle(document.URL)
+        data = {'call': 'init', 'document': document, 'title': title}
+        self._callback.addCallback(caller, getPropertyValueSet(data))
+
+    def _viewDocument(self, selection, url, merge, filter, caller):
+        # XXX: Breathe
+        sleep(0.2)
+        status, result = SUCCESS, None
+        if not self._sf.exists(url):
+            status, result = FAILURE, self._getMsgBoxMessage(1) % url
+        else:
+            try:
+                document = self.getDocument(url)
+                if document is None:
+                    status, result = FAILURE, self._getMsgBoxMessage(2) % url
+            except Exception as e:
+                status, result = FAILURE, self._getMsgBoxMessage(3) % (url, e)
+        if status:
+            folder = self._getTempFolder()
+            export = self._getPdfExport(filter)
+            result = saveDocumentTo(document, folder, document.Title, filter, export)
+            self.closeDocument(document)
+        data = {'call': filter, 'status': status, 'result': result}
+        self._callback.addCallback(caller, getPropertyValueSet(data))
+
+    def getDocument(self, url=None, readonly=True):
+        if url is None:
+            url = self._url
+        return getDocument(self._ctx, url, readonly)
+
+    def getUrl(self):
+        return self._url
+
+    def setUrl(self, url):
+        self._url = url
+

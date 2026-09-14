@@ -32,4 +32,3 @@ from .mailer import Mailer
 from .sender import Sender
 
 from .viewer import Viewer
-

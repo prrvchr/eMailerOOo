@@ -34,37 +34,32 @@ from .composer import Composer
 
 from .executor import Executor
 
-from .watchdog import WatchDog
-
 from ..task import Mail
 
-from ..worker import Master
+from ...helper import AsyncCall
 
-from ...export import PdfExport
+from ....export import PdfExport
 
 from ....unotool import getSimpleFile
 from ....unotool import getUriFactory
 
 from time import sleep
-from queue import Queue
 import traceback
 
 
-class Dispatcher(Master):
-    def __init__(self, ctx, cancel, progress, logger):
-        super().__init__(cancel, progress)
-        self._ctx = ctx
+class Dispatcher(AsyncCall):
+    def __init__(self, ctx, callback, progress, logger, cancel):
+        super().__init__(ctx, progress, cancel)
+        self._callback = callback
         self._logger = logger
         self._sf = getSimpleFile(ctx)
         self._uf = getUriFactory(ctx)
         self._export = PdfExport(ctx)
-        self._output = Queue()
-        self._queue = None
         self._result = None
         self._datasources = {}
         self._wait = 1.0
 
-    def run(self):
+    def notify(self, data):
         mtd = 'run'
         sleep(self._wait)
         if self._isOffLine():
@@ -83,11 +78,9 @@ class Dispatcher(Master):
                 msg = self._logger.resolveString(self._resource + 4)
                 self._setProgress(msg, -10)
                 self._logger.logp(INFO, self._cls, mtd, msg)
-                composer = self._getComposer()
                 msg = self._logger.resolveString(self._resource + 5, njobs)
                 self._setProgress(msg, -10)
                 self._logger.logp(INFO, self._cls, mtd, msg)
-                watchdog = WatchDog(composer)
                 for batch in batchs:
                     if self.isCanceled():
                         break
@@ -106,20 +99,16 @@ class Dispatcher(Master):
                             self._logger.logp(SEVERE, self._cls, mtd, msg)
                         if self._result:
                             self._result.Result = msg
+                    elif not self.isCanceled():
+                        self._caller.addCallback(self._getExecutor(mail), None)
                     else:
-                        executor = self._getExecutor(mail)
-                        if watchdog.startExecutor(executor, mail):
-                            composer.addTasks()
-                        else:
-                            # XXX: If task has been aborted then we need to close all resources.
-                            mail.close()
+                        # XXX: If task has been aborted then we need to close all resources.
+                        mail.close()
+                        break
                 # XXX: We need to start the composer to make sure that any initiated merge is
                 # XXX: completed so that we can cleanly close all resources from the DataSource.
-                composer.start()
-                composer.join()
-                self._closeDataSource()
-                self._notifyClosed(progress)
-
+                if not self._canceled:
+                    self._caller.addCallback(self._getComposer(self.finished), None)
             else:
                 self._notifyStarted(mtd)
                 sleep(self._wait)
@@ -128,6 +117,10 @@ class Dispatcher(Master):
                 self._logger.logp(INFO, self._cls, mtd, msg)
                 sleep(self._wait)
                 self._notifyClosed()
+
+    def finalize(self):
+        self._closeDataSource()
+        self._notifyClosed(progress)
 
     # Private getter methods
     def _getBatchs(self):
@@ -156,16 +149,15 @@ class Dispatcher(Master):
             progress += (20 * job)
         return job, task, progress
 
-    def _getComposer(self):
-        return Composer(self._ctx, self._cls, self._logger, self._resource, self._cancel,
-                        self._progress, self._sf, self._output, self._queue, self._result)
+    def _getComposer(self, callback):
+        return Composer(self._ctx, self._cls, self._caller, callback, self._logger,
+                        self._resource, self._progress, self._sf, self._output, self._queue, self._result)
 
     def _getExecutor(self, mail):
-        return Executor(self._logger, self._resource,
-                        self._cancel, self._progress, mail, self._output)
+        return Executor(self._caller, callback, self._logger, self._resource, self._progress, mail, self._output)
 
     def _getMail(self, batch):
-        mail = Mail(self._ctx, self._parent, self._cancel, self._getResolver, self._sf, self._uf, self._export, batch)
+        mail = Mail(self._ctx, self._parent, self._getResolver, self._sf, self._uf, self._export, batch)
         # XXX: If we want to avoid a memory dump when exiting LibreOffice,
         # XXX: it is imperative to dispose all used DataSources.
         if mail.hasDataSource():

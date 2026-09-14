@@ -27,54 +27,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from .unotool import checkVersion
-from .unotool import getSimpleFile
-
 from .dbqueries import getSqlQuery
 
-from .dbinit import createDataBase
-from .dbinit import getDataBaseConnection
-
-from .helper import checkConnection
+from .dbtool import getDataSourceConnection
 
 from .configuration import g_basename
 
-from .dbconfig import g_version
-
-from threading import Lock
-from threading import Thread
 import traceback
 
 
-class DataBase(unohelper.Base):
-    def __init__(self, ctx, source, logger, url, warn, user='', pwd=''):
+class DataBase():
+    def __init__(self, ctx, source, logger, url, user='', pwd=''):
         self._ctx = ctx
-        self._lock = Lock()
-        self._statement = None
         self._url = url
-        odb = url + '.odb'
-        new = not getSimpleFile(ctx).exists(odb)
-        connection = getDataBaseConnection(ctx, url, user, pwd, new)
-        checkConnection(ctx, source, connection, logger, new, warn)
-        self._version = connection.getMetaData().getDriverVersion()
-        if new and DataBase._init is None:
-            DataBase._init = Thread(target=createDataBase, args=(ctx, connection, odb))
-            DataBase._init.start()
-        else:
-            connection.close()
-        self._new = new
-
-    _init = None
-
-    @property
-    def Version(self):
-        return self._version
 
     @property
     def Url(self):
@@ -83,27 +48,19 @@ class DataBase(unohelper.Base):
     @property
     def Connection(self):
         if self._statement is None:
-            with self._lock:
-                if self._statement is None:
-                    self._statement = self.getConnection().createStatement()
+            self._statement = self.getConnection().createStatement()
         return self._statement.getConnection()
 
     def dispose(self):
         if self._statement is not None:
-            with self._lock:
-                if self._statement is not None:
-                    connection = self._statement.getConnection()
-                    self._statement.close()
-                    connection.close()
-                    self._statement = None
-                    print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % g_basename)
-
-    def wait(self):
-        if DataBase._init and DataBase._init.is_alive():
-            DataBase._init.join()
+            connection = self._statement.getConnection()
+            self._statement.close()
+            connection.close()
+            self._statement = None
+            print("smtpMailer.DataBase.dispose() *** database: %s closed!!!" % g_basename)
 
     def getConnection(self, user='', password=''):
-        return getDataBaseConnection(self._ctx, self._url, user, password)
+        return getDataSourceConnection(self._ctx, self._url, user, password)
 
 # Procedures called by the DataSource
     def shutdownDataBase(self):

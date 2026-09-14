@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.datatransfer import XTransferableFactory
@@ -35,11 +34,6 @@ from com.sun.star.datatransfer import XTransferableFactory
 from com.sun.star.lang import XServiceInfo
 
 from emailer import Transferable
-
-from emailer import getLogger
-
-from emailer import g_identifier
-from emailer import g_mailservicelog
 
 import traceback
 
@@ -53,7 +47,7 @@ class TransferableFactory(unohelper.Base,
                           XServiceInfo,
                           XTransferableFactory):
     def __init__(self, ctx):
-        self._transferable = Transferable(ctx, getLogger(ctx, g_mailservicelog))
+        self._transferable = Transferable(ctx)
 
     @property
     def Encoding(self):

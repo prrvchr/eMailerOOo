@@ -27,33 +27,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
-from com.sun.star.util import XCloseListener
-
 from .datacall import DataCall
 
 from .database import DataBase
 
-from .dbtool import getConnectionUrl
-
-from .helper import checkConfiguration
-
-from .dbconfig import g_folder
-
-from .configuration import g_basename
-from .configuration import g_separator
+from .dbinit import getDataSourceUrl
 
 import traceback
 
 
-class DataSource(unohelper.Base,
-                 XCloseListener):
-    def __init__(self, ctx, source, logger, warn=False):
+class DataSource():
+    def __init__(self, ctx, source, logger):
         self._ctx = ctx
-        checkConfiguration(ctx, source, logger, warn)
-        url = getConnectionUrl(ctx, g_folder + g_separator + g_basename)
-        self._database = DataBase(ctx, source, logger, url, warn)
+        self._database = DataBase(ctx, source, logger, getDataSourceUrl(ctx))
 
     @property
     def DataBase(self):
@@ -63,16 +49,5 @@ class DataSource(unohelper.Base,
         return DataCall(self._ctx, self.DataBase.getConnection())
 
     def dispose(self):
-        self.waitForDataBase()
-        self.DataBase.dispose()
-
-    def waitForDataBase(self):
-        self.DataBase.wait()
-
-    # XCloseListener
-    def queryClosing(self, source, ownership):
-        self.DataBase.shutdownDataBase()
-
-    def notifyClosing(self, source):
-        pass
+         self.DataBase.dispose()
 

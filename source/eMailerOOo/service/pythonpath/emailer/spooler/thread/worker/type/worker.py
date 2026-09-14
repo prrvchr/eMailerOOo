@@ -33,8 +33,8 @@ import traceback
 
 
 class Worker(Manager):
-    def __init__(self, cancel, progress, input, output):
-        super().__init__(cancel, progress, input)
+    def __init__(self, progress, input, output):
+        super().__init__(progress, input)
         self._output = output
 
     def getOutput(self):

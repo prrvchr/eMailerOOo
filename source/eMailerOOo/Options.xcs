@@ -93,7 +93,12 @@
   </templates>
   <component>
     <prop oor:name="ConnectTimeout" oor:type="xs:short"/>
+    <prop oor:name="RunDelay" oor:type="xs:double"/>
+    <prop oor:name="ErrorMode" oor:type="xs:short"/>
     <prop oor:name="IspDBUrl" oor:type="xs:string"/>
+    <prop oor:name="SetupPosition" oor:type="oor:int-list"/>
+    <prop oor:name="SetupUpdate" oor:type="xs:short"/>
+    <prop oor:name="ControllerPosition" oor:type="oor:int-list"/>
     <prop oor:name="SpoolerPosition" oor:type="oor:int-list"/>
     <prop oor:name="SpoolerTable" oor:type="xs:string"/>
     <prop oor:name="SpoolerColumns" oor:type="xs:string"/>

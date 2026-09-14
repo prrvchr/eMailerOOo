@@ -40,9 +40,33 @@
       <service name="io.github.prrvchr.eMailerOOo.Dispatcher"/>
     </implementation>
   </component>
-  <component loader="com.sun.star.loader.Python" uri="service/MailerSetup.py">
-    <implementation name="io.github.prrvchr.eMailerOOo.MailerSetup">
-      <service name="io.github.prrvchr.eMailerOOo.MailerSetup"/>
+  <component loader="com.sun.star.loader.Python" uri="service/Setup.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.Setup">
+      <service name="io.github.prrvchr.eMailerOOo.Setup"/>
+      <service name="com.sun.star.task.Job"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Spooler.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.Spooler">
+      <service name="io.github.prrvchr.eMailerOOo.Spooler"/>
+      <service name="com.sun.star.task.Job"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Controller.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.Controller">
+      <service name="io.github.prrvchr.eMailerOOo.Controller"/>
+      <service name="com.sun.star.task.Job"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Merger.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.Merger">
+      <service name="io.github.prrvchr.eMailerOOo.Merger"/>
+      <service name="com.sun.star.task.Job"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/IspdDB.py">
+    <implementation name="io.github.prrvchr.eMailerOOo.IspDB">
+      <service name="io.github.prrvchr.eMailerOOo.IspDB"/>
       <service name="com.sun.star.task.Job"/>
     </implementation>
   </component>

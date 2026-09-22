@@ -31,6 +31,8 @@ import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
 
+from com.sun.star.util import XCloseListener
+
 import traceback
 
 
@@ -56,4 +58,20 @@ class WindowHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('Next',
                 'Cancel')
+
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XCloseListener
+    def queryClosing(self, event, ownership):
+        self._manager.queryClosing(event.Source, ownership)
+
+    def notifyClosing(self, event):
+        pass
+
+    def disposing(self, event):
+        pass
 

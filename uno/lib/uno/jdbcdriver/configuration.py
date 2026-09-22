@@ -36,6 +36,7 @@ g_services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
               'io.github.prrvchr.jdbcdriver.sdb.Driver')
 g_version = '1.7.0'
 g_instrumented = 'SupportsInstrumentationAgent'
+g_java = '17'
 
 # jdbcDriverOOo special configuration
 g_resource = 'resource'

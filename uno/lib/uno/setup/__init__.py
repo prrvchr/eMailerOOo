@@ -28,3 +28,5 @@
 """
 
 from .setupmanager import SetupManager
+
+from .setupdatabase import SetupDataBase

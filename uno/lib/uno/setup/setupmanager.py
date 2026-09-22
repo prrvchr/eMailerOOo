@@ -27,35 +27,85 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.util import CloseVetoException
+
 from .setupmodel import SetupModel
 
 from .setupview import SetupView
 
+from .setuphandler import CloseListener
 from .setuphandler import WindowHandler
+
+from .setupdatabase import SetupDataBase
 
 import traceback
 
 
 class SetupManager():
-    def __init__(self, ctx, job, name, code):
-        self._model = SetupModel(ctx, job, name, code)
-        self._view = SetupView(ctx, WindowHandler(self), name, self._model.getTitle())
+    def __init__(self, ctx, name, code, /, java=False, database=False, **dependencies):
+        self._ctx = ctx
+        self._database = not database
+        self._java = not java
+        self._dependency = len(dependencies) == 0
+        self._closing = False
+        self._running = False
+        self._result = ''
+        self._model = SetupModel(ctx, name, code, java, database, dependencies)
+        self._listener = CloseListener(self)
+        self._view = SetupView(ctx, WindowHandler(self), self._listener, name, *self._model.getViewData())
+
+# XCloseListener
+    def queryClosing(self, source, ownership):
+        if not ownership:
+            self._cancel()
+            if self._running:
+                raise CloseVetoException()
+            self._close()
+
+    def notifyClosing(self, source):
+        source.removeCloseListener(self._listener)
+        self._close()
 
     def cancel(self):
-        self._view.close()
+        self._cancel()
+        if not self._running:
+            self._close()
 
     def next(self):
         step = self._view.getStep()
-        if step == 1 or step == 7:
+        if step == 1 or step == 18:
+            if self._model.hasDependencies():
+                self._checkDependencies()
+            elif self._model.hasJava():
+                self._checkJava()
+            else:
+                self._checkRequirements()
+        elif step == 3 or step == 4:
+            if self._model.hasJava():
+                self._checkJava()
+            else:
+                self._checkRequirements()
+        elif step == 6 or step == 7:
+            if self._model.hasDataBase():
+                self._checkDataBase()
+            else:
+                self._checkRequirements()
+        elif 9 <= step <= 11:
             self._checkRequirements()
-        elif step == 3:
+        elif step == 14:
             self._installPackages()
-        elif step == 6:
-            if self._view.isDeregistered():
-                self._model.deregisterJob()
-            self._view.close()
+        elif step == 13 or step == 16:
+            self._enableNext(self._allCheck())
+            self._setPage(*self._model.getPage(self._getLastPage()))
+        elif step == 17:
+            self._running = True
+            self._model.deregisterJob()
+            self._running = False
+            self._close()
+        elif step >= 19:
+            self._close()
         else:
-            self._view.setPage(*self._model.getPage(step + 1))
+            self._setPage(*self._model.getPage(step + 1))
 
     def setMaxProgress(self, value):
         self._view.setMaxProgress(value)
@@ -63,24 +113,126 @@ class SetupManager():
     def setProgress(self, text, progress):
         self._view.setProgess(text, progress)
 
-    def _checkRequirements(self):
-        self._view.setPage(*self._model.getPage(2))
-        self._view.enableNext(False)
-        success, result = self._model.checkRequirements(self.setMaxProgress, self.setProgress)
-        self._view.enableNext(True)
-        if success:
-            self._view.setPage(*self._model.getPage(3))
-            self._view.setResult(result)
+    def _cancel(self):
+        self._view.enableButtons(False)
+        self._closing = True
+        self._model.close()
+
+    def _close(self):
+        self._model.savePosition(self._view.getWindowPosition())
+        self._view.close()
+
+    def _checkDependencies(self):
+        self._running = True
+        self._enableNext(False)
+        self._setPage(*self._model.getPage(2))
+        self._dependency, self._result = self._model.checkDependencies(self.setMaxProgress, self.setProgress)
+        if self._closing:
+            self._close()
         else:
-            self._view.setPage(*self._model.getPage(6))
+            if self._dependency:
+                self._setPage(*self._model.getPage(3))
+            else:
+                self._setPage(*self._model.getPage(4))
+            self._setResult(self._result)
+            self._enableNext(True)
+        self._running = False
+
+    def _checkJava(self):
+        self._running = True
+        self._enableNext(False)
+        self._setPage(*self._model.getPage(5))
+        self._java, self._result = self._model.checkJava(self.setMaxProgress, self.setProgress)
+        self._running = False
+        if self._closing:
+            self._close()
+        else:
+            if self._java:
+                self._setPage(*self._model.getPage(6))
+            else:
+                self._setPage(*self._model.getPage(7))
+            self._setResult(self._result)
+            self._enableNext(True)
+
+    def _checkDataBase(self):
+        self._running = True
+        self._enableNext(False)
+        self._setPage(*self._model.getPage(8))
+        setup = SetupDataBase(self._ctx, self._view.getIndicator(), self.notify)
+        setup.start()
+
+    def notify(self, success, created):
+        self._running = False
+        if self._closing:
+            self._close()
+        else:
+            if success:
+                self._setPage(*self._model.getPage(9 + int(created)))
+            else:
+                self._setPage(*self._model.getPage(11))
+            self._database = success
+            self._result = ''
+            self._setResult(self._result)
+            self._enableNext(True)
+
+    def _checkRequirements(self):
+        self._running = True
+        self._enableNext(False)
+        self._setPage(*self._model.getPage(12))
+        success, result = self._model.checkRequirements(self.setMaxProgress, self.setProgress)
+        self._running = False
+        if self._closing:
+            self._close()
+        else:
+            if success:
+                self._setPage(*self._model.getPage(13))
+            else:
+                self._setPage(*self._model.getPage(14))
+            self._enableNext(True)
+            self._setResult(result)
 
     def _installPackages(self):
-        self._view.setPage(*self._model.getPage(4))
-        self._view.enableNext(False)
+        self._running = True
+        self._enableNext(False)
+        self._setPage(*self._model.getPage(15))
         success, result = self._model.installPackages(self.setMaxProgress, self.setProgress)
-        self._view.enableNext(True)
-        if success:
-            self._view.setPage(*self._model.getPage(5))
+        self._running = False
+        if self._closing:
+            self._close()
         else:
-            self._view.setPage(*self._model.getPage(7))
-        self._view.setResult(result)
+            if success:
+                self._setPage(*self._model.getPage(16))
+            else:
+                self._setPage(*self._model.getPage(18))
+            self._setResult(result)
+            self._enableNext(True)
+
+    def _setPage(self, *data):
+        if not self._closing:
+            self._view.setPage(*data)
+
+    def _enableNext(self, enabled):
+        if not self._closing:
+            self._view.enableNext(enabled)
+
+    def _setResult(self, result):
+        if not self._closing:
+            self._view.setResult(result)
+
+    def _getLastResult(self, page, result):
+        return (page, result) if self._allCheck() else (self._getErrorPage(), self._result)
+
+    def _getLastPage(self):
+        return 17 if self._allCheck() else self._getErrorPage()
+
+    def _getErrorPage(self):
+        page = 21
+        if not self._dependency:
+            page = 19
+        elif not self._java:
+            page = 20
+        return page
+
+    def _allCheck(self):
+        return self._dependency and self._java and self._database
+

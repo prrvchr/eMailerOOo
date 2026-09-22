@@ -27,14 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.awt import Size
-from com.sun.star.awt.PosSize import POSSIZE
-
-from com.sun.star.util.MeasureUnit import APPFONT
+from .setupdatabase import ProgressControl
 
 from ..unotool import getContainerWindow
-from ..unotool import getToolKit
 from ..unotool import getTopWindow
+from ..unotool import getWindowPosition
+from ..unotool import setWindowPosition
 
 from ..configuration import g_identifier
 
@@ -42,26 +40,30 @@ import traceback
 
 
 class SetupView():
-    def __init__(self, ctx, handler, name, title):
+    def __init__(self, ctx, handler, listener, name, point, title):
         self._frame = getTopWindow(ctx, name)
         peer = self._frame.getContainerWindow()
-        self._window = getContainerWindow(ctx, peer, handler, g_identifier, name)
+        self._window = getContainerWindow(ctx, peer, handler, g_identifier, 'SetupWindow')
         # XXX: setComponent is needed if we want a StatusIndicator at the bottom
         self._frame.setComponent(self._window, None)
-        self._initWindow(ctx, title)
+        self._frame.addCloseListener(listener)
+        setWindowPosition(ctx, self._frame, self._window, point, title)
 
 # SetupView getter methods
+    def getWindowPosition(self):
+        return getWindowPosition(self._frame.getContainerWindow())
+
     def getWindow(self):
         return self._window
 
     def getDialogWindow(self):
         return self._frame.getContainerWindow()
 
-    def isDeregistered(self):
-        return bool(self._getCheck().State)
-
     def getStep(self):
         return self._window.Model.Step
+
+    def getIndicator(self):
+        return ProgressControl(self._getProgressBar().Model, self._getProgressText())
 
 # SetupView setter methods
     def close(self):
@@ -80,28 +82,22 @@ class SetupView():
         # FIXME: To ensure the label is correctly updated, the progress bar must be updated last.
         self._getProgressText().Text = text
         self._getProgressBar().Model.ProgressValue = progress
+        try:
+            peer = self._window.getPeer()
+            if peer:
+                peer.paintImmediately()
+        except Exception:
+            pass
 
     def setResult(self, text):
         self._getResult().Text = text
 
+    def enableButtons(self, enabled):
+        self._getCancelButton().Model.Enabled = enabled
+        self.enableNext(enabled)
+
     def enableNext(self, enabled):
         self._getNextButton().Model.Enabled = enabled
-
-# SetupView private methods
-    def _initWindow(self, ctx, title):
-        dialog = self._window.Model
-        size = self._window.convertSizeToPixel(Size(dialog.Width, dialog.Height), APPFONT)
-        x, y = self._getWindowPosition(ctx, size)
-        self._frame.getContainerWindow().setPosSize(x, y, size.Width, size.Height, POSSIZE)
-        self._frame.setTitle(title)
-        # XXX: Visibility should be done after size adjustment
-        self._window.setVisible(True)
-
-    def _getWindowPosition(self, ctx, size):
-        device = getToolKit(ctx).getWorkArea()
-        x = device.X + ((device.Width - size.Width) // 2)
-        y = device.Y + ((device.Height - size.Height) // 2)
-        return x, y
 
 # SetupView private control methods
     def _getProgressBar(self):
@@ -116,8 +112,8 @@ class SetupView():
     def _getResult(self):
         return self._window.getControl('Label%s' % self.getStep())
 
-    def _getCheck(self):
-        return self._window.getControl('CheckBox1')
+    def _getCancelButton(self):
+        return self._window.getControl('CommandButton1')
 
     def _getNextButton(self):
         return self._window.getControl('CommandButton2')

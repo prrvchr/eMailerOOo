@@ -31,6 +31,7 @@ from .jdbctool import isInstrumented
 
 from .configuration import g_extension
 from .configuration import g_identifier
+from .configuration import g_java
 from .configuration import g_service
 from .configuration import g_services
 from .configuration import g_version

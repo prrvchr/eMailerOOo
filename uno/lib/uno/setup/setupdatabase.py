@@ -27,64 +27,93 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.awt.PosSize import SIZE
+from com.sun.star.awt import XCallback
 
-from com.sun.star.task import XStatusIndicator
+from ..dbinit import DataBaseSetup
 
-from com.sun.star.util.MeasureUnit import APPFONT
+from ..unotool import getCallBack
+from ..unotool import getSimpleFile
 
-from threading import Lock
-import traceback
+from ..dbinit import getDataBaseConnection
+from ..dbinit import getDataBaseUrl
+
+from threading import Timer
 
 
-class StatusIndicator(unohelper.Base,
-                      XStatusIndicator):
-    def __init__(self, frame, offset=10):
-        self._window = frame.getContainerWindow()
-        self._progress = frame.createStatusIndicator()
-        self._point = uno.createUnoStruct('com.sun.star.awt.Point', 0, offset)
-        self._lock = Lock()
-        self._value = 0
+class SetupDataBase(unohelper.Base,
+                    XCallback):
+    def __init__(self, ctx, progress, callback, user='', pwd=''):
+        self._ctx = ctx
+        self._database = DataBaseSetup(ctx)
+        self._progress = progress
+        self._callback = callback
+        self._step = 0
+        self._asyncCall = getCallBack(ctx)
+
+    def start(self):
+        if getSimpleFile(self._ctx).exists(self._database.path):
+            Timer(0.1, self._callback, args=(True, False)).start()
+        else:
+            if self._progress:
+                self._progress.start(self._database.label, self._database.total)
+            Timer(0.1, self._call).start()
+
+    def notify(self, data):
+        try:
+            resource, call = next(self._database.steps)
+            self._step += 1
+            if self._progress:
+                self._progress.setText(self._database.resolver.resolveString(resource))
+                self._progress.setValue(self._step)
+            call()
+
+            Timer(0.1, self._call).start()
+
+        except StopIteration:
+            if self._progress:
+                self._progress.end()
+            self._callback(True, True)
+        except Exception as e:
+            if self._database.statement:
+                try: self._database.statement.close()
+                except: pass
+            if self._database.connection:
+                try: self._database.connection.close()
+                except: pass
+            if self._progress:
+                self._progress.end()
+            self._callback(False, True)
+
+    def _call(self):
+       self._asyncCall.addCallback(self, None)
+
+
+class ProgressControl():
+    def __init__(self, progress, label):
+        self._progress = progress
+        self._label = label
 
     def start(self, text, value):
-        self._setValue(0)
-        self._setWindowHeight()
-        self._progress.start(text, value)
-
-    def setText(self, text):
-        self._setText(text)
+        if self._progress:
+            self._progress.ProgressValue = 0
+            self._progress.ProgressValueMax = int(value)
+            
+        if self._label:
+            self._label.Text = text
 
     def setValue(self, value):
-        # XXX: In order to be able to progress in the loops it is necessary
-        # XXX: to be able to add value to the current progression value.
-        # XXX: This is what is done here thanks to a negative value
-        self._setValue(value)
+        if self._progress:
+            self._progress.ProgressValue = int(value)
+
+    def setText(self, text):
+        if self._label:
+            self._label.Text = text
 
     def end(self):
-        self._progress.end()
-        self._setWindowHeight(-1)
-
-    def reset(self):
-        self._setValue(0)
-        self._progress.reset()
-
-    def _setText(self, text):
-        with self._lock:
-            self._progress.setText(text)
-
-    def _setValue(self, value):
-        with self._lock:
-            if value < 0:
-                self._value += abs(value)
-            else:
-                self._value = value
-            self._progress.setValue(self._value)
-
-    def _setWindowHeight(self, factor=1):
-        size = self._window.getPosSize()
-        offset = self._window.convertPointToPixel(self._point, APPFONT).Y * factor
-        self._window.setPosSize(0, 0, size.Width, size.Height + offset, SIZE)
+        if self._progress:
+            self._progress.ProgressValue = 0
+        if self._label:
+            self._label.Text = ''
 

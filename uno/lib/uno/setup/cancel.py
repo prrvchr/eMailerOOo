@@ -27,11 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .cancel import Cancel
 
-from .checksetup import CheckSetup
+class Cancel():
+    def __init__(self):
+        self._cancel = False
 
-from .setupmanager import SetupManager
-
-from .setupdatabase import SetupDataBase
+    def isSet(self):
+        return self._cancel
+    
+    def set(self):
+        self._cancel = True
+    
+    def reset(self):
+        self._cancel = False
 

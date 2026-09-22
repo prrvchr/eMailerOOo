@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import ProgressControl
+from .progress import Progress
 
 from ..unotool import getContainerWindow
 from ..unotool import getTopWindow
@@ -63,7 +63,7 @@ class SetupView():
         return self._window.Model.Step
 
     def getIndicator(self):
-        return ProgressControl(self._getProgressBar().Model, self._getProgressText())
+        return Progress(self._getProgressBar().Model, self._getProgressText())
 
 # SetupView setter methods
     def close(self):

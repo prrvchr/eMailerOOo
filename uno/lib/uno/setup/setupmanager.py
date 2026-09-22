@@ -38,19 +38,24 @@ from .setuphandler import WindowHandler
 
 from .setupdatabase import SetupDataBase
 
+from ..unotool import notifyDispatch
+
 import traceback
 
 
 class SetupManager():
-    def __init__(self, ctx, name, code, /, java=False, database=False, **dependencies):
+    def __init__(self, ctx, source, dispatch, name, code, /, database=None, java=None, python=False, **extensions):
         self._ctx = ctx
-        self._database = not database
-        self._java = not java
-        self._dependency = len(dependencies) == 0
+        self._source = source
+        self._dispatch = dispatch
+        self._database = database is None
+        self._java = java is None
+        self._python = not python
+        self._extension = len(extensions) == 0
         self._closing = False
         self._running = False
         self._result = ''
-        self._model = SetupModel(ctx, name, code, java, database, dependencies)
+        self._model = SetupModel(ctx, name, code, database, java, python, extensions)
         self._listener = CloseListener(self)
         self._view = SetupView(ctx, WindowHandler(self), self._listener, name, *self._model.getViewData())
 
@@ -74,24 +79,30 @@ class SetupManager():
     def next(self):
         step = self._view.getStep()
         if step == 1 or step == 18:
-            if self._model.hasDependencies():
-                self._checkDependencies()
+            if self._model.hasExtensions():
+                self._checkExtensions()
             elif self._model.hasJava():
                 self._checkJava()
+            elif self._model.hasPython():
+                self._checkPython()
             else:
-                self._checkRequirements()
+                self._setPage(*self._model.getPage(self._getLastPage()))
         elif step == 3 or step == 4:
             if self._model.hasJava():
                 self._checkJava()
+            elif self._model.hasPython():
+                self._checkPython()
             else:
-                self._checkRequirements()
+                self._setPage(*self._model.getPage(self._getLastPage()))
         elif step == 6 or step == 7:
             if self._model.hasDataBase():
                 self._checkDataBase()
+            elif self._model.hasPython():
+                self._checkPython()
             else:
-                self._checkRequirements()
+                self._setPage(*self._model.getPage(self._getLastPage()))
         elif 9 <= step <= 11:
-            self._checkRequirements()
+            self._checkPython()
         elif step == 14:
             self._installPackages()
         elif step == 13 or step == 16:
@@ -120,17 +131,19 @@ class SetupManager():
 
     def _close(self):
         self._model.savePosition(self._view.getWindowPosition())
+        if self._dispatch:
+            notifyDispatch(self._source, self._dispatch)
         self._view.close()
 
-    def _checkDependencies(self):
+    def _checkExtensions(self):
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(2))
-        self._dependency, self._result = self._model.checkDependencies(self.setMaxProgress, self.setProgress)
+        self._extension, self._result = self._model.checkExtensions(self.setMaxProgress, self.setProgress)
         if self._closing:
             self._close()
         else:
-            if self._dependency:
+            if self._extension:
                 self._setPage(*self._model.getPage(3))
             else:
                 self._setPage(*self._model.getPage(4))
@@ -158,7 +171,7 @@ class SetupManager():
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(8))
-        setup = SetupDataBase(self._ctx, self._view.getIndicator(), self.notify)
+        setup = SetupDataBase(self._ctx, self.notify, self._view.getIndicator(), self._model.getDataBase())
         setup.start()
 
     def notify(self, success, created):
@@ -175,16 +188,16 @@ class SetupManager():
             self._setResult(self._result)
             self._enableNext(True)
 
-    def _checkRequirements(self):
+    def _checkPython(self):
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(12))
-        success, result = self._model.checkRequirements(self.setMaxProgress, self.setProgress)
+        self._python, result = self._model.checkPython(self.setMaxProgress, self.setProgress)
         self._running = False
         if self._closing:
             self._close()
         else:
-            if success:
+            if self._python:
                 self._setPage(*self._model.getPage(13))
             else:
                 self._setPage(*self._model.getPage(14))
@@ -227,12 +240,12 @@ class SetupManager():
 
     def _getErrorPage(self):
         page = 21
-        if not self._dependency:
+        if not self._extension:
             page = 19
         elif not self._java:
             page = 20
         return page
 
     def _allCheck(self):
-        return self._dependency and self._java and self._database
+        return self._extension and self._java and self._python and self._database
 

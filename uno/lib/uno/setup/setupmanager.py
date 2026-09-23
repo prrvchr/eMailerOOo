@@ -168,6 +168,7 @@ class SetupManager():
             self._enableNext(True)
 
     def _checkDataBase(self):
+        print("SetupManager._checkDataBase()")
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(8))
@@ -208,12 +209,12 @@ class SetupManager():
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(15))
-        success, result = self._model.installPackages(self.setMaxProgress, self.setProgress)
+        self._python, result = self._model.installPackages(self.setMaxProgress, self.setProgress)
         self._running = False
         if self._closing:
             self._close()
         else:
-            if success:
+            if self._python:
                 self._setPage(*self._model.getPage(16))
             else:
                 self._setPage(*self._model.getPage(18))
@@ -244,6 +245,8 @@ class SetupManager():
             page = 19
         elif not self._java:
             page = 20
+        elif not self._python:
+            page = 18
         return page
 
     def _allCheck(self):

@@ -29,12 +29,20 @@
 
 import uno
 
+from com.sun.star.beans import PropertyValue
+from emailer import jdbcdriver
+
+from ..jdbcdriver import checkDriverService
+
 from ..unotool import checkVersion
+from ..unotool import createService
+from ..unotool import getDriverManager
 from ..unotool import getExtensionVersion
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
 import importlib
+import os
 from packaging.requirements import Requirement
 import pkg_resources as pkgr
 import re
@@ -60,7 +68,45 @@ def checkExtensions(ctx, extensions, cancel=None, maxProgress=None, progress=Non
             sleep(1)
     return dependencies
 
-def checkJava(java, maxProgress=None, progress=None, resolver=None):
+def checkJava(ctx, java, maxProgress=None, progress=None, resolver=None):
+    success = False
+    if maxProgress:
+        maxProgress(2)
+    if progress and resolver:
+        progress(resolver(), 1)
+    success, version = _getJavaVersion(ctx, *java)
+    if progress and resolver:
+        progress(resolver(version), 2)
+        sleep(1)
+    print("checkJava() version: %s" % version)
+    return success, version
+
+def _getJavaVersion(ctx, identifier, jar, java, module):
+    jvm = createService(ctx, 'com.sun.star.comp.stoc.JavaVirtualMachine')
+    if jvm is None:
+        print("_getJavaVersion() no java 1")
+        return False, java
+
+    if not jvm.isVMEnabled():
+        print("_getJavaVersion() no java enabled 2")
+        return False, java
+
+    print("_getJavaVersion() 3 java enable: %s" % jvm.isVMEnabled())
+
+    try:
+        url = getResourceLocation(ctx, identifier, jar)
+        loader = createService(ctx, 'com.sun.star.loader.URLClassLoader')
+        loader.initialize((url, ))
+        info = loader.loadClass(module)
+        version = info.getVersion()
+        print("_getJavaVersion() 4 version: %s" % version)
+        return True, version
+    except Exception:
+        print("_getJavaVersion() 5 ERROR: %s" % traceback.format_exc())
+    print("_getJavaVersion() 6 java incorrect version")
+    return False, java
+
+def checkJava1(java, maxProgress=None, progress=None, resolver=None):
     success = False
     if maxProgress:
         maxProgress(2)
@@ -73,20 +119,7 @@ def checkJava(java, maxProgress=None, progress=None, resolver=None):
     success = version is not None and checkVersion(version, java)
     return success, version if success else java
 
-def checkPython(ctx, identifier, cancel=None, maxProgress=None, progress=None, resolver=None):
-    modules = []
-    packages = []
-    url = getResourceLocation(ctx, identifier, 'requirements.txt')
-    if getSimpleFile(ctx).exists(url):
-        _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver)
-    success = len(modules) == 0
-    return success, packages if success else modules
-
-def _checkExtension(ctx, identifier, data):
-    version = getExtensionVersion(ctx, identifier)
-    return version is not None and checkVersion(version, data[1])
-
-def _getJavaVersion():
+def _getJavaVersion1():
     version = None
     try:
         result = subprocess.run(['java', '-version'],
@@ -101,6 +134,19 @@ def _getJavaVersion():
     except Exception:
         pass
     return version
+
+def checkPython(ctx, identifier, cancel=None, maxProgress=None, progress=None, resolver=None):
+    modules = []
+    packages = []
+    url = getResourceLocation(ctx, identifier, 'requirements.txt')
+    if getSimpleFile(ctx).exists(url):
+        _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver)
+    success = len(modules) == 0
+    return success, packages if success else modules
+
+def _checkExtension(ctx, identifier, data):
+    version = getExtensionVersion(ctx, identifier)
+    return version is not None and checkVersion(version, data[1])
 
 def _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver):
     with open(uno.fileUrlToSystemPath(url)) as requirements:

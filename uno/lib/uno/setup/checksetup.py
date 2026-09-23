@@ -96,7 +96,7 @@ class CheckSetup(unohelper.Base,
         self._results['extension'] = len(result) == 0
 
     def _checkJava(self, java):
-        self._results['java'], _ = checkJava(java)
+        self._results['java'], _ = checkJava(self._ctx, java)
 
     def _checkDataBase(self, database):
         self._results['database'] = getSimpleFile(self._ctx).exists(database)
@@ -110,7 +110,7 @@ class CheckSetup(unohelper.Base,
         if extensions and len(checkExtensions(ctx, extensions)) > 0:
             return False
         if java:
-            success, _ = checkJava(java)
+            success, _ = checkJava(ctx, java)
             if not success:
                 return False
         if database and not getSimpleFile(ctx).exists(database):

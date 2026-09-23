@@ -115,7 +115,7 @@ class SetupModel():
         return success, self._getExtensionsResult(self._extensions.values() if success else deps)
 
     def checkJava(self, maxProgress, progress):
-        success, version = checkJava(self._java, maxProgress, progress, self._getJavaText)
+        success, version = checkJava(self._ctx, self._java, maxProgress, progress, self._getJavaText)
         return success, self._getJavaResult(version if success else self._java)
 
     def checkPython(self, maxProgress, progress):

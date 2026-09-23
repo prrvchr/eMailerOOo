@@ -90,7 +90,7 @@ class SetupManager():
                 self._checkPython()
             else:
                 self._setPage(*self._model.getPage(self._getLastPage()))
-        elif step == 3 or step == 4:
+        elif step == 3:
             if self._model.hasJava():
                 self._checkJava()
             elif self._model.hasDataBase():
@@ -99,10 +99,20 @@ class SetupManager():
                 self._checkPython()
             else:
                 self._setPage(*self._model.getPage(self._getLastPage()))
-        elif step == 6 or step == 7:
+        elif step == 4:
+            if self._model.hasPython():
+                self._checkPython()
+            else:
+                self._setPage(*self._model.getPage(self._getLastPage()))
+        elif step == 6:
             if self._model.hasDataBase():
                 self._checkDataBase()
             elif self._model.hasPython():
+                self._checkPython()
+            else:
+                self._setPage(*self._model.getPage(self._getLastPage()))
+        elif step == 7:
+            if self._model.hasPython():
                 self._checkPython()
             else:
                 self._setPage(*self._model.getPage(self._getLastPage()))

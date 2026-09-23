@@ -53,6 +53,7 @@ from .unotool import getDispatcher
 from .unotool import getDialog
 from .unotool import getDialogUrl
 from .unotool import getDocument
+from .unotool import getDriverManager
 from .unotool import getExceptionMessage
 from .unotool import getExtensionVersion
 from .unotool import getFilePicker

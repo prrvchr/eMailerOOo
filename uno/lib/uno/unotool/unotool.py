@@ -98,6 +98,9 @@ def getConnectionMode(ctx, host, port=80):
 def getConnector(ctx):
     return createService(ctx, 'com.sun.star.connection.Connector')
 
+def getDriverManager(ctx):
+    return createService(ctx, 'com.sun.star.sdbc.DriverManager')
+
 def getDesktop(ctx):
     return createService(ctx, 'com.sun.star.frame.Desktop')
 

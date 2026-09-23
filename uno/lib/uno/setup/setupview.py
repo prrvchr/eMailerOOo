@@ -78,7 +78,7 @@ class SetupView():
         model.ProgressValue = 0
         model.ProgressValueMax = value
 
-    def setProgess(self, text, progress):
+    def setProgress(self, text, progress):
         # FIXME: To ensure the label is correctly updated, the progress bar must be updated last.
         self._getProgressText().Text = text
         self._getProgressBar().Model.ProgressValue = progress

@@ -51,6 +51,7 @@ class SetupManager():
         self._database = database is None
         self._java = java is None
         self._python = not python
+        self._setup = not python
         self._extension = len(extensions) == 0
         self._closing = False
         self._running = False
@@ -78,11 +79,13 @@ class SetupManager():
 
     def next(self):
         step = self._view.getStep()
-        if step == 1 or step == 18:
+        if step == 1 or step == 17:
             if self._model.hasExtensions():
                 self._checkExtensions()
             elif self._model.hasJava():
                 self._checkJava()
+            elif self._model.hasDataBase():
+                self._checkDataBase()
             elif self._model.hasPython():
                 self._checkPython()
             else:
@@ -90,6 +93,8 @@ class SetupManager():
         elif step == 3 or step == 4:
             if self._model.hasJava():
                 self._checkJava()
+            elif self._model.hasDataBase():
+                self._checkDataBase()
             elif self._model.hasPython():
                 self._checkPython()
             else:
@@ -102,18 +107,20 @@ class SetupManager():
             else:
                 self._setPage(*self._model.getPage(self._getLastPage()))
         elif 9 <= step <= 11:
-            self._checkPython()
+            if self._model.hasPython():
+                self._checkPython()
+            else:
+                self._setPage(*self._model.getPage(self._getLastPage()))
         elif step == 14:
             self._installPackages()
         elif step == 13 or step == 16:
-            self._enableNext(self._allCheck())
             self._setPage(*self._model.getPage(self._getLastPage()))
-        elif step == 17:
+        elif step == 18 or step == 19:
             self._running = True
             self._model.deregisterJob()
             self._running = False
             self._close()
-        elif step >= 19:
+        elif step >= 20:
             self._close()
         else:
             self._setPage(*self._model.getPage(step + 1))
@@ -122,7 +129,7 @@ class SetupManager():
         self._view.setMaxProgress(value)
 
     def setProgress(self, text, progress):
-        self._view.setProgess(text, progress)
+        self._view.setProgress(text, progress)
 
     def _cancel(self):
         self._view.enableButtons(False)
@@ -168,7 +175,6 @@ class SetupManager():
             self._enableNext(True)
 
     def _checkDataBase(self):
-        print("SetupManager._checkDataBase()")
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(8))
@@ -199,6 +205,7 @@ class SetupManager():
             self._close()
         else:
             if self._python:
+                self._setup = True
                 self._setPage(*self._model.getPage(13))
             else:
                 self._setPage(*self._model.getPage(14))
@@ -209,15 +216,15 @@ class SetupManager():
         self._running = True
         self._enableNext(False)
         self._setPage(*self._model.getPage(15))
-        self._python, result = self._model.installPackages(self.setMaxProgress, self.setProgress)
+        self._setup, result = self._model.installPackages(self.setMaxProgress, self.setProgress)
         self._running = False
         if self._closing:
             self._close()
         else:
-            if self._python:
+            if self._setup:
                 self._setPage(*self._model.getPage(16))
             else:
-                self._setPage(*self._model.getPage(18))
+                self._setPage(*self._model.getPage(17))
             self._setResult(result)
             self._enableNext(True)
 
@@ -233,22 +240,25 @@ class SetupManager():
         if not self._closing:
             self._view.setResult(result)
 
-    def _getLastResult(self, page, result):
-        return (page, result) if self._allCheck() else (self._getErrorPage(), self._result)
-
     def _getLastPage(self):
-        return 17 if self._allCheck() else self._getErrorPage()
+        return self._getSuccessPage() if self._allCheck() else self._getErrorPage()
+
+    def _getSuccessPage(self):
+        return 19 if self._python else 18
 
     def _getErrorPage(self):
-        page = 21
         if not self._extension:
-            page = 19
-        elif not self._java:
             page = 20
-        elif not self._python:
-            page = 18
+        elif not self._java:
+            page = 21
+        elif not self._database:
+            page = 22
+        else:
+            page = 17
+        if page != 17:
+            self._enableNext(False)
         return page
 
     def _allCheck(self):
-        return self._extension and self._java and self._python and self._database
+        return all((self._extension, self._java, self._setup, self._database))
 

@@ -119,7 +119,7 @@ class SetupModel():
         return success, self._getJavaResult(version if success else self._java)
 
     def checkPython(self, maxProgress, progress):
-        success, self._modules = checkPython(self._ctx, g_identifier, self._cancel, maxProgress, progress, self._getProgessText)
+        success, self._modules = checkPython(self._ctx, g_identifier, self._cancel, maxProgress, progress, self._getProgressText)
         return success, self._getRequirementsResult(self._modules)
 
     def installPackages(self, maxProgress, progress):
@@ -212,7 +212,7 @@ class SetupModel():
     def _getJavaText(self, version=''):
         return self._resolver.resolveString(self._resources.get('Java')) + version
 
-    def _getProgessText(self, *args):
+    def _getProgressText(self, *args):
         return self._resolver.resolveString(self._resources.get('Text')) % args
 
     def _getInstallText(self, module):

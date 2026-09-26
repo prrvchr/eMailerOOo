@@ -27,7 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
+from .extension import Extension
 
-from .setupmanager import SetupManager
+from .java import Java
+
+from .pip import Pip
+
+from .python import Python
+
+from .runner import Runner
 

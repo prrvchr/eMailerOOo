@@ -40,7 +40,7 @@ import traceback
 
 
 class SetupView():
-    def __init__(self, ctx, handler, listener, name, point, title):
+    def __init__(self, ctx, handler, listener, name, point, title, header):
         self._frame = getTopWindow(ctx, name)
         peer = self._frame.getContainerWindow()
         self._window = getContainerWindow(ctx, peer, handler, g_identifier, 'SetupWindow')
@@ -48,6 +48,7 @@ class SetupView():
         self._frame.setComponent(self._window, None)
         self._frame.addCloseListener(listener)
         setWindowPosition(ctx, self._frame, self._window, point, title)
+        self._getPageHeader().Text = header
 
 # SetupView getter methods
     def getWindowPosition(self):
@@ -77,6 +78,12 @@ class SetupView():
         model = self._getProgressBar().Model
         model.ProgressValue = 0
         model.ProgressValueMax = value
+        try:
+            peer = self._window.getPeer()
+            if peer:
+                peer.paintImmediately()
+        except Exception:
+            pass
 
     def setProgress(self, text, progress):
         # FIXME: To ensure the label is correctly updated, the progress bar must be updated last.

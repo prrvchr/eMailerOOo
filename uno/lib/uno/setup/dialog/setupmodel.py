@@ -32,12 +32,14 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from .setupdatabase import SetupDataBase
+
 from ..cancel import Cancel
 
-from ..helper import checkAgent
-from ..helper import checkExtensions
-from ..helper import checkJava
-from ..helper import checkPython
+from ..runner import Extension
+from ..runner import Java
+from ..runner import Pip
+from ..runner import Python
 
 from ...unotool import deregisterStartupJob
 from ...unotool import getConfiguration
@@ -50,12 +52,9 @@ from ...logger import getLogger
 
 from ...configuration import g_basename
 from ...configuration import g_defaultlog
+from ...configuration import g_extension
 from ...configuration import g_identifier
 
-import importlib
-from time import sleep
-import os
-import subprocess
 import traceback
 
 
@@ -66,17 +65,21 @@ class SetupModel():
         self._name = name
         self._code = code
         self._java = java
+        self._checkJava = None
         self._agent = agent
         self._database = database
         self._python = python
+        self._checkPython = None
+        self._checkPip = None
         self._extensions = extensions
+        self._checkExtension = None
         self._dependencies = ()
         self._modules = []
         self._cancel = Cancel()
+        self._extension = {'title': g_extension}
         self._position = 'SetupPosition'
         self._program = getPathSubstitution(ctx, '$(prog)')
         self._pythonpath = getResourceLocation(self._ctx, g_identifier, 'service/pythonpath')
-        self._pip = self._pythonpath + '/pip/__main__.py'
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SetupWindow')
@@ -86,132 +89,71 @@ class SetupModel():
                            'Java': 'SetupWindow.Label5.Label',
                            'Text': 'SetupWindow.Label15.Label',
                            'Install': 'SetupWindow.Label18.Label'}
+
     def close(self):
         self._cancel.set()
+
+    def savePosition(self, position):
+        saveWindowPosition(self._config, position, self._position)
+
+    def getCancel(self):
+        return self._cancel
 
     def getPage(self, step, **kwargs):
         return step, self._getHeader(step, **kwargs)
 
     def getViewData(self):
-        return self._getDialogPosition(), self._getTitle()
+        return self._getDialogPosition(), self._getTitle(), self._getHeader(1, **self._extension)
 
-    def savePosition(self, position):
-        saveWindowPosition(self._config, position, self._position)
+    def getCheckExtension(self, callback):
+        self._checkExtension = Extension(self._ctx, callback, self._extensions)
+        return self._checkExtension
+
+    def getCheckJava(self, callback):
+        self._checkJava = Java(self._ctx, callback, self._java, self._agent)
+        return self._checkJava
+
+    def getCheckDataBase(self, callback, progress):
+        self._checkDataBase = SetupDataBase(self._ctx, callback, progress, self._database)
+        return self._checkDataBase
+
+    def getCheckPython(self, callback):
+        self._checkPython = Python(self._ctx, callback, self._python)
+        return self._checkPython
+
+    def getCheckPip(self, callback):
+        self._checkPip = Pip(self._ctx, callback, self._python, self._checkPython.getModules())
+        return self._checkPip
 
     def hasDataBase(self):
         return self._database is not None
-
-    def getDataBase(self):
-        return self._database
 
     def hasJava(self):
         return self._java is not None
 
     def hasPython(self):
-        return self._python
+        return self._python is not None
 
     def hasExtensions(self):
         return len(self._extensions) != 0 
 
-    def checkExtensions(self, maxProgress, progress):
-        self._dependencies = checkExtensions(self._ctx, self._extensions, self._cancel, maxProgress, progress, self._getDependencyText)
-        success = len(self._dependencies) == 0
-        return success, self._getExtensionsResult(self._extensions.values() if success else self._dependencies)
-
-    def checkJava(self, maxProgress, progress):
-        code, minimum, version = checkJava(self._ctx, self._java, maxProgress, progress, self._getJavaText)
-        success = self._isSuccess(code)
-        if success and self._agent:
-            success = checkAgent(self._ctx, *self._agent)
-        return success, code, minimum, version
-
-    def checkPython(self, maxProgress, progress):
-        success, self._modules = checkPython(self._ctx, g_identifier, self._cancel, maxProgress, progress, self._getProgressText)
-        return success, self._getRequirementsResult(self._modules)
-
-    def installPackages(self, maxProgress, progress):
-        size = len(self._modules) * 2
-        maxProgress(size)
-        i = 0
-        modules = []
-        isWindows = os.name == 'nt'
-        info = self._getStartupInfo(isWindows)
-        command = self._getPipCommand(isWindows)
-        for module in self._modules:
-            if self._cancel.isSet():
-                break
-            i += 1
-            progress(self._getInstallText(module), i)
-            message = self._pipInstall(info, command, module)
-            i += 1
-            progress(self._getInstallText(module), i)
-            if message is None:
-                importlib.invalidate_caches()
-                self._log(INFO, self._code + 1, module)
-            else:
-                modules.append(module)
-                self._log(SEVERE, self._code + 2, module, message)
-            if i == size:
-                sleep(1)
-        success = len(modules) == 0
-        return success, self._getRequirementsResult(self._modules if success else modules)
-
     def deregisterJob(self):
         deregisterStartupJob(self._ctx, self._name)
 
-    def getRequiredExtension(self):
-        return self._getExtensionsResult(self._dependencies)
+    def getExtensionResult(self):
+        return self._checkExtension.getResult()
 
-    def getRequiredJava(self):
-        extension, java, script = self._java
-        return self._getJavaMessage(java)
+    def getJavaResult(self):
+        return self._checkJava.getResult()
 
-    def _getPipCommand(self, isWindows):
-        if isWindows:
-            url = self._program + '/python.exe'
-        else:
-            url = self._program + '/python'
-        executable = uno.fileUrlToSystemPath(url)
-        pip = uno.fileUrlToSystemPath(self._pip)
-        path = uno.fileUrlToSystemPath(self._pythonpath)
-        return [executable, '-u', pip, 'install', '--target', path, '--only-binary=:all:', 'module']
+    def getPythonResult(self):
+        return self._checkPython.getResult()
 
-    def _getStartupInfo(self, isWindows):
-        info = None
-        if isWindows:
-            info = subprocess.STARTUPINFO()
-            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        return info
-
-    def _pipInstall(self, info, command, module):
-        msg = None
-        try:
-            command[-1] = module
-            process = subprocess.Popen(command,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       startupinfo=info)
-            stdout, stderr = process.communicate()
-            if process.returncode != 0:
-                msg = stderr.decode('utf-8', errors='ignore')
-        except Exception as e:
-            pass
-        return msg
-
-    def _isSuccess(self, code):
-        return code == 0
-
-    def _hasJavaVersion(self, code):
-        return code < 2
-
-    def _getRequirementsResult(self, modules):
-        return ', '.join(modules)
-
-    def _getExtensionsResult(self, extensions):
-        return '\n'.join(['%s - version %s' % (name, version) for (name, version) in extensions])
+    def getPipResult(self):
+        return self._checkPip.getResult()
 
     def _getJavaResult(self, code, minimum, version):
-        return self._getJavaMessage(version if self._hasJavaVersion(code) else '...')
+        return self._getJavaMessage(self._checkJava.getJavaVersion())
 
     def _getJavaMessage(self, version):
         return 'Java JDK version: ' + version
@@ -224,7 +166,7 @@ class SetupModel():
 
 # SetupModel StringRessoure methods
     def _getTitle(self):
-        return self._resolver.resolveString(self._resources.get('Title'))
+        return self._resolver.resolveString(self._resources.get('Title')).format(**self._extension)
 
     def _getHeader(self, step, **kwargs):
         resource = self._resources.get('Header') % step

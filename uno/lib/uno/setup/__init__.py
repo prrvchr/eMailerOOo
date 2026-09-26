@@ -33,6 +33,7 @@ from .checksetup import CheckSetup
 
 from .listener import DispatchListener
 
+from .dialog import SetupDataBase
 from .dialog import SetupManager
 
 from .helper import showSetup

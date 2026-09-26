@@ -38,73 +38,24 @@ from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
 import importlib
+import os
 from packaging.requirements import Requirement
 import pkg_resources as pkgr
+import subprocess
+import sys
 from time import sleep
 import traceback
-from xml.dom import minicompat
 
 
 def showSetup(ctx, identifier, listener=None, /, **kwargs):
     url = f'vnd.sun.star.job:service={identifier}.Setup'
     executeDesktopDispatch(ctx, url, listener, **kwargs)
 
-def checkExtensions(ctx, extensions, cancel=None, maxProgress=None, progress=None, resolver=None):
-    i = 0
-    dependencies = []
-    if maxProgress:
-        maxProgress(len(extensions))
-    for identifier, data in extensions.items():
-        if cancel and cancel.isSet():
-            break
-        if progress and resolver:
-            i += 1
-            progress(resolver(data), i)
-        if not _checkExtension(ctx, identifier, data):
-            dependencies.append(data)
-        if progress:
-            sleep(1)
-    return dependencies
+def checkExtension(ctx, identifier, data):
+    version = getExtensionVersion(ctx, identifier)
+    return version is not None and checkVersion(version, data[1])
 
-def checkJava(ctx, java, maxProgress=None, progress=None, resolver=None):
-    if maxProgress:
-        maxProgress(3)
-    if progress and resolver:
-        progress(resolver(), 1)
-    code = _getJavaStatus(ctx)
-    if progress and resolver:
-        progress(resolver(), 2)
-    if code > 0:
-        minimum, version = _getDefaultVersion(*java)
-    else:
-        code, minimum, version = _getJavaVersion(ctx, *java)
-    if progress and resolver:
-        progress(resolver(version), 3)
-        sleep(1)
-    print("checkJava() java: %s - version: %s" % (minimum, version))
-    return code, minimum, version
-
-def checkAgent(ctx, service, url, agent):
-    support = False
-    driver = createService(ctx, service)
-    if driver:
-        properties = getPropertyValueSet({agent: True})
-        for info in driver.getPropertyInfo(url, properties):
-            if info.Name == agent:
-                support = info.Value != 'false'
-                break
-    return support
-
-def checkPython(ctx, identifier, cancel=None, maxProgress=None, progress=None, resolver=None):
-    modules = []
-    packages = []
-    url = getResourceLocation(ctx, identifier, 'requirements.txt')
-    if getSimpleFile(ctx).exists(url):
-        _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver)
-    success = len(modules) == 0
-    return success, packages if success else modules
-
-def _getJavaStatus(ctx):
+def getJavaStatus(ctx):
     service = 'com.sun.star.comp.stoc.JavaVirtualMachine'
     jvm = createService(ctx, service)
     if jvm is None:
@@ -113,10 +64,7 @@ def _getJavaStatus(ctx):
         return 0
     return 3
 
-def _getDefaultVersion(extension, java, script):
-    return java, java
-
-def _getJavaVersion(ctx, extension, java, script):
+def getJavaVersion(ctx, extension, java, script):
     results = 2, java, java
     try:
         service = 'com.sun.star.script.provider.MasterScriptProviderFactory'
@@ -136,40 +84,69 @@ def _getJavaVersion(ctx, extension, java, script):
         pass
     return results
 
-def _checkExtension(ctx, identifier, data):
-    version = getExtensionVersion(ctx, identifier)
-    return version is not None and checkVersion(version, data[1])
+def checkAgent(ctx, service, url, agent):
+    support = False
+    driver = createService(ctx, service)
+    if driver:
+        properties = getPropertyValueSet({agent: True})
+        for info in driver.getPropertyInfo(url, properties):
+            if info.Name == agent:
+                support = info.Value != 'false'
+                break
+    return support
 
-def _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver):
+def getPackageCount(url):
+    i = 0
     with open(uno.fileUrlToSystemPath(url)) as requirements:
         for requirement in pkgr.parse_requirements(requirements):
-            if cancel and cancel.isSet():
-                break
-            packages.append(requirement.project_name)
-    i = 0
-    size = len(packages)
-    if maxProgress:
-        maxProgress(size)
-    for package in packages:
-        if cancel and cancel.isSet():
-            break
-        i += 1
-        module = _getInstallModule(modules, package, cancel)
-        if progress and resolver:
-            progress(resolver(package, module), i)
-            if i == size:
-                sleep(1)
+            i += 1
+    return i
 
-def _getInstallModule(modules, package, cancel):
-    target = _parseModuleName(Requirement(package).name)
-    for module, packages in importlib.metadata.packages_distributions().items():
-        if cancel and cancel.isSet():
-            break
-        if target in [_parseModuleName(p) for p in packages]:
-            return module
+def checkPython(url, addInstalled, addMissing):
+    with open(uno.fileUrlToSystemPath(url)) as requirements:
+        for requirement in pkgr.parse_requirements(requirements):
+            target = _parseModuleName(Requirement(requirement.project_name).name)
+            for module, packages in importlib.metadata.packages_distributions().items():
+                if target in [_parseModuleName(p) for p in packages]:
+                    yield addInstalled(module)
+                    break
+            else:
+                yield addMissing(target)
+
+def getPipCommand(program, isWindows, python):
+    if isWindows:
+        url = program + '/python.exe'
     else:
-        modules.append(target)
-    return target
+        url = program + '/python'
+    executable = uno.fileUrlToSystemPath(url)
+    if not os.path.exists(executable):
+        executable = sys.executable
+    pip = uno.fileUrlToSystemPath(python + '/pip/__main__.py')
+    path = uno.fileUrlToSystemPath(python)
+    return [executable, '-u', pip, 'install', '--target', path, '--only-binary=:all:', 'module']
+
+def getStartupInfo(isWindows):
+    info = None
+    if isWindows:
+        info = subprocess.STARTUPINFO()
+        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    return info
+
+def pipInstall(info, command, module):
+    msg = None
+    try:
+        command[-1] = module
+        process = subprocess.Popen(command,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   startupinfo=info)
+        stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            msg = stderr.decode('utf-8', errors='ignore')
+    except Exception as e:
+        print("helper.pipInstall() ERROR: %s" % traceback.format_exc())
+        pass
+    return msg
 
 def _parseModuleName(module):
     return module.lower().replace('-', '_')

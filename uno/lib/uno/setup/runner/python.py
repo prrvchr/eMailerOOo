@@ -31,46 +31,49 @@ import uno
 
 from .check import Check
 
+from ..helper import checkPython
+from ..helper import getPackageCount
+
 from ...unotool import getPathSubstitution
 from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
 
-from ..helper import checkPython
-from ..helper import getPipCommand
-from ..helper import getPackageCount
-from ..helper import getStartupInfo
-from ..helper import pipInstall
+from ...configuration import g_identifier
 
 import traceback
 
 
 class Python(Check):
-    def __init__(self, ctx, callback, identifier):
+    def __init__(self, ctx, callback):
         super().__init__(ctx, callback)
         self._installed = []
         self._missing = []
         self._url = None
         self._requirements = 'requirements.txt'
         self.total = 1
-        self.label1 = self.resolver.resolveString(301)
-        self.label2 = self.resolver.resolveString(302)
-        self.steps = self._getCheckStep(identifier)
+        self.label1 = self.resolver.resolveString(311)
+        self.label2 = self.resolver.resolveString(312)
+        self.steps = self._getCheckStep()
+
+    def getHeader(self, **kwargs):
+        return self.resolver.resolveString(321).format(**kwargs)
+
+    def getResults(self, success):
+        return self._getHeader(), self._getResult()
+
+    def getLastPage(self):
+        print("Python.getLastPage() ***********************************")
 
     def getModules(self):
         if len(self._missing):
             return self._missing
         return self._installed
 
-    def getResult(self):
-        if len(self._missing):
-            return ', '.join(self._missing)
-        return ', '.join(self._installed)
-
     def callback(self, success):
         self._callback(self._getSuccess(success))
 
-    def stepGetRequirementUrl(self, identifier):
-        self._url = getResourceLocation(self._ctx, identifier, self._requirements)
+    def stepGetRequirementUrl(self):
+        self._url = getResourceLocation(self._ctx, g_identifier, self._requirements)
 
     def stepGetPackageCount(self):
         self.total += getPackageCount(self._url)
@@ -81,26 +84,35 @@ class Python(Check):
     def stepAddMissing(self, module):
         self._missing.append(module)
 
-    def _getCheckStep(self, identifier):
-        yield self._getStepGetRequirementUrl(identifier)
+    def _getCheckStep(self):
+        yield self._getStepGetRequirementUrl()
         if not getSimpleFile(self._ctx).exists(self._url):
             return
         self.total += 1
         yield self._getStepGetPackageCount()
         yield from checkPython(self._url, self._getStepAddInstalled, self._getStepAddMissing)
 
-    def _getStepGetRequirementUrl(self, identifier):
-        return 311, (), self.stepGetRequirementUrl, identifier
+    def _getStepGetRequirementUrl(self):
+        return 331, (), self.stepGetRequirementUrl
 
     def _getStepGetPackageCount(self):
-        return 321, (), self.stepGetPackageCount
+        return 341, (), self.stepGetPackageCount
 
     def _getStepAddInstalled(self, module):
-        return 331, (module, ), self.stepAddInstalled, module
+        return 351, (module, ), self.stepAddInstalled, module
 
     def _getStepAddMissing(self, module):
-        return 341, (module, ), self.stepAddMissing, module
+        return 361, (module, ), self.stepAddMissing, module
 
     def _getSuccess(self, success):
         return success and len(self._missing) == 0
+
+    def _getHeader(self):
+        code = 371 if len(self._missing) else 372
+        return self.resolver.resolveString(code)
+
+    def _getResult(self):
+        if len(self._missing):
+            return ', '.join(self._missing)
+        return ', '.join(self._installed)
 

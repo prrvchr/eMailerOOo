@@ -27,11 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .cancel import CancelException
+
 from .extension import Extension
 
 from .java import Java
 
-from .pip import Pip
+from .pypi import Pypi
 
 from .python import Python
 

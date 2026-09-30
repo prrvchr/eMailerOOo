@@ -43,18 +43,21 @@ class Java(Check):
         self._minimum = ''
         self._version = ''
         self.total = 1
-        self.label1 = self.resolver.resolveString(201)
-        self.label2 = self.resolver.resolveString(202)
+        self.label1 = self.resolver.resolveString(211)
+        self.label2 = self.resolver.resolveString(212)
         self.steps = self._getCheckStep(java, agent)
 
-    def getResult(self):
-        return self._minimum
+    def getHeader(self, **kwargs):
+        return self.resolver.resolveString(221).format(**kwargs)
 
-    def getJavaVersion(self):
-        return self._version if self._hasJavaVersion() else '...'
+    def getResults(self, success):
+        return self._getHeader(), self._getResult()
+
+    def getLastPage(self):
+        return self.resolver.resolveString(271), self._getResult(), False
 
     def callback(self, success):
-        self._callback(self._getSuccess(success), self._code, self._minimum, self._version)
+        self._callback(self._getSuccess(success))
 
     def stepCheckJavaStatus(self, agent, extension, version, script):
         self._minimum = version
@@ -78,13 +81,13 @@ class Java(Check):
         yield self._getStepCheckJavaAgent(*agent)
 
     def _getStepCheckJavaStatus(self, agent, extension, version, script):
-        return 211, (), self.stepCheckJavaStatus, agent, extension, version, script
+        return 231, (), self.stepCheckJavaStatus, agent, extension, version, script
 
     def _getStepCheckJavaVersion(self, agent, extension, version, script):
-        return 221, (version, ), self.stepCheckJavaVersion, agent, extension, version, script
+        return 241, (version, ), self.stepCheckJavaVersion, agent, extension, version, script
 
     def _getStepCheckJavaAgent(self, service, url, agent):
-        return 231, (), self.stepCheckJavaAgent, service, url, agent
+        return 251, (), self.stepCheckJavaAgent, service, url, agent
 
     def _getSuccess(self, success):
         return success and self._hasJava()
@@ -94,4 +97,15 @@ class Java(Check):
 
     def _hasJava(self):
         return self._code == 0
+
+    def _getHeader(self):
+        code = 261 + self._code
+        kwargs = {'version': self._version, 'minimum': self._minimum}
+        return self.resolver.resolveString(code).format(**kwargs)
+
+    def _getResult(self):
+        if self._code:
+            return 'Java JDK version %s minimum' % self._minimum
+        return 'Java JDK version %s' % self._version
+
 

@@ -29,65 +29,84 @@
 
 from .check import Check
 
-from ...unotool import getPathSubstitution
+from ..helper import getPackageData
+from ..helper import getPackageUrl
+from ..helper import installPackage
+
 from ...unotool import getResourceLocation
-from ...unotool import getSimpleFile
 
-from ..helper import getPipCommand
-from ..helper import getStartupInfo
-from ..helper import pipInstall
+from ...configuration import g_identifier
 
-import os
 import traceback
 
 
-class Pip(Check):
-    def __init__(self, ctx, callback, identifier, modules):
+class Pypi(Check):
+    def __init__(self, ctx, callback, modules):
         super().__init__(ctx, callback)
-        self._installed = []
-        self._aborted = []
+        self._installed = {}
+        self._aborted = {}
         self._error = None
-        self._command = None
-        self._info = None
-        self.total = len(modules) + 1
-        self.label1 = self.resolver.resolveString(401)
-        self.label2 = self.resolver.resolveString(402)
-        self.steps = self._getCheckStep(identifier, modules)
+        self._data = None
+        self._url = None
+        self.total = 1 + len(modules) * 3
+        self.label1 = self.resolver.resolveString(411)
+        self.label2 = self.resolver.resolveString(412)
+        self.steps = self._getCheckStep(modules)
 
-    def getResult(self):
-        if len(self._aborted):
-            return ', '.join(self._aborted)
-        return ', '.join(self._installed)
+    def getHeader(self, **kwargs):
+        return self.resolver.resolveString(421).format(**kwargs)
+
+    def getResults(self, success):
+        return self._getHeader(), self._getResult(), True
 
     def callback(self, success):
         self._callback(self._getSuccess(success))
 
-    def stepSetPipCommand(self, identifier):
-        isWindows = os.name == 'nt'
-        program = getPathSubstitution(self._ctx, '$(prog)')
-        python = getResourceLocation(self._ctx, identifier, 'service/pythonpath')
-        self._command = getPipCommand(program, isWindows, python)
-        self._info = getStartupInfo(isWindows)
+    def stepGetPythonPathUrl(self):
+        self._path = getResourceLocation(self._ctx, g_identifier, 'service/pythonpath')
 
-    def stepInstallPackage(self, package):
-        error = pipInstall(self._info, self._command, package)
-        if error is not None:
-            self._aborted.append(package)
-            self._error = error
+    def stepGetPackageData(self, package):
+        self._data = getPackageData(package)
+
+    def stepGetPackageUrl(self, package, data):
+        self._url, self._name, self._version = getPackageUrl(package, data)
+
+    def stepInstallPackage(self, package, url, name, version, path):
+        if installPackage(url, path):
+            self._installed[package] = version
         else:
-            self._installed.append(package)
+            self._aborted[package] = version
 
-    def _getCheckStep(self, identifier, packages):
-        yield self._getStepSetPipCommand(identifier)
-        for package in packages:
-            yield self._getStepInstallPackage(package)
+    def _getCheckStep(self, packages):
+        yield self._getStepGetPythonPathUrl()
+        if self._path:
+            for package in packages:
+                yield self._getStepGetPackageData(package)
+                if self._data:
+                    yield self._getStepGetPackageUrl(package, self._data)
+                    if self._url:
+                        yield self._getStepInstallPackage(package, self._url, self._name, self._version, self._path)
 
-    def _getStepSetPipCommand(self, identifier):
-        return 411, (), self.stepSetPipCommand, identifier
+    def _getStepGetPythonPathUrl(self):
+        return 431, (), self.stepGetPythonPathUrl
 
-    def _getStepInstallPackage(self, package):
-        return 421, (package, ), self.stepInstallPackage, package
+    def _getStepGetPackageData(self, package):
+        return 441, (package, ), self.stepGetPackageData, package
+
+    def _getStepGetPackageUrl(self, package, data):
+        return 451, (package, ), self.stepGetPackageUrl, package, data
+
+    def _getStepInstallPackage(self, package, url, name, version, path):
+        return 461, (package, ), self.stepInstallPackage, package, url, name, version, path
 
     def _getSuccess(self, success):
         return success and len(self._aborted) == 0
+
+    def _getHeader(self):
+        code = 471 if len(self._aborted) else 472
+        return self.resolver.resolveString(code)
+
+    def _getResult(self):
+        modules = self._aborted if len(self._aborted) else self._installed
+        return ', '.join(modules.keys())
 

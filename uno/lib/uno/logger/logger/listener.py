@@ -29,71 +29,23 @@
 
 import unohelper
 
-from com.sun.star.awt import XCallback
+from com.sun.star.util import XModifyListener
 
-from ...unotool import getCallBack
-from ...unotool import getSimpleFile
-
-from threading import Timer
 import traceback
 
 
-class SetupDataBase(unohelper.Base,
-                    XCallback):
-    def __init__(self, ctx, callback, progress, database, user='', pwd=''):
-        self._ctx = ctx
-        self._exists = False
+class LoggerListener(unohelper.Base,
+                     XModifyListener):
+    def __init__(self, callback):
         self._callback = callback
-        self._progress = progress
-        self._database = database
-        self._step = 0
-        self._asyncCall = getCallBack(ctx)
 
-    def getHeader(self, **kwargs):
-        return self._database.getHeader(**kwargs)
-
-    def getResults(self, success):
-        return self._database.getResults(success, self._exists)
-
-    def getLastPage(self):
-        return self._database.getLastPage()
-
-    def start(self):
-        self._exists = getSimpleFile(self._ctx).exists(self._database.path)
-        if self._exists:
-            Timer(0.1, self._callback, args=(True, )).start()
-        else:
-            if self._progress:
-                self._progress.start(self._database.label, self._database.total)
-            Timer(0.1, self._call).start()
-
-    def notify(self, data):
+    # XModifyListener
+    def modified(self, event):
         try:
-            resource, call = next(self._database.steps)
-            self._step += 1
-            if self._progress:
-                self._progress.setText(self._database.resolver.resolveString(resource))
-                self._progress.setValue(self._step)
-            call()
+            self._callback()
+        except:
+            print("LoggerListener.modified() ERROR: %s" % traceback.format_exc())
 
-            Timer(0.1, self._call).start()
-
-        except StopIteration:
-            if self._progress:
-                self._progress.end()
-            self._callback(True)
-        except Exception as e:
-            print("SetupDataBase.notify() ERROR: %s" % traceback.format_exc())
-            if self._database.statement:
-                try: self._database.statement.close()
-                except: pass
-            if self._database.connection:
-                try: self._database.connection.close()
-                except: pass
-            if self._progress:
-                self._progress.end()
-            self._callback(False)
-
-    def _call(self):
-       self._asyncCall.addCallback(self, None)
+    def disposing(self, event):
+        pass
 

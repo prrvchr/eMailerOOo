@@ -69,10 +69,17 @@ class SetupView():
 # SetupView setter methods
     def close(self):
         self._frame.close(True)
+        self._frame.dispose()
 
-    def setPage(self, step, header):
-        self._window.Model.Step = step
+    def setHeader(self, header):
+        self._window.Model.Step = 2
         self._getPageHeader().Text = header
+
+    def setResults(self, header, text='', enabled=True):
+        self._window.Model.Step = 3
+        self._getPageHeader().Text = header
+        self._getResult().Text = text
+        self._getNextButton().Model.Enabled = enabled
 
     def setMaxProgress(self, value):
         model = self._getProgressBar().Model
@@ -96,9 +103,6 @@ class SetupView():
         except Exception:
             pass
 
-    def setResult(self, text):
-        self._getResult().Text = text
-
     def enableButtons(self, enabled):
         self._getCancelButton().Model.Enabled = enabled
         self.enableNext(enabled)
@@ -107,17 +111,17 @@ class SetupView():
         self._getNextButton().Model.Enabled = enabled
 
 # SetupView private control methods
-    def _getProgressBar(self):
-        return self._window.getControl('ProgressBar%s' % self.getStep())
-
-    def _getProgressText(self):
-        return self._window.getControl('Label%s' % self.getStep())
-
     def _getPageHeader(self):
         return self._window.getControl('Label1')
 
+    def _getProgressBar(self):
+        return self._window.getControl('ProgressBar1')
+
+    def _getProgressText(self):
+        return self._window.getControl('Label2')
+
     def _getResult(self):
-        return self._window.getControl('Label%s' % self.getStep())
+        return self._window.getControl('Label3')
 
     def _getCancelButton(self):
         return self._window.getControl('CommandButton1')

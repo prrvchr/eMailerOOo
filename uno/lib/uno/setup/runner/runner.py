@@ -67,6 +67,7 @@ class Runner(unohelper.Base,
             resource, args, call, *kwargs = next(self._check.steps)
             self._step += 1
             if self._progress:
+                print("Runner.notify() resource: %s - args: %s" % (resource, ', '.join(args)))
                 self._progress.setText(self._check.resolver.resolveString(resource) % args)
                 self._progress.setValue(self._step)
             call(*kwargs)

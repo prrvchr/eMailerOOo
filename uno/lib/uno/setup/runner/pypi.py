@@ -45,9 +45,11 @@ class Pypi(Check):
         super().__init__(ctx, callback)
         self._installed = {}
         self._aborted = {}
-        self._error = None
+        self._path = None
+        self._pythonpath = 'service/pythonpath'
         self._data = None
         self._url = None
+        self._version = None
         self.total = 1 + len(modules) * 3
         self.label1 = self.resolver.resolveString(411)
         self.label2 = self.resolver.resolveString(412)
@@ -62,42 +64,44 @@ class Pypi(Check):
     def callback(self, success):
         self._callback(self._getSuccess(success))
 
-    def stepGetPythonPathUrl(self):
-        self._path = getResourceLocation(self._ctx, g_identifier, 'service/pythonpath')
+    def stepGetPythonPath(self):
+        self._path = getResourceLocation(self._ctx, g_identifier, self._pythonpath)
 
     def stepGetPackageData(self, package):
         self._data = getPackageData(package)
 
-    def stepGetPackageUrl(self, package, data):
-        self._url, self._name, self._version = getPackageUrl(package, data)
+    def stepGetPackageUrl(self):
+        self._url, self._version = getPackageUrl(self._data)
+        self._data = None
 
-    def stepInstallPackage(self, package, url, name, version, path):
-        if installPackage(url, path):
-            self._installed[package] = version
+    def stepInstallPackage(self, package):
+        if installPackage(self._url, self._path):
+            self._installed[package] = self._version
         else:
-            self._aborted[package] = version
+            self._aborted[package] = self._version
+        self._url = self._version = None
 
     def _getCheckStep(self, packages):
-        yield self._getStepGetPythonPathUrl()
+        yield self._getStepGetPythonPath()
         if self._path:
             for package in packages:
                 yield self._getStepGetPackageData(package)
                 if self._data:
-                    yield self._getStepGetPackageUrl(package, self._data)
-                    if self._url:
-                        yield self._getStepInstallPackage(package, self._url, self._name, self._version, self._path)
+                    yield self._getStepGetPackageUrl(package)
+                    if self._url and self._version:
+                        yield self._getStepInstallPackage(package)
 
-    def _getStepGetPythonPathUrl(self):
-        return 431, (), self.stepGetPythonPathUrl
+    def _getStepGetPythonPath(self):
+        return 431, (), self.stepGetPythonPath
 
     def _getStepGetPackageData(self, package):
         return 441, (package, ), self.stepGetPackageData, package
 
-    def _getStepGetPackageUrl(self, package, data):
-        return 451, (package, ), self.stepGetPackageUrl, package, data
+    def _getStepGetPackageUrl(self, package):
+        return 451, (package, ), self.stepGetPackageUrl
 
-    def _getStepInstallPackage(self, package, url, name, version, path):
-        return 461, (package, ), self.stepInstallPackage, package, url, name, version, path
+    def _getStepInstallPackage(self, package):
+        return 461, (package, ), self.stepInstallPackage, package
 
     def _getSuccess(self, success):
         return success and len(self._aborted) == 0
@@ -108,5 +112,5 @@ class Pypi(Check):
 
     def _getResult(self):
         modules = self._aborted if len(self._aborted) else self._installed
-        return ', '.join(modules.keys())
+        return ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
 

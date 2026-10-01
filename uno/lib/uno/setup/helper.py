@@ -138,28 +138,27 @@ def getPackageData(package, onError=None):
             onError(e)
     return data
 
-def getPackageUrl(package, data):
+def getPackageUrl(data):
     tags = list(pkg_tags.sys_tags())
     releases = data.get('releases', {})
     stables = [v for v in releases.keys() if not pkg_parse(v).is_prerelease]
     versions = sorted(stables, key=pkg_parse, reverse=True)
 
-    data = None, None, None
+    results = None, None
     for version in versions:
         files = releases[version]
         for release in files:
-            filename = release['filename']
             if release['packagetype'] == 'bdist_wheel':
                 try:
-                    _, _, _, filetags = parse_wheel_filename(filename)
+                    _, _, _, filetags = parse_wheel_filename(release['filename'])
                 except Exception:
                     continue
                 if filetags.intersection(tags):
-                    data = release['url'], filename, version
+                    results = release['url'], version
                     break
-        if all(data):
+        if all(results):
             break
-    return data
+    return results
 
 def installPackage(url, path, onError=None):
     try:

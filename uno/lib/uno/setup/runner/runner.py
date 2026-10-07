@@ -31,7 +31,8 @@ import unohelper
 
 from com.sun.star.awt import XCallback
 
-from .cancel import CancelException
+from ..error import CancelException
+from ..error import SetupException
 
 from ...unotool import getCallBack
 
@@ -87,6 +88,15 @@ class Runner(unohelper.Base,
                 self._check.callback(False)
             except Exception:
                 print("Runner.notify() CancelException ERROR: %s" % traceback.format_exc())
+
+        except SetupException as e:
+            try:
+                if self._progress:
+                    self._progress.end()
+                self._check.error = e
+                self._check.callback(False)
+            except Exception:
+                print("Runner.notify() SetupException ERROR: %s" % traceback.format_exc())
 
         except Exception as e:
             print("Runner.notify() ERROR: %s" % traceback.format_exc())

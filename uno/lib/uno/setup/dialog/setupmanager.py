@@ -204,16 +204,16 @@ class SetupManager():
         self._setHeader(self._model.getHeader())
         self._model.startCheck(self._view.getIndicator())
 
-    def notifyPython(self, success):
+    def notifyPython(self, success, checked):
         self._running = False
         if self._closing:
             self._dispose()
-        else:
-            if success:
+        elif success:
+            if checked:
                 self._python = True
             else:
                 self._setup = True
-            self._setResults(*self._model.getResults(success, False))
+        self._setResults(*self._model.getResults(success, False))
 
     def _installPackages(self):
         self._step = 6

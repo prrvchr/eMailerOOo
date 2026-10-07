@@ -108,8 +108,7 @@ class SetupModel():
         self._check = Python(self._ctx, callback)
 
     def setCheckPypi(self, callback):
-        modules = self._check.getModules()
-        self._check = Pypi(self._ctx, callback, modules)
+        self._check = Pypi(self._ctx, callback, self._check.packages)
 
     def startCheck(self, progress):
         runner = Runner(self._ctx, self._check, progress, self._cancel)

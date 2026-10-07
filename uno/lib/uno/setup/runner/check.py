@@ -41,6 +41,7 @@ class Check():
         self._callback = callback
         self.resolver = getStringResource(ctx, g_identifier, g_resource, 'SetupRunner')
         self.total = 0
+        self.error = None
 
     def isExtended(self, total):
         return self.total > total
@@ -50,4 +51,7 @@ class Check():
 
     def _getSuccess(self, success):
         return success
+
+    def _hasError(self):
+        return self.error is not None
 

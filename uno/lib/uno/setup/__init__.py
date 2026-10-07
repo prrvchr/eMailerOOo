@@ -36,8 +36,10 @@ from .dialog import SetupManager
 
 from .listener import DispatchListener
 
-from .runner import CancelException
+from .error import CancelException
 
+from .helper import canUpdatePackages
+from .helper import isLinuxDistribution
 from .helper import parseRequirements
 from .helper import showSetup
 

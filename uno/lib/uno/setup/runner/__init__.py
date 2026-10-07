@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .cancel import CancelException
-
 from .extension import Extension
 
 from .java import Java

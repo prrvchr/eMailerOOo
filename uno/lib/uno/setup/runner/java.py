@@ -94,11 +94,15 @@ class Java(Check):
         return self._code == 0
 
     def _getHeader(self):
-        code = 261 + self._code
+        if self._hasError():
+            return self.resolver.resolveString(261) % self.error.cause
+        code = 262 + self._code
         kwargs = {'version': self._version, 'minimum': self._minimum}
         return self.resolver.resolveString(code).format(**kwargs)
 
     def _getResult(self):
+        if self._hasError():
+            return self.error.traceback
         if self._code:
             return 'Java JDK version %s minimum' % self._minimum
         return 'Java JDK version %s' % self._version

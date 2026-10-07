@@ -52,91 +52,90 @@ class CheckSetup(unohelper.Base,
     def __init__(self, ctx, callback, database=None, java=None, agent=None, python=False, **extensions):
         self._ctx = ctx
         self._callback = callback
-        self._requirements = '/requirements.txt'
+        self._requirements = 'requirements.txt'
         self._asyncCall = getCallBack(ctx)
         self._results = self._getDefaultResults(True)
-        self._steps = self._getCheckStep(database, java, agent, python, extensions)
+        self._count = 0
+        self._steps = self._getCheckStep(ctx, database, java, agent, python, extensions)
 
     def start(self):
         Timer(0.1, self._call).start()
 
     def notify(self, data):
         try:
+            self._count += 1
             call, *args = next(self._steps)
             call(*args)
             Timer(0.1, self._call).start()
         except StopIteration:
             self._callback(**self._results)
         except Exception as e:
+            print("CheckSetup.notify() count: %s - ERROR: %s" % (self._count, traceback.format_exc()))
             self._callback(**self._getDefaultResults(False))
 
-    def checkExtension(self, identifier, infos):
-        self._results['extension'] &= checkExtension(self._ctx, identifier, infos)
+    def stepCheckExtension(self, identifier, infos):
+        self._results['extension'] &= checkExtension(self._ctx, identifier, *infos)
 
-    def checkJavaStatus(self, agent, extension, version, script):
+    def stepCheckJavaStatus(self, agent, extension, version, script):
         self._code = getJavaStatus(self._ctx)
         self._results['java'] = self._hasJava()
 
-    def checkJavaVersion(self, agent, extension, version, script):
+    def stepCheckJavaVersion(self, agent, extension, version, script):
         self._code, _, _ = getJavaVersion(self._ctx, extension, version, script)
         self._results['java'] = self._hasJava()
 
-    def checkJavaAgent(self, service, url, agent):
+    def stepCheckJavaAgent(self, service, url, agent):
         self._results['agent'] = checkAgent(self._ctx, extension, version, script)
 
-    def checkDataBase(self, database):
+    def stepCheckDataBase(self, database):
         self._results['database'] = getSimpleFile(self._ctx).exists(database)
 
-    def getRequirementUrl(self):
-        self._url = getResourceLocation(self._ctx, g_identifier, self._requirements)
+    def stepGetRequirementUrl(self, ctx):
+        self._url = getResourceLocation(ctx, g_identifier, self._requirements)
 
-    def addInstalled(self, module):
-        pass
+    def stepCheckPython(self):
+        self._results['python'] = checkPython(self._url)
 
-    def addMissing(self, module):
-        self._results['python'] = False
-
-    def _getCheckStep(self, database, java, agent, python, extensions):
-        for identifier, infos in extensions:
-            yield self._stepCheckExtension(identifier, infos)
+    def _getCheckStep(self, ctx, database, java, agent, python, extensions):
+        if extensions:
+            for identifier, infos in extensions:
+                yield self._getStepCheckExtension(identifier, infos)
         if java:
-            yield self._stepCheckJavaStatus(*java)
+            yield self._getStepCheckJavaStatus(*java)
             if self._hasJava():
-                yield self._stepCheckJavaStatus(*java)
+                yield self._getStepCheckJavaStatus(*java)
             if self._hasJava() and agent:
-                yield self._stepCheckJavaAgent(*agent)
+                yield self._getStepCheckJavaAgent(*agent)
         if database:
-            yield self._stepCheckDataBase(database)
+            yield self._getStepCheckDataBase(database)
         if python:
-            yield self._stepGetRequirementUrl()
+            yield self._getStepGetRequirementUrl(ctx)
             if getSimpleFile(self._ctx).exists(self._url):
-                yield from checkPython(self._url, self._stepAddInstalled, self._stepAddMissing)
+                yield self._getStepCheckPython()
 
     def _call(self):
        self._asyncCall.addCallback(self, None)
 
-    def _stepCheckExtension(self, identifier, data):
-        return self.checkExtension, identifier, infos
-    def _stepCheckJavaStatus(self, agent, extension, version, script):
-        return self._checkJavaStatus, agent, extension, version, script
+    def _getStepCheckExtension(self, identifier, infos):
+        return self.stepCheckExtension, identifier, infos
 
-    def _stepCheckJavaVersion(self, agent, extension, version, script):
-        return self.checkJavaVersion, agent, extension, version, script
+    def _getStepCheckJavaStatus(self, agent, extension, version, script):
+        return self.stepCheckJavaStatus, agent, extension, version, script
 
-    def _stepCheckJavaAgent(self, service, url, agent):
-        return self.checkJavaAgent, service, url, agent
+    def _getStepCheckJavaVersion(self, agent, extension, version, script):
+        return self.stepCheckJavaVersion, agent, extension, version, script
 
-    def _stepCheckDataBase(self, database):
-        return self.checkDataBase, database
+    def _getStepCheckJavaAgent(self, service, url, agent):
+        return self.stepCheckJavaAgent, service, url, agent
 
-    def _stepGetRequirementUrl(self):
-        return self.getRequirementUrl
+    def _getStepCheckDataBase(self, database):
+        return self.stepCheckDataBase, database
 
-    def _stepAddInstalled(self, module):
-        return self.addInstalled, module
+    def _getStepGetRequirementUrl(self, ctx):
+        return self.stepGetRequirementUrl, ctx
 
-    def _stepAddMissing(self, module):
-        return self.addMissing, module
+    def _getStepCheckPython(self):
+        return self.stepCheckPython,
 
     def _getDefaultResults(self, value):
         return {'extension': value, 'java': value, 'agent':value, 'database': value, 'python': value}
@@ -148,7 +147,7 @@ class CheckSetup(unohelper.Base,
     def isValid(cls, ctx, database=None, java=None, python=False, **extensions):
         code = None
         for identifier, infos in extensions:
-            if not checkExtension(ctx, identifier, infos):
+            if not checkExtension(ctx, identifier, *infos):
                 return False
         if java:
             code = getJavaStatus(ctx)
@@ -161,10 +160,8 @@ class CheckSetup(unohelper.Base,
             return False
         if python:
             url = getResourceLocation(ctx, g_identifier, self._requirements)
-            if not getSimpleFile(self._ctx).exists(url):
-                return False
-            for status in checkPython(url, lambda x : False, lambda x : True):
-                if status:
-                    return False
+            if getSimpleFile(self._ctx).exists(url):
+                return checkPython(url)
+            return False
         return True
 

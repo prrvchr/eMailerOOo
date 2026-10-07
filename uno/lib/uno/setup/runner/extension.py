@@ -57,7 +57,7 @@ class Extension(Check):
         self._callback(self._getSuccess(success))
 
     def stepCheckExtension(self, identifier, infos):
-        if checkExtension(self._ctx, identifier, infos):
+        if checkExtension(self._ctx, identifier, *infos):
             self._present.append(infos)
         else:
             self._absent.append(infos)

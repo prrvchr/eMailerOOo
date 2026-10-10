@@ -51,8 +51,8 @@ import traceback
 
 
 class Python(Check):
-    def __init__(self, ctx, callback):
-        super().__init__(ctx, callback)
+    def __init__(self, ctx):
+        super().__init__(ctx)
         self._packages ={}
         self._path = getResourceLocation(ctx, g_identifier, 'requirements.txt')
         self._distro = False
@@ -70,14 +70,11 @@ class Python(Check):
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(321).format(**kwargs)
 
-    def getResults(self, success):
-        return self._getHeader(), self._getResult()
+    def setReport(self, reports, success):
+        return self._getHeader(success), self._getResult(success)
 
-    def getLastPage(self):
-        return self._getHeader(), self._getResult(), True
-
-    def callback(self, success):
-        self._callback(success, self._success)
+    def callback(self, callback, success=True, error=None):
+        callback(success, self._success, error)
 
     def stepGetInstalledPackages(self, ctx):
         self._distro = isLinuxDistribution(ctx)
@@ -109,6 +106,7 @@ class Python(Check):
             yield self._getStepGetInstalledPackages(ctx)
             yield self._getStepGetStepCount()
             for requirement, version1, version2 in self._parsePackages():
+                print("Python._getCheckStep() requirement: %s - version1: %s - version2: %s" % (requirement.name, version1, version2))
                 if requirement.url:
                     self.packages[requirement.name] = version1, version2, None
                     self._success &= version1 == version2
@@ -174,16 +172,12 @@ class Python(Check):
             version2 = getRequirementversion(requirement, self._update)
             yield requirement, version1, version2
 
-    def _getHeader(self):
-        if self._hasError():
-            return self.resolver.resolveString(391) % self.error.cause
-        code = 392 if self._success else 393
+    def _getHeader(self, success):
+        code = 391 if success else 392
         return self.resolver.resolveString(code)
 
-    def _getResult(self):
-        if self._hasError():
-            return self.error.traceback
-        if self._success:
+    def _getResult(self, success):
+        if success:
             modules = ('%s version %s' % (package, data[1]) for package, data in self.packages.items())
             result = ', '.join(modules)
             print("Python._getResult() installed result: %s" % result)

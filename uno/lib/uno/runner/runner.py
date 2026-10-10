@@ -31,69 +31,85 @@ import unohelper
 
 from com.sun.star.awt import XCallback
 
-from ...unotool import getCallBack
-from ...unotool import getSimpleFile
+from .error import CancelException
+from .error import RunnerException
+
+from ..unotool import getCallBack
 
 from threading import Timer
 import traceback
 
 
-class SetupDataBase(unohelper.Base,
-                    XCallback):
-    def __init__(self, ctx, callback, progress, database, user='', pwd=''):
-        self._ctx = ctx
-        self._exists = False
-        self._callback = callback
+class Runner(unohelper.Base,
+             XCallback):
+    def __init__(self, ctx, check, callback, progress, cancel):
+        self._check = check
+        self._total = check.total
         self._progress = progress
-        self._database = database
+        self._callback = callback
+        self._cancel = cancel
         self._step = 0
         self._asyncCall = getCallBack(ctx)
 
-    def getHeader(self, **kwargs):
-        return self._database.getHeader(**kwargs)
-
-    def getResults(self, success):
-        return self._database.getResults(success, self._exists)
-
-    def getLastPage(self):
-        return self._database.getLastPage()
-
     def start(self):
-        self._exists = getSimpleFile(self._ctx).exists(self._database.path)
-        if self._exists:
-            Timer(0.1, self._callback, args=(True, )).start()
-        else:
-            if self._progress:
-                self._progress.start(self._database.label, self._database.total)
-            Timer(0.1, self._call).start()
+        if self._progress:
+            self._progress.start(self._check.label1, self._check.total)
+        Timer(0.1, self._call).start()
 
     def notify(self, data):
         try:
-            resource, call = next(self._database.steps)
+            if self._cancel.isSet():
+                raise CancelException()
+
+            if self._check.isExtended(self._total):
+                self._total = self._check.total
+                if self._progress:
+                    self._progress.start(self._check.label2, self._check.total)
+                    self._progress.setValue(self._step)
+
+            resource, args, call, *kwargs = next(self._check.steps)
             self._step += 1
             if self._progress:
-                self._progress.setText(self._database.resolver.resolveString(resource))
+                self._progress.setText(self._check.resolver.resolveString(resource) % args)
                 self._progress.setValue(self._step)
-            call()
-
+            call(*kwargs)
             Timer(0.1, self._call).start()
 
         except StopIteration:
-            if self._progress:
-                self._progress.end()
-            self._callback(True)
+            try:
+                if self._progress:
+                    self._progress.end()
+                self._check.callback(self._callback)
+            except Exception:
+                print("Runner.notify() StopIteration ERROR: %s" % traceback.format_exc())
+
+        except CancelException:
+            try:
+                self._check.stepFinalize()
+                if self._progress:
+                    self._progress.end()
+                self._check.callback(self._callback, False)
+            except Exception:
+                print("Runner.notify() CancelException ERROR: %s" % traceback.format_exc())
+
+        except RunnerException as e:
+            try:
+                self._check.stepFinalize()
+                if self._progress:
+                    self._progress.end()
+                self._check.callback(self._callback, False, e)
+            except Exception:
+                print("Runner.notify() RunnerException ERROR: %s" % e.trace)
+
         except Exception as e:
-            print("SetupDataBase.notify() ERROR: %s" % traceback.format_exc())
-            if self._database.statement:
-                try: self._database.statement.close()
-                except: pass
-            if self._database.connection:
-                try: self._database.connection.close()
-                except: pass
-            if self._progress:
-                self._progress.end()
-            self._callback(False)
+            try:
+                if self._progress:
+                    self._progress.end()
+                trace = traceback.format_exc()
+                self._check.callback(self._callback, False, RunnerException(e, trace))
+            except Exception:
+                print("Runner.notify() RunnerException ERROR: %s" % traceback.format_exc())
 
     def _call(self):
-       self._asyncCall.addCallback(self, None)
+        self._asyncCall.addCallback(self, None)
 

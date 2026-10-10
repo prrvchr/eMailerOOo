@@ -32,9 +32,9 @@ class CancelException(Exception):
     pass
 
 
-class SetupException(Exception):
-    def __init__(self, cause, traceback):
+class RunnerException(Exception):
+    def __init__(self, cause, trace):
         super().__init__(str(cause))
         self.cause = cause.__class__.__name__
-        self.traceback = traceback
+        self.trace = trace
 

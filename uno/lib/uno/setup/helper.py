@@ -29,13 +29,15 @@
 
 import uno
 
-from .error import SetupException
+from ..runner import RunnerException
 
+from ..unotool import checkVersion
 from ..unotool import createService
 from ..unotool import executeDesktopDispatch
 from ..unotool import getExtensionVersion
 from ..unotool import getPathSubstitution
 from ..unotool import getPropertyValueSet
+from ..unotool import hasInterface
 
 from ..configuration import g_extension
 
@@ -46,12 +48,10 @@ import json
 import operator
 import os
 from packaging import tags as pkg_tags
-from packaging.markers import Marker
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.utils import parse_wheel_filename
 from packaging.version import parse as pkg_parse
-from packaging.version import Version
 import re
 import shutil
 import sys
@@ -70,9 +70,6 @@ OPERATORS = {'==': operator.eq,
 
 def canUpdatePackages():
     return sys.version_info >= (3, 10)
-
-def checkVersion(version, minimum):
-    return pkg_parse(version) >= pkg_parse(minimum)
 
 def showSetup(ctx, identifier, listener=None, /, **kwargs):
     url = f'vnd.sun.star.job:service={identifier}.Setup'
@@ -102,14 +99,13 @@ def getJavaVersion(ctx, extension, java, script):
         if macro:
             result = macro.invoke((), (), ())[0]
             version = _parseJavaVersion(result)
-            version = result
             if checkVersion(version, java):
                 results = 0, java, version
             else:
                 results = 1, java, version
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return results
 
 def checkAgent(ctx, service, url, agent):
@@ -133,8 +129,8 @@ def isLinuxDistribution(ctx):
             if os.path.realpath(entry).lower().startswith(path):
                 return False
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return True
 
 def getInstalledPackages():
@@ -149,15 +145,6 @@ def getInstalledPackages():
         except Exception:
             continue
     return packages
-
-def parseRequirements(url):
-    info = sys.version_info
-    python = {'python_version': f'{info.major}.{info.minor}'}
-    for requirement in _parseRequirements(url):
-        if requirement.marker:
-            if not requirement.marker.evaluate(python):
-                continue
-        yield requirement
 
 def getPackageVersionData(requirement, version):
     data = None
@@ -174,8 +161,8 @@ def getPackageVersionData(requirement, version):
                 binary = response.read()
             data = json.loads(binary.decode('utf-8'))
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return data
 
 def parsePackageVersionData(requirement, data):
@@ -207,24 +194,9 @@ def getPackageSimpleData(requirement):
                 binary = response.read()
             data = json.loads(binary.decode('utf-8'))
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return data
-
-def getRequirementversion(requirement, update=0):
-    if requirement.specifier:
-        for specifier in requirement.specifier:
-            if specifier.operator == '==' or update == 0:
-                return specifier.version
-
-    if requirement.url:
-        try:
-            version = _parseVersionUrl(requirement.url)
-            if version:
-                return version
-        except Exception:
-            pass
-    return None
 
 def parsePackageSimpleData(requirement, update, data):
     releases = []
@@ -332,8 +304,8 @@ def uninstallPackage(package, url):
         importlib.invalidate_caches()
 
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
 
 def installPackage(url, path):
     try:
@@ -346,11 +318,8 @@ def installPackage(url, path):
             z.extractall(uno.fileUrlToSystemPath(path))
         return True
     except Exception as e:
-        traceback = traceback.format_exc()
-        raise SetupException(e, traceback)
-
-def parsePackageName(package):
-    return package.lower().replace('-', '_')
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
 
 def checkPython(url):
     packages = getInstalledPackages()
@@ -361,12 +330,37 @@ def checkPython(url):
             if not version1:
                 return False
             specs = _getRequirementSpecs(requirement)
-            for op, version2 in specs:
-                if not op(Version(version1), Version(version2)):
-                    return False
+            if not all(checkVersion(version1, version2, op) for op, version2 in specs):
+                return False
         except Exception as e:
             return False
     return True
+
+def parseRequirements(url):
+    info = sys.version_info
+    python = {'python_version': f'{info.major}.{info.minor}'}
+    for requirement in _parseRequirements(url):
+        if requirement.marker and not requirement.marker.evaluate(python):
+            continue
+        yield requirement
+
+def parsePackageName(package):
+    return package.lower().replace('-', '_')
+
+def getRequirementversion(requirement, update=0):
+    if requirement.specifier:
+        for specifier in requirement.specifier:
+            if specifier.operator == '==' or update == 0:
+                return specifier.version
+
+    if requirement.url:
+        try:
+            version = _parseVersionUrl(requirement.url)
+            if version:
+                return version
+        except Exception:
+            pass
+    return None
 
 def _getRequirementSpecs(requirement):
     specs = []
@@ -422,22 +416,4 @@ def _parseJavaVersion(version):
             else:
                 clean = basenum
     return clean
-
-# Function not used anymore
-def checkConnection1(ctx, source, connection, logger, new, warn=False):
-    version = connection.getMetaData().getDriverVersion()
-    if not checkVersion(version, g_version):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 511, g_extension2, version, g_version)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-    service = 'com.sun.star.sdb.Connection'
-    interface = 'com.sun.star.sdbcx.XGroupsSupplier'
-    if new and not _checkConnection(connection, service, interface):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 513, g_extension2, service, interface)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
 

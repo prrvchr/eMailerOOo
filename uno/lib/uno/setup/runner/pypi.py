@@ -41,8 +41,8 @@ import traceback
 
 
 class Pypi(Check):
-    def __init__(self, ctx, callback, packages):
-        super().__init__(ctx, callback)
+    def __init__(self, ctx, packages):
+        super().__init__(ctx)
         self._installed = {}
         self._aborted = {}
         self._path = getResourceLocation(ctx, g_identifier, 'service/pythonpath')
@@ -54,14 +54,13 @@ class Pypi(Check):
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(421).format(**kwargs)
 
-    def getResults(self, success):
-        return self._getHeader(), self._getResult(), True
+    def setReport(self, reports, success):
+        if not success:
+            reports.append(self._getReport(success))
+        return self._getHeader(success), self._getResult(success), True
 
-    def getLastPage(self):
-        return self._getHeader(), self._getResult(), True
-
-    def callback(self, success):
-        self._callback(self._getSuccess(success))
+    def callback(self, callback, success=True, error=None):
+        callback(self._getSuccess(success), error)
 
     def stepGetStepCount(self, packages):
         self.total += sum(i for i in self._getStepCount(packages))
@@ -103,20 +102,19 @@ class Pypi(Check):
             if version1 != version2:
                 yield 2 if version1 else 1
 
-    def _getSuccess(self, success):
-        return success and len(self._aborted) == 0
-
-    def _getHeader(self):
-        if self._hasError():
-            return self.resolver.resolveString(461) % self.error.cause
-        code = 462 if len(self._aborted) else 463
+    def _getHeader(self, success):
+        code = 461 if success else 462
         return self.resolver.resolveString(code)
 
-    def _getResult(self):
-        if self._hasError():
-            return self.error.traceback
-        modules = self._aborted if len(self._aborted) else self._installed
+    def _getReport(self, success):
+        return self._getHeader(success), self._getResult(success), True
+
+    def _getResult(self, success):
+        modules = self._installed if success else self._aborted
         result = ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
         print("Pypi._getResult() result: %s" % result)
         return result
+
+    def _getSuccess(self, success):
+        return success and len(self._aborted) == 0
 

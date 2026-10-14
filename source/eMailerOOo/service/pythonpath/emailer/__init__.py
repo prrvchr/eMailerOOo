@@ -41,21 +41,29 @@ from .options import OptionsManager
 
 from .user import User
 
+from .setup import SetupManager
+
+from .spooler import SpoolerManager
+
 from .transferable import Transferable
 
+from .unotool import checkInternet
+from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeDispatch
 from .unotool import getConfiguration
 from .unotool import getCurrentLocale
 from .unotool import getExtensionVersion
 from .unotool import getMimeTypeFactory
+from .unotool import getStringResource
 from .unotool import hasFrameInterface
 
 from .logger import getLogger
 
+from .configuration import g_check
+from .configuration import g_defaultlog
+from .configuration import g_fetchsize
 from .configuration import g_identifier
 from .configuration import g_mailservicelog
-from .configuration import g_defaultlog
 from .configuration import g_spoolerlog
-from .configuration import g_fetchsize
 

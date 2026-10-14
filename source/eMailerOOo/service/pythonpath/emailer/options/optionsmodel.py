@@ -31,13 +31,17 @@ import unohelper
 
 from ..jdbcdriver import isInstrumented
 
+from ..unotool import deregisterStartupJob
 from ..unotool import getConfiguration
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getStringResource
+from ..unotool import hasStartupJob
+from ..unotool import registerStartupJob
 
 from ..dbconfig  import g_folder
 
+from ..configuration import g_check
 from ..configuration import g_basename
 from ..configuration import g_identifier
 from ..configuration import g_separator
@@ -48,24 +52,36 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
+        self._job = 'eMailerOOo.Setup'
         self._config = getConfiguration(ctx, g_identifier, True)
         folder = g_folder + g_separator + g_basename
         location = getResourceLocation(ctx, g_identifier, folder)
         self._url = location + '.odb'
-        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
+        self._instrumented = isInstrumented(ctx, 'juda:jdbc')
         resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
         self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
+
+    _restart = g_check
 
     @property
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
+    @property
+    def _Startup(self):
+        return hasStartupJob(self._ctx, self._job)
 
     def isInstrumented(self):
         return self._instrumented
 
     def getViewData(self):
-        exist = self.getDataBaseStatus()
-        return self._link, self._instrumented, exist, self._Timeout
+        return OptionsModel._restart, self._link, self._instrumented, self.getDataBaseStatus(), self._Timeout, self._Startup
+
+    def saveStartup(self, startup):
+        if startup != self._Startup:
+            if startup:
+                registerStartupJob(self._ctx, self._job)
+            else:
+                deregisterStartupJob(self._ctx, self._job)
 
     def saveTimeout(self, timeout):
         if timeout != self._Timeout:

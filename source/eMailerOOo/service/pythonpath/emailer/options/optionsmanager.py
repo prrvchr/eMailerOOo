@@ -61,27 +61,26 @@ class OptionsManager(unohelper.Base):
         self._model = OptionsModel(ctx)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(window)
-        self._view.initView(OptionsManager._restart, *self._model.getViewData())
+        self._view.initView(*self._model.getViewData())
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_spoolerlog, g_mailservicelog)
         self._logmanager.initView()
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
-
-    _restart = False
 
     def dispose(self):
         self._logmanager.dispose()
         self._view.dispose()
 
     def loadSetting(self):
-        self._view.initView(OptionsManager._restart, *self._model.getViewData())
+        self._view.initView(*self._model.getViewData())
         self._logmanager.loadSetting()
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting', 161)
 
     def saveSetting(self):
+        self._model.saveStartup(self._view.getStartup())
         option = self._model.saveTimeout(self._view.getTimeout())
         log = self._logmanager.saveSetting()
         if log:
-            OptionsManager._restart = True
+            OptionsModel._restart = True
             self._view.setWarning(True, self._model.isInstrumented())
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting', 171, option, log)
 

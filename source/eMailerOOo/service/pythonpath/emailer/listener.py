@@ -29,6 +29,8 @@
 
 import unohelper
 
+from com.sun.star.awt import XWindowListener
+
 from com.sun.star.frame import XDispatchResultListener
 
 from com.sun.star.frame import XTerminateListener
@@ -112,6 +114,28 @@ class StreamListener(unohelper.Base,
         pass
 
     def disposing(self, source):
+        pass
+
+
+class WindowListener(unohelper.Base,
+                     XWindowListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XWindowListener
+    def windowShown(self, event):
+        self._manager.windowShown(event.Source)
+
+    def windowHidden(self, event):
+        pass
+
+    def windowMoved(self, event):
+        pass
+
+    def windowResized(self, event):
+        pass
+
+    def disposing(self, event):
         pass
 
 

@@ -1,7 +1,17 @@
-ijson>=3.5.1
-imapclient>=3.1.0
-packaging>=26.3
-pip>=26.0.1
-setuptools>=61.0.0,<81.0.0
-six>=1.17.0
-validators>=0.35.0
+#1
+ijson==3.3.0; python_version == "3.8"
+ijson==3.5.1; python_version == "3.9"
+ijson>=3.5.1; python_version >= "3.10"
+
+#2
+IMAPClient==4.1.0; python_version in "3.8, 3.9"
+IMAPClient>=4.1.0; python_version >= "3.10"
+
+#3
+six==1.17.0; python_version in "3.8, 3.9"
+six>=1.17.0; python_version >= "3.10"
+
+#4
+validators==0.34.0; python_version == "3.8"
+validators==0.35.0; python_version == "3.9"
+validators>=0.35.0; python_version >= "3.10"

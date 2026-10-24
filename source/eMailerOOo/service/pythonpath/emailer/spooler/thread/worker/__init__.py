@@ -37,5 +37,3 @@ from .executor import Executor
 
 from .sender import Sender
 
-from .watchdog import WatchDog
-

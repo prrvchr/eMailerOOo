@@ -27,62 +27,82 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 import traceback
 
 
-class OptionsView(unohelper.Base):
-    def __init__(self, window):
+class OptionsView():
+    def __init__(self, window, update, links):
         self._window = window
+        self._getSetup().Model.Enabled = update
+        for i, link in enumerate(links, start=1):
+            self._getLink(i).URL = link
 
 # OptionsView getter methods
     def getWindow(self):
         return self._window
 
-    def getTimeout(self):
-        return int(self._getTimeout().Value)
+    def getData(self):
+        timeout = int(self._getTimeout().Value)
+        mode = self._getErrorMode().getSelectedItemPos()
+        delay = self._getDelay().Value
+        return timeout, mode, delay, self.getSetup()
+
+    def getSetup(self):
+        return self._getSetup().getSelectedItemPos()
 
 # OptionsView setter methods
     def dispose(self):
         self._window.dispose()
 
-    def initView(self, restart, url, instrumented, exist, timeout):
-        control = self._getWarning()
-        control.URL = url
-        self._setWarning(control, restart, instrumented)
-        self.updateDataBase(exist)
+    def initView(self, timeout, mode, delay, setup, state):
         self._getTimeout().Value = timeout
+        self._getErrorMode().selectItemPos(mode, True)
+        self._getDelay().Value = delay
+        self._setSetup(setup)
+        self.refreshView(state)
 
-    def setWarning(self, restart, instrumented):
-        self._setWarning(self._getWarning(), restart, instrumented)
-
-    def updateDataBase(self, exist):
-        self._getDataBaseButton().Model.Enabled = exist
-
-    def setRestart(self, enabled):
-        self._getRestart().setVisible(enabled)
+    def refreshView(self, state):
+        self._window.Model.Step = state.step
+        self._enableButtons(state)
 
 # OptionsView private methods
-    def _setWarning(self, control, restart, instrumented):
-        if restart:
-            control.setVisible(False)
-            self._getRestart().setVisible(True)
-        else:
-            self._getRestart().setVisible(False)
-            control.setVisible(not instrumented)
+    def _setSetup(self, setup):
+        control = self._getSetup()
+        if control.Model.Enabled:
+            control.selectItemPos(setup, True)
+
+    def _enableButtons(self, state):
+        enabled = state.extension and state.java and state.python
+        self._getShowIspdb().Model.Enabled = enabled
+        self._getShowDataBase().Model.Enabled = state.extension and state.java and state.database
+        self._getShowSpooler().Model.Enabled = enabled
+        self._getShowController().Model.Enabled = enabled
 
 # OptionsView private control methods
     def _getTimeout(self):
         return self._window.getControl('NumericField1')
 
-    def _getDataBaseButton(self):
+    def _getDelay(self):
+        return self._window.getControl('NumericField2')
+
+    def _getShowIspdb(self):
+        return self._window.getControl('CommandButton1')
+
+    def _getShowDataBase(self):
         return self._window.getControl('CommandButton2')
 
-    def _getRestart(self):
-        return self._window.getControl('Label5')
+    def _getShowSpooler(self):
+        return self._window.getControl('CommandButton3')
 
-    def _getWarning(self):
-        return self._window.getControl('Hyperlink1')
+    def _getShowController(self):
+        return self._window.getControl('CommandButton4')
+
+    def _getErrorMode(self):
+        return self._window.getControl('ListBox1')
+
+    def _getSetup(self):
+        return self._window.getControl('ListBox2')
+
+    def _getLink(self, index):
+        return self._window.getControl(f'Hyperlink{index}')
 

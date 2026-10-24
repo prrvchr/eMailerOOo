@@ -52,8 +52,13 @@ from ..oauth20 import setResquestParameter
 from ..configuration import g_chunk
 from ..configuration import g_identifier
 
+from ..configuration import State
+try:
+    import ijson
+except ImportError as e:
+    State.restart = True
+
 from string import Template
-import ijson
 import traceback
 
 

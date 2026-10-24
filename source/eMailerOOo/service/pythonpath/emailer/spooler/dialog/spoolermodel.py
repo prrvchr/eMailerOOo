@@ -43,15 +43,13 @@ from com.sun.star.view.SelectionType import MULTI
 
 from ...grid import GridManager
 
-from ...unotool import TaskEvent
-
 from ...unotool import createService
 from ...unotool import executeDesktopDispatch
 from ...unotool import getConfiguration
 from ...unotool import getPathSettings
 from ...unotool import getResourceLocation
 from ...unotool import getStringResource
-from ...unotool import saveTopWindowPosition
+from ...unotool import saveWindowPosition
 
 from ...listener import DispatchListener
 
@@ -73,18 +71,18 @@ import json
 import traceback
 
 
-class SpoolerModel(unohelper.Base):
-    def __init__(self, ctx, datasource):
+class SpoolerModel():
+    def __init__(self, ctx):
         self._ctx = ctx
+        self._closing = False
         self._diposed = False
-        self._path = getPathSettings(ctx).Work
-        self._datasource = datasource
-        self._spooler = getMailSpooler(ctx)
+        self._spooler = None
         self._rowset = None
         self._grid = None
         self._status = 1
-        self._dispatch = TaskEvent(True)
+        self._path = getPathSettings(ctx).Work
         self._identifiers = ('JobId', )
+        self._position = 'SpoolerPosition'
         self._url = getResourceLocation(ctx, g_identifier, 'img')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SpoolerDialog')
@@ -95,15 +93,14 @@ class SpoolerModel(unohelper.Base):
                            'MsgBoxTitle': 'SpoolerMsgBox.Title'}
 
     @property
-    def _dataSource(self):
-        return self._datasource
-
-    @property
     def Path(self):
         return self._path
     @Path.setter
     def Path(self, path):
         self._path = path
+
+    def close(self):
+        self._closing = True
 
 # XDispatchResultListener
     def dispatchFinished(self, notification):
@@ -128,11 +125,11 @@ class SpoolerModel(unohelper.Base):
     def isDisposed(self):
         return self._diposed
 
-    def getDialogTitles(self):
-        return self._getDialogTitle(), self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3)
+    def getViewData(self):
+        return self._getDialogPosition(), self._getDialogTitle(), self._getTabTitles()
 
-    def getDialogPosition(self):
-        return uno.createUnoStruct('com.sun.star.awt.Point', *self._config.getByName('SpoolerPosition'))
+    def getDialogTitle(self):
+        return self._getDialogTitle()
 
     def getRowClientInfo(self):
         link = False
@@ -156,7 +153,7 @@ class SpoolerModel(unohelper.Base):
     def startDispatch(self, frame, listener):
         self._dispatch.clear()
         job = self._grid.getSelectedIdentifier('JobId')
-        kwargs = {'TaskEvent': self._dispatch, 'JobIds': (job, ), 'Frame': frame}
+        kwargs = {'JobIds': (job, ), 'Frame': frame}
         executeDesktopDispatch(self._ctx, 'emailer:GetMail', listener, **kwargs)
 
     def setSpoolerStatus(self, status):
@@ -208,10 +205,23 @@ class SpoolerModel(unohelper.Base):
         return cmd, opt
 
 # SpoolerModel setter methods
-    def initSpooler(self, *args):
-        Thread(target=self._initSpooler, args=args).start()
+    def initSpooler(self, listener):
+        print("SpoolerModel.initSpooler() 1")
+        self._spooler = getMailSpooler(self._ctx)
+        self._spooler.addContentListener(listener)
+        print("SpoolerModel.initSpooler() 2")
+
+    def isGridInitialized(self):
+        return self._grid is not None
+
+    def initGrid(self, rowset, window, listener):
+        self._rowset = rowset
+        resources = (self._resolver, self._resources.get('GridColumns'))
+        self._grid = GridManager(self._ctx, self._url, window, 'Spooler', MULTI, resources)
+        self._grid.addSelectionListener(listener)
 
     def setGridData(self, rowset):
+        print("SpoolerModel.setGridData()")
         self._grid.setDataModel(rowset, self._identifiers)
 
     def deselectAllRows(self):
@@ -223,15 +233,17 @@ class SpoolerModel(unohelper.Base):
         executeDesktopDispatch(self._ctx, 'emailer:ShowMailer', listener, **kwargs)
 
     def save(self, position):
-        saveTopWindowPosition(self._config, position, 'SpoolerPosition')
+        saveWindowPosition(self._config, position, self._position)
         self._grid.saveColumnSettings()
 
     def dispose(self):
         self._diposed = True
-        if self._grid:
+        if self._grid is not None:
             self._grid.dispose()
-        self._datasource.dispose()
-        self._spooler.dispose()
+            self._grid = None
+        if self._spooler is not None:
+            self._spooler.dispose()
+            self._spooler = None
 
     def removeRows(self, rows):
         jobs = self._getRowsJobs(rows)
@@ -242,6 +254,12 @@ class SpoolerModel(unohelper.Base):
         return self._resolver.resolveString(resource)
 
 # SpoolerModel private getter methods
+    def _getDialogPosition(self):
+        return uno.createUnoStruct('com.sun.star.awt.Point', *self._config.getByName(self._position))
+
+    def _getTabTitles(self):
+        return self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3)
+
     def _getRowsJobs(self, rows):
         jobs = []
         i = self._rowset.findColumn('JobId')

@@ -33,9 +33,6 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.datatransfer import UnsupportedFlavorException
-from com.sun.star.datatransfer import XTransferable
-
 from com.sun.star.mail import XAuthenticator
 
 from com.sun.star.uno import XCurrentContext
@@ -43,49 +40,10 @@ from com.sun.star.uno import XCurrentContext
 from .oauth20 import setItemsIdentifier
 from .oauth20 import setParametersArguments
 
-from .unotool import getStreamSequence
-
 from string import Template
 from collections import UserDict
 import json
 import traceback
-
-
-def getTransferable(logger, flavor, data):
-    return Transferable(logger, flavor, data)
-
-
-class Transferable(unohelper.Base,
-                   XTransferable):
-    def __init__(self, logger, flavor, data):
-        self._logger = logger
-        self._flavor = flavor
-        self._data = data
-        self._typemap = self._getTypeMap()
-
-# XTransferable
-    def getTransferData(self, flavor):
-        if not self.isDataFlavorSupported(flavor):
-            msg = self._logger.resolveString(3001, flavor.MimeType, flavor.DataType.typeName)
-            raise UnsupportedFlavorException(msg, self)
-        map = (self._flavor.DataType.typeName, flavor.DataType.typeName)
-        return self._typemap[map](self._data)
-
-    def getTransferDataFlavors(self):
-        return (self._flavor,)
-
-    def isDataFlavorSupported(self, flavor):
-        if self._flavor.MimeType != flavor.MimeType:
-            return False
-        map = (self._flavor.DataType.typeName, flavor.DataType.typeName)
-        return True if map in self._typemap else False
-
-    def _getTypeMap(self):
-        ipstream = 'com.sun.star.io.XInputStream'
-        return {(ipstream, '[]byte'): lambda x: getStreamSequence(x),
-                (ipstream, ipstream): lambda x: x,
-                ('string', 'string'): lambda x: x,
-                ('[]byte', '[]byte'): lambda x: x}
 
 
 class Authenticator(unohelper.Base,

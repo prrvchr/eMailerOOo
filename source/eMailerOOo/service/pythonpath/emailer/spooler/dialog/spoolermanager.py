@@ -28,7 +28,6 @@
 """
 
 import uno
-import unohelper
 
 from com.sun.star.awt.MessageBoxType import WARNINGBOX
 
@@ -49,19 +48,29 @@ from .spoolerhandler import WindowHandler
 from .spoolerhandler import RowSetListener
 from .spoolerhandler import TabHandler
 from .spoolerhandler import TabPageListener
-from .spoolerhandler import LoggerListener
+
+from ...logger import LoggerListener
 
 from ...grid import GridSelectionListener
 
 from ...listener import DispatchListener
 from ...listener import StreamListener
 
+from ...runner import Cancel
+from ...runner import Runner
+
+from ...dbsetup import DBSetup
+
+from ...logger import LogController
+
 from ...helper import getMailSender
 
 from ...unotool import createMessageBox
+from ...unotool import executeDesktopDispatch
 from ...unotool import executeShell
+from ...unotool import notifyDispatch
 
-from ...logger import LogController
+from ...helper import showController
 
 from ...configuration import g_mailservicelog
 from ...configuration import g_spoolerframe
@@ -69,56 +78,52 @@ from ...configuration import g_spoolerlog
 from ...configuration import g_basename
 
 from time import sleep
-from threading import Lock
 import traceback
 
 
-class SpoolerManager(unohelper.Base):
-    def __init__(self, ctx, datasource, notifier, start=False):
+class SpoolerManager():
+    def __init__(self, ctx, source, /, dispatch=None, **kwargs):
         self._ctx = ctx
-        self._notifier = notifier
-        self._lock = Lock()
+        self._source = source
+        self._dispatch = dispatch
+        self._model = SpoolerModel(ctx)
+        self._running = False
+        self._notifier = None
         self._closing = False
         self._enabled = True
         self._initialize = True
-        self._model = SpoolerModel(ctx, datasource)
-        handler = WindowHandler(self)
-        listener = CloseListener(self)
-        handler1 = TabHandler(self)
-        listener1 = TabPageListener(self)
-        point = self._model.getDialogPosition()
-        titles = self._model.getDialogTitles()
-        self._view = SpoolerView(ctx, handler, listener, handler1, listener1, point, titles)
-        self._closelistener = listener
-        self._sender = getMailSender(ctx)
-        self._senderlistener = StreamListener(self)
+        self._closelistener = CloseListener(self)
+        self._view = SpoolerView(ctx, WindowHandler(self), self._closelistener, TabHandler(self), TabPageListener(self), *self._model.getViewData())
+        #self._sender = None
+        #self._senderlistener = StreamListener(self)
         self._loglistener1 = LoggerListener(self.updateLog1)
         self._log1 = LogController(ctx, g_spoolerlog, g_basename, self._loglistener1)
         self._log1.addRollerHandler()
         self._loglistener2 = LoggerListener(self.updateLog2)
         self._log2 = LogController(ctx, g_mailservicelog, g_basename, self._loglistener2)
         self._log2.addRollerHandler()
-        window = self._view.getGridWindow()
-        self._model.initSpooler(self._sender, window, GridSelectionListener(self), RowSetListener(self), start)
+        setup = Runner(ctx, DBSetup(self._ctx).withCallback(self.notify), self._view.getIndicator(), Cancel())
+        setup.start()
+
+    def notify(self, success, created):
+        self._view.resetIndicator()
+        if success:
+            self._model.initSpooler(RowSetListener(self))
 
     @property
     def HandlerEnabled(self):
         return self._enabled
 
-# XCallback
-    def notify(self, rowset):
-        with self._lock:
-            if not self._model.isDisposed():
-                self._view.initView()
-                self._sender.addListener(self._senderlistener)
-
 # XDispatchResultListener
     def dispatchFinished(self, notification):
+       print("SpoolerManager.dispatchFinished() 1")
+
+    def dispatchFinished1(self, notification):
         self._model.endDispatch()
         if self._closing:
             if not self._model.hasDispatch():
                 self._close()
-                self._view.close()
+                self._view.dispose()
         else:
             if notification.State == SUCCESS:
                 executeShell(self._ctx, notification.Result)
@@ -128,44 +133,24 @@ class SpoolerManager(unohelper.Base):
                 dialog.execute()
                 dialog.dispose()
             self._enableButtons(self._model.hasGridSelectedRows())
-            self._view.enableStartSpooler(True)
 
 # XCloseListener
     def queryClosing(self, source, ownership):
+        print("SpoolerManager.queryClosing() ownership: %s" % ownership)
+        self._close()
+        if self._running:
+            raise CloseVetoException()
         if not ownership:
-            if self._closing:
-                raise CloseVetoException()
-            self._closing = True
-            self._view.disableButtons()
-            if self._model.hasDispatch():
-                if self._model.isSenderStarted():
-                    self._sender.terminate()
-                raise CloseVetoException()
-            self._close()
+            self._dispose()
 
     def notifyClosing(self, source):
+        print("SpoolerManager.notifyClosing()")
         source.removeCloseListener(self._closelistener)
-        self._dispose()
-
-# XStreamListener
-    def started(self):
-        self._refreshSpoolerView(2)
-
-    def closed(self):
-        self._refreshSpoolerView(1)
-        if self._closing:
-            if not self._model.hasDispatch():
-                self._close()
-                self._view.close()
-        else:
-            self._enableButtons(self._model.hasGridSelectedRows())
-
-    def terminated(self):
-        self._refreshSpoolerView(0)
+        #self._dispose()
 
 # XTabPageContainerListener
     def activateTab(self, tab):
-        self._view.activateTab(tab)
+        self._view.activateTab(self._ctx, tab)
 
 # SpoolerManager getter method
     def getTabPageTitle(self, tab):
@@ -176,11 +161,16 @@ class SpoolerManager(unohelper.Base):
 
 # SpoolerManager setter method
     def setDataModel(self, rowset):
-        with self._lock:
-            if not self._model.isDisposed():
-                self._model.setGridData(rowset)
-                if self._initialize:
-                    self._initView()
+        print("SpoolerManager.setDataModel()")
+        if not self._model.isDisposed():
+            if not self._model.isGridInitialized():
+                #self._sender = getMailSender(self._ctx)
+                #self._senderlistener = StreamListener(self)
+                self._model.initGrid(rowset, self._view.getGridWindow(), GridSelectionListener(self))
+                self._view.initView()
+            self._model.setGridData(rowset)
+            if self._dispatch:
+                notifyDispatch(self._source, self._dispatch)
 
     def changeGridSelection(self, index, grid):
         selected = index != -1
@@ -198,17 +188,14 @@ class SpoolerManager(unohelper.Base):
 
     def viewEml(self):
         self._view.disableButtons()
-        self._view.enableStartSpooler(False)
         self._model.startDispatch(self._view.getFrame(), DispatchListener(self))
 
     def viewClient(self):
         self._view.disableButtons()
-        self._view.enableStartSpooler(False)
         self._viewClient(**self._model.getCommandArguments())
 
     def viewWeb(self):
         self._view.disableButtons()
-        self._view.enableStartSpooler(False)
         sender = self._model.getSelectedColumn('Sender')
         self._viewWeb(sender, **self._model.getCommandArguments())
 
@@ -231,7 +218,6 @@ class SpoolerManager(unohelper.Base):
         if command:
             executeShell(self._ctx, command, option)
         self._enableButtons(self._model.hasGridSelectedRows())
-        self._view.enableStartSpooler(True)
 
     def _enableButtons(self, selected):
         if selected:
@@ -245,12 +231,8 @@ class SpoolerManager(unohelper.Base):
         self._model.deselectAllRows()
         self._model.removeRows(rows)
 
-    def toogleSpooler(self, state):
-        if state:
-            self._view.disableButtons()
-            self._sender.start()
-        else:
-            self._sender.terminate()
+    def showController(self):
+        showController(self._ctx)
 
     def clearLogger(self):
         tab = self._view.getActiveTab()
@@ -260,14 +242,9 @@ class SpoolerManager(unohelper.Base):
             self._log2.clearLogger()
 
     def closeSpooler(self):
-        self._view.disableButtons()
-        if not self._model.hasDispatch():
-            self._close()
-            self._view.close()
-        else:
-            self._closing = True
-            if self._model.isSenderStarted():
-                self._sender.terminate()
+        self._close()
+        if not self._running:
+            self._dispose()
 
     def clearLog1(self):
         self._log1.clearLogger()
@@ -283,27 +260,17 @@ class SpoolerManager(unohelper.Base):
 
 # SpoolerManager private methods
     def _close(self):
-        with self._lock:
-            self._model.save(self._view.getDialogPosition())
-            self._sender.removeListener(self._senderlistener)
-            self._log1.removeModifyListener(self._loglistener1)
-            self._log2.removeModifyListener(self._loglistener2)
-            self._log1.removeRollerHandler()
-            self._log2.removeRollerHandler()
+        self._closing = True
+        self._view.disableButtons()
+        self._model.save(self._view.getDialogPosition())
+        #self._sender.removeListener(self._senderlistener)
+        self._log1.removeModifyListener(self._loglistener1)
+        self._log2.removeModifyListener(self._loglistener2)
+        self._log1.removeRollerHandler()
+        self._log2.removeRollerHandler()
+        self._model.close()
 
     def _dispose(self):
-        with self._lock:
-            self._model.dispose()
-
-    def _refreshSpoolerView(self, status):
-        self._view.setSpoolerState(*self._model.setSpoolerStatus(status))
-
-    def _initView(self):
-        self._initialize = False
-        self._view.initView()
-        self._sender.addListener(self._senderlistener)
-        if self._notifier:
-            struct = 'com.sun.star.frame.DispatchResultEvent'
-            notification = uno.createUnoStruct(struct, self, SUCCESS, None)
-            self._notifier.dispatchFinished(notification)
+        self._model.dispose()
+        self._view.dispose()
 

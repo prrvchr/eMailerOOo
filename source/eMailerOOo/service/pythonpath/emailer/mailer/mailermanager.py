@@ -1,0 +1,133 @@
+#!
+# -*- coding: utf-8 -*-
+
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
+
+from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
+from com.sun.star.frame.DispatchResultState import FAILURE
+from com.sun.star.frame.DispatchResultState import SUCCESS
+
+from .mailermodel import MailerModel
+
+from .mailerview import MailerView
+
+from .mailerhandler import DialogHandler
+
+from ..mail import MailManager
+
+from ..mail import WindowHandler
+
+from ..listener import DispatchListener
+
+from ..helper import getMailSpooler
+
+from ..unotool import executeShell
+
+import traceback
+
+
+class MailerManager(MailManager):
+    def __init__(self, ctx, url, path, parent=None, **kwargs):
+        super().__init__(ctx, MailerModel(ctx, path))
+        self._view = MailerView(ctx, DialogHandler(self), WindowHandler(self), parent, 1)
+        self._view.setSenders(model.getSenders())
+        self._model.loadDocument(url, self)
+
+# XDispatchResultListener
+    def _dispatchFinished(self, call, state, value):
+        if call == 'Sender' and state == SUCCESS:
+            self._view.addSender(value)
+            self._updateUI()
+
+# MailerManager getter methods
+    def getPath(self):
+        return self._model.getPath()
+
+# MailerManager setter methods
+    def addRecipient(self):
+        email = self._view.getRecipient()
+        if self._model.isEmailValid(email):
+            self._view.addRecipient(email)
+            self._updateUI()
+
+    def changeRecipient(self):
+        self._view.enableRemoveRecipient(True)
+
+    def editRecipient(self, email, exist):
+        self._view.enableAddRecipient(not exist and self._model.isEmailValid(email))
+        self._view.enableRemoveRecipient(exist)
+
+    def enterRecipient(self, email):
+        if self._model.isEmailValid(email):
+            self._view.addRecipient(email)
+            self._updateUI()
+
+    def removeRecipient(self):
+        self._view.removeRecipient()
+        self._updateUI()
+
+    def execute(self):
+        status = self._view.execute()
+        self._model.dispose()
+        self._view.dispose()
+        return status
+
+    def sendDocument(self):
+        try:
+            subject, attachments = self._getSavedDocumentProperty()
+            sender, recipients = self._view.getEmail()
+            url = self._model.getUrl()
+            spooler = getMailSpooler(self._ctx)
+            id = spooler.addJob(sender, subject, url, recipients, attachments)
+            spooler.dispose()
+            self._view.endDialog(OK)
+        except:
+            print("MailerManager.sendDocument() ERROR: %s" % traceback.format_exc())
+
+    def cancel(self):
+        self._view.endDialog(CANCEL)
+
+# MailerManager private setter methods
+    def _updateUI(self):
+        enabled = self._canAdvance()
+        self._view.enableButtonSend(enabled)
+
+    def _notifyInit(self, document, title):
+        if not self._model.isDisposed():
+            self._loadView(document)
+            self._view.setTitle(title)
+            self._view.enableButtonCancel()
+        self._model.closeDocument(document)
+
+    def _notifyView(self, status, result):
+        if status == FAILURE:
+            self._showMessageBox(result)
+        else:
+            executeShell(self._ctx, result)
+

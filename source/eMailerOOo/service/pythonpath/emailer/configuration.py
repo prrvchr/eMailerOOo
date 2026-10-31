@@ -41,14 +41,20 @@ g_merger_page = -1
 # Grid RowSet.FetchSize
 g_fetchsize = 500
 # Spooler frame name
-g_spoolerframe = 'Spooler'
+g_spoolerframe = '%s.Spooler' % g_extension
 # Merger frame name
-g_mergerframe = 'Merger'
+g_mergerframe = '%s.Merger' % g_extension
+# Controller frame name
+g_controllerframe = '%s.Controller' % g_extension
+# Setup frame and Job name
+g_setup = '%s.Setup' % g_extension
+
 # Internet DNS connection
 g_dns = ('1.1.1.1', 53)
 # Thread Logo
+g_img = 'img'
 g_logo = '%s.png' % g_extension
-g_logourl = 'https://prrvchr.github.io/%s/img/%s' %(g_extension, g_logo)
+g_logourl = 'https://prrvchr.github.io/%s/%s/%s' %(g_extension, g_img, g_logo)
 # Logger resource strings files folder
 g_resource = 'resource'
 # Logger configuration
@@ -58,6 +64,9 @@ g_spoolerlog = 'SpoolerLogger'
 g_mailservicelog = 'MailServiceLogger'
 g_chunk = 320 * 1024
 # The URL separator
-g_separator = '/'
+g_sep = '/'
 
+g_offset = 11
 
+class State:
+    restart = False

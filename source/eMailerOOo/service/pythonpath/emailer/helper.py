@@ -30,20 +30,15 @@ import uno
 
 from com.sun.star.awt.MessageBoxType import ERRORBOX
 
-from com.sun.star.mail import MailSpoolerException
-
 from com.sun.star.text.MailMergeType import FILE
 
 from com.sun.star.sdb.CommandType import TABLE
 
-from com.sun.star.uno import Exception as UnoException
-
-from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
+from .unotool import executeDesktopDispatch
 from .unotool import executeFrameDispatch
 from .unotool import getDocument
-from .unotool import getExtensionVersion
 from .unotool import getFileSequence
 from .unotool import getInteractionHandler
 from .unotool import getLastNamedParts
@@ -51,92 +46,46 @@ from .unotool import getNamedValueSet
 from .unotool import getMailMerge
 from .unotool import getPropertyValueSet
 from .unotool import getSimpleFile
-from .unotool import hasInterface
 
-from .oauth20 import getOAuth2Version
-from .oauth20 import g_extension as g_oauth2ext
-from .oauth20 import g_version as g_oauth2ver
+from .oauth20 import g_identifier as g_identifier1
+from .oauth20 import g_extension as g_extension1
+from .oauth20 import g_version as g_version1
 
-from .jdbcdriver import g_extension as g_jdbcext
-from .jdbcdriver import g_identifier as g_jdbcid
-from .jdbcdriver import g_version as g_jdbcver
+from .jdbcdriver import g_identifier as g_identifier2
+from .jdbcdriver import g_extension as g_extension2
+from .jdbcdriver import g_version as g_version2
 
-from .dbconfig import g_version
-
-from .configuration import g_extension
+from .configuration import g_sep
 
 import base64
 import traceback
 
 
-def checkOAuth2(ctx, source, logger, warn=False):
-    oauth2 = getOAuth2Version(ctx)
-    if oauth2 is None:
-        title, msg = _getExceptionMessage(logger, 501, g_oauth2ext, g_oauth2ext, g_extension)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-    if not checkVersion(oauth2, g_oauth2ver):
-        title, msg = _getExceptionMessage(logger, 503, g_oauth2ext, oauth2, g_oauth2ext, g_oauth2ver)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
+def getExtensions():
+    return {g_identifier1: (g_extension1, g_version1),
+            g_identifier2: (g_extension2, g_version2)}
 
-def checkConfiguration(ctx, source, logger, warn=False):
-    checkOAuth2(ctx, source, logger, warn)
-    driver = getExtensionVersion(ctx, g_jdbcid)
-    if driver is None:
-        title, msg = _getExceptionMessage(logger, 501, g_jdbcext, g_jdbcext, g_extension)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-    if not checkVersion(driver, g_jdbcver):
-        title, msg = _getExceptionMessage(logger, 503, g_jdbcext, driver, g_jdbcext, g_jdbcver)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-
-def checkConnection(ctx, source, connection, logger, new, warn=False):
-    version = connection.getMetaData().getDriverVersion()
-    if not checkVersion(version, g_version):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 511, g_jdbcext, version, g_version)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-    service = 'com.sun.star.sdb.Connection'
-    interface = 'com.sun.star.sdbcx.XGroupsSupplier'
-    if new and not _checkConnection(connection, service, interface):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 513, g_jdbcext, service, interface)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-
-def getDataBaseContext(ctx, source, name, resolver, code, *args):
+def getDataBaseContext(ctx, name):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     if not dbcontext.hasByName(name):
-        msg = resolver(code, name, *args)
-        raise MailSpoolerException(msg, source, ())
+        return 1, dbcontext, ''
     location = dbcontext.getDatabaseLocation(name)
     # FIXME: The location can be an embedded database in odt file
     # FIXME: ie: vnd.sun.star.pkg://file://path/document.odt/EmbeddedDatabase
     # FIXME: eMailerOOo cannot work with such a datasource
     if not location.startswith('file://'):
-        msg = resolver(code + 1, location, *args)
-        raise MailSpoolerException(msg, source, ())
+        return 2, dbcontext, location
     # We need to check if the registered datasource has an existing odb file
     if not getSimpleFile(ctx).exists(location):
-        msg = resolver(code + 2, location, *args)
-        raise MailSpoolerException(msg, source, ())
-    return dbcontext, location
+        return 3, dbcontext, location
+    return 0, dbcontext, location
 
-def getDataSource(ctx, name, resolver, resource):
+def getDataSource(ctx, name):
     datasource = None
-    dbcontext, location = getDataBaseContext(ctx, None, name, resolver, resource)
-    if dbcontext.hasByName(name):
+    code, dbcontext, location = getDataBaseContext(ctx, name)
+    if code == 0:
         datasource = dbcontext.getByName(name)
-    return datasource
+    return code, datasource, location
 
 def getConnection(ctx, datasource, parent=None, context=''):
     if datasource.IsPasswordRequired:
@@ -171,29 +120,31 @@ def parseUri(factory, url):
         uri.clearFragment()
     return uri.getUriReference()
 
-def parseUriFragment(factory, url, ismerge=True):
+def parseUriFragment(factory, url, /, merged=True, export=''):
     merge = False
-    filter = ''
     uri = factory.parse(url)
     if uri.hasFragment():
         fragment = uri.getFragment()
-        if ismerge and fragment.startswith('merge'):
-            merge = True
+        if fragment.startswith('merge') or export:
+            merge = merged
         if fragment.endswith('pdf'):
-            filter = 'pdf'
+            export = 'pdf'
         uri.clearFragment()
-    return uri.getUriReference(), merge, filter
+    return uri.getUriReference(), merge, export
 
-def mergeDocument(ctx, document, connection, result, datasource, table, row):
-    url = None
+def mergeDocument(ctx, document, connection, datasource, table, resultset, row):
+    descriptor = getDataDescriptor(connection, datasource, table, resultset, row)
+    executeMerge(ctx, document, getPropertyValueSet(descriptor))
+
+def executeMerge(ctx, document, descriptor):
+    frame = document.getCurrentController().getFrame()
     if document.supportsService('com.sun.star.text.TextDocument'):
         url = '.uno:DataSourceBrowser/InsertContent'
     elif document.supportsService('com.sun.star.sheet.SpreadsheetDocument'):
         url = '.uno:DataSourceBrowser/InsertColumns'
-    if url:
-        descriptor = _getDataDescriptor(connection, result, datasource, table, row)
-        frame = document.CurrentController.Frame
-        executeFrameDispatch(ctx, frame, url, None, *descriptor)
+    else:
+        url = '.uno:DataSourceBrowser/DataToFields'
+    executeFrameDispatch(ctx, frame, url, None, *descriptor)
 
 def getMessageImage(ctx, url):
     lenght, sequence = getFileSequence(ctx, url)
@@ -238,36 +189,37 @@ def getMailMessage(ctx, sender, recipient, subject, body):
     mail = createService(ctx, service, recipient, sender, subject, body)
     return mail
 
-def getTransferable(ctx):
-    service = 'com.sun.star.datatransfer.TransferableFactory'
-    transferable = createService(ctx, service)
-    return transferable
+def showMerger(ctx, listener=None, /, **kwargs):
+    url = 'vnd.sun.star.job:service=io.github.prrvchr.eMailerOOo.Merger'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
 
-def saveDocumentTo(document, folder, filter, export=None):
-    name, extension = getLastNamedParts(document.Title)
-    descriptor = {'Overwrite': True}
+def showIspDB(ctx, listener=None, /, **kwargs):
+    url = 'vnd.sun.star.job:service=io.github.prrvchr.eMailerOOo.IspDB'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
+
+def showController(ctx, listener=None, /, **kwargs):
+    url = 'vnd.sun.star.job:service=io.github.prrvchr.eMailerOOo.Controller'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
+
+def showSpooler(ctx, listener=None, /, **kwargs):
+    url = 'vnd.sun.star.job:service=io.github.prrvchr.eMailerOOo.Spooler'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
+
+def saveDocumentTo(document, path, title, filter, export=None):
     suffix = ''
+    descriptor = {'Overwrite': True}
+    name, ext = getLastNamedParts(title)
     if filter and hasDocumentFilter(document, filter):
         suffix += '.' + filter
         descriptor['FilterName'] = getDocumentFilter(document, filter)
-        if export:
+        if filter == 'pdf' and export:
             descriptor['FilterData'] = export.getDescriptor()
-    elif extension:
-        suffix += '.' + extension
+    elif ext:
+        suffix += '.' + ext
     name += suffix
-    temp = folder + '/' + name
-    document.storeToURL(temp, getPropertyValueSet(descriptor))
-    return temp, name
-
-def getTransferableMimeValues(detection, descriptor, uiname, mimetype, deep=True):
-    itype, descriptor = detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
-    if detection.hasByName(itype):
-        for t in detection.getByName(itype):
-            if t.Name == 'UIName':
-                uiname = t.Value
-            elif t.Name == 'MediaType':
-                mimetype = t.Value
-    return uiname, mimetype
+    url = path + g_sep + name
+    document.storeToURL(url, getPropertyValueSet(descriptor))
+    return url
 
 def getDocumentExtension(document):
     identifier = document.getIdentifier()
@@ -306,45 +258,55 @@ def getExtensionFilter(extension, format):
     filter = filters.get(format, None)
     return filter
 
-def getJob(ctx, connection, datasource, table, result, export, selection=None):
-    # XXX: To avoid AttributeError: job has no attribute
-    # XXX: OutputType, so we only use XPropertySet here...
-    job = getMailMerge(ctx)
-    job.setPropertyValue('OutputType', FILE)
-    job.setPropertyValue('SaveAsSingleFile', False)
-    job.setPropertyValue('ActiveConnection', connection)
-    job.setPropertyValue('DataSourceName', datasource)
-    job.setPropertyValue('Command', table)
-    job.setPropertyValue('CommandType', TABLE)
-    job.setPropertyValue('ResultSet', result)
-    if selection:
-        any = uno.Any('[]any', selection)
-        uno.invoke(job, 'setPropertyValue', ('Selection', any))
-    if export:
-        any = uno.Any('[]com.sun.star.beans.PropertyValue', export.getDescriptor())
-        uno.invoke(job, 'setPropertyValue', ('SaveFilterData', any))
-    return job
-
-def executeMerge(job, task):
-    job.setPropertyValue('DocumentURL', task.Url)
-    fields = _getInvalidFields(job)
-    if fields is None:
-        job.getPropertyValue('ResultSet').beforeFirst()
-        job.execute(_getDescriptor(task))
+def getInvalidFields(datasource, table, columns, document):
+    fields = []
+    masters = document.getTextFieldMasters()
+    for name in masters.getElementNames():
+        if name.startswith('com.sun.star.text.fieldmaster.Database.'):
+            master = masters.getByName(name)
+            erreur = _analyzeFieldAnomalies(master, datasource, table, columns)
+            if erreur:
+                fields.append({'master': master,
+                               'type': erreur})
     return fields
+
+def _analyzeFieldAnomalies(field, datasource, table, columns):
+    if field.DataBaseName != datasource:
+        return 'datasource'
+
+    if field.DataTableName != table:
+        return 'table'
+
+    if field.DataColumnName not in columns:
+        return 'column'
+    return None
+
+def tryCorrectFields(infos, datasource, table, columns):
+    master = infos['master']
+    type = infos['type']
+
+    if type == 'datasource':
+        master.DataBaseName = datasource
+        return True
+
+    elif type == 'table':
+        master.DataTableName = table
+        return True
+
+    elif type == 'column':
+        column = master.DataColumnName
+        matches = [c for c in columns if c.lower() == column.lower()]
+
+        if matches:
+            master.DataColumnName = matches[0]
+            return True
+        return False
+    return False
 
 def executeExport(ctx, task, export):
     document = getDocument(ctx, task.Url)
     task.Url, task.Name = saveDocumentTo(document, task.Folder, task.Filter, export)
     document.close(True)
-
-def _checkJdbc(ctx, method):
-    driver = getExtensionVersion(ctx, g_jdbcid)
-    if driver is None:
-        return method, 501, g_jdbcext, g_extension
-    elif not checkVersion(driver, g_jdbcver):
-        return method, 503, driver, g_jdbcext, g_jdbcver
-    return None
 
 def _getExceptionMessage(logger, code, extension, *args):
     title = logger.resolveString(code, extension)
@@ -355,9 +317,6 @@ def _showWarning(ctx, title, msg):
     msgbox = createMessageBox(ctx, title, msg, ERRORBOX)
     msgbox.execute()
     msgbox.dispose()
-
-def _checkConnection(connection, service, interface):
-    return connection.supportsService(service) and hasInterface(connection, interface)
 
 def _getInvalidFields(job):
     fields = None
@@ -403,20 +362,18 @@ def _getDescriptor(task):
         suffix += '.' + task.Filter
     elif extension:
         suffix += '.' + extension
-    task.Url = task.Folder + '/' + name + '%s' + suffix
+    task.Url = task.Folder + g_sep + name + '%s' + suffix
     task.Name = name + suffix
     return getNamedValueSet(descriptor)
 
-def _getDataDescriptor(connection, result, datasource, table, row):
+def getDataDescriptor(connection, datasource, table, resultset=None, row=1):
     # FIXME: We need to provide ActiveConnection, DataSourceName, Command and CommandType parameters,
     # FIXME: but apparently only Cursor, BookmarkSelection and Selection parameters are used!!!
-    properties = {'ActiveConnection': connection,
-                  'DataSourceName': datasource,
-                  'Command': table,
-                  'CommandType': TABLE,
-                  'Cursor': result,
-                  'BookmarkSelection': False,
-                  'Selection': (row, )}
-    descriptor = getPropertyValueSet(properties)
-    return descriptor
+    return {'ActiveConnection': connection,
+            'DataSourceName': datasource,
+            'Command': table,
+            'CommandType': TABLE,
+            'Cursor': resultset,
+            'BookmarkSelection': False,
+            'Selection': (row, )}
 

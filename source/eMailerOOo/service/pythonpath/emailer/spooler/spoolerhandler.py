@@ -1,0 +1,165 @@
+#!
+# -*- coding: utf-8 -*-
+
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
+
+import unohelper
+
+from com.sun.star.awt import XContainerWindowEventHandler
+
+from com.sun.star.awt.tab import XTabPageContainerListener
+
+from com.sun.star.util import XCloseListener
+
+from com.sun.star.sdbc import XRowSetListener
+
+import traceback
+
+
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ToggleSpooler':
+                event.Source.Model.Enabled = False
+                self._manager.toggleSpooler()
+                handled = True
+            elif method == 'ClearLogger':
+                self._manager.clearLogger()
+                handled = True
+            elif method == 'ShowController':
+                self._manager.showController()
+                handled = True
+            elif method == 'CloseSpooler':
+                self._manager.closeSpooler()
+                handled = True
+            return handled
+        except:
+            print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
+
+    def getSupportedMethodNames(self):
+        return ('ToggleSpooler',
+                'ClearLogger',
+                'ShowController',
+                'CloseSpooler')
+
+
+class TabHandler(unohelper.Base,
+                 XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'EmlView':
+                self._manager.viewEml()
+                handled = True
+            elif method == 'ClientView':
+                self._manager.viewClient()
+                handled = True
+            elif method == 'WebView':
+                self._manager.viewWeb()
+                handled = True
+            elif method == 'Resubmit':
+                self._manager.resubmitJobs()
+                handled = True
+            elif method == 'Add':
+                self._manager.addDocument()
+                handled = True
+            elif method == 'Remove':
+                self._manager.removeDocument()
+                handled = True
+            return handled
+        except:
+            print("TabHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
+
+    def getSupportedMethodNames(self):
+        return ('EmlView',
+                'ClientView',
+                'WebView',
+                'Resubmit',
+                'Add',
+                'Remove')
+
+
+class TabPageListener(unohelper.Base,
+                      XTabPageContainerListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XTabPageContainerListener
+    def tabPageActivated(self, event):
+        try:
+            self._manager.activateTab(event.TabPageID)
+        except:
+            print("TabPageListener.tabPageActivated() ERROR: %s" % traceback.format_exc())
+
+    def disposing(self, source):
+        pass
+
+
+class RowSetListener(unohelper.Base,
+                     XRowSetListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XRowSetListener
+    def disposing(self, event):
+        pass
+    def cursorMoved(self, event):
+        pass
+    def rowChanged(self, event):
+        pass
+    def rowSetChanged(self, event):
+        try:
+            self._manager.setDataModel(event.Source)
+        except:
+            print("RowSetListener.rowSetChanged() ERROR: %s" % traceback.format_exc())
+
+
+class CloseListener(unohelper.Base,
+                    XCloseListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XCloseListener
+    def queryClosing(self, event, ownership):
+        self._manager.queryClosing(event.Source, ownership)
+
+    def notifyClosing(self, event):
+        self._manager.notifyClosing(event.Source)
+
+    def disposing(self, event):
+        pass
+

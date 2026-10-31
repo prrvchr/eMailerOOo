@@ -31,9 +31,7 @@ from com.sun.star.io import XActiveDataControl
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XComponent
 
-from .spooler import Sender
-
-from .unotool import TaskEvent
+#from .spooler import Sender
 
 from .unotool import findFrame
 
@@ -58,7 +56,7 @@ class MailSend(unohelper.Base,
         self._lock = Lock()
         self._logger = getLogger(ctx, g_spoolerlog)
         self._listeners = []
-        self._cancel = TaskEvent()
+        #self._cancel = TaskEvent()
         self._thread = None
 
 
@@ -84,7 +82,8 @@ class MailSend(unohelper.Base,
                 frame = findFrame(self._ctx, g_spoolerframe)
                 if frame:
                     self._cancel.clear()
-                    self._thread = Sender(self._ctx, self._cancel, frame, self._logger, self._listeners)
+                    parent = frame.getComponentWindow().getPeer()
+                    self._thread = Sender(self._ctx, indicator, parent, self._logger, self._listeners)
                     self._notifyStarted()
 
     def terminate(self):

@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .main import Main
-
 from .manager import Manager
 
 from .master import Master

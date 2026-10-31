@@ -27,57 +27,69 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
-from ..jdbcdriver import isInstrumented
-
-from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
-from ..unotool import getSimpleFile
+from ..unotool import canUpdatePackages
 from ..unotool import getStringResource
+from ..unotool import getConfiguration
 
-from ..dbconfig  import g_folder
+from ..dbinit  import getDataSourceUrl
 
-from ..configuration import g_basename
+from ..configuration import State
 from ..configuration import g_identifier
-from ..configuration import g_separator
 
 import traceback
 
 
 class OptionsModel():
     def __init__(self, ctx):
-        self._ctx = ctx
+        self._url = getDataSourceUrl(ctx)
+        self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)
-        folder = g_folder + g_separator + g_basename
-        location = getResourceLocation(ctx, g_identifier, folder)
-        self._url = location + '.odb'
-        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
-        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._resources = {'Links': 'OptionsDialog.Hyperlink%s.Url'}
 
     @property
     def _Timeout(self):
         return self._config.getByName('ConnectTimeout')
 
-    def isInstrumented(self):
-        return self._instrumented
+    @property
+    def _Mode(self):
+        return self._config.getByName('ErrorMode')
+
+    @property
+    def _Delay(self):
+        return self._config.getByName('RunDelay')
+
+    @property
+    def _Setup(self):
+        return self._config.getByName('SetupUpdate')
 
     def getViewData(self):
-        exist = self.getDataBaseStatus()
-        return self._link, self._instrumented, exist, self._Timeout
+        return self._update, self._getLinks()
 
-    def saveTimeout(self, timeout):
+    def getInitData(self, state):
+        return self._Timeout, self._Mode, self._Delay, self._Setup, state
+
+    def saveData(self, timeout, mode, delay, setup):
         if timeout != self._Timeout:
             self._config.replaceByName('ConnectTimeout', timeout)
+        if mode != self._Mode:
+            self._config.replaceByName('ErrorMode', mode)
+        if delay != self._Delay:
+            self._config.replaceByName('RunDelay', delay)
+        if self._update and setup != self._Setup:
+            self._config.replaceByName('SetupUpdate', setup)
         if self._config.hasPendingChanges():
             self._config.commitChanges()
             return True
         return False
 
-    def getDataBaseStatus(self):
-        return getSimpleFile(self._ctx).exists(self._url)
-
-    def getDataBaseUrl(self):
+    def getDataSourceUrl(self):
         return self._url
+
+    def _getLinks(self):
+        links = []
+        for i in range(1, 2):
+            resource = self._resources.get('Links') % i
+            links.append(self._resolver.resolveString(resource))
+        return tuple(links)
 

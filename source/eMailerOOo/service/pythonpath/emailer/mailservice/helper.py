@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -36,7 +34,6 @@ from com.sun.star.uno import Exception as UnoException
 
 from com.sun.star.mail import MailException
 
-from ..unotool import getConfiguration
 from ..unotool import getNamedValueSet
 from ..unotool import hasInterface
 
@@ -49,13 +46,6 @@ from ..oauth20 import getRequest
 from ..oauth20 import getResponseResults
 from ..oauth20 import setResquestParameter
 
-from ..configuration import g_chunk
-from ..configuration import g_identifier
-
-from string import Template
-import ijson
-import traceback
-
 
 def getHttpProvider(providers, name):
     provider = url = None
@@ -66,9 +56,11 @@ def getHttpProvider(providers, name):
         url = providers.getByName(name).getByName('Url')
     return provider, url
 
+
 def getHttpServer(ctx, url, servername, username):
     server = url if url else servername
     return getRequest(ctx, server, username)
+
 
 def getHttpRequest(provider, server, request):
     if provider.hasByName(server.value):
@@ -76,6 +68,7 @@ def getHttpRequest(provider, server, request):
         if service.hasByName(request):
             return service.getByName(request)
     return None
+
 
 def executeHttpRequest(source, logger, debug, cls, code, server, message, request):
     mtd = 'executeHttpRequest'
@@ -103,6 +96,6 @@ def executeHttpRequest(source, logger, debug, cls, code, server, message, reques
                     message.setHeader(name, value)
     response.close()
 
+
 def getOAuth2TokenWithParameters(request, parameters, port):
     return request.getTokenWithParameters(parameters, getNamedValueSet({'Port': port}))
-

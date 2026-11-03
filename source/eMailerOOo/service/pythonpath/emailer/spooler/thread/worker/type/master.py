@@ -27,25 +27,28 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .main import Main
+import unohelper
+
+from com.sun.star.awt import XCallback
 
 import traceback
 
 
-class Master(Main):
-    def __init__(self, cancel, progress):
-        super().__init__()
-        self._cancel = cancel
+class Master(unohelper.Base,
+             XCallback):
+    def __init__(self, progress):
         self._progress = progress
+        self._canceled = False
 
-    def wait(self, timeout=0):
-        self._cancel.wait(timeout)
+# com.sun.star.awt.XCallback
+    def notify(self, data):
+        raise NotImplementedError('Need to be implemented!')
 
-    def isAlive(self):
-        return self.is_alive()
+    def cancel(self):
+        self._canceled = True
 
     def isCanceled(self):
-        return self._cancel.isSet()
+        return self._canceled
 
     def _startProgress(self, text, value):
         self._progress.start(text, value)

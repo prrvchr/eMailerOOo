@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
@@ -54,8 +53,6 @@ from emailer import getConfiguration
 from emailer import g_identifier
 from emailer import g_mailservicelog
 
-from email.utils import parseaddr
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -103,8 +100,10 @@ class MailServiceProvider(unohelper.Base,
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
@@ -119,6 +118,7 @@ class MailServiceProvider(unohelper.Base,
         e.Message = self._logger.resolveString(code, *args)
         e.Context = self
         return e
+
 
 g_ImplementationHelper.addImplementation(MailServiceProvider,             # UNO object class
                                          g_ImplementationName,            # Implementation name

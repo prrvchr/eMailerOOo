@@ -25,7 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage2" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="125" dlg:help-text="&amp;IspdbPage2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage2.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="IspdbPage2" dlg:left="85" dlg:top="0" dlg:width="305" dlg:height="145" dlg:help-text="&amp;IspdbPage2.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;IspdbPage2.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
@@ -34,13 +34,13 @@
     <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="5" dlg:top="6" dlg:width="295" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label1.HelpText" dlg:value="&amp;IspdbPage2.Label1.Label" dlg:valign="center"/>
     <dlg:progressmeter dlg:id="ProgressBar1" dlg:tab-index="2" dlg:left="8" dlg:top="25" dlg:width="292" dlg:height="15" dlg:help-text="&amp;IspdbPage2.ProgressBar1.HelpText" dlg:value="0"/>
     <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:left="10" dlg:top="45" dlg:width="290" dlg:height="15" dlg:help-text="&amp;IspdbPage2.Label2.HelpText" dlg:value="&amp;IspdbPage2.Label2.Label" dlg:align="center" dlg:valign="center"/>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="4" dlg:page="2" dlg:left="10" dlg:top="65" dlg:width="110" dlg:height="15" dlg:help-text="&amp;IspdbPage2.CheckBox1.HelpText" dlg:value="&amp;IspdbPage2.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="4" dlg:page="2" dlg:left="10" dlg:top="80" dlg:width="110" dlg:height="15" dlg:help-text="&amp;IspdbPage2.CheckBox1.HelpText" dlg:value="&amp;IspdbPage2.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EnableReplyTo" script:language="UNO"/>
     </dlg:checkbox>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="5" dlg:page="2" dlg:disabled="true" dlg:left="125" dlg:top="65" dlg:width="175" dlg:height="15" dlg:help-text="&amp;IspdbPage2.TextField1.HelpText" dlg:value="&amp;IspdbPage2.TextField1.Text">
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="5" dlg:page="2" dlg:disabled="true" dlg:left="125" dlg:top="80" dlg:width="175" dlg:height="15" dlg:help-text="&amp;IspdbPage2.TextField1.HelpText" dlg:value="&amp;IspdbPage2.TextField1.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:ChangeReplyTo" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="6" dlg:page="3" dlg:left="10" dlg:top="85" dlg:width="140" dlg:height="15" dlg:help-text="&amp;IspdbPage2.CheckBox2.HelpText" dlg:value="&amp;IspdbPage2.CheckBox2.Label" dlg:valign="center" dlg:checked="false">
+    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="6" dlg:page="3" dlg:left="10" dlg:top="100" dlg:width="140" dlg:height="15" dlg:help-text="&amp;IspdbPage2.CheckBox2.HelpText" dlg:value="&amp;IspdbPage2.CheckBox2.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EnableIMAP" script:language="UNO"/>
     </dlg:checkbox>
   </dlg:bulletinboard>

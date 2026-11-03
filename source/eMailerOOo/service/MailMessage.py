@@ -34,9 +34,7 @@ from com.sun.star.datatransfer import UnsupportedFlavorException
 
 from com.sun.star.lang import XServiceInfo
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
+from com.sun.star.mail import MailMessageException
 from com.sun.star.mail import XMailMessage2
 
 from emailer import getConfiguration
@@ -58,7 +56,6 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate
 from email.utils import make_msgid
 from email.utils import parseaddr
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -97,6 +94,7 @@ class MailMessage(unohelper.Base,
     @property
     def SenderName(self):
         return self._sname
+
     @property
     def SenderAddress(self):
         return self._saddress
@@ -104,6 +102,7 @@ class MailMessage(unohelper.Base,
     @property
     def MessageId(self):
         return self._headers.get('Message-Id', '')
+
     @MessageId.setter
     def MessageId(self, value):
         self._headers['Message-Id'] = value
@@ -111,6 +110,7 @@ class MailMessage(unohelper.Base,
     @property
     def ThreadId(self):
         return self._headers.get('References', '')
+
     @ThreadId.setter
     def ThreadId(self, value):
         self._headers['References'] = value
@@ -118,6 +118,7 @@ class MailMessage(unohelper.Base,
     @property
     def ForeignId(self):
         return self._foreignid
+
     @ForeignId.setter
     def ForeignId(self, value):
         self._foreignid = value
@@ -196,7 +197,7 @@ class MailMessage(unohelper.Base,
         body = None
         COMMASPACE = ', '
         encoding = self._encoding
-        #Use first flavor that's sane for an email body
+        # Use first flavor that's sane for an email body
         for flavor in self.Body.getTransferDataFlavors():
             mimetype = flavor.MimeType
             if mimetype.startswith('text/html') or mimetype.startswith('text/plain'):
@@ -251,8 +252,7 @@ class MailMessage(unohelper.Base,
             msgattachment, encoding = self._getAttachment(transferable, flavor, name)
             encode_base64(msgattachment)
             msgattachment.add_header('Content-Disposition',
-                                     'attachment',
-                                      filename=(encoding, self._getLanguage(), name))
+                                     'attachment', filename=(encoding, self._getLanguage(), name))
             message.attach(msgattachment)
         return message
 
@@ -276,7 +276,7 @@ class MailMessage(unohelper.Base,
 
     def _getHeader(self):
         header = Header(self.SenderName, 'utf-8')
-        header.append('<' + self.SenderAddress + '>','us-ascii')
+        header.append('<' + self.SenderAddress + '>', 'us-ascii')
         return header
 
     def _getAttachment(self, transferable, flavor, name):
@@ -303,7 +303,7 @@ class MailMessage(unohelper.Base,
             version1 = config.getByName('ooSetupVersion')
             version2 = getExtensionVersion(ctx, g_identifier)
             xmailer = "%s %s via eMailerOOo v%s extension" % (name, version1, version2)
-        except:
+        except Exception:
             xmailer = "LibreOffice via eMailerOOo extension"
         return xmailer
 
@@ -318,10 +318,13 @@ class MailMessage(unohelper.Base,
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
 
 g_ImplementationHelper.addImplementation(MailMessage,                     # UNO object class
                                          g_ImplementationName,            # Implementation name

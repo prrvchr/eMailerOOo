@@ -27,6 +27,11 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import unohelper
+
+from com.sun.star.auth import UserSession
+from com.sun.star.auth import XSessionManager
+
 from com.sun.star.logging.LogLevel import INFO
 
 from com.sun.star.uno import Exception as UnoException
@@ -35,23 +40,20 @@ from .database import DataBase
 
 from .provider import Provider
 
+from .card import EventListener
 from .card import User
 
-from .card import Replicator
+from .card import getSqlException
 
-from .card import EventListener
-from .card import TerminateListener
-
-from .unotool import getDesktop
-
-from .helper import getSqlException
+from .helper import startReplication
 
 from .configuration import g_extension
 
 from threading import Event
 
 
-class DataSource():
+class DataSource(unohelper.Base,
+                 XSessionManager):
     def __init__(self, ctx, source, logger, url):
         self._cls = 'DataSource'
         mtd = '__init__'
@@ -66,14 +68,27 @@ class DataSource():
         self._users = users
         self._database = database
         self._provider = provider
-        self._replicator = Replicator(ctx, database, provider, users, sync)
         self._listener = EventListener(self)
-        getDesktop(ctx).addTerminateListener(TerminateListener(self._replicator))
+        startReplication(ctx, Manager=self, Url=url, Logger=logger)
         logger.logprb(INFO, self._cls, mtd, 1202)
 
     @property
     def DataBase(self):
         return self._database
+
+    # XSessionManager
+    def getActiveUsers(self):
+        users = []
+        for user in self._users.values():
+            session = UserSession()
+            session.Name = user.Name
+            session.Url = user.Url
+            session.Password = user.getPassword()
+            session.Options = tuple(user.getBooks())
+            session.IsOffline = user.isOffLine()
+            session.HasActiveSession = user.hasSession()
+            users.append(session)
+        return tuple(users)
 
     def isUptoDate(self):
         return self._database.isUptoDate()

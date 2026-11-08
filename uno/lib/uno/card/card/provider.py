@@ -29,7 +29,7 @@
 
 import uno
 
-from ..helper import getSqlException
+from .helper import getSqlException
 
 from ..oauth20 import getRequest
 

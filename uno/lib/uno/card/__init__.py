@@ -33,13 +33,17 @@ try:
 
     from .options import OptionsManager
 
+    from .runner import Cancel
+
     from .setup import SetupManager
 
     from .dbsetup import DBSetup
 
+    from .helper import executeReplicator
     from .helper import getExtensions
 
     from .unotool import findFrame
+    from .unotool import getConfiguration
     from .unotool import getJobArguments
     from .unotool import notifyDispatch
 

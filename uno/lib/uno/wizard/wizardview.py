@@ -30,7 +30,6 @@
 import uno
 
 from com.sun.star.awt import Size
-from com.sun.star.awt.PosSize import POS
 from com.sun.star.awt.PosSize import SIZE
 
 from com.sun.star.ui.dialogs.WizardButton import NEXT
@@ -44,14 +43,14 @@ from com.sun.star.util.MeasureUnit import APPFONT
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
 from ..unotool import getParentWindow
-from ..unotool import setWindowPosition
+from ..unotool import setWindowPosSize
 from ..unotool import getTopWindow
 
 from ..configuration import g_identifier
 
 
 class WizardView():
-    def __init__(self, ctx, handler, listener, parent, name, title, resize, point):
+    def __init__(self, ctx, handler, listener, parent, name, title, resize, possize):
         if name:
             # XXX: With a name we use a TOP XWindow
             self._frame = getTopWindow(ctx, name)
@@ -60,7 +59,7 @@ class WizardView():
             # XXX: setComponent is needed if we want a StatusIndicator at the bottom
             self._frame.setComponent(self._dialog, None)
             self._frame.addCloseListener(listener)
-            setWindowPosition(ctx, window, self._dialog, point, POS)
+            setWindowPosSize(ctx, window, self._dialog, possize)
         else:
             # XXX: Without name we use a MODAL XDialog
             self._frame = None

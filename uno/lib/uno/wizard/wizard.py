@@ -66,7 +66,7 @@ from ..configuration import g_extension
 
 class Wizard(unohelper.Base,
              XWizard):
-    def __init__(self, ctx, auto=-1, /, name=None, point=None, parent=None, resize=True, **_):
+    def __init__(self, ctx, auto=-1, /, name=None, possize=None, parent=None, resize=True, **_):
         self._ctx = ctx
         self._helpUrl = ''
         self._auto = auto
@@ -82,7 +82,7 @@ class Wizard(unohelper.Base,
             handler, self._listener = WindowHandler(self), CloseListener(self)
         else:
             handler, self._listener = DialogHandler(self), None
-        self._view = WizardView(ctx, handler, self._listener, parent, name, title, resize, point)
+        self._view = WizardView(ctx, handler, self._listener, parent, name, title, resize, possize)
         self._view.addItemListener(ItemListener(self))
         self._model.setRoadmapModel(self._view.getRoadmapModel())
 

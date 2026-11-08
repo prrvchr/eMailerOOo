@@ -42,7 +42,7 @@ from com.sun.star.sdbcx import XDropCatalog
 
 from .datasource import DataSource
 
-from .helper import getLogException
+from .card import getLogException
 
 from .dbtool import getDriverPropertyInfos
 

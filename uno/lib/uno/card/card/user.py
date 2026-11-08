@@ -34,16 +34,16 @@ from com.sun.star.ucb.ConnectionMode import ONLINE
 
 from .book import Book
 
-from ..helper import getSqlException
-from ..helper import getUserId
-from ..helper import getUserSchema
+from .helper import getSqlException
+from .helper import getUserId
+from .helper import getUserSchema
 
 from ..unotool import getConnectionMode
 
 from ..configuration import g_extension
 
 
-class User(object):
+class User():
     def __init__(self, ctx, source, logger, database, provider, url, scheme, server, name, pwd=''):
         self._cls = 'User'
         mtd = '__init__'

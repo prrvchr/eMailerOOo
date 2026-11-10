@@ -226,6 +226,9 @@ class Wizard(unohelper.Base,
         else:
             self._tryToClose()
 
+    def getLayout(self):
+        return self._view.getLayout()
+
 # Wizard private getter methods
     def _isComplete(self):
         return self._model.isComplete()
@@ -285,21 +288,6 @@ class Wizard(unohelper.Base,
         else:
             reason = FINISH
         return reason
-
-    def _setPageModel(self, page):
-        model = page.Window.getModel()
-        # TODO: Fixed: Resizing should be done, if necessary, instead of modifying the model
-        if self._resize:
-            self._resizeWizard(model)
-            model.PositionY = 0
-        else:
-            model.PositionX = self._model.getRoadmapWidth()
-            model.PositionY = 0
-        return model.Name
-
-    def _setPageWindow(self, window, page, name):
-        window.addControl(name, page.Window)
-        return page
 
     def _isPathInitialized(self):
         return not self._multiPaths or self._currentPath != -1
@@ -406,17 +394,19 @@ class Wizard(unohelper.Base,
         self._model.activatePage(page)
 
     def _resizeWizard(self, model):
-        self._model.setRoadmapSize(model)
-        self._view.setDialogSize(model)
+        self._view.setDialogSize(model, self._model.getRoadmap())
         self._resize = False
 
     def _setPage(self, pageid):
         if not self._model.hasPage(pageid):
-            window = self._view.getDialog()
-            parent = window.getPeer()
-            page = self._controller.createPage(parent, pageid)
-            name = self._setPageModel(page)
-            self._model.addPage(pageid, self._setPageWindow(window, page, name))
+            window = self._view.getPageWindow()
+            page = self._controller.createPage(window.getPeer(), pageid)
+            self._model.addPage(pageid, page)
+            if self._resize:
+                self._resizeWizard(page.Window.getModel())
+            self._model.addPage(pageid, page)
+            if not self._view.isModal():
+                page.addLayout(self._view.getLayout())
         self._model.setCurrentPageId(pageid)
         self._activatePage(pageid)
         # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()

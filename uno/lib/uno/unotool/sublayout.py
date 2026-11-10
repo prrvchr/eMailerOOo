@@ -40,18 +40,18 @@ from com.sun.star.awt import XWindowListener
 class SubLayout(unohelper.Base,
                 XWindowListener):
     def __init__(self, layout, parent=None):
-        self._layout = layout
+        self.layout = layout
         self._subs = []
         possize = parent.getPosSize() if parent else layout.window.getPosSize()
         self._size = Size(possize.Width, possize.Height)
 
-    def addSubLayout(self, layout):
+    def addLayout(self, layout):
         possize = layout.window.getPosSize()
         size = Size(possize.Width, possize.Height)
         self._subs.append((layout, size))
 
     def windowResized(self, event):
-        self._layout.windowResized(event)
+        self.layout.windowResized(event)
 
         possize = event.Source.getPosSize()
         width = possize.Width - self._size.Width

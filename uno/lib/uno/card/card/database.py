@@ -62,7 +62,7 @@ import traceback
 
 
 class DataBase():
-    def __init__(self, ctx, logger, url, user='', pwd=''):
+    def __init__(self, ctx, url, user='', pwd=''):
         self._cls = 'DataBase'
         self._ctx = ctx
         self._statement = None

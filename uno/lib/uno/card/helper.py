@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .card import Replicator
+from .replicator import Replicator
 
 from .runner import Runner
 
@@ -35,6 +35,7 @@ from .unotool import createService
 from .unotool import executeDesktopDispatch
 from .unotool import getDesktop
 from .unotool import getJobArguments
+from .unotool import getNamedValue
 
 from .oauth20 import g_identifier as g_identifier1
 from .oauth20 import g_extension as g_extension1
@@ -44,6 +45,7 @@ from .jdbcdriver import g_identifier as g_identifier2
 from .jdbcdriver import g_extension as g_extension2
 from .jdbcdriver import g_version as g_version2
 
+from .configuration import g_extension
 from .configuration import g_identifier
 
 import traceback
@@ -54,15 +56,24 @@ def getExtensions():
             g_identifier2: (g_extension2, g_version2)}
 
 
-def executeReplicator(ctx, job, cancel, timeout, listener, arguments):
-    kwargs = getJobArguments(arguments)
-    kwargs['job'] = job
-    kwargs['listener'] = listener
-    kwargs['timeout'] = timeout
-    task = Replicator(ctx, **kwargs)
-    indicator = _getAvailableStatusIndicator(ctx)
-    runner = Runner(ctx, task, cancel, indicator=indicator, logger=None)
-    runner.start()
+def executeReplicator(ctx, job, logger, cancel, timeout, queue):
+    while not (queue.isEmpty() or cancel.isSet()):
+        arguments, listener = queue.get_nowait()
+        task = Replicator(ctx, job, listener, timeout, **getJobArguments(arguments))
+        indicator = _getAvailableStatusIndicator(ctx)
+        runner = Runner(ctx, task, cancel, indicator=indicator, logger=logger)
+        runner.start()
+
+
+def startReplication1(ctx, listener=None, /, **arguments):
+    try:
+        service = 'com.sun.star.task.Job'
+        args = getNamedValue('JobName', f'{g_extension}.Replicator')
+        job = ctx.ServiceManager.createInstanceWithArgumentsAndContext(service, (args, ), ctx)
+        # job = createService(ctx, 'com.sun.star.task.Job', args)
+        job.executeAsync(arguments, listener)
+    except Exception:
+        print("helper.startReplication() ERROR: %s" % traceback.format_exc())
 
 
 def startReplication(ctx, listener=None, /, **kwargs):

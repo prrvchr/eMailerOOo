@@ -27,10 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
 from com.sun.star.auth import UserSession
-from com.sun.star.auth import XSessionManager
 
 from com.sun.star.logging.LogLevel import INFO
 
@@ -43,6 +40,8 @@ from .provider import Provider
 from .card import EventListener
 from .card import User
 
+from .runner import DispatchListener
+
 from .card import getSqlException
 
 from .helper import startReplication
@@ -52,15 +51,14 @@ from .configuration import g_extension
 from threading import Event
 
 
-class DataSource(unohelper.Base,
-                 XSessionManager):
+class DataSource():
     def __init__(self, ctx, source, logger, url):
         self._cls = 'DataSource'
         mtd = '__init__'
         logger.logprb(INFO, self._cls, mtd, 1201)
         self._ctx = ctx
         self._maps = {}
-        database = DataBase(ctx, logger, url)
+        database = DataBase(ctx, url)
         provider = Provider(ctx, source, database)
         users = {}
         sync = Event()
@@ -69,26 +67,11 @@ class DataSource(unohelper.Base,
         self._database = database
         self._provider = provider
         self._listener = EventListener(self)
-        startReplication(ctx, Manager=self, Url=url, Logger=logger)
         logger.logprb(INFO, self._cls, mtd, 1202)
 
     @property
     def DataBase(self):
         return self._database
-
-    # XSessionManager
-    def getActiveUsers(self):
-        users = []
-        for user in self._users.values():
-            session = UserSession()
-            session.Name = user.Name
-            session.Url = user.Url
-            session.Password = user.getPassword()
-            session.Options = tuple(user.getBooks())
-            session.IsOffline = user.isOffLine()
-            session.HasActiveSession = user.hasSession()
-            users.append(session)
-        return tuple(users)
 
     def isUptoDate(self):
         return self._database.isUptoDate()
@@ -103,18 +86,25 @@ class DataSource(unohelper.Base,
             user = self._users.get(name)
             user.removeSession(self._database.getSessionId(connection))
 
+# Procedures called by DispatchListener
+    def dispatchFinished(self, notification):
+        print("DataSource.dispatchFinished() state: %s - result: %s" % (notification.State, notification.Result))
+
 # Procedures called by Driver
     def getConnection(self, source, logger, url, scheme, server, account, password=''):
+        print("DataSource.getConnection() 1")
         mtd = 'getConnection'
         uri = self._provider.getUserUri(server, account)
         if uri in self._maps:
+            print("DataSource.getConnection() 2")
             name = self._maps.get(uri)
             user = self._users.get(name)
             if not user.Request.isAuthorized():
                 raise getSqlException(self._ctx, source, 1002, 1401, self._cls, mtd, name, g_extension)
         else:
-            user = User(self._ctx, source, logger, self._database,
-                        self._provider, url, scheme, server, account, password)
+            print("DataSource.getConnection() 3")
+            session = self._getUserSession(url, server, account, password)
+            user = User(self._ctx, source, logger, self._database, self._provider, scheme, session)
             name = user.getName()
         if user.isOnLine():
             try:
@@ -131,6 +121,20 @@ class DataSource(unohelper.Base,
         user.addSession(self._database.getSessionId(connection))
         # User and/or AddressBooks has been initialized and the connection to the database is done...
         # We can start the database replication in a background task.
-        self._sync.set()
         connection.addEventListener(self._listener)
+        startReplication(self._ctx, DispatchListener(self), source=source, url=self.DataBase.Url, sessions=self._getUserSessions())
         return connection
+
+    def _getUserSessions(self):
+        users = []
+        for user in self._users.values():
+            users.append(self._getUserSession(user.Url, user.Server, user.Name, user.Password))
+        return tuple(users)
+
+    def _getUserSession(self, url, server, name, pwd):
+        session = UserSession()
+        session.Name = name
+        session.Url = url
+        session.Server = server
+        session.Token = pwd
+        return session

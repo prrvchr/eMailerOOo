@@ -32,10 +32,9 @@ module com { module sun { module star { module auth {
     struct UserSession {
         string Name;
         string Url;
-        string Password;
-        sequence<string> Options;
-        boolean IsOffline;
-        boolean HasActiveSession;
+        string Token;
+        string Server;
+        boolean IsNew;
     };
 
 }; }; }; };

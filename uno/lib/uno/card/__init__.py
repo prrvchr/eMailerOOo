@@ -37,6 +37,8 @@ try:
 
     from .setup import SetupManager
 
+    from .unotool import Sessions
+
     from .dbsetup import DBSetup
 
     from .helper import executeReplicator
@@ -60,5 +62,6 @@ try:
     from .configuration import g_extension
     from .configuration import g_identifier
     from .configuration import g_setup
+    from .configuration import g_synclog
 except Exception:
     print("gcontact.__init__() ERROR: %s" % traceback.format_exc())

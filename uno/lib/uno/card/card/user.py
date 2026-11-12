@@ -43,30 +43,30 @@ from ..configuration import g_extension
 
 
 class User(UserBase):
-    def __init__(self, ctx, source, logger, database, provider, scheme, session):
+    def __init__(self, ctx, source, logger, database, provider, scheme, url, server, name, token):
         self._cls = 'User'
-        print("User.__init__() 1 url: %s" % session.Url)
+        print("User.__init__() 1 url: %s" % url)
         mtd = '__init__'
-        logger.logprb(INFO, self._cls, mtd, 1501, session.Name)
+        logger.logprb(INFO, self._cls, mtd, 1501, name)
         self._ctx = ctx
-        logger.logprb(INFO, self._cls, mtd, 1502, session.Name)
-        metadata, args = database.selectUser(session.Server, session.Name)
+        logger.logprb(INFO, self._cls, mtd, 1502, name)
+        metadata, arguments = database.selectUser(server, name)
         if metadata is not None:
-            session.IsNew = False
-            logger.logprb(INFO, self._cls, mtd, 1503, session.Name)
-            request = provider.getRequest(session.Url, session.Name)
+            new = False
+            logger.logprb(INFO, self._cls, mtd, 1503, name)
+            request = provider.getRequest(url, name)
             if request is None:
-                raise getSqlException(ctx, source, 1002, 1506, self._cls, mtd, session.Name, g_extension)
+                raise getSqlException(ctx, source, 1002, 1506, self._cls, mtd, name, g_extension)
         else:
-            session.IsNew = True
-            logger.logprb(INFO, self._cls, mtd, 1504, session.Name)
-            if getConnectionMode(ctx, session.Server) != ONLINE:
-                raise getSqlException(ctx, source, 1004, 1507, self._cls, mtd, session.Server)
-            request = provider.getRequest(session.Url, session.Name)
+            new = True
+            logger.logprb(INFO, self._cls, mtd, 1504, name)
+            if getConnectionMode(ctx, server) != ONLINE:
+                raise getSqlException(ctx, source, 1004, 1507, self._cls, mtd, server)
+            request = provider.getRequest(url, name)
             if request is None:
-                raise getSqlException(ctx, source, 1002, 1506, self._cls, mtd, session.Name, g_extension)
-            metadata, args = provider.insertUser(database, request, scheme, session.Server, session.Name, session.Token)
+                raise getSqlException(ctx, source, 1002, 1506, self._cls, mtd, name, g_extension)
+            metadata, arguments = provider.insertUser(database, request, scheme, server, name, token)
             if metadata is None:
-                raise getSqlException(ctx, source, 1005, 1508, self._cls, mtd, session.Name)
-            database.createUser(getUserSchema(metadata), getUserId(metadata), session.Name, '')
-        super().__init__(ctx, request, metadata, args, session)
+                raise getSqlException(ctx, source, 1005, 1508, self._cls, mtd, name)
+            database.createUser(getUserSchema(metadata), getUserId(metadata), name, '')
+        super().__init__(ctx, request, metadata, arguments, token, new)

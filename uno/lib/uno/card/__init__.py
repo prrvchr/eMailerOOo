@@ -37,8 +37,6 @@ try:
 
     from .setup import SetupManager
 
-    from .unotool import Sessions
-
     from .dbsetup import DBSetup
 
     from .helper import executeReplicator

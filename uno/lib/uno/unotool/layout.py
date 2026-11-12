@@ -31,6 +31,7 @@ import unohelper
 
 from com.sun.star.awt.PosSize import POS
 from com.sun.star.awt.PosSize import POSSIZE
+from com.sun.star.awt.PosSize import SIZE
 
 from com.sun.star.awt import Point
 from com.sun.star.awt import Rectangle
@@ -39,8 +40,43 @@ from com.sun.star.awt import XWindowListener
 
 class Layout(unohelper.Base,
              XWindowListener):
+    """Dynamic layout manager for OpenOffice/LibreOffice UNO container windows.
+
+    Automatically resizes and repositions child controls when the host window is resized,
+    while enforcing the initial window dimensions as a minimum size threshold. Any control
+    present in the window but omitted from the anchor arguments is treated as static and
+    kept at its original coordinates.
+
+    Attributes:
+        window (XWindow): The managed UNO container window.
+        size (Rectangle): Initial window position and dimensions captured at instantiation,
+            serving as the baseline for delta calculations and minimum size enforcement.
+
+    Args:
+        window (XWindow): The UNO container window to manage. Must be sized to its factory
+            dimensions before instantiating this class.
+        controls (tuple[XControl, ...], optional): Controls anchored to all four edges
+            (stretches both width and height).
+        columns (tuple[tuple[XControl, XControl, bool], ...], optional): Pairs of side-by-side
+            controls sharing horizontal growth equally, with a boolean flag indicating whether
+            they also stretch vertically.
+        links (tuple[tuple[XControl, XControl], ...], optional): Tuples of `(control, parent)`
+            where `control` maintains a fixed horizontal offset from the right edge of `parent`.
+        horizontals (tuple[XControl, ...], optional): Controls anchored to left and right edges
+            (stretches width only).
+        verticals (tuple[XControl, ...], optional): Controls anchored to top and bottom edges
+            (stretches height only).
+        tops (tuple[XControl, ...], optional): Controls anchored to the top-right corner
+            (fixed size).
+        lefts (tuple[XControl, ...], optional): Controls anchored to the bottom-left corner
+            (fixed size).
+        bottoms (tuple[XControl, ...], optional): Controls anchored to the bottom-right corner
+            (fixed size).
+    """
+
     def __init__(self, window, controls=(), columns=(), links=(), horizontals=(), verticals=(), tops=(), lefts=(), bottoms=()):
         self.window = window
+        self.size = window.getPosSize()
         controls = list(controls)
         columns = list(columns)
         links = list(links)
@@ -49,21 +85,20 @@ class Layout(unohelper.Base,
         tops = list(tops)
         lefts = list(lefts)
         bottoms = list(bottoms)
-        self._size = window.getPosSize()
 
         self._controls = []
         for ctrl in controls:
             possize = ctrl.getPosSize()
-            right = self._size.Width - (possize.X + possize.Width)
-            bottom = self._size.Height - (possize.Y + possize.Height)
+            right = self.size.Width - (possize.X + possize.Width)
+            bottom = self.size.Height - (possize.Y + possize.Height)
             self._controls.append((ctrl, Rectangle(possize.X, possize.Y, right, bottom)))
 
         self._columns = []
         for col1, col2, grow_y in columns:
             pos1 = col1.getPosSize()
             pos2 = col2.getPosSize()
-            bottom1 = self._size.Height - (pos1.Y + pos1.Height)
-            bottom2 = self._size.Height - (pos2.Y + pos2.Height)
+            bottom1 = self.size.Height - (pos1.Y + pos1.Height)
+            bottom2 = self.size.Height - (pos2.Y + pos2.Height)
             self._columns.append((
                 col1, pos1.X, pos1.Width, pos1.Y, pos1.Height, bottom1,
                 col2, pos2.X, pos2.Width, pos2.Y, pos2.Height, bottom2,
@@ -81,29 +116,29 @@ class Layout(unohelper.Base,
         self._horizontals = []
         for ctrl in horizontals:
             pos = ctrl.getPosSize()
-            right = self._size.Width - (pos.X + pos.Width)
+            right = self.size.Width - (pos.X + pos.Width)
             self._horizontals.append((ctrl, Rectangle(pos.X, pos.Y, right, pos.Height)))
 
         self._verticals = []
         for ctrl in verticals:
             pos = ctrl.getPosSize()
-            bottom = self._size.Height - (pos.Y + pos.Height)
+            bottom = self.size.Height - (pos.Y + pos.Height)
             self._verticals.append((ctrl, Rectangle(pos.X, pos.Y, pos.Width, bottom)))
 
         self._tops = []
         for ctrl in tops:
             pos = ctrl.getPosSize()
-            self._tops.append((ctrl, Point(self._size.Width - pos.X, pos.Y)))
+            self._tops.append((ctrl, Point(self.size.Width - pos.X, pos.Y)))
 
         self._lefts = []
         for ctrl in lefts:
             pos = ctrl.getPosSize()
-            self._lefts.append((ctrl, Point(pos.X, self._size.Height - pos.Y)))
+            self._lefts.append((ctrl, Point(pos.X, self.size.Height - pos.Y)))
 
         self._bottoms = []
         for ctrl in bottoms:
             pos = ctrl.getPosSize()
-            self._bottoms.append((ctrl, Point(self._size.Width - pos.X, self._size.Height - pos.Y)))
+            self._bottoms.append((ctrl, Point(self.size.Width - pos.X, self.size.Height - pos.Y)))
 
         self._statics = []
         flat_columns = []
@@ -116,8 +151,40 @@ class Layout(unohelper.Base,
                 pos = ctrl.getPosSize()
                 self._statics.append((ctrl, Point(pos.X, pos.Y)))
 
+    def updateControl(self, control):
+        """Recalculates and updates stored anchor margins for a dynamically modified control.
+
+        Should be called whenever a control registered in `controls` is manually moved or
+        resized at runtime (e.g., toggling a collapsible toolbar or header) so subsequent
+        window resize events preserve its new layout state.
+
+        Args:
+            control (XControl): The UNO control whose anchor margins need refreshing.
+        """
+        pos = control.getPosSize()
+        name = control.Model.Name
+        possize = self.window.getPosSize()
+        for index, (ctrl, _) in enumerate(self._controls):
+            if ctrl.Model.Name == name:
+                right = possize.Width - (pos.X + pos.Width)
+                bottom = possize.Height - (pos.Y + pos.Height)
+                self._controls[index] = (ctrl, Rectangle(pos.X, pos.Y, right, bottom))
+                return
+
     def windowResized(self, event):
+        """Handles `XWindowListener.windowResized` to enforce minimum size and reposition controls.
+
+        Args:
+            event (WindowEvent): The UNO window resize event.
+        """
         size = event.Source.getPosSize()
+
+        if size.Width < self.size.Width or size.Height < self.size.Height:
+            W = max(size.Width, self.size.Width)
+            H = max(size.Height, self.size.Height)
+            self.window.setPosSize(0, 0, W, H, SIZE)
+            return
+
         W = size.Width
         H = size.Height
 
@@ -146,7 +213,7 @@ class Layout(unohelper.Base,
         updated_parents = {}
 
         if self._columns:
-            delta_w = W - self._size.Width
+            delta_w = W - self.size.Width
             half_delta = delta_w // 2
 
             for c1, x1, w1, y1, h1, b1, c2, x2, w2, y2, h2, b2, grow_y in self._columns:

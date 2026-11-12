@@ -41,13 +41,14 @@ from ...configuration import g_sep
 
 
 class User():
-    def __init__(self, ctx, request, metadata, args, session):
+    def __init__(self, ctx, request, metadata, arguments, token, new):
         self._ctx = ctx
         self._request = request
         self._metadata = metadata
-        books = (Book(session.IsNew, **kwargs) for kwargs in args)
+        books = (Book(new, **kwargs) for kwargs in arguments)
         self._books = {book.Uri: book for book in books}
-        self._password = session.Token
+        self._token = token
+        self._new = new
         self._sessions = set()
         print("UserBase.__init__() 1 BaseUrl: %s" % self.BaseUrl)
 
@@ -76,8 +77,12 @@ class User():
         return self._metadata.get('Name')
 
     @property
-    def Password(self):
-        return self._password
+    def Token(self):
+        return self._token
+
+    @property
+    def New(self):
+        return self._new
 
     @property
     def Url(self):
@@ -100,10 +105,6 @@ class User():
 # Procedures called by DataSource
     def getName(self):
         return self.Name
-
-    def getPassword(self):
-        password = ''
-        return password
 
     def getSchema(self):
         return getUserSchema(self._metadata)

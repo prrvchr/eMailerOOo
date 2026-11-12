@@ -406,7 +406,7 @@ class Wizard(unohelper.Base,
                 self._resizeWizard(page.Window.getModel())
             self._model.addPage(pageid, page)
             if not self._view.isModal():
-                page.addLayout(self._view.getLayout())
+                self._view.getLayout().addLayout(page.getLayout())
         self._model.setCurrentPageId(pageid)
         self._activatePage(pageid)
         # TODO: Fixed: XWizard.updateTravelUI() must be done after XWizardPage.activatePage()

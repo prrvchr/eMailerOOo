@@ -44,11 +44,13 @@ from .user import User
 
 from .unotool import getNamedValue
 
+import json
+
 
 class Replicator(Task):
-    def __init__(self, ctx, job, listener, timeout, /, source, url, sessions):
+    def __init__(self, ctx, job, listener, timeout, /, dispatch, args):
         super().__init__(ctx, 'Replicator')
-        print("Replicator.__init__() soure: %s - url: %s - sessions: %s" % (source, url, sessions))
+        print("Replicator.__init__() soure: %s - url: %s - sessions: %s" % (args, ))
         self._job = job
         self._listener = listener
         self._timeout = timeout
@@ -59,15 +61,16 @@ class Replicator(Task):
 
         self.stats_card = {'users': 0, 'pages': 0, 'count': 0}
         self.stats_group = {'users': 0, 'pages': 0, 'count': 0}
-        self.steps = self.getSteps(ctx, source, url, sessions)
+        self.steps = self.getSteps(ctx, args)
 
-    def getSteps(self, ctx, source, url, sessions):
+    def getSteps(self, ctx, args):
         # --- PHASE 1 : SYNCHRONISATION DES CARTES
         users = set()
-        self._database = DataBase(ctx, url)
-        provider = Provider(ctx, source, self._database)
+        sessions = json.load(args)
+        self._database = DataBase(ctx)
+        provider = Provider(ctx, self._database)
         for session in sessions:
-            user = User(ctx, provider, self._database, session)
+            user = User(ctx, provider, self._database, **session)
             if user.isOffLine():
                 continue
             users.add(user)

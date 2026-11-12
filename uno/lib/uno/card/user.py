@@ -31,7 +31,7 @@ from .card import UserBase
 
 
 class User(UserBase):
-    def __init__(self, ctx, provider, database, session):
-        metadata, args = database.selectUser(session.Server, session.Name)
-        request = provider.getRequest(session.Url, session.Name)
-        super().__init__(ctx, request, metadata, args, session.IsNew, session.Token)
+    def __init__(self, ctx, provider, database, /, url, server, name, token, new):
+        metadata, arguments = database.selectUser(server, name)
+        request = provider.getRequest(url, name)
+        super().__init__(ctx, request, metadata, arguments, token, new)

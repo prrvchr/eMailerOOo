@@ -46,8 +46,6 @@ from .card import getLogException
 
 from .dbtool import getDriverPropertyInfos
 
-from .dbinit import getDataSourceUrl
-
 from .configuration import g_protocol
 from .configuration import g_scheme
 from .configuration import g_scope
@@ -75,8 +73,7 @@ class Driver(unohelper.Base,
     @property
     def DataSource(self):
         if self._datasource is None:
-            url = getDataSourceUrl(self._ctx)
-            self._datasource = DataSource(self._ctx, self, self._logger, url)
+            self._datasource = DataSource(self._ctx, self._logger, self)
         return self._datasource
 
 # XCreateCatalog

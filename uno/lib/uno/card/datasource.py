@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.auth import UserSession
-
 from com.sun.star.logging.LogLevel import INFO
 
 from com.sun.star.uno import Exception as UnoException
@@ -44,26 +42,25 @@ from .runner import DispatchListener
 
 from .card import getSqlException
 
+# from .setup import showSetup
+
 from .helper import startReplication
 
 from .configuration import g_extension
 
-from threading import Event
+import json
 
 
 class DataSource():
-    def __init__(self, ctx, source, logger, url):
+    def __init__(self, ctx, logger, source):
         self._cls = 'DataSource'
         mtd = '__init__'
         logger.logprb(INFO, self._cls, mtd, 1201)
         self._ctx = ctx
         self._maps = {}
-        database = DataBase(ctx, url)
-        provider = Provider(ctx, source, database)
-        users = {}
-        sync = Event()
-        self._sync = sync
-        self._users = users
+        database = DataBase(ctx)
+        provider = Provider(ctx, database, source)
+        self._users = {}
         self._database = database
         self._provider = provider
         self._listener = EventListener(self)
@@ -72,12 +69,6 @@ class DataSource():
     @property
     def DataBase(self):
         return self._database
-
-    def isUptoDate(self):
-        return self._database.isUptoDate()
-
-    def getDataBaseVersion(self):
-        return self._database.Version
 
 # Procedures called by EventListener
     def closeConnection(self, connection):
@@ -91,10 +82,10 @@ class DataSource():
         print("DataSource.dispatchFinished() state: %s - result: %s" % (notification.State, notification.Result))
 
 # Procedures called by Driver
-    def getConnection(self, source, logger, url, scheme, server, account, password=''):
+    def getConnection(self, source, logger, url, scheme, server, username, token=''):
         print("DataSource.getConnection() 1")
         mtd = 'getConnection'
-        uri = self._provider.getUserUri(server, account)
+        uri = self._provider.getUserUri(server, username)
         if uri in self._maps:
             print("DataSource.getConnection() 2")
             name = self._maps.get(uri)
@@ -103,8 +94,7 @@ class DataSource():
                 raise getSqlException(self._ctx, source, 1002, 1401, self._cls, mtd, name, g_extension)
         else:
             print("DataSource.getConnection() 3")
-            session = self._getUserSession(url, server, account, password)
-            user = User(self._ctx, source, logger, self._database, self._provider, scheme, session)
+            user = User(self._ctx, source, logger, self._database, self._provider, scheme, url, server, username, token)
             name = user.getName()
         if user.isOnLine():
             try:
@@ -113,7 +103,7 @@ class DataSource():
                 e = getSqlException(self._ctx, source, 1001, 1402, self._cls, mtd, name, g_extension)
                 e.NextException = ex
                 raise e
-        connection = self._database.getConnection(name, user.getPassword())
+        connection = self._database.getConnection(name)
         # XXX: New users are cached only if the connection is successful.
         if uri not in self._maps:
             self._users[name] = user
@@ -122,19 +112,14 @@ class DataSource():
         # User and/or AddressBooks has been initialized and the connection to the database is done...
         # We can start the database replication in a background task.
         connection.addEventListener(self._listener)
-        startReplication(self._ctx, DispatchListener(self), source=source, url=self.DataBase.Url, sessions=self._getUserSessions())
+        print("DataSource.getConnection() 4")
+        # showSetup(self._ctx, Dispatch=DispatchListener(self), Mode=0)
+        startReplication(self._ctx, Dispatch=DispatchListener(self), Args=self._getUserSessions())
+        print("DataSource.getConnection() 5")
         return connection
 
     def _getUserSessions(self):
         users = []
         for user in self._users.values():
-            users.append(self._getUserSession(user.Url, user.Server, user.Name, user.Password))
-        return tuple(users)
-
-    def _getUserSession(self, url, server, name, pwd):
-        session = UserSession()
-        session.Name = name
-        session.Url = url
-        session.Server = server
-        session.Token = pwd
-        return session
+            users.append({'url': user.Url, 'server': user.Server, 'name': user.Name, 'token': user.Token, 'new': user.New})
+        return json.dumps(users)

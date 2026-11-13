@@ -27,10 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -72,7 +70,6 @@ from smtplib import SMTPRecipientsRefused
 from smtplib import SMTPSenderRefused
 
 from collections import OrderedDict
-import traceback
 
 
 class SmtpService(unohelper.Base,
@@ -85,9 +82,9 @@ class SmtpService(unohelper.Base,
             logger.logprb(INFO, self._cls, mtd, 201)
         self._providers = providers
         self._listeners = []
-        self._supportedconnection =     ('Insecure', 'SSL', 'TLS')
+        self._supportedconnection = ('Insecure', 'SSL', 'TLS')
         self._supportedauthentication = ('None', 'Login', 'OAuth2')
-        self._supportedmechanism =      ('OAUTHBEARER', 'XOAUTH2')
+        self._supportedmechanism = ('OAUTHBEARER', 'XOAUTH2')
         self._server = None
         self._context = None
         self._tokens = None
@@ -285,7 +282,7 @@ class SmtpService(unohelper.Base,
             pwd = '*' * len(password)
             self._logger.logprb(INFO, self._cls, mtd, 253, user, pwd, code, self._getReply(reply))
 
-    def _doOAuth2(self, server, host, port, user, password, authentication):
+    def _doOAuth2(self, server, host, port, user, _password, authentication):
         mtd = '_doOAuth2'
         if self._debug:
             self._logger.logprb(INFO, self._cls, mtd, 261, authentication)
@@ -304,10 +301,11 @@ class SmtpService(unohelper.Base,
             for mechanism in self._supportedmechanism:
                 if mechanism in features:
                     parameters = self._getTokenParameters(mechanism, host)
-                    callable = lambda x=None: getOAuth2TokenWithParameters(request, parameters, port)
                     for ok in (True, False):
                         try:
-                            code, reply = server.auth(mechanism, callable, initial_response_ok=ok)
+                            code, reply = server.auth(mechanism,
+                                                      lambda _=None: getOAuth2TokenWithParameters(request, parameters, port),
+                                                      initial_response_ok=ok)
                         except SMTPException as e:
                             ex = e
                             continue
@@ -405,4 +403,3 @@ class SmtpService(unohelper.Base,
 
     def _getProvider(self):
         return self._providers.getByName(self._provider)
-

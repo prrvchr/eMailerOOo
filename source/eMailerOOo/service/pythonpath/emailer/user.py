@@ -38,18 +38,18 @@ from .mailerlib import Authenticator
 from .unotool import getConfiguration
 
 from .configuration import g_identifier
+from .configuration import g_sep
 
 from email.utils import parseaddr
-import traceback
 
 
 class User(unohelper.Base):
     def __init__(self, ctx, sender, new=False):
         self._ctx = ctx
         self._sender = sender
-        name, address = parseaddr(sender)
+        _, address = parseaddr(sender)
         self._email = address
-        name, sep, domain = address.partition('@')
+        _, _, domain = address.partition('@')
         self._domain = domain
         self._services = {SMTP.value: 465, IMAP.value: 993}
         self._config = getConfiguration(ctx, g_identifier, True)
@@ -76,7 +76,6 @@ class User(unohelper.Base):
                             'AuthenticationType', 'UserName', 'Password')
         self._indexes = {'ConnectionType': ('Insecure', 'SSL', 'TLS'),
                          'AuthenticationType': ('None', 'Login', 'OAuth2')}
-        self._sep = '/'
 
     @property
     def _servers(self):
@@ -128,16 +127,16 @@ class User(unohelper.Base):
 
     def updateConfig(self, service, user):
         for key, value in user.items():
-            service, sep, property = key.partition(self._sep)
-            if property in self._indexes:
-                value = self._indexes[property][value]
+            service, _, prop = key.partition(g_sep)
+            if prop in self._indexes:
+                value = self._indexes[prop][value]
             if self._servers.hasByHierarchicalName(key):
                 if self._servers.getByHierarchicalName(key) != value:
-                    self._servers.getByName(service).replaceByName(property, value)
+                    self._servers.getByName(service).replaceByName(prop, value)
             else:
                 if not self._servers.hasByName(service):
                     self._servers.insertByName(service, self._servers.createInstance())
-                self._servers.getByName(service).replaceByName(property, value)
+                self._servers.getByName(service).replaceByName(prop, value)
 
     def saveConfig(self):
         if self._config.hasPendingChanges():
@@ -172,7 +171,7 @@ class User(unohelper.Base):
 
     def getServers(self):
         servers = {}
-        for service in  self._servers.ElementNames:
+        for service in self._servers.ElementNames:
             servers[service] = self.getServer(service)
         return servers
 
@@ -211,20 +210,20 @@ class User(unohelper.Base):
         return Authenticator(config)
 
     # Private method
-    def _getPropertyValue(self, service, property, default):
-        key = service + self._sep + property
+    def _getPropertyValue(self, service, prop, default):
+        key = service + g_sep + prop
         if self._servers.hasByHierarchicalName(key):
             default = self._servers.getByHierarchicalName(key)
-            if property in self._indexes:
-                default = self._indexes[property].index(default)
+            if prop in self._indexes:
+                default = self._indexes[prop].index(default)
         return default
 
     def _setPropertyValue(self, user, server, service):
-        for property in self._properties:
-            value = server.getByName(property)
-            if property in self._indexes:
-                value = self._indexes[property].index(value)
-            user[service + self._sep + property] = value
+        for prop in self._properties:
+            value = server.getByName(prop)
+            if prop in self._indexes:
+                value = self._indexes[prop].index(value)
+            user[service + g_sep + prop] = value
 
     def _setDefaultServer(self, servers, service):
         servers.insertByName(service, servers.createInstance())

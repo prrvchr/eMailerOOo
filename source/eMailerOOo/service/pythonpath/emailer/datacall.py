@@ -27,17 +27,11 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dbqueries import getSqlQuery
-
 from .dbtool import Array
 
 from .dbtool import getDataSourceCall
-from .dbtool import getDataFromResult
-from .dbtool import getObjectFromResult
 from .dbtool import getResultValue
 from .dbtool import getSequenceFromResult
-
-import traceback
 
 
 class DataCall():
@@ -47,7 +41,7 @@ class DataCall():
         self._calls = {}
 
     def dispose(self):
-        for name, call in self._calls.items():
+        for call in self._calls.values():
             call.close()
 
 # Procedures called by the Spooler
@@ -58,12 +52,11 @@ class DataCall():
         call.setString(3, document)
         call.setArray(4, Array('VARCHAR', recipients))
         call.setArray(5, Array('VARCHAR', attachments))
-        status = call.executeUpdate()
-        id = call.getInt(6)
-        return id
+        _ = call.executeUpdate()
+        return call.getInt(6)
 
     def addMergeJob(self, sender, subject, document, datasource, query, table, recipients,
-                          filters, predicates, addresses, identifiers, attachments):
+                    filters, predicates, addresses, identifiers, attachments):
         call = self._getCall('addMergeJob')
         call.setString(1, sender)
         call.setString(2, subject)
@@ -77,14 +70,13 @@ class DataCall():
         call.setArray(10, Array('VARCHAR', addresses))
         call.setArray(11, Array('VARCHAR', identifiers))
         call.setArray(12, Array('VARCHAR', attachments))
-        status = call.executeUpdate()
-        id = call.getInt(13)
-        return id
+        _ = call.executeUpdate()
+        return call.getInt(13)
 
     def deleteJobs(self, jobs):
         call = self._getCall('deleteJobs')
         call.setArray(1, Array('INTEGER', jobs))
-        status = call.executeUpdate()
+        _ = call.executeUpdate()
         return True
 
     def getJobState(self, job):
@@ -134,7 +126,6 @@ class DataCall():
         return jobids
 
     def getAttachments(self, batch):
-        attachments = ()
         call = self._getCall('getAttachments')
         call.setInt(1, batch)
         result = call.executeQuery()
@@ -166,10 +157,10 @@ class DataCall():
 
 
 # Procedures called internally
-    def _getCall(self, name, format=None):
-        return self._getDataBaseCall(name, format)
+    def _getCall(self, name, options=None):
+        return self._getDataBaseCall(name, options)
 
-    def _getDataBaseCall(self, name, format=None):
+    def _getDataBaseCall(self, name, options=None):
         if name not in self._calls:
-            self._calls[name] = getDataSourceCall(self._ctx, self._connection, name, format)
+            self._calls[name] = getDataSourceCall(self._ctx, self._connection, name, options)
         return self._calls[name]

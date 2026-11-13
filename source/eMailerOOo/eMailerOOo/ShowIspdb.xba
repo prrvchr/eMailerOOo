@@ -29,8 +29,9 @@ Rem ╚════════════════════════�
 
 Sub ShowIspdb
     Set oDispatch = CreateUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
+    sUrl = &quot;vnd.sun.star.job:service=io.github.prrvchr.eMailerOOo.IspDB&quot;
     Dim args(0) As New com.sun.star.beans.PropertyValue
-    oDispatch.executeDispatch(StarDesktop.ActiveFrame, &quot;emailer:ShowIspdb&quot;, &quot;&quot;, 0, args)
+    oDispatch.executeDispatch(StarDesktop.ActiveFrame, sUrl, &quot;&quot;, 0, args)
 End Sub
 
 </script:module>

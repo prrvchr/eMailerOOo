@@ -37,12 +37,12 @@ from ..logger import LogManager
 
 
 class OptionManager():
-    def __init__(self, ctx, window, logger, *loggers):
-        self._ctx = ctx
-        self._model = OptionModel(ctx)
+    def __init__(self, ctx, window, config, logger, *loggers):
+        self._model = OptionModel(config)
         self._view = OptionView(ctx, window, OptionHandler(self))
         self._logmanager = LogManager(ctx, self._view.getFrame(), 'requirements.txt', logger, *loggers)
         self._logmanager.initView()
+        self._view.getLayout().addLayout(self._logmanager.getLayout())
 
     def init(self, state):
         self._view.initView(*self._model.getInitData(state))
@@ -57,7 +57,7 @@ class OptionManager():
 
 # OptionManager getter methods
     def getLayout(self):
-        return self._view.getLayout().addLayout(self._logmanager.getLayout())
+        return self._view.getLayout()
 
     def getConfigApiLevel(self):
         return self._model.getConfigApiLevel()

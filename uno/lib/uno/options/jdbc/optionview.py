@@ -50,7 +50,12 @@ class OptionView():
 
 # OptionView setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
     def initView(self, level, crs, system, rst, enabled, state):
         self._getApiLevel(level).State = 1
@@ -75,15 +80,18 @@ class OptionView():
 
     def _getLayouts(self):
         return {'horizontals': self._getHorizontals(),
+                'rows': self._getRows(),
                 'tops': self._getTops()}
 
     def _getHorizontals(self):
         yield self._getFrame()
         yield self._getFixedLine()
 
+    def _getRows(self):
+        yield self._getOptionButton(2), self._getOptionButton(3)
+        yield self._getOptionButton(5), self._getOptionButton(6)
+
     def _getTops(self):
-        for index in range(1, 7):
-            yield self._getOptionButton(index)
         yield self._getSytemTable()
 
 # OptionView private control methods

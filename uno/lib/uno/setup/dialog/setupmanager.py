@@ -40,16 +40,16 @@ from ..setupcheck import SetupCheck
 
 from ...configuration import State
 
-from ...runner import Cancel
+from ...runner.cancel import Cancel
 
-from ...unotool import Transferable
+from ...unotool.transferable import Factory as Transferable
 
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
 
 
 class SetupManager():
-    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, extensions=None, *, dispatch=None, mode=None, parent=None, name=None, state=None):
+    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, extensions=None, *, dispatch=None, mode=None, parent=None, name=None, state=None):  # noqa
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch

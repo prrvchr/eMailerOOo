@@ -29,11 +29,11 @@
 
 # jdbcDriverOOo general configuration
 g_extension = 'jdbcDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+g_identifier = f'io.github.prrvchr.{g_extension}'
 g_services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
               'io.github.prrvchr.jdbcdriver.sdbcx.Driver',
               'io.github.prrvchr.jdbcdriver.sdb.Driver')
-g_service = g_services[0]
+g_service = f'{g_identifier}.Driver'
 g_version = '1.7.1'
 g_agent = 'SupportsInstrumentationAgent'
 g_url = 'juda:'

@@ -65,8 +65,9 @@ from ...unotool import getDesktop
 from ...jdbcdriver.configuration import g_java
 from ...jdbcdriver.configuration import g_script
 
+from ...config.configuration import g_setup
+
 from ...configuration import g_extension
-from ...configuration import g_setup
 from ...configuration import g_synclog
 
 from threading import Timer

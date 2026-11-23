@@ -49,8 +49,9 @@ from .dbconfig import g_schema
 from .dbconfig import g_view
 from .dbconfig import g_drvinfos
 
+from .config.configuration import g_sep
+
 from .configuration import g_host
-from .configuration import g_sep
 
 from collections import OrderedDict
 

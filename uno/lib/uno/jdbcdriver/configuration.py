@@ -42,14 +42,6 @@ g_java = '17'
 g_script = 'JavaInfo.io.github.prrvchr.java.info.JavaInfo.getVersion'
 
 # jdbcDriverOOo special configuration
-g_resource = 'resource'
 g_basename = 'Driver'
 g_defaultlog = 'Driver'
 g_errorlog = 'jdbcDriverError'
-
-# Setup frame and Job name
-g_setup = '%s.Setup' % g_extension
-
-
-class State:
-    restart = False

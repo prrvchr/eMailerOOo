@@ -38,7 +38,7 @@ from .setuphandler import WindowHandler
 
 from ..setupcheck import SetupCheck
 
-from ...configuration import State
+from ...config.configuration import State
 
 from ...runner.cancel import Cancel
 
@@ -46,6 +46,8 @@ from ...unotool.transferable import Factory as Transferable
 
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
+
+import traceback
 
 
 class SetupManager():
@@ -63,8 +65,8 @@ class SetupManager():
         if state:
             self.notify(state)
         else:
-            path = self._model.getDataBasePath()
-            self._check = SetupCheck(self._ctx, self.notify, path, java, agent, python, extensions)
+            database = self._model.getDataBasePath()
+            self._check = SetupCheck(self._ctx, self.notify, database=database, java=java, agent=agent, python=python, extensions=extensions)
             self._check.start()
 
     def notify(self, state):
@@ -92,23 +94,26 @@ class SetupManager():
         return steps
 
     def next(self):
-        if self._running:
-            return
+        try:
+            if self._running:
+                return
 
-        if self._steps:
-            step = self._steps.pop(0)
-            step()
-            return
+            if self._steps:
+                step = self._steps.pop(0)
+                step()
+                return
 
-        if self._state.runnable or not self._steps:
-            if not self._reported:
-                self._setReport()
-                self._reported = True
-            else:
-                self._running = True
-                self._model.deregisterJob()
-                self._running = False
-                self._close()
+            if self._state.runnable or not self._steps:
+                if not self._reported:
+                    self._setReport()
+                    self._reported = True
+                else:
+                    self._running = True
+                    self._model.deregisterJob()
+                    self._running = False
+                    self._close()
+        except Exception:
+            print("SetupManager.next() ERROR: %s" % traceback.format_exc())
 
 # XCloseListener
     def queryClosing(self, _source, ownership):

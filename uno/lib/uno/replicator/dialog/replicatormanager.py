@@ -76,7 +76,7 @@ class ReplicatorManager():
     def __init__(self, ctx, job, queue):
         print("ReplicatorManager.__init__() 1")
         self._ctx = ctx
-        self._job =job
+        self._job = job
         self._queue = queue
         self._data = set()
         self._model = ReplicatorModel(ctx)

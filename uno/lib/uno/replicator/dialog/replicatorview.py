@@ -38,7 +38,7 @@ from com.sun.star.util.MeasureUnit import APPFONT
 
 from ...unotool.layout import Layout
 
-from ...unotool.indicator import Indicator
+from ...unotool.indicator import Factory as Indicator
 
 from ...unotool import getContainerWindow
 from ...unotool import getDesktop

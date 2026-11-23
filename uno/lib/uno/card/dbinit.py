@@ -87,9 +87,9 @@ def getProcedures():
 
 
 def getStaticTables():
-    yield 'Resources',      {'CatalogName': g_catalog,
-                             'SchemaName':  g_schema,
-                             'Type':        'TEXT TABLE',
+    yield 'Resources',      {'CatalogName': g_catalog,                   # noqa
+                             'SchemaName':  g_schema,                    # noqa
+                             'Type':        'TEXT TABLE',                # noqa
                              'Columns': ({'Name': 'Resource',
                                           'TypeName': 'INTEGER',
                                           'Type': INTEGER,
@@ -117,9 +117,9 @@ def getStaticTables():
                                           'IsNullable': NULLABLE,
                                           'DefaultValue': 'NULL'}),
                              'PrimaryKeys': ('Resource', )}
-    yield 'Properties',     {'CatalogName': g_catalog,
-                             'SchemaName':  g_schema,
-                             'Type':        'TEXT TABLE',
+    yield 'Properties',     {'CatalogName': g_catalog,                   # noqa
+                             'SchemaName':  g_schema,                    # noqa
+                             'Type':        'TEXT TABLE',                # noqa
                              'Columns': ({'Name': 'Property',
                                           'TypeName': 'INTEGER',
                                           'Type': INTEGER,
@@ -140,9 +140,9 @@ def getStaticTables():
                                           'IsNullable': NULLABLE,
                                           'DefaultValue': 'NULL'}),
                              'PrimaryKeys': ('Property', )}
-    yield 'Types',          {'CatalogName': g_catalog,
-                             'SchemaName':  g_schema,
-                             'Type':        'TEXT TABLE',
+    yield 'Types',          {'CatalogName': g_catalog,                   # noqa
+                             'SchemaName':  g_schema,                    # noqa
+                             'Type':        'TEXT TABLE',                # noqa
                              'Columns': ({'Name': 'Type',
                                           'TypeName': 'INTEGER',
                                           'Type': INTEGER,
@@ -159,9 +159,9 @@ def getStaticTables():
                                           'IsNullable': NULLABLE,
                                           'DefaultValue': 'NULL'}),
                              'PrimaryKeys': ('Type', )}
-    yield 'PropertyType',   {'CatalogName': g_catalog,
-                             'SchemaName':  g_schema,
-                             'Type':        'TEXT TABLE',
+    yield 'PropertyType',   {'CatalogName': g_catalog,                   # noqa
+                             'SchemaName':  g_schema,                    # noqa
+                             'Type':        'TEXT TABLE',                # noqa
                              'Columns': ({'Name': 'Property',
                                           'TypeName': 'INTEGER',
                                           'Type': 4,
@@ -173,9 +173,9 @@ def getStaticTables():
 
 
 def getForeignKeys():
-    yield (f'{g_catalog}.{g_schema}.Properties',   'Resource', f'{g_catalog}.{g_schema}.Resources',  'Resource', KeyRule.CASCADE, KeyRule.CASCADE)
-    yield (f'{g_catalog}.{g_schema}.PropertyType', 'Property', f'{g_catalog}.{g_schema}.Properties', 'Property', KeyRule.CASCADE, KeyRule.CASCADE)
-    yield (f'{g_catalog}.{g_schema}.PropertyType', 'Type',     f'{g_catalog}.{g_schema}.Types',      'Type',     KeyRule.CASCADE, KeyRule.CASCADE)
+    yield (f'{g_catalog}.{g_schema}.Properties',   'Resource', f'{g_catalog}.{g_schema}.Resources',  'Resource', KeyRule.CASCADE, KeyRule.CASCADE)  # noqa
+    yield (f'{g_catalog}.{g_schema}.PropertyType', 'Property', f'{g_catalog}.{g_schema}.Properties', 'Property', KeyRule.CASCADE, KeyRule.CASCADE)  # noqa
+    yield (f'{g_catalog}.{g_schema}.PropertyType', 'Type',     f'{g_catalog}.{g_schema}.Types',      'Type',     KeyRule.CASCADE, KeyRule.CASCADE)  # noqa
 
 
 def _getViews(ctx, connection, catalog, schema, name, options, option):

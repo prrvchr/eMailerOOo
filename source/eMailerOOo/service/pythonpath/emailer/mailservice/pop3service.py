@@ -27,20 +27,15 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.mail import XMailService
 from com.sun.star.lang import EventObject
 
-g_message = 'MailServiceProvider'
-
 import sys
 import poplib
-import traceback
+
+g_message = 'MailServiceProvider'
 
 
 class Pop3Service(unohelper.Base,
@@ -86,7 +81,7 @@ class Pop3Service(unohelper.Base,
             user = authenticator.getUserName()
             password = authenticator.getPassword()
             if user != '':
-                if sys.version < '3': # fdo#59249 i#105669 Python 2 needs "ascii"
+                if sys.version < '3':  # fdo#59249 i#105669 Python 2 needs "ascii"
                     user = user.encode('ascii')
                     if password != '':
                         password = password.encode('ascii')

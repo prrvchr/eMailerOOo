@@ -28,7 +28,7 @@
 """
 
 # DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
+g_protocol = 'juda:hsqldb:'
 g_folder = 'hsqldb'
 g_jar = 'hsqldb.jar'
 g_class = 'org.hsqldb.jdbcDriver'
@@ -39,12 +39,11 @@ g_role = 'FrontOffice'
 g_dba = 'AD'
 
 g_catalog = 'PUBLIC'
-g_schema  = 'PUBLIC'
+g_schema = 'PUBLIC'
 
 # XXX: If we want to be able to create DataBase we need to get some
 # XXX: DriverPropertyInfo from the driver. Here is the necessary information
-g_drvinfos = {'AutoIncrementCreation':   lambda x: x.Value,
-              'RowVersionCreation':      lambda x: x.Choices,
-              'TypeInfoSettings':        lambda x: x.Choices,
+g_drvinfos = {'AutoIncrementCreation':   lambda x: x.Value,    # noqa
+              'RowVersionCreation':      lambda x: x.Choices,  # noqa
+              'TypeInfoSettings':        lambda x: x.Choices,  # noqa
               'TablePrivilegesSettings': lambda x: x.Choices}
-

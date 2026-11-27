@@ -27,57 +27,70 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
-from ..jdbcdriver import isInstrumented
-
-from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
-from ..unotool import getSimpleFile
 from ..unotool import getStringResource
+from ..unotool import getConfiguration
 
-from ..dbconfig  import g_folder
+from ..dbinit import getDataSourceUrl
 
-from ..configuration import g_basename
 from ..configuration import g_identifier
-from ..configuration import g_separator
-
-import traceback
 
 
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
+        self._url = getDataSourceUrl(ctx)
         self._config = getConfiguration(ctx, g_identifier, True)
-        folder = g_folder + g_separator + g_basename
-        location = getResourceLocation(ctx, g_identifier, folder)
-        self._url = location + '.odb'
-        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
-        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._resources = {'Link': 'OptionsDialog.Label8.Url.%s'}
 
     @property
-    def _Timeout(self):
+    def _timeout(self):
         return self._config.getByName('ConnectTimeout')
 
-    def isInstrumented(self):
-        return self._instrumented
+    @_timeout.setter
+    def _timeout(self, timeout):
+        self._config.replaceByName('ConnectTimeout', timeout)
 
-    def getViewData(self):
-        exist = self.getDataBaseStatus()
-        return self._link, self._instrumented, exist, self._Timeout
+    @property
+    def _mode(self):
+        return self._config.getByName('ErrorMode')
 
-    def saveTimeout(self, timeout):
-        if timeout != self._Timeout:
-            self._config.replaceByName('ConnectTimeout', timeout)
+    @_mode.setter
+    def _mode(self, mode):
+        self._config.replaceByName('ErrorMode', mode)
+
+    @property
+    def _delay(self):
+        return self._config.getByName('RunDelay')
+
+    @_delay.setter
+    def _delay(self, delay):
+        self._config.replaceByName('RunDelay', delay)
+
+    def getConfig(self):
+        return self._config
+
+    def getInitData(self, state):
+        return self._timeout, self._mode, self._delay, *self.getRefreshData(state)
+
+    def getRefreshData(self, state):
+        return state, state.getMessage(self._ctx), self._getLink(state.code)
+
+    def saveData(self, timeout, mode, delay):
+        if timeout != self._timeout:
+            self._timeout = timeout
+        if mode != self._mode:
+            self._mode = mode
+        if delay != self._delay:
+            self._delay = delay
         if self._config.hasPendingChanges():
             self._config.commitChanges()
             return True
         return False
 
-    def getDataBaseStatus(self):
-        return getSimpleFile(self._ctx).exists(self._url)
-
-    def getDataBaseUrl(self):
+    def getDataSourceUrl(self):
         return self._url
 
+    def _getLink(self, code):
+        resource = self._resources.get('Link') % code
+        return self._resolver.resolveString(resource)

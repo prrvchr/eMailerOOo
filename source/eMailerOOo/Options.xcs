@@ -93,12 +93,17 @@
   </templates>
   <component>
     <prop oor:name="ConnectTimeout" oor:type="xs:short"/>
+    <prop oor:name="RunDelay" oor:type="xs:double"/>
+    <prop oor:name="ErrorMode" oor:type="xs:short"/>
     <prop oor:name="IspDBUrl" oor:type="xs:string"/>
-    <prop oor:name="SpoolerPosition" oor:type="oor:int-list"/>
+    <prop oor:name="SetupPosSize" oor:type="oor:int-list"/>
+    <prop oor:name="SetupUpdate" oor:type="xs:short"/>
+    <prop oor:name="ControllerPosSize" oor:type="oor:int-list"/>
+    <prop oor:name="SpoolerPosSize" oor:type="oor:int-list"/>
     <prop oor:name="SpoolerTable" oor:type="xs:string"/>
     <prop oor:name="SpoolerColumns" oor:type="xs:string"/>
     <prop oor:name="SpoolerOrders" oor:type="xs:string"/>
-    <prop oor:name="MergerPosition" oor:type="oor:int-list"/>
+    <prop oor:name="MergerPosSize" oor:type="oor:int-list"/>
     <prop oor:name="MergerLoadDataSource" oor:type="xs:boolean"/>
     <prop oor:name="MergerGrid1Columns" oor:type="xs:string"/>
     <prop oor:name="MergerGrid2Columns" oor:type="xs:string"/>

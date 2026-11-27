@@ -28,17 +28,13 @@ Rem ╚════════════════════════�
 
 
 Sub StartSpooler
-    Rem It is not possible to use the UNO DispatchHelper service here...
-    oUrl = createUnoStruct(&quot;com.sun.star.util.URL&quot;)
-    oUrl.Complete = &quot;emailer:StartSpooler&quot;
-    oTransformer = createUnoService(&quot;com.sun.star.util.URLTransformer&quot;)
-    If oTransformer.parseStrict(oUrl) Then
-        Set oDispatcher = StarDesktop.ActiveFrame.queryDispatch(oUrl, &quot;&quot;, 0)
-        If Not isNull(oDispatcher) Then
-            Dim args(0) As New com.sun.star.beans.PropertyValue
-            oDispatcher.dispatch(oUrl, args)
-        Endif
+    Dim oIndicator As Variant
+    Set oSpooler = createUnoService(&quot;com.sun.star.mail.MailSpooler&quot;)
+    Set oFrame = StarDesktop.ActiveFrame
+    If Not isNull(oFrame) Then
+        oIndicator = oFrame.createStatusIndicator()
     Endif
+    oSpooler.start(oIndicator)
 End Sub
 
 </script:module>

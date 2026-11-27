@@ -73,6 +73,10 @@ class Logger(unohelper.Base,
 
     # XLogger2
     @property
+    def Logger(self):
+        return self._logger
+
+    @property
     def ResourceResolver(self):
         return self._resolver
 

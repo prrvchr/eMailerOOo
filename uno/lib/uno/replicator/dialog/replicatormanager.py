@@ -165,7 +165,7 @@ class ReplicatorManager():
         if not self._running:
             self._close()
 
-    def onReplicationEnd(self, success=True):
+    def onReplicationEnd(self, success=True, _error=None):
         print("ReplicatorManager.onReplicationEnd() 1 success: %s" % success)
         self._running = False
         if self._cancel.isSet():

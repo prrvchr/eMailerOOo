@@ -36,6 +36,7 @@ from ..unotool import getStringResourceWithLocation
 
 from ..config.configuration import g_resource
 
+from ..configuration import g_basename
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
@@ -47,13 +48,14 @@ def getLogName(name):
 # XXX: This LogWrapper allows using variable number of argument in Python
 # XXX: while the UNO Logging API does not allow it
 class LogWrapper():
-    def __init__(self, ctx, name, basename):
+    def __init__(self, ctx, name=None, basename=None, logger=None):
         self._ctx = ctx
+        basename = basename or g_basename
+        url, log = self._getPoolLogger(ctx, name, basename, logger)
         self._basename = basename
-        url, logger = self._getPoolLogger(name, basename)
-        self._url = url
-        self._logger = logger
+        self._logger = log
         self._level = ALL
+        self._url = url
 
     # XLogger
     @property
@@ -67,6 +69,10 @@ class LogWrapper():
     @Level.setter
     def Level(self, value):
         self._logger.Level = value
+
+    @property
+    def Logger(self):
+        return self._logger.Logger
 
     # Public getter method
     def isLoggable(self, level):
@@ -121,7 +127,10 @@ class LogWrapper():
     def _resolveErrorMessage(self, resolver, resource):
         return resolver.resolveString(101).format(resource, g_extension, g_resource, self._basename)
 
-    def _getPoolLogger(self, name, basename):
-        url = getResourceLocation(self._ctx, g_identifier, g_resource)
-        logger = LoggerPool(self._ctx).getLocalizedLogger(getLogName(name), url, basename)
-        return url, logger
+    def _getPoolLogger(self, ctx, name, basename, logger):
+        url = getResourceLocation(ctx, g_identifier, g_resource)
+        if logger:
+            log = LoggerPool(ctx).getLocalizedLoggerFromLogger(logger, url, basename)
+        else:
+            log = LoggerPool(ctx).getLocalizedLogger(getLogName(name), url, basename)
+        return url, log
